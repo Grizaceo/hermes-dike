@@ -1,0 +1,17 @@
+# vitrina.toml: how this repository presents itself (Vitrina protocol, PROTOCOL.md).
+version = 1
+audience = "public"        # public | private
+status = "hackathon"            # alpha | beta | stable | hackathon | archived
+owner = "Grizaceo"              # GitHub user who approves agent work
+
+[language]
+canonical = "en"
+translations = ["es"]
+
+[root]
+allow = []          # extra root files allowed by R1
+agent_dirs = []     # agent folders that are part of the product, e.g. [".claude"]
+
+[agents]
+branch_prefix = "agent/"
+push_main = false   # only private workshop repos may set true

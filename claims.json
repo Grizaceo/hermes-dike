@@ -1,0 +1,28 @@
+{
+  "claims": [
+    {
+      "claim": "The plugin test suite passes 73 tests with 0 failures (Hermes Agent v0.22.7 venv, Python 3.11.16, Linux)",
+      "command": "PYTHONDONTWRITEBYTECODE=1 ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
+      "value": "73",
+      "date": "2026-11-06"
+    },
+    {
+      "claim": "The corpus package covers 25 Chilean statutes (Ley Chile codes listed in pack.json)",
+      "command": "tar -xzOf corpus/chile-base-af1422d66d1e6eee.tar.gz chile-base/pack.json | python3 -c \"import json,sys; print(len(json.load(sys.stdin)['includedLeychileCodes']))\"",
+      "value": "25",
+      "date": "2026-11-06"
+    },
+    {
+      "claim": "The corpus package holds 8,544 article records",
+      "command": "tar -tzf corpus/chile-base-af1422d66d1e6eee.tar.gz | grep -c '^chile-base/articulos/.*\\.json$'",
+      "value": "8544",
+      "date": "2026-11-06"
+    },
+    {
+      "claim": "On the demo brief (tests/fixtures/escrito_demo.md) the tool verifies 4 of 6 citations and refuses 2, also with networking disabled",
+      "command": "unshare -rn ~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_native_e2e.py -q -p no:cacheprovider",
+      "value": "4/6",
+      "date": "2026-11-06"
+    }
+  ]
+}

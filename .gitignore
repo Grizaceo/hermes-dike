@@ -1,0 +1,15 @@
+# vitrina: workshop and agent folders stay out of the showcase
+.workshop/
+.claude/
+.codex/
+.cursor/
+.hermes/
+.gemini/
+.opencode/
+.devin/
+.specstory/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

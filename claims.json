@@ -23,6 +23,12 @@
       "command": "unshare -rn ~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_native_e2e.py -q -p no:cacheprovider",
       "value": "4/6",
       "date": "2026-11-06"
+    },
+    {
+      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux)",
+      "command": "du -sh \"$HERMES_HOME/plugin-data/dike\"",
+      "value": "307M",
+      "date": "2026-11-06"
     }
   ]
 }

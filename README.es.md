@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=8ea27e16446f93d7e6cda93092b32585c7da8c20dbcfeaee764ddc5f07fa825f -->
+<!-- vitrina:translation-of README.md sha256=965570d26dfdb60823ab773220e512677a2f22e0125bb544a5d49c6c517452e5 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -10,9 +10,10 @@ y se niega a certificar lo que no puede probar.
 ## Estado
 
 - **Entrada de hackathon** para el Hermes Agent Plugin Hackathon de Nous
-  Research (noviembre de 2026). Todavía no está en el catálogo de plugins de
-  Hermes.
-- **Solo Linux.** Probado con Hermes Agent v0.22.7 sobre Python 3.11.16.
+  Research (noviembre de 2026). Enviado al catálogo de plugins de Hermes en
+  [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
+  todavía no aparece en él.
+- **Solo Linux.** Probado con Hermes Agent v0.22.7 y v0.23.0.
 - **El motor no es nuevo.** Es [Diké](https://github.com/Grizaceo/dike),
   copiado sin cambios; `VENDORED.json` indica el commit y el hash de cada
   archivo. [PREEXISTING.md](PREEXISTING.md) dice qué existía antes del
@@ -69,7 +70,9 @@ fechada, obtenida el 2026-08-18.
 Un modelo al que se le pregunta si existe el artículo 9999 del Código del
 Trabajo puede responder cualquier cosa con seguridad. Esta herramienta
 responde desde un corpus sellado cuya integridad vuelve a revisar en cada
-llamada, y cuando no tiene evidencia lo dice.
+llamada, y cuando no tiene evidencia lo dice. Un prompt o una skill pueden
+pedirle al modelo que tenga cuidado; no pueden llevar el corpus, revisar sus
+hashes ni rechazar en nombre del motor.
 
 ## Cómo se hizo
 
@@ -88,10 +91,18 @@ llamada, y cuando no tiene evidencia lo dice.
   `hermes plugins validate . --install-deps` y `hermes plugins doctor . --ci`
   en Hermes v0.22.7; los tests de punta a punta con la red desactivada
   (`unshare -rn`).
-- **No verificado:** la instalación desde GitHub (el repositorio todavía no
-  está publicado); versiones de Hermes anteriores a v0.22.7; versiones de
-  Python distintas de 3.11.16; macOS; que un modelo real elija la herramienta
-  por su cuenta (los tests la llaman directamente).
+- **Lo que escribió una IA después de publicar:** Devin (Claude Opus 5.5)
+  escribió la entrada del catálogo y su pull request, el banner del catálogo
+  y estas correcciones del README.
+- **Verificado por Devin (todavía no lo comprobé yo):** en Hermes v0.23.0, la
+  instalación desde GitHub con `hermes plugins install Grizaceo/hermes-dike`
+  y `/dike-verificar` sobre el escrito de demostración; `validate
+  --install-deps` y `doctor --ci` en el commit fijado; de nuevo los tests y
+  los de punta a punta sin red. También si un modelo real elige la
+  herramienta cuando se le pide revisar las citas de un escrito sin decirle
+  su nombre: las corridas y sus resultados están en el pull request del
+  catálogo.
+- **No verificado:** versiones de Hermes anteriores a v0.22.7; macOS.
 
 ## Límites
 
@@ -103,6 +114,12 @@ llamada, y cuando no tiene evidencia lo dice.
   existir igual en la ley.
 - **Una copia fechada, no el texto oficial de hoy.** Cada respuesta nombra el
   corpus por su `pack_hash` y da la fecha de obtención de cada fuente.
+- **`/dike-verificar` recibe texto, no una ruta.** Para revisar un archivo,
+  pídeselo al agente: la herramienta recibe la ruta como `ruta`.
+- **No es instantáneo.** Cada llamada vuelve a revisar el corpus instalado y
+  arranca el motor, así que tarda varios segundos.
+- **Disco.** El corpus instalado ocupa unos 300 MB en la carpeta de datos del
+  plugin ([claims.json](claims.json)).
 - **No es un sandbox.** El subproceso conserva tus permisos del sistema
   operativo. Lo que el plugin lee, escribe y ejecuta está en
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
@@ -114,4 +131,6 @@ llamada, y cuando no tiene evidencia lo dice.
 El código está bajo la [licencia MIT](LICENSE). El corpus de `corpus/` deriva
 de Ley Chile (Biblioteca del Congreso Nacional de Chile) y no lo cubre la
 licencia MIT; sus condiciones y su procedencia están en
-[corpus/README.md](corpus/README.md).
+[corpus/README.md](corpus/README.md). Ese archivo está copiado sin cambios de
+Grizaceo/dike, así que sus menciones de un `Dockerfile`, de
+`scripts/producto/` y del commit `a605d56` se refieren a ese repositorio.

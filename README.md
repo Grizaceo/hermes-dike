@@ -9,8 +9,10 @@ to certify what it cannot prove.
 ## Status
 
 - **Hackathon entry** for the Nous Research Hermes Agent Plugin Hackathon
-  (November 2026). Not in the Hermes plugin catalog yet.
-- **Linux only.** Tested with Hermes Agent v0.22.7 on Python 3.11.16.
+  (November 2026). Submitted to the Hermes plugin catalog in
+  [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
+  not listed yet.
+- **Linux only.** Tested with Hermes Agent v0.22.7 and v0.23.0.
 - **The engine is not new.** It is [Diké](https://github.com/Grizaceo/dike),
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
@@ -66,7 +68,8 @@ dated copy, retrieved on 2026-08-18.
 A model asked whether article 9999 of the Código del Trabajo exists can answer
 either way with confidence. This tool answers from a sealed corpus whose
 integrity it checks again on every call, and when it has no evidence it says
-so.
+so. A prompt or a skill can ask the model to be careful; it cannot carry the
+corpus, check its hashes or refuse on the engine's behalf.
 
 ## How this was built
 
@@ -84,10 +87,17 @@ so.
   `hermes plugins validate . --install-deps` and `hermes plugins doctor . --ci`
   on Hermes v0.22.7; the end-to-end tests with networking disabled
   (`unshare -rn`).
-- **Not verified:** installing from GitHub (the repository is not published
-  yet); Hermes versions older than v0.22.7; Python versions other than 3.11.16;
-  macOS; a real model choosing the tool on its own (the tests call it
-  directly).
+- **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
+  catalog entry and its pull request, the catalog banner, and these README
+  corrections.
+- **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
+  from GitHub with `hermes plugins install Grizaceo/hermes-dike` and running
+  `/dike-verificar` on the demo brief; `validate --install-deps` and
+  `doctor --ci` at the pinned commit; the tests and the offline end-to-end
+  tests again. Also whether a real model picks the tool when asked to review
+  a brief's citations without being told its name: the runs and their results
+  are in the catalog pull request.
+- **Not verified:** Hermes versions older than v0.22.7; macOS.
 
 ## Limits
 
@@ -99,6 +109,12 @@ so.
   exist in law.
 - **A dated copy, not the official text of today.** Every answer names the
   corpus by `pack_hash` and gives each source's retrieval date.
+- **`/dike-verificar` takes text, not a path.** To check a file, ask the
+  agent: the tool takes the path as `ruta`.
+- **Not instant.** Every call re-checks the installed corpus and starts the
+  engine, so it takes several seconds.
+- **Disk.** The installed corpus takes about 300 MB in the plugin's data
+  folder ([claims.json](claims.json)).
 - **Not a sandbox.** The subprocess keeps your operating-system permissions.
   What the plugin reads, writes and runs is listed in
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
@@ -110,4 +126,6 @@ so.
 The code is under the [MIT License](LICENSE). The corpus under `corpus/` is
 derived from Ley Chile (Biblioteca del Congreso Nacional de Chile) and is not
 covered by the MIT License; its terms and provenance are in
-[corpus/README.md](corpus/README.md).
+[corpus/README.md](corpus/README.md). That file is copied unchanged from
+Grizaceo/dike, so its mentions of a `Dockerfile`, `scripts/producto/` and
+commit `a605d56` refer to that repository.

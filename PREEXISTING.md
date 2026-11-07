@@ -13,10 +13,6 @@ hackathon opened, in the public repository
 | The tests (`tests/`) | `hermes-plugin/tests/` of Grizaceo/dike | 2026-10-07 to 2026-10-14 |
 | The demo brief (`tests/fixtures/escrito_demo.md`) | `docs/hackathon/escrito_demo.md` of Grizaceo/dike | 2026-10-06 |
 
-The Diké engine was also entered in the BLI Legal Tech Hackathon 2 (DoraHacks,
-submitted 2026-10-31). That entry was the Grizaceo/dike repository, which also
-carried the first version of this adapter in its `hermes-plugin/` folder.
-
 ## Done during the hackathon
 
 - This repository: the adapter moved out of the engine repository, so Hermes

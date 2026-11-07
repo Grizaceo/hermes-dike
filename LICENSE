@@ -22,10 +22,10 @@ SOFTWARE.
 
 ---
 
-Note on the Statutory Corpus (`corpus/` and `hermes-plugin/corpus/`):
+Note on the Statutory Corpus (`corpus/`):
 
 The MIT License above applies to the software, schemas, verification scripts,
 and documentation in this repository. The statutory snapshot packaged under
-`corpus/` (and mirrored in `hermes-plugin/corpus/`) is derived from public
+`corpus/` is derived from public
 official sources of the Biblioteca del Congreso Nacional de Chile (Ley Chile)
 and is governed by the terms and provenance notes detailed in `corpus/README.md`.

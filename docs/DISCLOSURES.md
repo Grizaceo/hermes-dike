@@ -35,7 +35,8 @@ All writes go under the current profile's plugin data folder,
   `data` filter (no absolute paths, links out of the tree or device files),
   installed by the engine, and published by renaming a finished folder. Every
   later call checks the installed files against the hashes recorded at
-  install time and stops if any differs.
+  install time and stops if any differs. The installed corpus takes about
+  300 MB ([claims.json](../claims.json)).
 - **Temporary files.** The text to check is written to a temporary folder
   inside the data folder and removed after the call.
 - **Engine caches** and the engine's `HOME`, both redirected into the data

@@ -1,0 +1,13 @@
+{
+  "name": "dike",
+  "label": "Diké",
+  "description": "Verifica citas de la ley chilena contra el corpus local",
+  "icon": "Shield",
+  "version": "0.4.0",
+  "tab": {
+    "path": "/dike",
+    "position": "after:skills"
+  },
+  "entry": "dist/index.js",
+  "api": "plugin_api.py"
+}

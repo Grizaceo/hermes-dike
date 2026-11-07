@@ -35,12 +35,18 @@ with the text after the command:
 The first call unpacks and checks the corpus in the plugin's data folder,
 which takes a while. Later calls run offline.
 
+The same check also has a **Diké** tab in the web dashboard and a sidebar
+page in the Desktop app (the desktop half is opt-in: enable it under
+Capabilities → Plugins). Both paste text and call the same engine through
+the plugin's `/api/plugins/dike` backend.
+
 ## How it works
 
 The plugin gives the agent one tool, `dike_verificar_citas`. It takes either
 `texto` (the pasted text) or `ruta` (a `.md`, `.txt` or `.docx` file). A relative path resolves against the
 session's working directory when Hermes reports one; gateway sessions do not,
-so there it must be absolute.
+so there it must be absolute. The Dashboard and Desktop pages reach the same
+adapter over HTTP — text only, never file reads.
 
 1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
    with a minimal environment: no agent credentials, and a home folder inside
@@ -92,7 +98,8 @@ corpus, check its hashes or refuse on the engine's behalf.
   (`unshare -rn`).
 - **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
   catalog entry and its pull request, the catalog banner, these README
-  corrections, and the 0.3.0 adapter changes listed in
+  corrections, the 0.3.0 adapter changes and the 0.4.0 panel surfaces
+  (Dashboard tab, Desktop page and `/api/plugins/dike` backend) listed in
   [PREEXISTING.md](PREEXISTING.md), with their tests. Claude Code (Claude Opus
   5.5) reviewed the entry independently, read-only, before those changes.
 - **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
@@ -101,7 +108,9 @@ corpus, check its hashes or refuse on the engine's behalf.
   `doctor --ci` at the pinned commit; the tests and the offline end-to-end
   tests again; for 0.3.0, the suite ([claims.json](claims.json)), `validate`
   and `doctor` on the new tree, and a `.docx` checked through a plugin that
-  Hermes installed with its dependencies. Also whether a real model picks the tool when asked to review
+  Hermes installed with its dependencies; for 0.4.0, the `estado` and
+  `verificar` routes called against the installed package (4 of 6 on the
+  demo brief). Also whether a real model picks the tool when asked to review
   a brief's citations without being told its name: the runs and their results
   are in the catalog pull request.
 - **Not verified:** Hermes versions older than v0.22.7; macOS.

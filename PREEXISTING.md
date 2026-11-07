@@ -44,3 +44,12 @@ Changes to the adapter's code during the hackathon:
   - two small fixes: the redaction no longer cuts URLs in the middle of a
     text, and the data folder falls back only when Hermes's storage helper
     is missing.
+- After publishing, for version 0.4.0, same authorship and review:
+  - `dashboard/` adds a **Diké** tab to the web dashboard
+    (`manifest.json`, `dist/index.js`) and a small FastAPI backend
+    (`plugin_api.py`) mounted at `/api/plugins/dike/`, with `estado` and a
+    text-only `verificar` that calls the same adapter;
+  - `desktop/plugin.js` adds a sidebar row and page to the Desktop app,
+    copied by the app to `~/.hermes/desktop-plugins/dike/` and opt-in under
+    Capabilities → Plugins;
+  - none of this changes the adapter, the tool or the command.

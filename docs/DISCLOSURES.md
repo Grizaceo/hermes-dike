@@ -65,6 +65,30 @@ description tells the agent the same.
 - Installing the Python dependencies may contact the package registry. That
   is done by Hermes's installer, not by the plugin.
 
+## The panel surfaces (Dashboard tab, Desktop sidebar)
+
+`dashboard/` and `desktop/` put the same engine behind Hermes's own UI:
+
+- `dashboard/manifest.json` and `dashboard/dist/index.js` add a **Diké** tab
+  to the web dashboard. `desktop/plugin.js` adds a sidebar row and a page to
+  the Desktop app: the app copies it to `~/.hermes/desktop-plugins/dike/`
+  and keeps it off until you enable it under **Capabilities → Plugins**.
+- `dashboard/plugin_api.py` serves `GET /api/plugins/dike/estado` and
+  `POST /api/plugins/dike/verificar`. The routes run inside Hermes — the
+  dashboard process, or the profile's plugin host under
+  `plugins.isolation: host` — behind the dashboard's own auth and the
+  enabled-plugin gate, and they answer for the profile that has the plugin
+  enabled.
+- `/verificar` takes **text only**: the HTTP surface does not expose the
+  adapter's local file read (`ruta`). It calls `verificar_citas` from the
+  agent adapter, so everything above — the subprocess, its environment, the
+  corpus check, the confined writes — applies unchanged. `/estado` only
+  reports whether the corpus generation is installed; it never installs or
+  downloads.
+- Both UI files are plain readable JavaScript with no build step and no
+  bundled dependencies (the dashboard supplies React and its components;
+  the Desktop plugin imports only `@hermes/plugin-sdk` and `react`).
+
 ## What it never does
 
 - It never signs, and never reads or writes signing keys.

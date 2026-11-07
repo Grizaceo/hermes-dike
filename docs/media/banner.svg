@@ -4,7 +4,7 @@
 
   <g font-family="DejaVu Sans, Liberation Sans, sans-serif" fill="#e8e6e1">
     <text x="64" y="128" font-size="64" font-weight="bold">Diké <tspan fill="#8a8f98" font-weight="normal">for Hermes</tspan></text>
-    <text x="64" y="188" font-size="27" fill="#c7c4bd">Checks every article citation in a Chilean legal brief</text>
+    <text x="64" y="188" font-size="27" fill="#c7c4bd">Checks the article citations in a Chilean legal brief</text>
     <text x="64" y="226" font-size="27" fill="#c7c4bd">against a sealed local copy of the law,</text>
     <text x="64" y="264" font-size="27" fill="#c9a227">and refuses to certify what it cannot prove.</text>
 

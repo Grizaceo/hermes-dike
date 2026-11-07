@@ -44,6 +44,26 @@ PACK_HASH = 'af1422d66d1e6eee'
 _USUARIO = "hermes"
 _NOMBRE_CORPUS = "chile-base"
 _LIMITE_TEXTO = 400_000
+_LIMITE_DOCX = 10_000_000
+
+
+class EntradaInvalida(ValueError):
+    """Error de entrada con código fijo: el modelo puede reaccionar al motivo."""
+    def __init__(self, codigo: str, mensaje: str):
+        super().__init__(mensaje)
+        self.codigo = codigo
+
+
+_MSG_INPUT_FIELDS = "Indica exactamente uno de los dos campos: texto o ruta."
+_MSG_INPUT_EMPTY = "El texto o la ruta están vacíos."
+_MSG_INPUT_EXTENSION = "Solo se aceptan archivos .md, .txt o .docx. Para un .pdf u otro formato, extrae el texto y pásalo en el campo texto."
+_MSG_INPUT_SYMLINK = "No se aceptan rutas con enlaces simbólicos."
+_MSG_INPUT_NOT_FOUND = "No existe un archivo regular en esa ruta."
+_MSG_INPUT_TOO_LARGE = "El texto o el archivo supera el límite: 400.000 bytes de texto, o 10 MB para un .docx."
+_MSG_INPUT_ENCODING = "El archivo no está en UTF-8."
+_MSG_INPUT_RELATIVE = "Usa una ruta absoluta: esta sesión no informa su carpeta de trabajo."
+_MSG_INPUT_DOCX = "No se pudo leer el .docx: puede estar dañado o protegido."
+_DOC_SUFFIXES = {'.pdf', '.doc', '.rtf', '.odt', '.html', '.htm'}
 
 ESQUEMA = {
     "name": "dike_verificar_citas",
@@ -66,7 +86,7 @@ ESQUEMA = {
         "type": "object",
         "properties": {
             "texto": {"type": "string", "description": "El texto del escrito, o el pasaje con las citas."},
-            "ruta": {"type": "string", "description": "Ruta de un archivo .md o .txt con el escrito (alternativa a `texto`)."},
+            "ruta": {"type": "string", "description": "Ruta de un archivo .md, .txt o .docx con el escrito (alternativa a `texto`). Para .pdf u otros formatos, extrae el texto y pásalo en `texto`."},
         },
     },
 }
@@ -76,7 +96,7 @@ def _carpeta_de_datos() -> Path:
     try:
         from plugins.plugin_storage import plugin_data_dir
         return Path(plugin_data_dir("dike"))
-    except Exception:
+    except ImportError:
         base = Path(os.environ.get("HERMES_HOME") or (Path.home() / ".hermes")) / "plugin-data" / "dike"
         base.mkdir(parents=True, exist_ok=True)
         return base
@@ -116,6 +136,79 @@ def _dike(argumentos: list, datos: Path, timeout: int = 300) -> subprocess.Compl
     )
 
 
+def _hash_archivos_corpus(generation: Path) -> dict:
+    return {str(p.relative_to(generation)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (generation / 'users').rglob('*') if p.is_file()}
+
+
+def _stat_archivos_corpus(generation: Path) -> dict:
+    out = {}
+    for p in (generation / 'users').rglob('*'):
+        if p.is_file():
+            info = p.stat()
+            out[str(p.relative_to(generation))] = [info.st_size, info.st_mtime_ns]
+    return out
+
+
+def _stat_digest(stat: dict) -> str:
+    h = hashlib.sha256()
+    for name in sorted(stat):
+        h.update(name.encode('utf-8'))
+        h.update(repr(stat[name]).encode('ascii'))
+    return h.hexdigest()
+
+
+# Verificaciones de integridad ya hechas en este proceso: (generation, stat-digest).
+_PROC_VERIFIED = set()
+_PKG_DIGESTS = {}
+
+
+def _paquete_digest(paquete: Path) -> str:
+    """SHA-256 del tarball, cacheado por proceso según (ruta, tamaño, mtime)."""
+    info = paquete.stat()
+    key = (str(paquete), info.st_size, info.st_mtime_ns)
+    if key not in _PKG_DIGESTS:
+        _PKG_DIGESTS.clear()
+        _PKG_DIGESTS[key] = hashlib.sha256(paquete.read_bytes()).hexdigest()
+    return _PKG_DIGESTS[key]
+
+
+def _reescribir_stat(datos: Path, generation: Path) -> dict:
+    """Refresh installed.json's stat atomically, under the exclusive lock."""
+    with (datos / 'install.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        marker = generation / 'installed.json'
+        record = json.loads(marker.read_text())
+        record['stat'] = _stat_archivos_corpus(generation)
+        tmp = generation / 'installed.json.tmp'
+        tmp.write_text(json.dumps(record))
+        os.replace(tmp, marker)
+        return record['stat']
+
+
+def _verificar_generacion(datos: Path, generation: Path, esperado: str) -> dict:
+    """Per-call integrity: stat cache first, full SHA-256 once per process."""
+    marker = generation / 'installed.json'
+    record = json.loads(marker.read_text())
+    if record.get('package_sha256') != esperado:
+        raise ValueError('installed generation mismatch')
+    stat = record.get('stat')
+    if isinstance(stat, dict) and _stat_archivos_corpus(generation) == stat:
+        key = (str(generation), _stat_digest(stat))
+        if key in _PROC_VERIFIED:
+            return {'generation': str(generation)}
+        if _hash_archivos_corpus(generation) != record.get('files'):
+            raise ValueError('installed corpus integrity mismatch')
+        _PROC_VERIFIED.add(key)
+        return {'generation': str(generation)}
+    # Sin stat (instalación antigua) o stat distinto: chequeo completo ahora.
+    if _hash_archivos_corpus(generation) != record.get('files'):
+        raise ValueError('installed corpus integrity mismatch')
+    stat = _reescribir_stat(datos, generation)
+    _PROC_VERIFIED.add((str(generation), _stat_digest(stat)))
+    return {'generation': str(generation)}
+
+
 def _asegurar_corpus(datos: Path) -> dict:
     """Validate package and installed generation; publish only complete installs."""
     datos.mkdir(parents=True, exist_ok=True)
@@ -126,22 +219,16 @@ def _asegurar_corpus(datos: Path) -> dict:
     if Path(nombre).name != nombre or not re.fullmatch(r'[0-9a-f]{64}', esperado):
         raise ValueError('invalid corpus package name or digest')
     paquete = _CORPUS / nombre
-    if hashlib.sha256(paquete.read_bytes()).hexdigest() != esperado:
+    if _paquete_digest(paquete) != esperado:
         raise ValueError('corpus package checksum mismatch')
     generation = datos / 'generations' / esperado
     generation.parent.mkdir(parents=True, exist_ok=True)
+    if generation.exists():
+        return _verificar_generacion(datos, generation, esperado)
     with (datos / 'install.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        marker = generation / 'installed.json'
         if generation.exists():
-            record = json.loads(marker.read_text())
-            if record.get('package_sha256') != esperado:
-                raise ValueError('installed generation mismatch')
-            actual = {str(p.relative_to(generation)): hashlib.sha256(p.read_bytes()).hexdigest()
-                      for p in (generation / 'users').rglob('*') if p.is_file()}
-            if actual != record.get('files'):
-                raise ValueError('installed corpus integrity mismatch')
-            return {'generation': str(generation)}
+            return _verificar_generacion(datos, generation, esperado)
         with tempfile.TemporaryDirectory(dir=generation.parent, prefix='staging-') as tmp:
             stage = Path(tmp) / 'generation'
             stage.mkdir()
@@ -168,9 +255,11 @@ def _asegurar_corpus(datos: Path) -> dict:
                      for p in (stage / 'users').rglob('*') if p.is_file()}
             if not files:
                 raise ValueError('corpus installation produced no data')
-            (stage / 'installed.json').write_text(json.dumps({'package_sha256': esperado, 'files': files}))
+            (stage / 'installed.json').write_text(json.dumps(
+                {'package_sha256': esperado, 'files': files,
+                 'stat': _stat_archivos_corpus(stage)}))
             stage.rename(generation)
-        return {'generation': str(generation)}
+    return _verificar_generacion(datos, generation, esperado)
 
 
 # ── Adaptador: clasificación de errores P2-5 ──────────────────────────────
@@ -189,6 +278,9 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
     elif isinstance(raw, subprocess.CalledProcessError):
         code, message = 'ENGINE_EXIT_ERROR', 'El motor terminó con error.'
         stderr = raw.stderr if isinstance(raw.stderr, str) else ''
+    elif isinstance(raw, EntradaInvalida):
+        return {'error': f'INPUT_ERROR: {raw}', 'error_code': 'INPUT_ERROR',
+                'motivo': raw.codigo, 'todo_verificado': False}
     elif isinstance(raw, (ValueError, TypeError, KeyError)):
         code, message = 'CONTRACT_OR_INPUT_ERROR', 'Entrada, corpus o respuesta incompatibles con el contrato.'
         # Fixed diagnostics retained for existing integrity tests, no raw interpolation.
@@ -283,29 +375,68 @@ def _validar_constancia(c, code, *, as_of=None):
     return c
 
 
+_CTX = None
+
+
+def _cwd_sesion():
+    """The calling session's cwd; None when Hermes does not report one (gateway sessions)."""
+    if _CTX is None:
+        return Path(os.getcwd())
+    try:
+        cwd = _CTX.session_cwd()
+    except Exception:
+        cwd = ""
+    return Path(cwd) if cwd else None
+
+
 def _texto_input(args):
+    """Devuelve el texto del escrito; para una ruta .docx, sus bytes crudos."""
     if not isinstance(args, dict) or set(args) - {'texto', 'ruta'}:
-        raise ValueError('invalid input fields')
+        raise EntradaInvalida('INPUT_FIELDS', _MSG_INPUT_FIELDS)
     if ('texto' in args) == ('ruta' in args):
-        raise ValueError('provide exactly one of texto or ruta')
+        raise EntradaInvalida('INPUT_FIELDS', _MSG_INPUT_FIELDS)
     value = args.get('texto') if 'texto' in args else args.get('ruta')
     if not isinstance(value, str) or not value.strip():
-        raise ValueError('input must be a nonempty string')
+        raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
     if 'ruta' in args:
         # P2-2: check symlinks on the original path, then resolve for safety.
         path = Path(value).expanduser()
-        if path.suffix.lower() not in ('.md', '.txt') or any(p.is_symlink() for p in [path, *path.parents]):
-            raise ValueError('only regular .md/.txt files without symlinks are accepted')
+        if not path.is_absolute():
+            base = _cwd_sesion()
+            if base is None:
+                raise EntradaInvalida('INPUT_RELATIVE', _MSG_INPUT_RELATIVE)
+            path = base / path
+        suffix = path.suffix.lower()
+        if suffix not in ('.md', '.txt', '.docx'):
+            raise EntradaInvalida('INPUT_EXTENSION', _MSG_INPUT_EXTENSION)
+        if any(p.is_symlink() for p in [path, *path.parents]):
+            raise EntradaInvalida('INPUT_SYMLINK', _MSG_INPUT_SYMLINK)
         # P2-2: resolve after symlink check to handle any remaining edge cases.
         path = path.resolve()
-        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-        with os.fdopen(fd, 'rb') as stream:
-            info = os.fstat(stream.fileno())
-            if not stat.S_ISREG(info.st_mode) or info.st_size > _LIMITE_TEXTO:
-                raise ValueError('not a regular file or file too large')
-            value = stream.read(_LIMITE_TEXTO + 1).decode('utf-8')
-    if not value.strip() or len(value.encode('utf-8')) > _LIMITE_TEXTO:
-        raise ValueError('empty input or input exceeds 400000 UTF-8 bytes')
+        try:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        except OSError:
+            raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND) from None
+        limite = _LIMITE_DOCX if suffix == '.docx' else _LIMITE_TEXTO
+        try:
+            with os.fdopen(fd, 'rb') as stream:
+                if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                    raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND)
+                data = stream.read(limite + 1)
+        except OSError:
+            raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND) from None
+        if len(data) > limite:
+            raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
+        if suffix == '.docx':
+            return data
+        try:
+            value = data.decode('utf-8')
+        except UnicodeDecodeError:
+            raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_ENCODING) from None
+    if not value.strip():
+        raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
+    if len(value.encode('utf-8')) > _LIMITE_TEXTO:
+        raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
     return value
 
 
@@ -350,7 +481,7 @@ def _salida_publica(c):
         if isinstance(value, list): return [clean(v) for v in value]
         if isinstance(value, str) and not value.startswith(('https://', 'http://')):
             value = re.sub(r'(?<![\w:/])/(?:[^\s,;\"\']+)', '<ruta-local>', value)
-            value = re.sub(r'[A-Za-z]:[\\/][^\s,;\"\']+', '<ruta-local>', value)
+            value = re.sub(r'(?<![\w/])[A-Za-z]:[\\/][^\s,;\"\']+', '<ruta-local>', value)
         return value
     return clean(out)
 
@@ -358,31 +489,92 @@ def _salida_publica(c):
 def verificar_citas(args: dict, **kwargs) -> str:
     stdout, stderr, returncode = '', '', None
     try:
-        texto = _texto_input(args)
+        contenido = _texto_input(args)
+        es_docx = isinstance(contenido, bytes)
         expected_day = date.today().isoformat()
         datos = _carpeta_de_datos().resolve()
         installed = _asegurar_corpus(datos)
         runtime = Path(installed.get('generation', datos))
         with tempfile.TemporaryDirectory(dir=datos) as tmp:
-            archivo = Path(tmp) / 'escrito.md'
-            archivo.write_text(texto, encoding='utf-8')
+            archivo = Path(tmp) / ('escrito.docx' if es_docx else 'escrito.md')
+            if es_docx:
+                archivo.write_bytes(contenido)
+            else:
+                archivo.write_text(contenido, encoding='utf-8')
             result = _dike(['constancia', str(archivo), '--as-of', expected_day, '--json'], runtime)
         stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
         if returncode not in (0, 1):
-            return json.dumps(_error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
-        c = _validar_constancia(json.loads(stdout), returncode, as_of=expected_day)
+            return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
+                              _error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
+        try:
+            c = _validar_constancia(json.loads(stdout), returncode, as_of=expected_day)
+        except json.JSONDecodeError as exc:
+            return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
+                              _error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
         return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
 
 
+def _error_docx(stderr: str):
+    """Classify an engine-side .docx read failure by fixed markers; never forward stderr."""
+    if 'ModuleNotFoundError' in stderr or 'falta la librería python-docx' in stderr:
+        return {'error': 'ENGINE_EXIT_ERROR: Falta una dependencia del motor en el entorno de ejecución.',
+                'error_code': 'ENGINE_EXIT_ERROR', 'todo_verificado': False}
+    if any(m in stderr for m in ('DocumentoIlegible', 'PackageNotFoundError', 'BadZipFile')):
+        return {'error': f'INPUT_ERROR: {_MSG_INPUT_DOCX}', 'error_code': 'INPUT_ERROR',
+                'motivo': 'INPUT_DOCX', 'todo_verificado': False}
+    return None
+
+
+def _formatear_salida(out: dict) -> str:
+    """Texto legible del comando: el tool sigue devolviendo JSON."""
+    if 'error' in out:
+        error = str(out['error'])
+        message = error.split(': ', 1)[1] if ': ' in error else error
+        return f'Diké no pudo revisar el escrito: {message}'
+    veredicto = out.get('veredicto')
+    meta = out.get('meta') or {}
+    if veredicto in ('SIN_CITAS', 'SIN_CORPUS'):
+        return f"Diké: {out.get('mensaje') or ''}"
+    detalles = out.get('detalles') or []
+    lines = [f"Diké: {meta.get('citas_verificadas')} de {meta.get('total_citas')} citas verificadas "
+             f"({veredicto}) · corpus {meta.get('pack_hash')}"]
+    fechas = []
+    for d in detalles:
+        cita = str(d.get('cita_raw') or '')[:120]
+        if d.get('estado') == 'VERIFICADA':
+            lines.append(f"✓ {cita} · {d.get('gid')} · {d.get('fuente_url')}")
+            if d.get('fecha_recuperacion'):
+                fechas.append(str(d['fecha_recuperacion'])[:10])
+        else:
+            lines.append(f"✗ {cita} · {d.get('resolucion')}")
+    no_verificadas = out.get('no_verificadas') or []
+    if no_verificadas:
+        lines.append('Menciones sin artículo, no verificadas: ' + ', '.join(str(v) for v in no_verificadas))
+    fecha = min(fechas) if fechas else '—'
+    lines.append('No certifica que el artículo respalde el argumento ni que la copia '
+                 f'(obtenida {fecha}) sea el texto vigente hoy.')
+    return '\n'.join(lines)
+
+
 def _comando(raw):
-    return verificar_citas({'texto': raw})
+    arg = (raw or '').strip()
+    if arg and len(arg) < 256 and not re.search(r'\s', arg):
+        suffix = Path(arg).suffix.lower()
+        if suffix in ('.md', '.txt', '.docx'):
+            return _formatear_salida(json.loads(verificar_citas({'ruta': arg})))
+        if suffix in _DOC_SUFFIXES:
+            return f'Diké no pudo revisar el escrito: {_MSG_INPUT_EXTENSION}'
+    return _formatear_salida(json.loads(verificar_citas({'texto': raw})))
 
 
 def register(ctx):
+    global _CTX
+    _CTX = ctx
     ctx.register_tool(name='dike_verificar_citas', toolset='dike', schema=ESQUEMA, handler=verificar_citas)
-    ctx.register_command('dike-verificar', _comando, 'Verifica citas contra el corpus local; no firma.')
+    ctx.register_command('dike-verificar', _comando, 'Verifica citas contra el corpus local; no firma.',
+                         args_hint='<texto o ruta .md/.txt/.docx>')
     carpeta = _RAIZ / 'skills'
     if carpeta.is_dir():
         for hija in sorted(carpeta.iterdir()):

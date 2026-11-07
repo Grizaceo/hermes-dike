@@ -2,7 +2,7 @@
 
 [Español](README.es.md)
 
-A Hermes Agent plugin that checks every article citation of Chilean law in a
+A Hermes Agent plugin that checks the article citations of Chilean law in a
 legal brief against a local, hash-identified copy of the statutes, and refuses
 to certify what it cannot prove.
 
@@ -38,7 +38,9 @@ which takes a while. Later calls run offline.
 ## How it works
 
 The plugin gives the agent one tool, `dike_verificar_citas`. It takes either
-`texto` (the pasted text) or `ruta` (a `.md` or `.txt` file).
+`texto` (the pasted text) or `ruta` (a `.md`, `.txt` or `.docx` file). A relative path resolves against the
+session's working directory when Hermes reports one; gateway sessions do not,
+so there it must be absolute.
 
 1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
    with a minimal environment: no agent credentials, and a home folder inside
@@ -63,12 +65,13 @@ citations, the tool returns:
 The answer also states what it does not cover. `certificacion_sustantiva` is
 always `false`: the tool does not check that an article supports the
 argument. `certificacion_vigencia_actual` is always `false`: the corpus is a
-dated copy, retrieved on 2026-08-18.
+dated copy taken from Ley Chile in August 2026, and each verified citation
+carries its retrieval date.
 
 A model asked whether article 9999 of the Código del Trabajo exists can answer
 either way with confidence. This tool answers from a sealed corpus whose
-integrity it checks again on every call, and when it has no evidence it says
-so. A prompt or a skill can ask the model to be careful; it cannot carry the
+integrity it re-checks on every call ([docs/DISCLOSURES.md](docs/DISCLOSURES.md)),
+and when it has no evidence it says so. A prompt or a skill can ask the model to be careful; it cannot carry the
 corpus, check its hashes or refuse on the engine's behalf.
 
 ## How this was built
@@ -88,13 +91,17 @@ corpus, check its hashes or refuse on the engine's behalf.
   on Hermes v0.22.7; the end-to-end tests with networking disabled
   (`unshare -rn`).
 - **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
-  catalog entry and its pull request, the catalog banner, and these README
-  corrections.
+  catalog entry and its pull request, the catalog banner, these README
+  corrections, and the 0.3.0 adapter changes listed in
+  [PREEXISTING.md](PREEXISTING.md), with their tests. Claude Code (Claude Opus
+  5.5) reviewed the entry independently, read-only, before those changes.
 - **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
   from GitHub with `hermes plugins install Grizaceo/hermes-dike` and running
   `/dike-verificar` on the demo brief; `validate --install-deps` and
   `doctor --ci` at the pinned commit; the tests and the offline end-to-end
-  tests again. Also whether a real model picks the tool when asked to review
+  tests again; for 0.3.0, the suite ([claims.json](claims.json)), `validate`
+  and `doctor` on the new tree, and a `.docx` checked through a plugin that
+  Hermes installed with its dependencies. Also whether a real model picks the tool when asked to review
   a brief's citations without being told its name: the runs and their results
   are in the catalog pull request.
 - **Not verified:** Hermes versions older than v0.22.7; macOS.
@@ -109,8 +116,13 @@ corpus, check its hashes or refuse on the engine's behalf.
   exist in law.
 - **A dated copy, not the official text of today.** Every answer names the
   corpus by `pack_hash` and gives each source's retrieval date.
-- **`/dike-verificar` takes text, not a path.** To check a file, ask the
-  agent: the tool takes the path as `ruta`.
+- **Moving `plugin-data/dike` does not migrate the corpus.** A data folder
+  copied or moved to another path reports `SIN_CORPUS`; delete
+  `plugin-data/dike/generations` and the corpus reinstalls on the next call.
+- **`.pdf` and other formats: pass the text.** `ruta` accepts `.md`, `.txt`
+  and `.docx`; for a `.pdf` or anything else, extract the text and pass it in
+  `texto`. `/dike-verificar` treats a lone path token as `ruta`, everything
+  else as text.
 - **Not instant.** Every call re-checks the installed corpus and starts the
   engine, so it takes several seconds.
 - **Disk.** The installed corpus takes about 300 MB in the plugin's data

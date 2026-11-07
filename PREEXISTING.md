@@ -29,5 +29,18 @@ carried the first version of this adapter in its `hermes-plugin/` folder.
   was tested on (v0.22.7), license, homepage and tags.
 - The README, its Spanish translation, `docs/DISCLOSURES.md` and `claims.json`.
 
-Changes to the adapter's code during the hackathon: one docstring line
-(`__init__.py`), which said the plugin was not published.
+Changes to the adapter's code during the hackathon:
+
+- Before publishing: one docstring line (`__init__.py`), which said the
+  plugin was not published.
+- After publishing, for version 0.3.0, written by AI and reviewed in pull
+  requests (see "How this was built" in the README):
+  - an input error now says which rule the input broke;
+  - `ruta` accepts `.docx` files;
+  - a relative `ruta` resolves against the session's working directory;
+  - `/dike-verificar` accepts a file path and answers in readable text;
+  - the per-call corpus check compares file sizes and modification times,
+    and re-hashes when they change;
+  - two small fixes: the redaction no longer cuts URLs in the middle of a
+    text, and the data folder falls back only when Hermes's storage helper
+    is missing.

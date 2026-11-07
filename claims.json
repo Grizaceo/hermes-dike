@@ -1,9 +1,9 @@
 {
   "claims": [
     {
-      "claim": "The plugin test suite passes 73 tests with 0 failures (Hermes Agent v0.22.7 venv, Python 3.11.16, Linux)",
-      "command": "PYTHONDONTWRITEBYTECODE=1 ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "73",
+      "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
+      "value": "107",
       "date": "2026-11-06"
     },
     {

@@ -13,6 +13,10 @@ import { useCallback, useEffect, useState } from 'react'
 
 const ID = 'dike'
 
+// ctx.rest del PluginContext: el objeto `host` del SDK no expone REST — solo
+// navigate/request/state. Se asigna en register() antes de que nada renderice.
+let rest = null
+
 const S = {
   page: 'flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-(--ui-text-primary)',
   title: 'text-base font-semibold',
@@ -50,7 +54,7 @@ function Estado() {
   const [err, setErr] = useState(null)
   const cargar = useCallback(() => {
     setErr(null)
-    host.rest('/estado').then(setEstado).catch(setErr)
+    rest('/estado').then(setEstado).catch(setErr)
   }, [])
   useEffect(cargar, [cargar])
   if (err) {
@@ -131,7 +135,7 @@ function SeccionEscrito() {
     if (!t || ocupado) return
     setOcupado(true)
     setError(null)
-    host.rest('/verificar', { method: 'POST', body: { texto: t }, timeoutMs: 320000 })
+    rest('/verificar', { method: 'POST', body: { texto: t }, timeoutMs: 320000 })
       .then(setResultado)
       .catch(setError)
       .finally(() => setOcupado(false))
@@ -197,7 +201,7 @@ function NormaRow({ norma }) {
     if (detalle || cargando) return
     setCargando(true)
     setError(null)
-    host.rest('/grafo/corpus/norma/' + norma.leychileCode)
+    rest('/grafo/corpus/norma/' + norma.leychileCode)
       .then(setDetalle)
       .catch(setError)
       .finally(() => setCargando(false))
@@ -231,8 +235,8 @@ function SeccionGrafo() {
   const cargar = useCallback(() => {
     setCorpusErr(null)
     setPersonalErr(null)
-    host.rest('/grafo/corpus').then(setCorpus).catch(setCorpusErr)
-    host.rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
+    rest('/grafo/corpus').then(setCorpus).catch(setCorpusErr)
+    rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
   }, [])
   useEffect(cargar, [cargar])
 
@@ -382,7 +386,7 @@ function NifBoard({ caso, onCambio }) {
 
   const cargar = useCallback(() => {
     setError(null)
-    host.rest('/nif/snapshot?case_id=' + encodeURIComponent(caso.case_id))
+    rest('/nif/snapshot?case_id=' + encodeURIComponent(caso.case_id))
       .then(setData)
       .catch(setError)
   }, [caso.case_id])
@@ -398,7 +402,7 @@ function NifBoard({ caso, onCambio }) {
       .finally(() => setOcupado(false))
   }, [ocupado, cargar, onCambio])
 
-  const post = (ruta, body) => host.rest(ruta, { method: 'POST', body, timeoutMs: 60000 })
+  const post = (ruta, body) => rest(ruta, { method: 'POST', body, timeoutMs: 60000 })
 
   if (error && !data) {
     return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
@@ -492,7 +496,7 @@ function SeccionNifPanel() {
 
   const cargar = useCallback(() => {
     setError(null)
-    host.rest('/nif/casos')
+    rest('/nif/casos')
       .then((d) => {
         setLista(d)
         setCasoSel((prev) => {
@@ -505,7 +509,7 @@ function SeccionNifPanel() {
   }, [])
   useEffect(cargar, [cargar])
 
-  const post = (ruta, body) => host.rest(ruta, { method: 'POST', body, timeoutMs: 60000 })
+  const post = (ruta, body) => rest(ruta, { method: 'POST', body, timeoutMs: 60000 })
 
   const casos = lista.cases || []
   return jsxs('div', { className: 'flex flex-col gap-3', children: [
@@ -568,6 +572,7 @@ export default {
   defaultEnabled: true,
 
   register(ctx) {
+    rest = ctx.rest
     function DikePage() {
       const [pestana, setPestana] = useState('escrito')
       const pestanas = [

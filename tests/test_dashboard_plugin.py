@@ -275,6 +275,14 @@ def test_desktop_registra_pagina_nav_y_paleta():
     assert "PALETTE_AREA" in src
 
 
+def test_desktop_usa_ctx_rest_no_host_rest():
+    """El SDK del Desktop expone REST en ctx (PluginContext), no en host:
+    host.rest no existe y rompe el render de toda la página."""
+    src = (DESKTOP / 'plugin.js').read_text()
+    assert 'host.rest' not in src
+    assert 'ctx.rest' in src
+
+
 def test_web_tab_registra_dike():
     src = (DASH / 'dist/index.js').read_text()
     assert '__HERMES_PLUGINS__.register("dike"' in src

@@ -12,7 +12,11 @@ to certify what it cannot prove.
   (November 2026). Submitted to the Hermes plugin catalog in
   [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
   not listed yet.
-- **Linux only.** Tested with Hermes Agent v0.22.7 and v0.23.0.
+- **Linux only.** Tested with Hermes Agent v0.23.0 (requires_hermes
+  `>=0.23.0`). Version 0.6.0: the plugin adds a Desktop page with a 3D
+  graph of the 25-law corpus — instrument, article and minimal normative
+  unit nodes, each unit tagged with a candidate deontic modality — plus
+  the Dashboard tab.
 - **The engine is not new.** It is [Diké](https://github.com/Grizaceo/dike),
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
@@ -54,6 +58,16 @@ routes run `scripts/panel.py` in the same isolated subprocess: case boards
 are versioned SQLite stores under the plugin's data folder (outside the
 sealed corpus), and the corpus graph routes only read the verified
 installed generation.
+
+The Desktop page renders that corpus graph in 3D: an instrument →
+article → inciso hierarchy where each minimal normative unit carries a
+deontic-modality label computed by a table of regex rules (R-EXC …
+R-DEF) — deterministic candidates, not validated. Optionally, a user can
+build a local graph from their own anonymized database with
+`scripts/construir_red_local.py`: the builder refuses to run unless an
+approval file records the database's sha256, writes only under the
+profile's plugin-data (dir 700, files 600), and its output is never
+shipped with the plugin. The plugin contains no judgment data.
 
 1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
    with a minimal environment: no agent credentials, and a home folder inside
@@ -135,6 +149,10 @@ corpus, check its hashes or refuse on the engine's behalf.
   exist in law.
 - **A dated copy, not the official text of today.** Every answer names the
   corpus by `pack_hash` and gives each source's retrieval date.
+- **Deontic and relation labels are candidates.** Modality rules and the
+  local layer's relation rules (cita, menciona, revisa, aplica) follow the
+  NIF posture `deontic_validated: false`. They fail closed: mentions that
+  resolve to nothing are counted, never guessed.
 - **Moving `plugin-data/dike` does not migrate the corpus.** A data folder
   copied or moved to another path reports `SIN_CORPUS`; delete
   `plugin-data/dike/generations` and the corpus reinstalls on the next call.

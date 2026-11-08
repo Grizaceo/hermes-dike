@@ -1,7 +1,7 @@
 {
   "artifact": "desktop/plugin.js",
-  "sha256": "042bee0e49922bbfa61df9ee3e4c8fed0f0ec8dc43d91bd7b405e81fa79a25a8",
-  "bytes": 1349958,
+  "sha256": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498",
+  "bytes": 3143630,
   "built_with": {
     "esbuild": "0.28.2"
   },
@@ -20,5 +20,8 @@
     "ngraph.forcelayout"
   ],
   "licenses": "desktop/THIRD_PARTY_LICENSES.txt",
-  "check": "python3 scripts/check_desktop_bundle.py"
+  "check": "python3 scripts/check_desktop_bundle.py",
+  "minified": false,
+  "reproduce": "cd desktop && npm ci && node build.mjs && sha256sum plugin.js",
+  "reproducible_sha256_verified": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498 (dos builds npm ci en copia limpia, mismo sha)"
 }

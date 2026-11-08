@@ -143,3 +143,63 @@ files: one JSON record per article (text, text hash, source URL, in-force
 window), the package manifest and build report, a JSON-LD context, and Turtle
 graph and SHACL shape files. No binaries or bytecode. Its SHA-256 is in
 `corpus/SHA256SUMS`. Provenance and terms: [corpus/README.md](../corpus/README.md).
+
+## The Desktop bundle
+
+`desktop/plugin.js` is built by `desktop/build.mjs` (esbuild) from
+`desktop/src/`: `@hermes/plugin-sdk`, `react` and `react/jsx-runtime` stay
+external (provided by the app). It bundles `three@0.183.2` and
+`3d-force-graph@1.79.0` (pinned in `desktop/package.json`); the optional
+`ngraph.*` imports inside 3d-force-graph are aliased to
+`desktop/src/ngraph-stub.js`, so the bundle contains **no `eval`, no
+`new Function` and no dynamic `import()`**. The build is unminified for
+review (license comments in `plugin.js.LEGAL.txt`) and deterministic:
+two clean `npm ci && node build.mjs` runs produce the same sha256 —
+reproduce with `cd desktop && npm ci && node build.mjs && sha256sum plugin.js`
+(expected hash and sizes in `desktop/BUNDLE.json`). The bundle makes no
+network calls: it only reaches the plugin's own REST routes via `ctx.rest`.
+
+## HTTP surface (dashboard/plugin_api.py)
+
+All routes are `GET` and read-only against the installed corpus and
+plugin-data; nothing authenticates beyond Hermes' own plugin routing and
+no route writes outside plugin-data.
+
+- `/estado`, `/verificar` — engine + integrity status; `/verificar` runs
+  the citation check (read-only, always re-verifies corpus integrity).
+- `/grafo/corpus`, `/grafo/corpus/norma/{code}`, `/grafo/red`,
+  `/grafo/nodo`, `/grafo/unidades`, `/grafo/unidad` — read-only graph
+  metadata (60 s memo, see below); the response cache lives at
+  `<plugin-data>/dike/cache/grafo_red_v3_<pack_hash>.json`.
+- `/grafo/fuentes` — lists the corpus and the optional local layer.
+- `/grafo/evidencia` — evidence snippet for one local-layer link.
+- `/nif/*` — case-board CRUD via `scripts/panel.py` (writes under
+  `<plugin-data>/dike/users`).
+
+The 60-second memo applies only to read-only graph metadata: the graph
+view shows corpus metadata and certifies nothing. `/verificar` and
+`/estado` re-check integrity on every call.
+
+## The optional local graph layer
+
+`scripts/construir_red_local.py` builds a second, local-only graph source
+from a user-supplied anonymized database:
+
+- **Reads only** `<plugin-data>/dike/grafo-local/fuentes/app_anon_v2.db`
+  (opened read-only) and `aprobacion_anonimizacion.json` in the same
+  folder; the build refuses to run when the recorded sha256 does not
+  match the database file.
+- **Writes only** `<plugin-data>/dike/grafo-local/ambiental/` — the
+  directory is created `0700` and its files `0600`: `red.json` (slim
+  network), `unidades.json` (texts + evidence snippets, fetched on click)
+  and `construccion.json` (counters).
+- The output never ships with the plugin and contains nothing the user
+  did not already put in that folder. The plugin itself carries no
+  judgment data.
+
+## Caches
+
+- `<plugin-data>/dike/cache/grafo_red_v3_<pack_hash>.json` — the slim
+  corpus graph, rebuilt when missing or when the schema version changes.
+- Engine caches and the engine's `HOME` stay under plugin-data (see
+  "What it writes").

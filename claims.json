@@ -53,6 +53,12 @@
       "command": "hermes plugins validate . --install-deps",
       "value": "Validation passed",
       "date": "2026-11-07"
+    },
+    {
+      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs produce the same sha256",
+      "command": "cd desktop && npm ci && node build.mjs && sha256sum plugin.js",
+      "value": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498",
+      "date": "2026-11-08"
     }
   ]
 }

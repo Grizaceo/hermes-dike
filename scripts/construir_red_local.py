@@ -598,6 +598,7 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
     for rid, uid, s, e, doc, _ in menciones:
         res_por_uid[uid].add(rid)
     aplica_vistos = set()
+    aplica_ley_vistos = set()
     for u in unidades_jud:
         doc_txt = docs.get(u["doc"], "")
         frag = doc_txt[u["cs"]:u["ce"]]
@@ -612,11 +613,15 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
                 if not (base <= rs < limite):
                     continue  # la mención debe estar en la MISMA oración
                 for target, e0 in por_unidad.get(u["id"], ()):
-                    if e0.get("nivel") == "ley":
-                        c["aplica_a_ley_descartadas"] += 1
-                        continue  # solo citas resueltas a artículo/inciso
                     e_start, e_end = e0["char_start"], e0["char_end"]
                     if not (base <= e_start < limite):
+                        continue
+                    if e0.get("nivel") == "ley":
+                        # Candidata real descartada: misma oración, mismo
+                        # verbo — pero la cita solo resolvió a nivel ley.
+                        if (rid, target) not in aplica_ley_vistos:
+                            aplica_ley_vistos.add((rid, target))
+                            c["aplica_a_ley_descartadas"] += 1
                         continue
                     if (rid, target) in aplica_vistos:
                         continue

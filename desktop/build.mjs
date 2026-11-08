@@ -13,7 +13,8 @@ await build({
   format: 'esm',
   platform: 'browser',
   target: 'es2020',
-  minify: true,
+  minify: false,
+  legalComments: 'linked',
   sourcemap: false,
   external: [
     '@hermes/plugin-sdk',

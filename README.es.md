@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=5a14cf286f12ee40ab3393fe24ce7922d07ca82991b13b2b55361667527a3e68 -->
+<!-- vitrina:translation-of README.md sha256=f82c532279f78f107fb111a0b0aec339637fe01b46bb2640ab7b951254747b4b -->
 # Diké para Hermes
 
 [English](README.md)
@@ -13,7 +13,11 @@ y se niega a certificar lo que no puede probar.
   Research (noviembre de 2026). Enviado al catálogo de plugins de Hermes en
   [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
   todavía no aparece en él.
-- **Solo Linux.** Probado con Hermes Agent v0.22.7 y v0.23.0.
+- **Solo Linux.** Probado con Hermes Agent v0.23.0 (requires_hermes
+  `>=0.23.0`). Versión 0.6.0: el plugin agrega una página Desktop con un
+  grafo 3D del corpus de 25 leyes — instrumentos, artículos y unidades
+  normativas mínimas, cada una con modalidad deóntica candidata — además
+  de la pestaña del dashboard.
 - **El motor no es nuevo.** Es [Diké](https://github.com/Grizaceo/dike),
   copiado sin cambios; `VENDORED.json` indica el commit y el hash de cada
   archivo. [PREEXISTING.md](PREEXISTING.md) dice qué existía antes del
@@ -147,6 +151,10 @@ hashes ni rechazar en nombre del motor.
   existir igual en la ley.
 - **Una copia fechada, no el texto oficial de hoy.** Cada respuesta nombra el
   corpus por su `pack_hash` y da la fecha de obtención de cada fuente.
+- **Las etiquetas deónticas y de relaciones son candidatas.** Las reglas de
+  modalidad y las de relación de la capa local (cita, menciona, revisa,
+  aplica) siguen la postura NIF `deontic_validated: false`: lo que no
+  resuelve se cuenta, no se adivina.
 - **Mover `plugin-data/dike` no migra el corpus.** Una carpeta de datos
   copiada o movida a otra ruta devuelve `SIN_CORPUS`; borra
   `plugin-data/dike/generations` y el corpus se reinstala en la próxima llamada.

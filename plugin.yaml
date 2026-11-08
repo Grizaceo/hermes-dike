@@ -15,7 +15,7 @@ author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike
 tags: [legal, chile, citations, verification, offline, spanish]
-requires_hermes: ">=0.22.7"
+requires_hermes: ">=0.23.0"
 platforms: [linux]
 provides_tools: [dike_verificar_citas]
 provides_hooks: []

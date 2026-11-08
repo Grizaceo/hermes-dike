@@ -436,10 +436,11 @@ def test_camino_global_y_local_misma_resolucion(builder, tmp_path):
 def test_aplica_a_ley_descartada(builder, tmp_path):
     """Un 'aplica' cuya cita cayó a nivel ley no produce arista; se cuenta."""
     texto = ('La Resolución Exenta N° 72/2018 de la SMA aplicó el '
-             'artículo 99 de la Ley 19.300.')
+             'artículo 99 de la Ley 19.300 y de nuevo el artículo 99 '
+             'de la Ley 19.300.')
     red, info = _build(builder, tmp_path, doc_texto=texto)
     assert not _links(red, 'aplica')
-    assert info['conteos']['aplica_a_ley_descartadas'] >= 1
+    assert info['conteos']['aplica_a_ley_descartadas'] == 1
 
 
 def test_rotulos_norma(builder):

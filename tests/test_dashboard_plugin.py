@@ -403,15 +403,17 @@ def test_verificar_pasa_texto_al_adaptador(api, monkeypatch):
 
 
 def test_desktop_registra_pagina_nav_y_paleta():
-    """Contrato del plugin en la FUENTE (desktop/plugin.js se minifica:
-    los identificadores cambian de nombre al compilar el bundle)."""
+    """Contrato del plugin en la FUENTE y en el bundle sin minificar:
+    el bundle conserva la forma de la fuente (espacios y comillas)."""
     src = (DESKTOP / 'src' / 'plugin.src.js').read_text()
     assert "id: ID" in src
     assert "ROUTES_AREA" in src and "path: '/dike'" in src
     assert "SIDEBAR_NAV_AREA" in src
     assert "PALETTE_AREA" in src
     bundle = (DESKTOP / 'plugin.js').read_text()
-    assert 'path:"/dike"' in bundle
+    assert 'path: "/dike"' in bundle
+    assert 'eval(' not in bundle and 'new Function(' not in bundle
+    assert 'import(' not in bundle
 
 
 def test_desktop_usa_ctx_rest_no_host_rest():

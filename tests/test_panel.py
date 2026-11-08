@@ -17,6 +17,16 @@ ROOT = Path(__file__).parents[1]
 PANEL = ROOT / 'scripts' / 'panel.py'
 
 
+@pytest.fixture(scope='module')
+def panel_mod():
+    """scripts/panel.py como módulo, para probar las funciones puras."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('dike_panel_mod', PANEL)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
 @pytest.fixture()
 def panel(tmp_path):
     """Corre scripts/panel.py con el workspace NIF/GRE aislado en tmp_path."""
@@ -179,3 +189,132 @@ def test_sin_args(panel):
     assert 'error' in out
     out = panel('grafo')
     assert 'error' in out
+
+
+# ---------------------------------------------------------------------------
+# Unidades mínimas y modalidad deóntica (cadenas sintéticas, no texto del corpus)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize('linea,esperado,regla', [
+    ('No obstante lo anterior, sigue igual.', 'excepcion', 'R-EXC'),
+    ('Sin perjuicio de lo dispuesto antes.', 'excepcion', 'R-EXC'),
+    ('Se prohíbe estacionar en esta vía.', 'prohibicion', 'R-PRO'),
+    ('En ningún caso procede la acción.', 'prohibicion', 'R-PRO'),
+    ('Será sancionado con multa de 5 UTM.', 'sancion', 'R-SAN'),
+    ('La pena de presidio aplica.', 'sancion', 'R-SAN'),
+    ('El empleador deberá pagar la indemnización.', 'obligacion', 'R-OBL'),
+    ('Estará obligado a informar mensualmente.', 'obligacion', 'R-OBL'),
+    ('Corresponderá al director decidir.', 'potestad', 'R-POT'),
+    ('El juez podrá decretar la medida.', 'permiso', 'R-PER'),
+    ('Se permite la representación de apoderados.', 'permiso', 'R-PER'),
+    ('Se entenderá por empleador la persona natural.', 'definicion', 'R-DEF'),
+])
+def test_modalidad_reglas(panel_mod, linea, esperado, regla):
+    assert panel_mod._modalidad(linea) == (esperado, regla)
+
+
+def test_modalidad_precedencia_prohibicion(panel_mod):
+    """'no podrá ... deberá' es prohibición: R-PRO precede a R-OBL."""
+    assert panel_mod._modalidad(
+        'El demandado no podrá disponer bienes y deberá informar.') == (
+        'prohibicion', 'R-PRO')
+
+
+def test_modalidad_otra(panel_mod):
+    assert panel_mod._modalidad('El contrato se celebra por escrito.') == ('otra', None)
+
+
+def test_unidades_offsets_y_etiquetas(panel_mod):
+    texto = ('Primera línea del artículo.\n'
+             '\n'
+             'a) una letra.\n'
+             '3. un número.\n'
+             'N° 4 otro número.\n'
+             '   inciso sangrado   \n')
+    us = panel_mod._unidades(texto)
+    assert [u['etiqueta'] for u in us] == [
+        'inciso 1', 'letra a)', 'número 3', 'número 4', 'inciso 2']
+    for u in us:
+        assert texto[u['char_start']:u['char_end']] == u['texto']
+    assert us[4]['texto'] == 'inciso sangrado'
+
+
+def test_grafo_red_unidades_y_excepciona(panel, tmp_path):
+    """grafo red emite unidad por línea, arista excepciona del R-EXC al anterior."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/1/2020'
+    (current / 'normas' / 'norma_1.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '1',
+        'eli': {'type': 'ley', 'number': '1'}, 'title': 'LEY UNO',
+    }), encoding='utf-8')
+    (current / 'articulos' / 'articulo_1_art_0001.json').write_text(json.dumps({
+        '@id': aid + '/art_0001', 'eId': 'art_0001', 'label': '1',
+        'text': 'Regla general del artículo.\nNo obstante lo anterior, otra cosa.',
+        'textSha256': 'b' * 64,
+    }), encoding='utf-8')
+    out = panel('grafo', 'red')
+    arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
+    unidades = [n for n in out['nodes'] if n['tipo'] == 'unidad']
+    assert len(arts) == 1 and len(unidades) == 2
+    for u in unidades:
+        assert u['clase'] == 'normativa'
+        assert u['modalidad_estado'] == 'candidata'
+        assert u['articulo'] == arts[0]['id']
+        assert u['id'].startswith(arts[0]['id'] + '#u')
+    contiene = [l for l in out['links'] if l['tipo'] == 'contiene']
+    assert any(l['source'] == arts[0]['id'] and l['target'] == unidades[0]['id']
+               for l in contiene)
+    exc = [l for l in out['links'] if l['tipo'] == 'excepciona']
+    assert len(exc) == 1
+    assert exc[0]['estado'] == 'candidata'
+    assert exc[0]['source'] == unidades[1]['id']
+    assert exc[0]['target'] == unidades[0]['id']
+
+
+def test_grafo_red_sin_excepciona_en_primera(panel, tmp_path):
+    """Un R-EXC como primera unidad no emite excepciona (no hay anterior)."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/2/2020'
+    (current / 'normas' / 'norma_2.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '2',
+        'eli': {'type': 'ley', 'number': '2'}, 'title': 'LEY DOS',
+    }), encoding='utf-8')
+    (current / 'articulos' / 'articulo_2_art_0001.json').write_text(json.dumps({
+        '@id': aid + '/art_0001', 'eId': 'art_0001', 'label': '1',
+        'text': 'Salvo pacto en contrario, el plazo es de un año.',
+    }), encoding='utf-8')
+    out = panel('grafo', 'red')
+    assert not [l for l in out['links'] if l['tipo'] == 'excepciona']
+
+
+def test_grafo_unidad_texto_y_offsets(panel, tmp_path):
+    """grafo unidad devuelve el texto exacto y el sha256 de la unidad."""
+    import hashlib
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/3/2020'
+    (current / 'normas' / 'norma_3.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '3',
+        'eli': {'type': 'ley', 'number': '3'}, 'title': 'LEY TRES',
+    }), encoding='utf-8')
+    texto = 'Primera regla.\n  Segunda regla con sangría.  '
+    (current / 'articulos' / 'articulo_3_art_0001.json').write_text(json.dumps({
+        '@id': aid + '/art_0001', 'eId': 'art_0001', 'label': '1',
+        'text': texto, 'textSha256': 'c' * 64,
+        'provenance': {'wasDerivedFrom': 'https://x/art'},
+    }), encoding='utf-8')
+    out = panel('grafo', 'unidad', aid + '/art_0001#u02')
+    assert out['texto'] == 'Segunda regla con sangría.'
+    assert texto[out['char_start']:out['char_end']] == out['texto']
+    assert out['articulo'] == aid + '/art_0001'
+    assert out['articulo_url'] == 'https://x/art'
+    assert out['articulo_sha256'] == 'c' * 64
+    assert out['sha256'] == hashlib.sha256(
+        'Segunda regla con sangría.'.encode('utf-8')).hexdigest()
+    fuera = panel('grafo', 'unidad', aid + '/art_0001#u09')
+    assert 'error' in fuera

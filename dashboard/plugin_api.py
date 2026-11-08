@@ -247,7 +247,7 @@ def grafo_red(fuente: str = "corpus"):
     mod = _adaptador()
     # El nombre lleva la versión del contrato: un cambio de esquema no puede
     # servir una forma vieja guardada por una versión anterior del plugin.
-    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v1_{mod.PACK_HASH}.json"
+    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v2_{mod.PACK_HASH}.json"
     try:
         if cache.is_file():
             data = json.loads(cache.read_text(encoding="utf-8"))
@@ -273,3 +273,14 @@ def grafo_red(fuente: str = "corpus"):
     except OSError:
         pass
     return respuesta
+
+
+_UNIDAD_ID = re.compile(r"^[^\x00-\x1f]{4,400}#u\d{1,4}$")
+
+
+@router.get("/grafo/unidad")
+def grafo_unidad(id: str):
+    """Texto y offsets de una unidad normativa mínima (no van en /grafo/red)."""
+    if not _UNIDAD_ID.match(id or ""):
+        raise HTTPException(status_code=400, detail="id de unidad inválido.")
+    return _panel(["grafo", "unidad", id], corpus=True, timeout=60)

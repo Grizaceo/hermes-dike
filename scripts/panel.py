@@ -111,6 +111,84 @@ def _nombre_corto(eli: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Unidades normativas mínimas (una por inciso/línea) y modalidad deóntica
+# ---------------------------------------------------------------------------
+
+_LINEA_UNIDAD = re.compile(r"[^\n]*\S[^\n]*")
+_LETRA_UNIDAD = re.compile(r"^([a-zñ])\)\s")
+_NUMERO_UNIDAD = re.compile(r"^(\d+)[\.\)°º]\s")
+_NUMERO_EN_UNIDAD = re.compile(r"^N[°º]\s*(\d+)")
+
+
+def _unidades(texto: str) -> list[dict]:
+    """Una unidad por línea no vacía del texto del artículo, en orden.
+
+    Los offsets son exactos: ``texto[char_start:char_end]`` es el texto de la
+    unidad (la línea sin espacios extremos)."""
+    unidades: list[dict] = []
+    incisos = 0
+    for m in _LINEA_UNIDAD.finditer(texto):
+        raw = m.group()
+        lead = len(raw) - len(raw.lstrip())
+        u = raw.strip()
+        start = m.start() + lead
+        letra = _LETRA_UNIDAD.match(u)
+        numero = _NUMERO_UNIDAD.match(u) or _NUMERO_EN_UNIDAD.match(u)
+        if letra:
+            etiqueta = f"letra {letra.group(1)})"
+        elif numero:
+            etiqueta = f"número {numero.group(1)}"
+        else:
+            incisos += 1
+            etiqueta = f"inciso {incisos}"
+        unidades.append({
+            "texto": u,
+            "etiqueta": etiqueta,
+            "orden": len(unidades) + 1,
+            "char_start": start,
+            "char_end": start + len(u),
+        })
+    return unidades
+
+
+# Reglas de modalidad deóntica, en orden de precedencia: gana la primera que
+# calza y su id queda en `modalidad_regla`. Las etiquetas son CANDIDATAS
+# deterministas — la misma postura que `deontic_validated: false` del NIF:
+# ninguna modalidad pasa por validación humana en esta fase.
+_MODALIDADES: list[tuple[str, str, "re.Pattern[str]"]] = [
+    ("R-EXC", "excepcion", re.compile(
+        r"^(no obstante|sin perjuicio|con todo|salvo|exceptúa|exceptua|"
+        r"lo dispuesto en (el|los) inciso)")),
+    ("R-PRO", "prohibicion", re.compile(
+        r"\b(se proh[ií]be|proh[ií]bese|queda(n)? prohibid[oa]s?|"
+        r"no podr[áa]n?|no se podr[áa]|en ning[úu]n caso)\b")),
+    ("R-SAN", "sancion", re.compile(
+        r"\b(ser[áa]n? sancionad[oa]s?|ser[áa]n? castigad[oa]s?|multa de|"
+        r"presidio|reclusi[óo]n|pena de)\b")),
+    ("R-OBL", "obligacion", re.compile(
+        r"\b(deber[áa]n?|estar[áa]n? obligad[oa]s?|ser[áa] obligatori[oa]|"
+        r"tendr[áa]n? la obligaci[óo]n)\b")),
+    ("R-POT", "potestad", re.compile(
+        r"\b(corresponder[áa] (al|a la|a los|a las)|compete (al|a la)|"
+        r"estar[áa] facultad[oa])\b")),
+    ("R-PER", "permiso", re.compile(
+        r"\b(podr[áa]n?|se permite|tendr[áa]n? derecho|es l[íi]cito)\b")),
+    ("R-DEF", "definicion", re.compile(
+        r"\b(se entender[áa] por|entiéndese por|entiendese por|"
+        r"para (los )?efectos de (esta|la presente) ley)\b")),
+]
+
+
+def _modalidad(linea: str) -> tuple[str, str | None]:
+    """(modalidad, regla) de una unidad; ('otra', None) si ninguna regla calza."""
+    lower = linea.lower()
+    for rid, mod, rx in _MODALIDADES:
+        if rx.search(lower):
+            return mod, rid
+    return "otra", None
+
+
+# ---------------------------------------------------------------------------
 # NIF — tablero de la teoría del caso (lexo_cli.nif_studio.service)
 # ---------------------------------------------------------------------------
 
@@ -315,6 +393,49 @@ def _grafo(args: list[str]) -> int:
             return 0
         return _fail(f"norma {code} no está en el corpus instalado.")
 
+    if op == "unidad":
+        # Texto y offsets de UNA unidad: /grafo/red no lleva texto de unidades;
+        # la ficha del panel lo pide aquí al hacer clic.
+        if len(rest) != 1:
+            return _fail("grafo unidad <id>")
+        uid = rest[0]
+        m = re.fullmatch(r"(.+)#u(\d+)", uid)
+        if not m:
+            return _fail("id de unidad inválido.")
+        aid, num = m.group(1), int(m.group(2))
+        eid = aid.rsplit("/", 1)[-1]
+        if not re.fullmatch(r"[\w.-]+", eid):
+            return _fail("id de unidad inválido.")
+        for current in _corpus_dirs():
+            for af in (current / "articulos").glob(f"articulo_*_{eid}.json"):
+                a = _read_json(af) or {}
+                if str(a.get("@id") or "") != aid:
+                    continue
+                texto = a.get("text") or ""
+                unidades = _unidades(texto)
+                if not 1 <= num <= len(unidades):
+                    return _fail(f"la unidad {num} no existe en ese artículo.")
+                u = unidades[num - 1]
+                mod, regla = _modalidad(u["texto"])
+                _out({
+                    "id": uid,
+                    "texto": u["texto"],
+                    "char_start": u["char_start"],
+                    "char_end": u["char_end"],
+                    "etiqueta": u["etiqueta"],
+                    "orden": u["orden"],
+                    "articulo": aid,
+                    "articulo_url": (a.get("provenance") or {}).get("wasDerivedFrom") or None,
+                    "articulo_sha256": a.get("textSha256")
+                        or (a.get("citation") or {}).get("textSha256"),
+                    "sha256": hashlib.sha256(u["texto"].encode("utf-8")).hexdigest(),
+                    "modalidad": mod,
+                    "modalidad_regla": regla,
+                    "modalidad_estado": "candidata",
+                })
+                return 0
+        return _fail("unidad no encontrada en el corpus instalado.")
+
     if op == "red":
         # La red completa del corpus en UNA lectura: un nodo por instrumento,
         # uno por artículo y una arista 'contiene' por artículo. El contrato
@@ -345,10 +466,11 @@ def _grafo(args: list[str]) -> int:
                     a = _read_json(af) or {}
                     aid = str(a.get("@id") or af.stem)
                     rotulo = str(a.get("label") or a.get("eId") or af.stem)
+                    rotulo_art = f"{corto}, art. {rotulo}"
                     nodos.append({
                         "id": aid,
                         "tipo": "articulo",
-                        "label": f"{corto}, art. {rotulo}",
+                        "label": rotulo_art,
                         "instrumento": corto,
                         "url": (a.get("provenance") or {}).get("wasDerivedFrom") or None,
                         "sha256": a.get("textSha256")
@@ -360,6 +482,38 @@ def _grafo(args: list[str]) -> int:
                         "tipo": "contiene",
                         "estado": "verificada_estructura",
                     })
+                    unidades = _unidades(a.get("text") or "")
+                    for i, u in enumerate(unidades):
+                        uid = f"{aid}#u{u['orden']:02d}"
+                        mod, regla = _modalidad(u["texto"])
+                        nodos.append({
+                            "id": uid,
+                            "tipo": "unidad",
+                            "label": f"{rotulo_art}, {u['etiqueta']}",
+                            "instrumento": corto,
+                            "url": None,
+                            "sha256": hashlib.sha256(u["texto"].encode("utf-8")).hexdigest(),
+                            "clase": "normativa",
+                            "etiqueta": u["etiqueta"],
+                            "orden": u["orden"],
+                            "articulo": aid,
+                            "modalidad": mod,
+                            "modalidad_estado": "candidata",
+                            "modalidad_regla": regla,
+                        })
+                        aristas.append({
+                            "source": aid,
+                            "target": uid,
+                            "tipo": "contiene",
+                            "estado": "verificada_estructura",
+                        })
+                        if regla == "R-EXC" and i > 0:
+                            aristas.append({
+                                "source": uid,
+                                "target": f"{aid}#u{i:02d}",
+                                "tipo": "excepciona",
+                                "estado": "candidata",
+                            })
         _out({
             "nodes": nodos,
             "links": aristas,

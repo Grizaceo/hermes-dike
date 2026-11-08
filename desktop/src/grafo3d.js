@@ -25,11 +25,28 @@ const NOMBRE_TIPO = {
   articulo: 'Artículo',
   sentencia: 'Sentencia',
   resolucion: 'Resolución',
+  unidad: 'Unidad',
 }
 const NOMBRE_ESTADO = {
   verificada_estructura: 'verificada (estructura)',
   candidata: 'candidata',
   aprobada: 'aprobada',
+}
+// Color de las unidades por modalidad deóntica (candidata, sin validar).
+const COLORES_MODALIDAD = {
+  obligacion: '#f59e0b',
+  prohibicion: '#ef4444',
+  permiso: '#22c55e',
+  potestad: '#a855f7',
+  excepcion: '#06b6d4',
+  sancion: '#e11d48',
+  definicion: '#94a3b8',
+  otra: '#64748b',
+}
+
+function colorNodo(n) {
+  if (n.tipo === 'unidad') return COLORES_MODALIDAD[n.modalidad] || COLORES_MODALIDAD.otra
+  return COLORES_NODO[n.tipo] || '#cbd5e1'
 }
 
 function hexA(hex, alpha) {
@@ -87,10 +104,10 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
       .backgroundColor('#0b1020')
       .showNavInfo(false)
       .nodeId('id')
-      .nodeVal((n) => (n.tipo === 'instrumento' ? 6 : 0.5))
-      .nodeResolution(10)
+      .nodeVal((n) => (n.tipo === 'instrumento' ? 6 : n.tipo === 'articulo' ? 1 : 0.4))
+      .nodeResolution(6)
       .nodeOpacity(0.95)
-      .nodeColor((n) => COLORES_NODO[n.tipo] || '#cbd5e1')
+      .nodeColor(colorNodo)
       .nodeLabel((n) => n.tipo === 'instrumento'
         ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + ' artículos'
         : n.label)
@@ -98,7 +115,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
       .linkLabel((l) => l.tipo + ' · ' + (NOMBRE_ESTADO[l.estado] || l.estado))
       .linkOpacity(0.5)
       .linkWidth((l) => (l.tipo === 'contiene' ? 0.4 : 1.2))
-      .linkDirectionalArrowLength(2.5)
+      .linkDirectionalArrowLength((l) => (l.tipo === 'contiene' ? 0 : 2.5))
       .linkDirectionalArrowRelPos(0.85)
       .onNodeClick((n) => clickRef.current(n))
       .cooldownTicks(120)
@@ -200,22 +217,63 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
   ] })
 }
 
+function UnidadDetalle({ nodo }) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+  useEffect(() => {
+    setData(null)
+    setError(null)
+    rest('/grafo/unidad?id=' + encodeURIComponent(nodo.id))
+      .then(setData)
+      .catch(setError)
+  }, [nodo.id])
+  if (error) return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
+  if (!data) return jsx('div', { className: S.sub, children: 'Cargando el texto de la unidad…' })
+  return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
+    jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
+      children: data.texto }),
+    jsx('div', { className: S.sub, children:
+      'offsets ' + data.char_start + '–' + data.char_end +
+      (data.articulo_url ? ' · ' : '') }),
+    data.articulo_url ? jsx('a', { className: S.link, href: data.articulo_url,
+      target: '_blank', rel: 'noopener noreferrer', children: 'Artículo fuente ↗' }) : null,
+    data.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+      children: 'sha256 unidad ' + data.sha256 }) : null,
+    data.articulo_sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+      children: 'sha256 artículo ' + data.articulo_sha256 }) : null,
+  ] })
+}
+
 function TarjetaNodo({ nodo, conteos }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
-      'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un instrumento expande sus artículos.' })
+      'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un artículo expande sus unidades.' })
   }
   const n = nodo
+  const esUnidad = n.tipo === 'unidad'
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
-    jsx('span', { className: S.chip + ' ' + S.chipOff, children: NOMBRE_TIPO[n.tipo] || n.tipo }),
+    jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
+      jsx('span', { className: S.chip + ' ' + S.chipOff, children: NOMBRE_TIPO[n.tipo] || n.tipo }),
+      esUnidad ? jsx('span', {
+        className: S.chip + ' ' + S.chipOff,
+        style: { borderLeft: '3px solid ' + (COLORES_MODALIDAD[n.modalidad] || '#64748b') },
+        children: (n.modalidad || 'otra') + (n.modalidad_regla ? ' · ' + n.modalidad_regla : ''),
+      }) : null,
+      esUnidad ? jsx('span', { className: S.chip + ' ' + S.chipOff, children: 'candidata' }) : null,
+    ] }),
     jsx('div', { className: 'font-medium', children: n.label }),
     n.instrumento ? jsx('div', { className: S.sub, children: 'Pertenece a: ' + n.instrumento }) : null,
     n.tipo === 'instrumento' ? jsx('div', { className: S.sub, children:
-      (conteos.get(n.id) || 0) + ' artículos · clic de nuevo para plegar' }) : null,
+      (conteos.get(n.id) || 0) + ' artículos' }) : null,
+    n.tipo === 'articulo' ? jsx('div', { className: S.sub, children:
+      (conteos.get(n.id) || 0) + ' unidades · clic de nuevo para plegar' }) : null,
+    esUnidad && n.articulo ? jsx('div', { className: S.sub, children:
+      'Unidad ' + (n.etiqueta || '') + ' del artículo' }) : null,
     jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)', children: n.id }),
+    esUnidad ? jsx(UnidadDetalle, { nodo: n }) : null,
     n.url ? jsx('a', { className: S.link, href: n.url, target: '_blank', rel: 'noopener noreferrer',
       children: 'Fuente original ↗' }) : null,
-    n.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+    !esUnidad && n.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
       children: 'sha256 ' + n.sha256 }) : null,
   ] })
 }
@@ -302,7 +360,8 @@ export function SeccionGrafo() {
   const [personalErr, setPersonalErr] = useState(null)
   const [seleccion, setSeleccion] = useState(null)
   const [expandidos, setExpandidos] = useState(() => new Set())
-  const [mostrarArts, setMostrarArts] = useState(false)
+  const [ocultarArts, setOcultarArts] = useState(false)
+  const [mostrarUnidades, setMostrarUnidades] = useState(false)
   const [query, setQuery] = useState('')
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
@@ -335,19 +394,27 @@ export function SeccionGrafo() {
     return m
   }, [aristas])
 
+  // Artículos visibles por defecto; unidad solo si su artículo está expandido
+  // (clic) o si 'mostrar todas las unidades' está marcado.
   const proyeccion = useMemo(() => {
-    const vis = nodos.filter((n) =>
-      n.tipo !== 'articulo' || mostrarArts || expandidos.has(padres.get(n.id)))
+    const vis = nodos.filter((n) => {
+      if (n.tipo === 'unidad') {
+        return !ocultarArts && (mostrarUnidades || expandidos.has(padres.get(n.id)))
+      }
+      if (n.tipo === 'articulo') return !ocultarArts
+      return true
+    })
     const ids = new Set(vis.map((n) => n.id))
     return {
       nodes: vis,
       links: aristas.filter((l) => ids.has(l.source) && ids.has(l.target)),
     }
-  }, [nodos, aristas, mostrarArts, expandidos, padres])
+  }, [nodos, aristas, ocultarArts, mostrarUnidades, expandidos, padres])
 
   const alClickNodo = useCallback((n) => {
     setSeleccion(n.id)
-    if (n.tipo === 'instrumento') {
+    // Clic en un artículo: despliega sus unidades. Los instrumentos solo seleccionan.
+    if (n.tipo === 'articulo') {
       setExpandidos((prev) => {
         const next = new Set(prev)
         if (next.has(n.id)) next.delete(n.id)
@@ -361,7 +428,7 @@ export function SeccionGrafo() {
     const n = indice.get(id)
     if (!n) return
     setSeleccion(id)
-    if (n.tipo === 'articulo') {
+    if (n.tipo === 'unidad') {
       const padre = padres.get(id)
       if (padre) setExpandidos((prev) => new Set(prev).add(padre))
     }
@@ -384,6 +451,17 @@ export function SeccionGrafo() {
     jsxs('div', { className: S.card, children: [
       jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-2', children: [
         jsx('div', { className: S.cardTitle, children: 'Red del corpus (3D)' }),
+        jsxs('select', {
+          className: S.input, disabled: true,
+          title: 'Fuente del grafo',
+          children: [
+            jsx('option', { children: 'Corpus Diké (25 leyes)' }),
+            jsx('option', {
+              disabled: true,
+              title: 'pendiente: requiere revisión de la anonimización',
+              children: 'Ambiental local (solo en este equipo)',
+            }),
+          ] }),
         red ? jsx('div', { className: S.sub, children:
           'pack ' + red.pack_hash + ' · ' + (totales.nodes || 0) + ' nodos · ' + (totales.links || 0) + ' aristas' +
           (red.truncado ? ' · truncado' : '') }) : null,
@@ -403,10 +481,23 @@ export function SeccionGrafo() {
                       NOMBRE_TIPO[tipo],
                     ] })),
                   jsxs('label', { className: 'flex items-center gap-1.5 ' + S.sub, children: [
-                    jsx('input', { type: 'checkbox', checked: mostrarArts,
-                      onChange: (e) => setMostrarArts(e.target.checked) }),
-                    'mostrar artículos (' + (totales.nodes || 0) + ' nodos)',
+                    jsx('input', { type: 'checkbox', checked: ocultarArts,
+                      onChange: (e) => setOcultarArts(e.target.checked) }),
+                    'ocultar artículos',
                   ] }),
+                  jsxs('label', { className: 'flex items-center gap-1.5 ' + S.sub, children: [
+                    jsx('input', { type: 'checkbox', checked: mostrarUnidades,
+                      onChange: (e) => setMostrarUnidades(e.target.checked) }),
+                    'mostrar todas las unidades (¡agrega ~20 mil nodos!)',
+                  ] }),
+                  jsx('span', { className: S.sub, children: '|' }),
+                  jsx('span', { className: S.sub, children: 'modalidad deóntica (candidata, sin validar):' }),
+                  Object.keys(COLORES_MODALIDAD).map((mod) => jsxs('span', {
+                    key: mod, className: 'flex items-center gap-1 ' + S.sub, children: [
+                      jsx('span', { className: 'inline-block h-2 w-2 rounded-full',
+                        style: { background: COLORES_MODALIDAD[mod] } }),
+                      mod,
+                    ] })),
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
                     children: 'encajar' }),

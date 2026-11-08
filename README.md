@@ -2,15 +2,17 @@
 
 [Español](README.es.md)
 
-A Hermes Agent plugin that checks every article citation of Chilean law in a
+A Hermes Agent plugin that checks the article citations of Chilean law in a
 legal brief against a local, hash-identified copy of the statutes, and refuses
 to certify what it cannot prove.
 
 ## Status
 
 - **Hackathon entry** for the Nous Research Hermes Agent Plugin Hackathon
-  (November 2026). Not in the Hermes plugin catalog yet.
-- **Linux only.** Tested with Hermes Agent v0.22.7 on Python 3.11.16.
+  (November 2026). Submitted to the Hermes plugin catalog in
+  [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
+  not listed yet.
+- **Linux only.** Tested with Hermes Agent v0.22.7 and v0.23.0.
 - **The engine is not new.** It is [Diké](https://github.com/Grizaceo/dike),
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
@@ -33,10 +35,18 @@ with the text after the command:
 The first call unpacks and checks the corpus in the plugin's data folder,
 which takes a while. Later calls run offline.
 
+The same check also has a **Diké** tab in the web dashboard and a sidebar
+page in the Desktop app (the desktop half is opt-in: enable it under
+Capabilities → Plugins). Both paste text and call the same engine through
+the plugin's `/api/plugins/dike` backend.
+
 ## How it works
 
 The plugin gives the agent one tool, `dike_verificar_citas`. It takes either
-`texto` (the pasted text) or `ruta` (a `.md` or `.txt` file).
+`texto` (the pasted text) or `ruta` (a `.md`, `.txt` or `.docx` file). A relative path resolves against the
+session's working directory when Hermes reports one; gateway sessions do not,
+so there it must be absolute. The Dashboard and Desktop pages reach the same
+adapter over HTTP — text only, never file reads.
 
 1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
    with a minimal environment: no agent credentials, and a home folder inside
@@ -61,12 +71,14 @@ citations, the tool returns:
 The answer also states what it does not cover. `certificacion_sustantiva` is
 always `false`: the tool does not check that an article supports the
 argument. `certificacion_vigencia_actual` is always `false`: the corpus is a
-dated copy, retrieved on 2026-08-18.
+dated copy taken from Ley Chile in August 2026, and each verified citation
+carries its retrieval date.
 
 A model asked whether article 9999 of the Código del Trabajo exists can answer
 either way with confidence. This tool answers from a sealed corpus whose
-integrity it checks again on every call, and when it has no evidence it says
-so.
+integrity it re-checks on every call ([docs/DISCLOSURES.md](docs/DISCLOSURES.md)),
+and when it has no evidence it says so. A prompt or a skill can ask the model to be careful; it cannot carry the
+corpus, check its hashes or refuse on the engine's behalf.
 
 ## How this was built
 
@@ -84,10 +96,24 @@ so.
   `hermes plugins validate . --install-deps` and `hermes plugins doctor . --ci`
   on Hermes v0.22.7; the end-to-end tests with networking disabled
   (`unshare -rn`).
-- **Not verified:** installing from GitHub (the repository is not published
-  yet); Hermes versions older than v0.22.7; Python versions other than 3.11.16;
-  macOS; a real model choosing the tool on its own (the tests call it
-  directly).
+- **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
+  catalog entry and its pull request, the catalog banner, these README
+  corrections, the 0.3.0 adapter changes and the 0.4.0 panel surfaces
+  (Dashboard tab, Desktop page and `/api/plugins/dike` backend) listed in
+  [PREEXISTING.md](PREEXISTING.md), with their tests. Claude Code (Claude Opus
+  5.5) reviewed the entry independently, read-only, before those changes.
+- **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
+  from GitHub with `hermes plugins install Grizaceo/hermes-dike` and running
+  `/dike-verificar` on the demo brief; `validate --install-deps` and
+  `doctor --ci` at the pinned commit; the tests and the offline end-to-end
+  tests again; for 0.3.0, the suite ([claims.json](claims.json)), `validate`
+  and `doctor` on the new tree, and a `.docx` checked through a plugin that
+  Hermes installed with its dependencies; for 0.4.0, the `estado` and
+  `verificar` routes called against the installed package (4 of 6 on the
+  demo brief). Also whether a real model picks the tool when asked to review
+  a brief's citations without being told its name: the runs and their results
+  are in the catalog pull request.
+- **Not verified:** Hermes versions older than v0.22.7; macOS.
 
 ## Limits
 
@@ -99,6 +125,17 @@ so.
   exist in law.
 - **A dated copy, not the official text of today.** Every answer names the
   corpus by `pack_hash` and gives each source's retrieval date.
+- **Moving `plugin-data/dike` does not migrate the corpus.** A data folder
+  copied or moved to another path reports `SIN_CORPUS`; delete
+  `plugin-data/dike/generations` and the corpus reinstalls on the next call.
+- **`.pdf` and other formats: pass the text.** `ruta` accepts `.md`, `.txt`
+  and `.docx`; for a `.pdf` or anything else, extract the text and pass it in
+  `texto`. `/dike-verificar` treats a lone path token as `ruta`, everything
+  else as text.
+- **Not instant.** Every call re-checks the installed corpus and starts the
+  engine, so it takes several seconds.
+- **Disk.** The installed corpus takes about 300 MB in the plugin's data
+  folder ([claims.json](claims.json)).
 - **Not a sandbox.** The subprocess keeps your operating-system permissions.
   What the plugin reads, writes and runs is listed in
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
@@ -110,4 +147,6 @@ so.
 The code is under the [MIT License](LICENSE). The corpus under `corpus/` is
 derived from Ley Chile (Biblioteca del Congreso Nacional de Chile) and is not
 covered by the MIT License; its terms and provenance are in
-[corpus/README.md](corpus/README.md).
+[corpus/README.md](corpus/README.md). That file is copied unchanged from
+Grizaceo/dike, so its mentions of a `Dockerfile`, `scripts/producto/` and
+commit `a605d56` refer to that repository.

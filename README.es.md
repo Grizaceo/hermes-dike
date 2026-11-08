@@ -1,18 +1,19 @@
-<!-- vitrina:translation-of README.md sha256=8ea27e16446f93d7e6cda93092b32585c7da8c20dbcfeaee764ddc5f07fa825f -->
+<!-- vitrina:translation-of README.md sha256=ee4c543c2a4a03638dba588e53c5a83e02e9fd4b5b3b1057304462e60f038348 -->
 # Diké para Hermes
 
 [English](README.md)
 
-Un plugin de Hermes Agent que contrasta cada cita de artículo de la ley chilena
+Un plugin de Hermes Agent que contrasta las citas de artículo de la ley chilena
 de un escrito jurídico con una copia local de las normas identificada por hash,
 y se niega a certificar lo que no puede probar.
 
 ## Estado
 
 - **Entrada de hackathon** para el Hermes Agent Plugin Hackathon de Nous
-  Research (noviembre de 2026). Todavía no está en el catálogo de plugins de
-  Hermes.
-- **Solo Linux.** Probado con Hermes Agent v0.22.7 sobre Python 3.11.16.
+  Research (noviembre de 2026). Enviado al catálogo de plugins de Hermes en
+  [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
+  todavía no aparece en él.
+- **Solo Linux.** Probado con Hermes Agent v0.22.7 y v0.23.0.
 - **El motor no es nuevo.** Es [Diké](https://github.com/Grizaceo/dike),
   copiado sin cambios; `VENDORED.json` indica el commit y el hash de cada
   archivo. [PREEXISTING.md](PREEXISTING.md) dice qué existía antes del
@@ -35,10 +36,19 @@ herramienta tú mismo con el texto después del comando:
 La primera llamada desempaca y revisa el corpus en la carpeta de datos del
 plugin, y tarda un rato. Las siguientes funcionan sin red.
 
+La misma revisión tiene además una pestaña **Diké** en el dashboard web y una
+página en la barra lateral de la app Desktop (la mitad de escritorio es
+optativa: actívala en Capabilities → Plugins). Ambas toman texto y llaman al
+mismo motor por el backend `/api/plugins/dike` del plugin.
+
 ## Cómo funciona
 
 El plugin le da al agente una herramienta, `dike_verificar_citas`. Recibe
-`texto` (el texto pegado) o `ruta` (un archivo `.md` o `.txt`).
+`texto` (el texto pegado) o `ruta` (un archivo `.md`, `.txt` o `.docx`). Una
+ruta relativa se resuelve contra la carpeta de trabajo de la sesión cuando
+Hermes la informa; las sesiones del gateway no la informan, así que ahí la
+ruta tiene que ser absoluta. Las páginas del dashboard y de Desktop llegan al
+mismo adaptador por HTTP — solo texto, nunca lectura de archivos.
 
 1. El plugin corre el motor de Diké como subproceso (`dike constancia --json`)
    con un entorno mínimo: sin las credenciales del agente y con una carpeta
@@ -64,12 +74,16 @@ citas, la herramienta devuelve:
 La respuesta también dice lo que no cubre. `certificacion_sustantiva` siempre
 es `false`: la herramienta no revisa que el artículo respalde el argumento.
 `certificacion_vigencia_actual` siempre es `false`: el corpus es una copia
-fechada, obtenida el 2026-08-18.
+fechada, tomada de Ley Chile en agosto de 2026, y cada cita verificada trae
+su fecha de obtención.
 
 Un modelo al que se le pregunta si existe el artículo 9999 del Código del
 Trabajo puede responder cualquier cosa con seguridad. Esta herramienta
-responde desde un corpus sellado cuya integridad vuelve a revisar en cada
-llamada, y cuando no tiene evidencia lo dice.
+responde desde un corpus sellado cuya integridad recomprueba en cada
+llamada ([docs/DISCLOSURES.md](docs/DISCLOSURES.md)), y cuando no tiene
+evidencia lo dice. Un prompt o una skill pueden
+pedirle al modelo que tenga cuidado; no pueden llevar el corpus, revisar sus
+hashes ni rechazar en nombre del motor.
 
 ## Cómo se hizo
 
@@ -88,10 +102,28 @@ llamada, y cuando no tiene evidencia lo dice.
   `hermes plugins validate . --install-deps` y `hermes plugins doctor . --ci`
   en Hermes v0.22.7; los tests de punta a punta con la red desactivada
   (`unshare -rn`).
-- **No verificado:** la instalación desde GitHub (el repositorio todavía no
-  está publicado); versiones de Hermes anteriores a v0.22.7; versiones de
-  Python distintas de 3.11.16; macOS; que un modelo real elija la herramienta
-  por su cuenta (los tests la llaman directamente).
+- **Lo que escribió una IA después de publicar:** Devin (Claude Opus 5.5)
+  escribió la entrada del catálogo y su pull request, el banner del catálogo,
+  estas correcciones del README, los cambios del adaptador de la versión
+  0.3.0 y las superficies del panel de la 0.4.0 (pestaña del dashboard,
+  página de Desktop y backend `/api/plugins/dike`) que lista
+  [PREEXISTING.md](PREEXISTING.md), con sus tests. Claude Code
+  (Claude Opus 5.5) revisó la entrada de forma independiente, solo lectura,
+  antes de esos cambios.
+- **Verificado por Devin (todavía no lo comprobé yo):** en Hermes v0.23.0, la
+  instalación desde GitHub con `hermes plugins install Grizaceo/hermes-dike`
+  y `/dike-verificar` sobre el escrito de demostración; `validate
+  --install-deps` y `doctor --ci` en el commit fijado; de nuevo los tests y
+  los de punta a punta sin red; para la 0.3.0, la suite
+  ([claims.json](claims.json)), `validate` y `doctor` sobre el árbol nuevo, y
+  un `.docx` revisado por un plugin que Hermes instaló con sus dependencias;
+  para la 0.4.0, las rutas `estado` y `verificar` llamadas contra el paquete
+  instalado (4 de 6 en el escrito de demostración).
+  También si un modelo real elige la
+  herramienta cuando se le pide revisar las citas de un escrito sin decirle
+  su nombre: las corridas y sus resultados están en el pull request del
+  catálogo.
+- **No verificado:** versiones de Hermes anteriores a v0.22.7; macOS.
 
 ## Límites
 
@@ -103,6 +135,17 @@ llamada, y cuando no tiene evidencia lo dice.
   existir igual en la ley.
 - **Una copia fechada, no el texto oficial de hoy.** Cada respuesta nombra el
   corpus por su `pack_hash` y da la fecha de obtención de cada fuente.
+- **Mover `plugin-data/dike` no migra el corpus.** Una carpeta de datos
+  copiada o movida a otra ruta devuelve `SIN_CORPUS`; borra
+  `plugin-data/dike/generations` y el corpus se reinstala en la próxima llamada.
+- **`.pdf` y otros formatos: pasa el texto.** `ruta` acepta `.md`, `.txt`
+  y `.docx`; para un `.pdf` u otro formato, extrae el texto y pásalo en
+  `texto`. `/dike-verificar` trata un token único de ruta como `ruta` y todo
+  lo demás como texto.
+- **No es instantáneo.** Cada llamada vuelve a revisar el corpus instalado y
+  arranca el motor, así que tarda varios segundos.
+- **Disco.** El corpus instalado ocupa unos 300 MB en la carpeta de datos del
+  plugin ([claims.json](claims.json)).
 - **No es un sandbox.** El subproceso conserva tus permisos del sistema
   operativo. Lo que el plugin lee, escribe y ejecuta está en
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
@@ -114,4 +157,6 @@ llamada, y cuando no tiene evidencia lo dice.
 El código está bajo la [licencia MIT](LICENSE). El corpus de `corpus/` deriva
 de Ley Chile (Biblioteca del Congreso Nacional de Chile) y no lo cubre la
 licencia MIT; sus condiciones y su procedencia están en
-[corpus/README.md](corpus/README.md).
+[corpus/README.md](corpus/README.md). Ese archivo está copiado sin cambios de
+Grizaceo/dike, así que sus menciones de un `Dockerfile`, de
+`scripts/producto/` y del commit `a605d56` se refieren a ese repositorio.

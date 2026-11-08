@@ -1,11 +1,14 @@
 name: dike
-version: "0.2.0"
+version: "0.4.0"
 manifest_version: 2
 description: >-
-  Checks every article citation of Chilean law in a legal brief against a local,
+  Checks the article citations of Chilean law in a legal brief against a local,
   hash-identified copy of 25 statutes, and refuses to certify what it cannot prove:
-  each citation comes back verified (with its source, text hash and in-force window)
+  each citation comes back verified (with its source, text hash and in-force status)
   or unverified with the reason. Offline after install; never signs, never calls a model.
+  Also ships a web-dashboard tab and an opt-in Desktop sidebar page that call the
+  same engine through the plugin's /api/plugins/dike backend (text only; the HTTP
+  surface never reads files).
 author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike
@@ -20,3 +23,4 @@ python_dependencies:
   - "rich>=13.0,<15"
   - "requests>=2.28,<3"
   - "cryptography>=42.0,<51"
+  - "python-docx>=1.1,<2"

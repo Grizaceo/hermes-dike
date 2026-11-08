@@ -1,9 +1,15 @@
 {
   "claims": [
     {
-      "claim": "The plugin test suite passes 73 tests with 0 failures (Hermes Agent v0.22.7 venv, Python 3.11.16, Linux)",
-      "command": "PYTHONDONTWRITEBYTECODE=1 ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "73",
+      "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
+      "value": "118",
+      "date": "2026-11-06"
+    },
+    {
+      "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
+      "command": "cd $HERMES_HOME/plugins/dike && HERMES_HOME=<profile-home> python -c \"import importlib.util,sys; s=importlib.util.spec_from_file_location('a','dashboard/plugin_api.py'); m=importlib.util.module_from_spec(s); sys.modules[s.name]=m; s.loader.exec_module(m); print(m.estado()); print(m.verificar({'texto': open('tests/fixtures/escrito_demo.md').read()})['meta'])\"",
+      "value": "4/6",
       "date": "2026-11-06"
     },
     {
@@ -22,6 +28,12 @@
       "claim": "On the demo brief (tests/fixtures/escrito_demo.md) the tool verifies 4 of 6 citations and refuses 2, also with networking disabled",
       "command": "unshare -rn ~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_native_e2e.py -q -p no:cacheprovider",
       "value": "4/6",
+      "date": "2026-11-06"
+    },
+    {
+      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux)",
+      "command": "du -sh \"$HERMES_HOME/plugin-data/dike\"",
+      "value": "307M",
       "date": "2026-11-06"
     }
   ]

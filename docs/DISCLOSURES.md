@@ -20,9 +20,15 @@ for the catalog review and for anyone deciding whether to install it.
 
 ## It reads
 
-- The text you pass in `texto`, or the file you name in `ruta`. Only regular
-  `.md` and `.txt` files are accepted, never through a symbolic link, and at
-  most 400,000 UTF-8 bytes (the same limit applies to `texto`).
+- The text you pass in `texto`, or the file you name in `ruta`. Regular
+  `.md` and `.txt` files are accepted up to 400,000 UTF-8 bytes (the same
+  limit applies to `texto`); `.docx` files are accepted up to 10 MB, copied
+  into the per-call temporary folder and read by the engine in the
+  subprocess through `agent_invoker.resolve_document` (python-docx). No file
+  is ever read through a symbolic link. A relative `ruta` resolves against
+  the calling session's working directory when Hermes reports one; when it
+  does not (gateway sessions), a relative path is refused, never resolved
+  against the gateway's own directory.
 - Its own `corpus/` and `motor/` folders.
 
 ## It writes
@@ -33,11 +39,19 @@ All writes go under the current profile's plugin data folder,
 - **The installed corpus.** On the first call the package in `corpus/` is
   checked against `corpus/SHA256SUMS`, unpacked with Python's `tarfile`
   `data` filter (no absolute paths, links out of the tree or device files),
-  installed by the engine, and published by renaming a finished folder. Every
-  later call checks the installed files against the hashes recorded at
-  install time and stops if any differs.
-- **Temporary files.** The text to check is written to a temporary folder
-  inside the data folder and removed after the call.
+  installed by the engine, and published by renaming a finished folder.
+  `installed.json` records, per installed file, its SHA-256 and its
+  `[size, mtime_ns]` stat. Every later call first compares names+size+mtime:
+  if they match and this process already hashed that exact stat, it trusts
+  it; if they match but this process has not verified them yet, or if they
+  differ, it re-hashes everything. Re-hashed content that still matches the
+  record (touched files) refreshes the stat; different content raises
+  `installed corpus integrity mismatch`. **Limit:** a change that preserves
+  size and mtime exactly is caught only at the next process start, not
+  mid-process. The 5 MB tarball digest is cached per process. The installed corpus takes about
+  300 MB ([claims.json](../claims.json)).
+- **Temporary files.** The text to check (or the `.docx` bytes) is written
+  to a temporary folder inside the data folder and removed after the call.
 - **Engine caches** and the engine's `HOME`, both redirected into the data
   folder. Nothing is written to your real home folder.
 
@@ -51,6 +65,30 @@ description tells the agent the same.
 - Installing the Python dependencies may contact the package registry. That
   is done by Hermes's installer, not by the plugin.
 
+## The panel surfaces (Dashboard tab, Desktop sidebar)
+
+`dashboard/` and `desktop/` put the same engine behind Hermes's own UI:
+
+- `dashboard/manifest.json` and `dashboard/dist/index.js` add a **Diké** tab
+  to the web dashboard. `desktop/plugin.js` adds a sidebar row and a page to
+  the Desktop app: the app copies it to `~/.hermes/desktop-plugins/dike/`
+  and keeps it off until you enable it under **Capabilities → Plugins**.
+- `dashboard/plugin_api.py` serves `GET /api/plugins/dike/estado` and
+  `POST /api/plugins/dike/verificar`. The routes run inside Hermes — the
+  dashboard process, or the profile's plugin host under
+  `plugins.isolation: host` — behind the dashboard's own auth and the
+  enabled-plugin gate, and they answer for the profile that has the plugin
+  enabled.
+- `/verificar` takes **text only**: the HTTP surface does not expose the
+  adapter's local file read (`ruta`). It calls `verificar_citas` from the
+  agent adapter, so everything above — the subprocess, its environment, the
+  corpus check, the confined writes — applies unchanged. `/estado` only
+  reports whether the corpus generation is installed; it never installs or
+  downloads.
+- Both UI files are plain readable JavaScript with no build step and no
+  bundled dependencies (the dashboard supplies React and its components;
+  the Desktop plugin imports only `@hermes/plugin-sdk` and `react`).
+
 ## What it never does
 
 - It never signs, and never reads or writes signing keys.
@@ -63,14 +101,17 @@ description tells the agent the same.
 ## Code it carries but does not run
 
 `motor/` is the Diké engine as published, so it includes modules from the
-larger Diké codebase that this plugin never calls (for example
-`agent_invoker.py`, `mcp/`, `hitl/`). The plugin runs only two engine
+larger Diké codebase that this plugin never calls (for example `mcp/`,
+`hitl/` and the subagent launcher in `agent_invoker.py`; from that module,
+`constancia` uses only `resolve_document`, to read the temporary file). The
+plugin runs only two engine
 commands: `starter install`, once, to install the corpus, and `constancia
 --json`, to check citations.
 
 ## The corpus package
 
-`corpus/chile-base-af1422d66d1e6eee.tar.gz` is a plain gzip tarball of JSON
-files: one record per article (text, text hash, source URL, in-force window)
-plus the package manifest and build report. Its SHA-256 is in
+`corpus/chile-base-af1422d66d1e6eee.tar.gz` is a plain gzip tarball of text
+files: one JSON record per article (text, text hash, source URL, in-force
+window), the package manifest and build report, a JSON-LD context, and Turtle
+graph and SHACL shape files. No binaries or bytecode. Its SHA-256 is in
 `corpus/SHA256SUMS`. Provenance and terms: [corpus/README.md](../corpus/README.md).

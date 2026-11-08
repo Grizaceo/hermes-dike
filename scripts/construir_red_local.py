@@ -137,27 +137,51 @@ def organismo_en(ventana: str) -> str | None:
     return None
 
 
+# Etiquetas aprobadas de las 25 sentencias, por sufijo del id tras
+# "cl.judgment.". Fuente de verdad: la tabla acordada para la demo —
+# NUNCA texto del fallo.
+ROTULOS_SENTENCIAS = {
+    "1_tribunal_ambiental.r_53_2021_canelillo_sentencia_2022_09_20": "1TA · R-53-2021 · Canelillo",
+    "1_tribunal_ambiental.s1ta_r_60_2022": "1TA · R-60-2022",
+    "1_tribunal_ambiental.s1ta_r_61_2022": "1TA · R-61-2022",
+    "1_tribunal_ambiental.s1ta_r_62_2022": "1TA · R-62-2022",
+    "1_tribunal_ambiental.sentencia_r_5_2018_acum__r_6_2018pascualama": "1TA · R-5-2018 (acum. R-6-2018) · Pascua Lama",
+    "2tribunal_ambiental.2022.08.24_sentencia_r_261_2020": "2TA · R-261-2020",
+    "2tribunal_ambiental.2023.04.25_sentencia_r_280_2021": "2TA · R-280-2021",
+    "2tribunal_ambiental.2024.03.11_sentencia_r_331_2022": "2TA · R-331-2022",
+    "2tribunal_ambiental.2024.04.22_sentencia_r_404_2023": "2TA · R-404-2023",
+    "2tribunal_ambiental.2025.02.11_sentencia_r_346_2022": "2TA · R-346-2022",
+    "2tribunal_ambiental.2026.01.21_sentencia_r_529_2025": "2TA · R-529-2025",
+    "2tribunal_ambiental.sentencia_r_426_2023": "2TA · R-426-2023",
+    "3tribunal_ambiental.d_10_2019_sentencia": "3TA · D-10-2019",
+    "3tribunal_ambiental.d_11_2019_teja_sur_sentencia": "3TA · D-11-2019 · Teja Sur",
+    "3tribunal_ambiental.d_9_2019_sentencia": "3TA · D-9-2019",
+    "3tribunal_ambiental.r_42_2022sentencia_definitiva": "3TA · R-42-2022",
+    "3tribunal_ambiental.sentencia_r_56_202_hu_la_poza": "3TA · R-56-2022 · La Poza",
+    "3tribunal_ambiental.sentencia_r_77_2018minainvierno": "3TA · R-77-2018 · Mina Invierno",
+    "corte_suprema.civil127275_2020pascualama": "CS · Rol 127.275-2020 · Pascua Lama",
+    "corte_suprema.civil22719_2024": "CS · Rol 22.719-2024",
+    "corte_suprema.civil5118_2024municipalidadvaldiviacongoguacorporations.": "CS · Rol 5.118-2024 · Municipalidad de Valdivia",
+    "corte_suprema.civil977922016": "CS · Rol 97.792-2016",
+    "corte_suprema.rol_n_27.033_2019minainvierno": "CS · Rol 27.033-2019 · Mina Invierno",
+    "corte_suprema.scs_casacion_12907_2018_r_1_2017_1tadominga": "CS · Rol 12.907-2018 · Dominga",
+    "sta_R-138-2016": "2TA · R-138-2016 (solo metadatos)",
+}
+
+
 def rotulo_sentencia(sid: str) -> str:
-    """Etiqueta humana desde el id (sin texto del fallo)."""
-    partes = sid.split(".")[-1].split("_")
-    sig = partes[0].lower()
-    tri = {"sta": "STA", "cs": "CS"}.get(sig)
-    if tri is None:
-        m = re.match(r"(\d)ta", sig)
-        tri = f"{m.group(1)}TA" if m else sig.upper()
-    rol = next((p.upper().replace("R-", "R-") for p in partes
-                if re.match(r"(s\dta_)?r-\d", p, re.IGNORECASE)), "")
-    if not rol:
-        for i, p in enumerate(partes):
-            if p == "r" and i + 2 < len(partes):
-                rol = f"R-{partes[i+1]}-{partes[i+2]}"
-                break
-    resto = [p for p in partes if p not in (sig,)
-             and not re.match(r"(s\dta_)?r-\d+", p, re.IGNORECASE)
-             and p != "r" and not p.isdigit() and p != "sentencia"
-             and not re.match(r"^\d{4}$", p)]
-    nombre = " ".join(resto[:2]).title() if resto else ""
-    return f"{tri} {rol}".strip() + (f" · {nombre}" if nombre else "")
+    """Etiqueta aprobada; exacta o por prefijo (sufijo con carácter extra)."""
+    clave = sid
+    for pref in ("cl.judgment.", "cl.sentencia."):
+        if clave.startswith(pref):
+            clave = clave[len(pref):]
+            break
+    if clave in ROTULOS_SENTENCIAS:
+        return ROTULOS_SENTENCIAS[clave]
+    for k, v in ROTULOS_SENTENCIAS.items():
+        if clave.startswith(k):
+            return v
+    raise SystemExit(f"sentencia sin etiqueta en la tabla aprobada: {sid}")
 
 
 def construir(db_path: Path = DB, salida: Path = SALIDA,
@@ -316,16 +340,20 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
         rot = rotulo_sentencia(sid)
         nodos.append({"id": sid, "tipo": "sentencia", "label": rot})
         c["nodo_sentencia"] += 1
+    rotulos_jud = {n["id"]: n["label"] for n in nodos
+                   if n["tipo"] == "sentencia"}
     for cid, doc, ordinal, cs, ce in considerandos:
         uid = f"{doc}#cons{ordinal:02d}"
         unidades_jud.append({"id": uid, "doc": doc, "ordinal": ordinal,
                              "cs": cs or 0, "ce": ce or 0,
-                             "etiqueta": f"considerando {ordinal}"})
+                             "etiqueta":
+                             f"{rotulos_jud.get(doc, doc)} · considerando {ordinal}"})
     for rid, doc, ordinal, cs, ce in resolutivos:
         uid = f"{doc}#reso{ordinal:02d}"
         unidades_jud.append({"id": uid, "doc": doc, "ordinal": ordinal,
                              "cs": cs or 0, "ce": ce or 0,
-                             "etiqueta": f"resolutivo {ordinal}"})
+                             "etiqueta":
+                             f"{rotulos_jud.get(doc, doc)} · resolutivo {ordinal}"})
     for u in unidades_jud:
         texto = docs.get(u["doc"], "")[u["cs"]:u["ce"]]
         nodos.append({"id": u["id"], "tipo": "unidad", "clase": "judicial",
@@ -550,8 +578,75 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
                          regla="R-APLICA", doc_texto=doc_txt)
 
     nodos.sort(key=lambda n: n["id"])
+
+    # --- Camino demo: S → U1 → R(revisa/menciona) → R → A(aplica) ← U2 ------
+    # Determinista: prefiere resoluciones SMA, luego la de más 'aplica',
+    # luego el id más bajo. Relaja revisa→menciona y luego omite U2.
+    revisa_in = defaultdict(list)   # rid -> [uid]
+    menciona_in = defaultdict(list)
+    aplica_out = defaultdict(list)  # rid -> [art]
+    cita_in = defaultdict(list)     # art -> [uid]
+    for l in aristas:
+        if l["tipo"] == "revisa":
+            revisa_in[l["target"]].append(l["source"])
+        elif l["tipo"] == "menciona":
+            menciona_in[l["target"]].append(l["source"])
+        elif l["tipo"] == "aplica":
+            aplica_out[l["source"]].append(l["target"])
+        elif l["tipo"] == "cita":
+            cita_in[l["target"]].append(l["source"])
+    doc_de = {u["id"]: u["doc"] for u in unidades_jud}
+    org_de = {r["id"]: r.get("organismo") for r in resoluciones.values()}
+    relajacion = None
+    camino = []
+    for permitir_menciona, requerir_u2 in ((False, True), (True, True),
+                                           (True, False)):
+        candidatos = [r for r in resoluciones
+                      if revisa_in.get(r)
+                      or (permitir_menciona and menciona_in.get(r))]
+        if not candidatos:
+            continue
+        candidatos.sort(key=lambda r: (
+            0 if org_de.get(r) == "SMA" else 1,
+            -len(aplica_out.get(r, [])),
+            r))
+        for rid in candidatos:
+            entradas = revisa_in.get(rid) or menciona_in.get(rid)
+            u1 = sorted(entradas)[0]
+            s = doc_de.get(u1)
+            for art in sorted(aplica_out.get(rid, [])):
+                citantes = sorted(
+                    u for u in cita_in.get(art, [])
+                    if u != u1 and doc_de.get(u) == s) or sorted(
+                    u for u in cita_in.get(art, []) if u != u1)
+                u2 = citantes[0] if citantes else None
+                if requerir_u2 and u2 is None:
+                    continue
+                camino = [s, u1, rid, art] + ([u2] if u2 else [])
+                break
+            if camino:
+                break
+        if camino:
+            relajacion = ("completo" if not permitir_menciona
+                          else "menciona" if requerir_u2 else "sin_u2")
+            break
+    c["camino_relajacion_" + (relajacion or "ninguna")] += 1
+    camino_links = []
+    if camino:
+        camino_links = [
+            f"{camino[0]}|{camino[1]}|contiene",
+            f"{camino[1]}|{camino[2]}|" + (
+                "revisa" if any(l["tipo"] == "revisa" and l["source"] == camino[1]
+                                and l["target"] == camino[2] for l in aristas)
+                else "menciona"),
+            f"{camino[2]}|{camino[3]}|aplica",
+        ]
+        if len(camino) > 4:
+            camino_links.append(f"{camino[4]}|{camino[3]}|cita")
+
     red = {"fuente": "ambiental", "local_only": True,
            "nodes": nodos, "links": aristas,
+           "camino_demo": camino, "camino_demo_links": camino_links,
            "conteos": {"nodes": len(nodos), "links": len(aristas)},
            "truncado": False}
     salida.mkdir(parents=True, exist_ok=True)

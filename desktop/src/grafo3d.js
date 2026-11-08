@@ -6,7 +6,7 @@
 import ForceGraph3D from '3d-force-graph'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { mensajeError, rest, S } from './common.js'
+import { mensajeError, rest, storage, S } from './common.js'
 
 const COLORES_NODO = {
   instrumento: '#60a5fa',
@@ -52,6 +52,23 @@ function colorNodo(n) {
   return COLORES_NODO[n.tipo] || '#cbd5e1'
 }
 
+function idDe(x) {
+  return x && typeof x === 'object' ? x.id : x
+}
+
+// Atenuación del foco: con resalte activo el resto baja a ~0.12/0.05.
+function colorNodoResalte(n, resalte) {
+  const base = colorNodo(n)
+  if (!resalte) return base
+  return resalte.ids.has(n.id) ? base : hexA(base, 0.12)
+}
+
+function colorAristaResalte(l, resalte) {
+  if (!resalte) return colorArista(l)
+  const k = idDe(l.source) + '|' + idDe(l.target) + '|' + l.tipo
+  return resalte.links.has(k) ? colorArista(l) : hexA(colorArista(l), 0.05)
+}
+
 function hexA(hex, alpha) {
   const n = parseInt(hex.slice(1), 16)
   return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')'
@@ -74,7 +91,8 @@ function hayWebGL() {
 
 // El lienzo vive mientras la pestaña esté visible; al desmontarse (cambio de
 // pestaña o de página) se destruye el renderizador completo.
-function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, onFallo, apiRef }) {
+function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
+                      alHover, alFondo, resalte, onFallo, apiRef }) {
   const hostEl = useRef(null)
   const engine = useRef(null)
   const [listo, setListo] = useState(false)
@@ -86,6 +104,12 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, 
   padresRef.current = padres
   const clickAristaRef = useRef(alClickArista)
   clickAristaRef.current = alClickArista
+  const hoverRef = useRef(alHover)
+  hoverRef.current = alHover
+  const fondoRef = useRef(alFondo)
+  fondoRef.current = alFondo
+  const resalteRef = useRef(resalte)
+  resalteRef.current = resalte
   // Pool estable de nodos: reutilizar el mismo objeto por id conserva las
   // posiciones x/y/z que d3 va calculando entre cambios de proyección.
   const pool = useRef(new Map())
@@ -112,11 +136,11 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, 
       .nodeVal((n) => (n.tipo === 'instrumento' ? 6 : n.tipo === 'articulo' ? 1 : 0.4))
       .nodeResolution(6)
       .nodeOpacity(0.95)
-      .nodeColor(colorNodo)
+      .nodeColor((n) => colorNodoResalte(n, resalteRef.current))
       .nodeLabel((n) => n.tipo === 'instrumento'
         ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + ' artículos'
         : n.label)
-      .linkColor(colorArista)
+      .linkColor((l) => colorAristaResalte(l, resalteRef.current))
       .linkLabel((l) => l.tipo + ' · ' + (NOMBRE_ESTADO[l.estado] || l.estado))
       .linkOpacity(0.5)
       .linkWidth((l) => (l.tipo === 'contiene' ? 0.4 : 1.2))
@@ -124,6 +148,8 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, 
       .linkDirectionalArrowRelPos(0.85)
       .onNodeClick((n) => clickRef.current(n))
       .onLinkClick((l) => { if (clickAristaRef.current) clickAristaRef.current(l) })
+      .onNodeHover((n) => { if (hoverRef.current) hoverRef.current(n ? n.id : null) })
+      .onBackgroundClick(() => { if (fondoRef.current) fondoRef.current() })
       .cooldownTicks(120)
       .warmupTicks(20)
       .onEngineStop(() => {
@@ -166,6 +192,28 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, 
       },
       zoomFit: () => {
         if (engine.current) engine.current.zoomToFit(400, 40)
+      },
+      orbita: () => {
+        const g = engine.current
+        if (!g) return
+        const p = g.cameraPosition()
+        const a = Math.atan2(p.z || 0, p.x || 0) + 0.008
+        const r = Math.hypot(p.x || 0, p.z || 0) || 300
+        g.cameraPosition({ x: r * Math.cos(a), y: p.y || 0, z: r * Math.sin(a) })
+      },
+      encuadrar: (ids) => {
+        const g = engine.current
+        if (!g) return
+        const set = new Set(ids)
+        const pts = g.graphData().nodes.filter((n) => set.has(n.id)
+          && Number.isFinite(n.x))
+        if (!pts.length) return
+        const cx = pts.reduce((a, n) => a + n.x, 0) / pts.length
+        const cy = pts.reduce((a, n) => a + (n.y || 0), 0) / pts.length
+        const cz = pts.reduce((a, n) => a + (n.z || 0), 0) / pts.length
+        g.cameraPosition(
+          { x: cx + 80, y: cy + 60, z: cz + 220 },
+          { x: cx, y: cy, z: cz }, 900)
       },
     }
     setListo(true)
@@ -216,6 +264,12 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, 
     })
     if (agregados && g.d3ReheatSimulation) g.d3ReheatSimulation()
   }, [proyeccion, listo])
+
+  // Recolorear sin reconstruir: refresh() relee los accesores de color.
+  useEffect(() => {
+    const g = engine.current
+    if (g && g.refresh) g.refresh()
+  }, [resalte, listo])
 
   return jsxs('div', { className: 'relative min-w-0', children: [
     jsx('div', { ref: hostEl, className: 'h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]' }),
@@ -424,9 +478,17 @@ export function SeccionGrafo() {
   const [expandidos, setExpandidos] = useState(() => new Set())
   const [unidadesMap, setUnidadesMap] = useState(() => new Map())
   const [ocultarArts, setOcultarArts] = useState(false)
-  const [fuente, setFuente] = useState('corpus')
+  const [fuente, setFuenteState] = useState('corpus')
   const [fuentes, setFuentes] = useState(null)
   const [aristaSel, setAristaSel] = useState(null)
+  const [hover, setHover] = useState(null)
+  const [caminoOn, setCaminoOn] = useState(false)
+  const [rotar, setRotar] = useState(false)
+  // Última fuente elegida por perfil (ctx.storage del SDK).
+  const setFuente = useCallback((f) => {
+    setFuenteState(f)
+    try { storage && storage.set('grafo.fuente', f) } catch (e) { /* opcional */ }
+  }, [])
   const [query, setQuery] = useState('')
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
@@ -441,7 +503,15 @@ export function SeccionGrafo() {
   }, [fuente])
   useEffect(cargar, [cargar])
   useEffect(() => {
-    rest('/grafo/fuentes').then(setFuentes).catch(() => {})
+    rest('/grafo/fuentes').then((fs) => {
+      setFuentes(fs)
+      const amb = fs && fs.find((f) => f.id === 'ambiental' && f.disponible)
+      let elegida = null
+      try { elegida = storage && storage.get('grafo.fuente') } catch (e) { elegida = null }
+      if (elegida === 'ambiental' && amb) setFuenteState('ambiental')
+      else if (elegida === 'corpus') setFuenteState('corpus')
+      else if (amb) setFuenteState('ambiental')
+    }).catch(() => {})
   }, [])
 
   const alFallo3d = useCallback((msg) => {
@@ -517,6 +587,37 @@ export function SeccionGrafo() {
   }, [expandidos, unidadesMap, fuente])
 
   const alClickArista = useCallback((l) => { setAristaSel(l) }, [])
+  const alFondo = useCallback(() => { setSeleccion(null); setCaminoOn(false); setRotar(false) }, [])
+  const alHover = useCallback((id) => setHover(id), [])
+
+  // Resalte del foco: camino demo > selección > hover. El nodo elegido, sus
+  // vecinos y las aristas entre ellos quedan a color pleno; el resto atenúa.
+  const resalte = useMemo(() => {
+    if (caminoOn && red && (red.camino_demo || []).length) {
+      return { ids: new Set(red.camino_demo),
+               links: new Set(red.camino_demo_links || []) }
+    }
+    const foco = seleccion || hover
+    if (!foco) return null
+    const ids = new Set([foco])
+    const links = new Set()
+    for (const l of proyeccion.links) {
+      const s = idDe(l.source)
+      const t = idDe(l.target)
+      if (s === foco) { ids.add(t); links.add(s + '|' + t + '|' + l.tipo) }
+      if (t === foco) { ids.add(s); links.add(s + '|' + t + '|' + l.tipo) }
+    }
+    return { ids, links }
+  }, [caminoOn, red, seleccion, hover, proyeccion])
+
+  // Órbita lenta para el video; se apaga con cualquier interacción.
+  useEffect(() => {
+    if (!rotar) return undefined
+    const id = setInterval(() => {
+      if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita()
+    }, 40)
+    return () => clearInterval(id)
+  }, [rotar])
 
   const alBuscar = useCallback((id) => {
     const n = indice.get(id)
@@ -556,7 +657,8 @@ export function SeccionGrafo() {
             }),
           ] }),
         fuente === 'ambiental' ? jsx('span', { className: S.chip + ' ' + S.chipOff,
-          children: 'local — no publicado' }) : null,
+          children: 'local — no publicado · sentencias anonimizadas · '
+            + 'relaciones candidatas, sin validar' }) : null,
         red ? jsx('div', { className: S.sub, children:
           (red.pack_hash ? 'pack ' + red.pack_hash + ' · ' : '') +
           (totales.nodes || 0) + ' nodos · ' + (totales.links || 0) + ' aristas' +
@@ -596,6 +698,27 @@ export function SeccionGrafo() {
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
                     children: 'encajar' }),
+                  fuente === 'ambiental' && red && (red.camino_demo || []).length
+                    ? jsx('button', {
+                        type: 'button',
+                        className: caminoOn ? S.chip + ' ' + S.chipOk : S.link,
+                        onClick: () => {
+                          const on = !caminoOn
+                          setCaminoOn(on)
+                          setRotar(false)
+                          if (on && apiRef.current) {
+                            apiRef.current.encuadrar(red.camino_demo)
+                          }
+                        },
+                        children: 'camino destacado',
+                      })
+                    : null,
+                  fuente === 'ambiental' ? jsxs('label', {
+                    className: 'flex items-center gap-1.5 ' + S.sub, children: [
+                      jsx('input', { type: 'checkbox', checked: rotar,
+                        onChange: (e) => setRotar(e.target.checked) }),
+                      'rotar',
+                    ] }) : null,
                   jsx('span', { className: S.sub + ' ml-auto', children:
                     proyeccion.nodes.length + ' visibles · ' + proyeccion.links.length + ' aristas' }),
                 ] }),
@@ -606,7 +729,8 @@ export function SeccionGrafo() {
                         'El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.' }),
                     ] })
                   : jsx(LienzoGrafo, {
-                      proyeccion, padres, conteos, alClickNodo, alClickArista, onFallo: alFallo3d, apiRef }),
+                      proyeccion, padres, conteos, alClickNodo, alClickArista,
+                      alHover, alFondo, resalte, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
                 jsx('input', {
@@ -631,18 +755,37 @@ export function SeccionGrafo() {
                   jsx(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
                 aristaSel ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
+                caminoOn && red && (red.camino_demo || []).length ? jsxs('div', {
+                  className: 'rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1',
+                  children: [
+                    jsx('div', { className: S.cardTitle, children: 'Camino destacado' }),
+                    ...red.camino_demo.map((id, i) => {
+                      const n = indice.get(id)
+                      const paso = i > 0
+                        ? ' ' + ((red.camino_demo_links[i - 1] || '').split('|')[2] || '→') + ' '
+                        : ''
+                      return jsxs('button', {
+                        key: id, type: 'button',
+                        className: 'text-left text-xs hover:bg-(--ui-bg-quaternary) truncate ' + S.link,
+                        onClick: () => { if (apiRef.current) apiRef.current.enfocar(id) },
+                        children: [
+                          (i + 1) + '. ' + (n ? n.label : id),
+                          paso ? jsx('span', { className: S.sub, children: ' ·' + paso.trim() }) : null,
+                        ] })
+                    }),
+                  ] }) : null,
               ] }),
             ] }),
     ] }),
-    jsxs('details', {
+    fuente === 'corpus' ? jsxs('details', {
       className: S.card, open: listaAbierta,
       onToggle: (e) => setListaAbierta(e.currentTarget.open),
       children: [
         jsx('summary', { className: 'cursor-pointer ' + S.cardTitle + ' normal-case',
           children: 'Lista del corpus (texto)' }),
         listaAbierta ? jsx('div', { className: 'mt-2', children: jsx(ListaCorpus, {}) }) : null,
-      ] }),
-    jsxs('div', { className: S.card, children: [
+      ] }) : null,
+    fuente === 'corpus' ? jsxs('div', { className: S.card, children: [
       jsx('div', { className: S.cardTitle, children: 'Grafo personal (GRE)' }),
       personalErr
         ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(personalErr) })
@@ -662,6 +805,6 @@ export function SeccionGrafo() {
                       ] }),
                     ] })) }),
             ] }),
-    ] }),
+    ] }) : null,
   ] })
 }

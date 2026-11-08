@@ -39,7 +39,7 @@ def builder():
     return m
 
 
-DOC = 'cl.judgment.t1'
+DOC = 'cl.judgment.1_tribunal_ambiental.s1ta_r_60_2022'
 INST = 'cl.norma.ley_19300'
 
 
@@ -78,6 +78,7 @@ def _db(tmp_path, doc_texto, cons=None, nodos_extra=None, links_extra=None,
             INST + ':art:0005:inc:1': 'inciso uno'}
     docs.update(docs_extra or {})
     db = tmp_path / 'mini.db'
+    db.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(db)
     con.executescript('''
       CREATE TABLE nodes(id TEXT, tenant_id TEXT, type TEXT, title TEXT,
@@ -346,3 +347,75 @@ def test_red_ambiental_404_sin_build(api, tmp_path, monkeypatch):
     assert exc.value.status_code == 404
     fuentes = api.grafo_fuentes()
     assert next(f for f in fuentes if f['id'] == 'ambiental')['disponible'] is False
+
+
+# ---------------------------------------------------------------------------
+# Etiquetas de sentencias y camino demo
+# ---------------------------------------------------------------------------
+
+def test_tabla_cubre_las_25_sentencias(builder, tmp_path):
+    """Los 25 ids de la tabla reciben su etiqueta aprobada."""
+    for clave, esperado in builder.ROTULOS_SENTENCIAS.items():
+        sid = 'cl.judgment.' + clave
+        assert builder.rotulo_sentencia(sid) == esperado
+
+
+def test_tabla_prefijo_y_fallo_sin_etiqueta(builder):
+    """Un id con carácter extra al final calza por prefijo; otro falla."""
+    base = 'corte_suprema.civil5118_2024municipalidadvaldiviacongoguacorporations.'
+    assert builder.rotulo_sentencia('cl.judgment.' + base + 'x') == \
+        'CS · Rol 5.118-2024 · Municipalidad de Valdivia'
+    with pytest.raises(SystemExit):
+        builder.rotulo_sentencia('cl.judgment.desconocida.x')
+
+
+def _camino_fixture(builder, tmp_path, *, revisa=True, con_u2=True,
+                    org_ventana='de la SMA'):
+    """Fixture sintética del camino completo S→U1→R→A←U2.
+
+    Sentencias: dos considerandos — el primero reclama la resolución y
+    aplica art. 5; el segundo cita art. 5. Todo con cadenas sintéticas."""
+    verb = 'se reclamaron en contra de la ' if revisa else 'se estudió la '
+    t1 = ('En esta parte ' + verb +
+          'Resolución Exenta N° 72/2018 ' + org_ventana + ' y se aplicó '
+          'el artículo 5 de la Ley 19.300.')
+    t2 = 'Se citó el artículo 5 de la Ley 19.300 expresamente.'
+    texto = t1 + '\n' + t2
+    cons = [(0, len(t1), 1)]
+    if con_u2:
+        cons.append((len(t1) + 1, len(texto), 2))
+    return _build(builder, tmp_path, doc_texto=texto, cons=cons)
+
+
+def test_camino_completo(builder, tmp_path):
+    red, info = _camino_fixture(builder, tmp_path)
+    assert red['camino_demo'][:4] == [
+        DOC, DOC + '#cons01', 'res:SMA:72/2018', INST + ':art:0005']
+    assert red['camino_demo'][4] == DOC + '#cons02'
+    assert red['camino_demo_links'] == [
+        DOC + '|' + DOC + '#cons01|contiene',
+        DOC + '#cons01|res:SMA:72/2018|revisa',
+        'res:SMA:72/2018|' + INST + ':art:0005|aplica',
+        DOC + '#cons02|' + INST + ':art:0005|cita']
+    assert info['conteos']['camino_relajacion_completo'] == 1
+
+
+def test_camino_relaja_menciona(builder, tmp_path):
+    red, info = _camino_fixture(builder, tmp_path, revisa=False)
+    assert red['camino_demo'][2] == 'res:SMA:72/2018'
+    assert red['camino_demo_links'][1].endswith('|menciona')
+    assert info['conteos']['camino_relajacion_menciona'] == 1
+
+
+def test_camino_sin_u2(builder, tmp_path):
+    red, info = _camino_fixture(builder, tmp_path, con_u2=False)
+    assert len(red['camino_demo']) == 4
+    assert info['conteos']['camino_relajacion_sin_u2'] == 1
+
+
+def test_camino_determinista(builder, tmp_path):
+    _, info_a = _camino_fixture(builder, tmp_path / 'a')
+    _, info_b = _camino_fixture(builder, tmp_path / 'b')
+    red_a = json.loads((tmp_path / 'a' / 'out' / 'red.json').read_text())
+    red_b = json.loads((tmp_path / 'b' / 'out' / 'red.json').read_text())
+    assert red_a['camino_demo'] == red_b['camino_demo']

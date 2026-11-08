@@ -8,6 +8,13 @@ export function setRest(r) {
   rest = r
 }
 
+// ctx.storage del SDK: preferencia por perfil (p.ej. la fuente del grafo).
+export let storage = null
+
+export function setStorage(s) {
+  storage = s
+}
+
 export const S = {
   page: 'flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-(--ui-text-primary)',
   title: 'text-base font-semibold',

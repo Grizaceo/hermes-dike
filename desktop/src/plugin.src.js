@@ -11,7 +11,7 @@
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
-import { mensajeError, rest, setRest, S } from './common.js'
+import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionGrafo } from './grafo3d.js'
 
 const ID = 'dike'
@@ -424,6 +424,7 @@ export default {
 
   register(ctx) {
     setRest(ctx.rest)
+    setStorage(ctx.storage || null)
     function DikePage() {
       const [pestana, setPestana] = useState('escrito')
       const pestanas = [

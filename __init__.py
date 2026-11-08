@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import fcntl
+import importlib.util
 from datetime import date, datetime
 import json
 import stat
@@ -569,6 +570,16 @@ def _comando(raw):
     return _formatear_salida(json.loads(verificar_citas({'texto': raw})))
 
 
+def _escritor_hooks():
+    """Carga escritor/hooks.py por ruta, con un nombre propio: así no depende de
+    cómo Hermes importe el plugin ni puede tomar otro módulo `escritor` del path."""
+    spec = importlib.util.spec_from_file_location(
+        "dike_escritor_hooks", _RAIZ / "escritor" / "hooks.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def register(ctx):
     global _CTX
     _CTX = ctx
@@ -580,3 +591,4 @@ def register(ctx):
         for hija in sorted(carpeta.iterdir()):
             if (hija / 'SKILL.md').is_file():
                 ctx.register_skill(hija.name, hija / 'SKILL.md')
+    _escritor_hooks().register_hooks(ctx)

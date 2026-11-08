@@ -11,8 +11,8 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
 
 // src/plugin.src.js
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from "@hermes/plugin-sdk";
-import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-import { useCallback as useCallback3, useEffect as useEffect3, useState as useState3 } from "react";
+import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
+import { useCallback as useCallback4, useEffect as useEffect4, useState as useState4 } from "react";
 
 // src/common.js
 var rest = null;
@@ -55,8 +55,8 @@ function mensajeError(e3) {
 }
 
 // src/escritor/escritor.js
-import { jsx, jsxs } from "react/jsx-runtime";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
+import { useCallback as useCallback2, useEffect as useEffect2, useRef as useRef2, useState as useState2 } from "react";
 
 // node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
 var __defProp2 = Object.defineProperty;
@@ -23056,6 +23056,58 @@ var MarcasCitas = Extension.create({
 function fijarMarcas(editor, marcas) {
   editor.view.dispatch(editor.state.tr.setMeta(claveMarcas, marcas));
 }
+var clavePriv = new PluginKey("dike-marcas-privacidad");
+var ESTILOS_PRIV = {
+  critical: "border-bottom:2px dotted rgb(220,38,38);border-radius:2px",
+  high: "border-bottom:2px dotted rgb(217,119,6);border-radius:2px",
+  medium: "border-bottom:1px dotted rgb(107,114,128);border-radius:2px",
+  low: "border-bottom:1px dotted rgb(156,163,175);border-radius:2px",
+  conservada: "border-bottom:2px dotted rgb(34,197,94);border-radius:2px",
+  candidato: "background:rgba(217,119,6,.10);border-bottom:1px dashed rgb(217,119,6);border-radius:2px"
+};
+var MarcasPrivacidad = Extension.create({
+  name: "dikeMarcasPrivacidad",
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: clavePriv,
+        state: {
+          init: () => [],
+          apply(tr2, marcas) {
+            const nuevas = tr2.getMeta(clavePriv);
+            if (nuevas) return nuevas;
+            if (!tr2.docChanged || !marcas.length) return marcas;
+            const remapeadas = [];
+            for (const m3 of marcas) {
+              const from2 = tr2.mapping.map(m3.from, 1);
+              const to = tr2.mapping.map(m3.to, -1);
+              if (from2 < to) remapeadas.push({ ...m3, from: from2, to });
+            }
+            return remapeadas;
+          }
+        },
+        props: {
+          decorations(state) {
+            const marcas = clavePriv.getState(state) || [];
+            const decos = [];
+            for (const m3 of marcas) {
+              if (m3.from >= m3.to) continue;
+              decos.push(Decoration.inline(m3.from, m3.to, {
+                class: "dike-priv-" + m3.clase,
+                style: ESTILOS_PRIV[m3.clase] || "",
+                title: m3.title || ""
+              }));
+            }
+            return DecorationSet.create(state.doc, decos);
+          }
+        }
+      })
+    ];
+  }
+});
+function fijarMarcasPrivacidad(editor, marcas) {
+  editor.view.dispatch(editor.state.tr.setMeta(clavePriv, marcas));
+}
 function pluginPlaceholderVacio(texto) {
   return new Plugin({
     key: new PluginKey("dike-placeholder"),
@@ -23086,6 +23138,7 @@ function montarEditor({ element: element2, content, placeholder, onUpdate }) {
       src_default,
       src_default2.configure({ placeholder: placeholder || "Escribe el escrito\u2026" }),
       MarcasCitas,
+      MarcasPrivacidad,
       Extension.create({
         name: "dikePlaceholderWidget",
         addProseMirrorPlugins: () => [pluginPh]
@@ -23237,6 +23290,286 @@ function rangoAPos(segmentos, inicio, fin) {
   return { from: lista[0].from, to: lista[lista.length - 1].to };
 }
 
+// src/escritor/privacidad.js
+import { jsx, jsxs } from "react/jsx-runtime";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+// src/escritor/privacidad-logica.js
+function agruparPorTipo(entidades) {
+  const grupos = /* @__PURE__ */ new Map();
+  for (const e3 of entidades || []) {
+    if (!grupos.has(e3.tipo)) grupos.set(e3.tipo, []);
+    grupos.get(e3.tipo).push(e3);
+  }
+  return [...grupos.entries()].map(([tipo, items]) => ({
+    tipo,
+    items: items.slice().sort((a3, b2) => a3.inicio - b2.inicio)
+  })).sort((a3, b2) => b2.items.length - a3.items.length || a3.tipo.localeCompare(b2.tipo));
+}
+function claseDecoracion(e3) {
+  if (e3.accion === "conservar") return "conservada";
+  return e3.severidad || "low";
+}
+function aplicarDecisionVista(entidades, valor, accion) {
+  const norm = (v2) => (v2 || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(/\s+/).join(" ").trim();
+  const clave = norm(valor);
+  return (entidades || []).map((e3) => {
+    if (norm(e3.valor) !== clave) return e3;
+    if (accion === "olvidar") return { ...e3 };
+    if (accion === "conservar") return { ...e3, accion: "conservar", motivo: "decision_abogado" };
+    if (accion === "enmascarar") {
+      const copia = { ...e3, accion: "enmascarar" };
+      delete copia.motivo;
+      return copia;
+    }
+    return e3;
+  });
+}
+function marcasParaEditor(entidades, candidatos, rangoAPos2) {
+  const marcas = [];
+  for (const e3 of entidades || []) {
+    const r2 = rangoAPos2(e3.inicio, e3.fin);
+    if (r2) {
+      marcas.push({
+        from: r2.from,
+        to: r2.to,
+        clase: claseDecoracion(e3),
+        title: e3.tipo + (e3.motivo ? " \xB7 " + e3.motivo : "")
+      });
+    }
+  }
+  for (const c4 of candidatos || []) {
+    const r2 = rangoAPos2(c4.inicio, c4.fin);
+    if (r2) marcas.push({ from: r2.from, to: r2.to, clase: "candidato", title: "posible persona" });
+  }
+  return marcas;
+}
+
+// src/escritor/privacidad.js
+var DEBOUNCE_DETECTAR = 1500;
+var ESTRATEGIAS = [
+  { id: "ligera", texto: "ligera (solo cr\xEDticos)" },
+  { id: "media", texto: "media (cr\xEDticos + altos)" },
+  { id: "estricta", texto: "estricta (+ medios)" }
+];
+var MOTIVOS = {
+  juez: "juez (p\xFAblico)",
+  ancla_causa: "ancla de causa",
+  institucion: "instituci\xF3n",
+  decision_abogado: "decisi\xF3n del abogado",
+  por_estrategia: "bajo la estrategia"
+};
+var _puedeEnviar = true;
+function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro }) {
+  const cfg = registro && registro.privacidad || {};
+  const seudOn = cfg.seudonimizar !== false;
+  const confirmo = Boolean(cfg.acepto_datos);
+  const estrategia = cfg.estrategia || "media";
+  const [deteccion, setDeteccion] = useState(null);
+  const [error2, setError] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [verMarcas, setVerMarcas] = useState(false);
+  const [vistaSalida, setVistaSalida] = useState(null);
+  const [confirmarOff, setConfirmarOff] = useState(false);
+  const timer2 = useRef(null);
+  const detRef = useRef(null);
+  detRef.current = deteccion;
+  const guardarCfg = useCallback((parche) => {
+    setRegistro((r2) => ({ ...r2 || {}, privacidad: { ...(r2 || {}).privacidad, ...parche } }));
+  }, [setRegistro]);
+  const detectar = useCallback(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const texto = textoDelEditor(ed);
+    setOcupado(true);
+    setError(null);
+    rest("/privacidad/detectar", {
+      method: "POST",
+      body: { case_id: caseId, texto, estrategia }
+    }).then((d2) => {
+      _puedeEnviar = true;
+      setDeteccion(d2);
+    }).catch((e3) => {
+      _puedeEnviar = false;
+      setError(e3);
+    }).finally(() => setOcupado(false));
+  }, [editorRef, caseId, estrategia]);
+  useEffect(() => {
+    if (!(docInfo && docInfo.hash)) return;
+    clearTimeout(timer2.current);
+    timer2.current = setTimeout(detectar, DEBOUNCE_DETECTAR);
+    return () => clearTimeout(timer2.current);
+  }, [docInfo && docInfo.hash, detectar]);
+  useEffect(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    if (!verMarcas || !deteccion) {
+      fijarMarcasPrivacidad(ed, []);
+      return;
+    }
+    const segs = segmentosDeDoc(ed.state.doc);
+    fijarMarcasPrivacidad(ed, marcasParaEditor(
+      deteccion.entidades,
+      deteccion.candidatos,
+      (i3, f2) => rangoAPos(segs, i3, f2)
+    ));
+  }, [verMarcas, deteccion, editorRef]);
+  const decidir = useCallback((valor, accion, tipo) => {
+    rest("/privacidad/decision", {
+      method: "POST",
+      body: { case_id: caseId, valor, accion, tipo }
+    }).then(() => {
+      setDeteccion((d2) => d2 && {
+        ...d2,
+        entidades: aplicarDecisionVista(d2.entidades, valor, accion)
+      });
+      detectar();
+    }).catch(setError);
+  }, [caseId, detectar]);
+  const enmascararSeleccion = useCallback(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const { from: from2, to } = ed.state.selection;
+    const valor = ed.state.doc.textBetween(from2, to, " ", " ");
+    if (!valor.trim()) return;
+    decidir(valor, "enmascarar", "full_name");
+  }, [editorRef, decidir]);
+  const verSalida = useCallback(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    setVistaSalida("cargando");
+    rest("/privacidad/seudonimizar", {
+      method: "POST",
+      body: { case_id: caseId, texto: textoDelEditor(ed), estrategia }
+    }).then((r2) => setVistaSalida(r2)).catch((e3) => {
+      _puedeEnviar = false;
+      setVistaSalida(null);
+      setError(e3);
+    });
+  }, [editorRef, caseId, estrategia]);
+  const conteos = deteccion && deteccion.conteos || {};
+  const grupos = agruparPorTipo(deteccion && deteccion.entidades);
+  const candidatos = deteccion && deteccion.candidatos || [];
+  return jsxs("div", { className: S.card, children: [
+    jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx("div", { className: S.cardTitle, children: "Privacidad" }),
+      jsxs("label", { className: "flex items-center gap-1.5 text-xs", children: [
+        jsx("input", {
+          type: "checkbox",
+          checked: seudOn,
+          onChange: (e3) => {
+            if (!e3.target.checked) {
+              setConfirmarOff(true);
+            } else {
+              guardarCfg({ seudonimizar: true, acepto_datos: false });
+              setConfirmarOff(false);
+            }
+          }
+        }),
+        "Seudonimizar antes de enviar al modelo"
+      ] }),
+      jsx("select", {
+        className: S.input,
+        value: estrategia,
+        onChange: (e3) => {
+          guardarCfg({ estrategia: e3.target.value });
+          detectar();
+        },
+        children: ESTRATEGIAS.map((o2) => jsx("option", { key: o2.id, value: o2.id, children: o2.texto }))
+      }),
+      jsx("button", {
+        type: "button",
+        className: S.ghost,
+        onClick: detectar,
+        disabled: ocupado,
+        children: ocupado ? "detectando\u2026" : "Detectar datos"
+      }),
+      jsx("button", {
+        type: "button",
+        className: S.ghost,
+        onClick: () => setVerMarcas(!verMarcas),
+        children: verMarcas ? "Ocultar datos en el escrito" : "Ver datos personales en el escrito"
+      }),
+      jsx("button", {
+        type: "button",
+        className: S.ghost,
+        onClick: verSalida,
+        children: "Vista de lo que sale"
+      }),
+      jsx("button", {
+        type: "button",
+        className: S.ghost,
+        onClick: enmascararSeleccion,
+        children: "Enmascarar selecci\xF3n"
+      })
+    ] }),
+    confirmarOff ? jsxs("label", { className: "flex items-center gap-1.5 text-xs text-(--ui-danger)", children: [
+      jsx("input", {
+        type: "checkbox",
+        checked: confirmo,
+        onChange: (e3) => {
+          if (e3.target.checked) {
+            guardarCfg({ seudonimizar: false, acepto_datos: true });
+            setConfirmarOff(false);
+          }
+        }
+      }),
+      "Entiendo que el texto saldr\xE1 con datos personales"
+    ] }) : null,
+    error2 ? jsx("div", { className: "text-xs text-(--ui-danger)", children: "Privacidad no disponible: " + mensajeError(error2) + " \u2014 el texto no debe salir hasta resolverlo." }) : null,
+    deteccion ? jsxs("div", { className: "flex flex-col gap-2", children: [
+      jsxs("div", { className: "flex flex-wrap gap-1.5", children: [
+        ...Object.entries(conteos).map(([cat, n2]) => jsxs("span", {
+          key: cat,
+          className: S.chip + " " + S.chipOff,
+          children: [cat + ": " + n2]
+        })),
+        candidatos.length ? jsx("span", { className: S.chip + " " + S.chipBad, children: candidatos.length + " posibles personas" }) : null
+      ] }),
+      grupos.map((g2) => jsxs("div", { key: g2.tipo, className: "flex flex-col gap-1", children: [
+        jsx("div", { className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)", children: g2.tipo }),
+        ...g2.items.map((e3, i3) => jsxs("div", { key: i3, className: "flex flex-wrap items-center gap-2 text-sm", children: [
+          jsx("span", { className: "font-mono text-xs", children: e3.valor }),
+          jsx("button", {
+            type: "button",
+            className: S.link,
+            onClick: () => decidir(e3.valor, e3.accion === "enmascarar" ? "conservar" : "enmascarar", e3.tipo),
+            children: e3.accion === "enmascarar" ? "enmascarar" : "conservar"
+          }),
+          e3.motivo ? jsx("span", { className: S.sub, children: "(" + (MOTIVOS[e3.motivo] || e3.motivo) + ")" }) : null
+        ] }))
+      ] })),
+      candidatos.length ? jsxs("div", { className: "flex flex-col gap-1", children: [
+        jsx("div", {
+          className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)",
+          children: "Posibles personas sin contexto"
+        }),
+        ...candidatos.map((c4, i3) => jsxs("div", { key: i3, className: "flex items-center gap-2 text-sm", children: [
+          jsx("span", { children: c4.valor }),
+          jsx("button", {
+            type: "button",
+            className: S.link,
+            onClick: () => decidir(c4.valor, "enmascarar", "full_name"),
+            children: "Enmascarar"
+          })
+        ] }))
+      ] }) : null,
+      jsx("div", { className: S.sub, children: deteccion.aviso })
+    ] }) : jsx("div", { className: S.sub, children: "Sin detecci\xF3n a\xFAn: edita el escrito o pulsa \xABDetectar datos\xBB." }),
+    vistaSalida && vistaSalida !== "cargando" ? jsxs("div", { className: "flex flex-col gap-1", children: [
+      jsx("div", { className: S.cardTitle, children: "Vista de lo que sale" }),
+      jsx("pre", {
+        className: "max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs",
+        children: vistaSalida.texto
+      }),
+      jsxs("div", { className: S.sub, children: [
+        Object.keys(vistaSalida.mapa || {}).length + " valores seudonimizados \xB7 destino: a\xFAn sin destino (el chat llega en la fase siguiente)"
+      ] }),
+      jsx("button", { type: "button", className: S.link, onClick: () => setVistaSalida(null), children: "cerrar" })
+    ] }) : vistaSalida === "cargando" ? jsx("div", { className: S.sub, children: "preparando vista\u2026" }) : null
+  ] });
+}
+
 // src/escritor/escritor.js
 var BORRADOR = "borrador";
 var DEBOUNCE_GUARDADO = 800;
@@ -23264,29 +23597,29 @@ function esConflicto(e3) {
 }
 function AccionesFallo({ detalle, acciones, onAccion }) {
   const a3 = acciones || {};
-  const [reparar, setReparar] = useState(detalle.cita_raw || "");
-  const [motivo, setMotivo] = useState("");
-  const [nota, setNota] = useState("");
+  const [reparar, setReparar] = useState2(detalle.cita_raw || "");
+  const [motivo, setMotivo] = useState2("");
+  const [nota, setNota] = useState2("");
   const agotados = (a3.intentos || 0) >= MAX_INTENTOS_REPARAR;
-  return jsxs("div", { className: "flex flex-col gap-1.5 mt-1", children: [
+  return jsxs2("div", { className: "flex flex-col gap-1.5 mt-1", children: [
     // Reparar: probar el reemplazo solo contra el motor; si lo da VERIFICADA
     // se habilita Aplicar (el texto cambia → todo queda desactualizada).
-    jsxs("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx("input", {
+    jsxs2("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx2("input", {
         className: S.input + " flex-1 min-w-40",
         value: reparar,
         placeholder: "texto de reemplazo",
         disabled: agotados,
         onChange: (e3) => setReparar(e3.target.value)
       }),
-      jsx("button", {
+      jsx2("button", {
         type: "button",
         className: S.ghost,
         disabled: agotados || a3.ocupado || !reparar.trim(),
         onClick: () => onAccion("probar", reparar.trim()),
         children: a3.ocupado ? "probando\u2026" : "Probar reemplazo"
       }),
-      jsx("button", {
+      jsx2("button", {
         type: "button",
         className: S.button,
         // Solo se aplica el texto exacto que el motor verificó: si el input
@@ -23296,17 +23629,17 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         children: "Aplicar"
       })
     ] }),
-    a3.resumenPrueba ? jsx("div", { className: S.sub, children: a3.resumenPrueba }) : null,
-    agotados ? jsx("div", { className: "text-xs text-(--ui-danger)", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
+    a3.resumenPrueba ? jsx2("div", { className: S.sub, children: a3.resumenPrueba }) : null,
+    agotados ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
     // Retirar con motivo + escalar con nota.
-    jsxs("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx("input", {
+    jsxs2("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx2("input", {
         className: S.input + " flex-1 min-w-32",
         value: motivo,
         placeholder: "motivo para retirarla",
         onChange: (e3) => setMotivo(e3.target.value)
       }),
-      jsx("button", {
+      jsx2("button", {
         type: "button",
         className: S.ghost,
         disabled: !motivo.trim(),
@@ -23316,13 +23649,13 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         },
         children: "Retirar"
       }),
-      jsx("input", {
+      jsx2("input", {
         className: S.input + " flex-1 min-w-32",
         value: nota,
         placeholder: "nota para revisi\xF3n humana",
         onChange: (e3) => setNota(e3.target.value)
       }),
-      jsx("button", {
+      jsx2("button", {
         type: "button",
         className: S.ghost,
         disabled: !nota.trim(),
@@ -23336,28 +23669,28 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
   ] });
 }
 function SeccionEscritor() {
-  const hostRef = useRef(null);
-  const editorRef = useRef(null);
-  const revRef = useRef(0);
-  const registroRef = useRef({});
-  const casoRef = useRef(BORRADOR);
-  const textoGuardadoRef = useRef("");
-  const timerGuardado = useRef(null);
-  const timerInfo = useRef(null);
-  const infoDocRef = useRef({ texto: "", hash: null });
-  const verificacionRef = useRef(null);
-  const [casos, setCasos] = useState(null);
-  const [caseId, setCaseId] = useState(BORRADOR);
-  const [estadoDoc, setEstadoDoc] = useState("cargando");
-  const [error2, setError] = useState(null);
-  const [aviso, setAviso] = useState(null);
-  const [verificacion, setVerificacion] = useState(null);
-  const [docInfo, setDocInfo] = useState({ texto: "", hash: null });
-  const [verificando, setVerificando] = useState(false);
-  const [acciones, setAcciones] = useState({});
-  const [conflictoRev, setConflictoRev] = useState(null);
-  const [registro, setRegistro] = useState({});
-  const actualizarInfoDoc = useCallback((ed) => {
+  const hostRef = useRef2(null);
+  const editorRef = useRef2(null);
+  const revRef = useRef2(0);
+  const registroRef = useRef2({});
+  const casoRef = useRef2(BORRADOR);
+  const textoGuardadoRef = useRef2("");
+  const timerGuardado = useRef2(null);
+  const timerInfo = useRef2(null);
+  const infoDocRef = useRef2({ texto: "", hash: null });
+  const verificacionRef = useRef2(null);
+  const [casos, setCasos] = useState2(null);
+  const [caseId, setCaseId] = useState2(BORRADOR);
+  const [estadoDoc, setEstadoDoc] = useState2("cargando");
+  const [error2, setError] = useState2(null);
+  const [aviso, setAviso] = useState2(null);
+  const [verificacion, setVerificacion] = useState2(null);
+  const [docInfo, setDocInfo] = useState2({ texto: "", hash: null });
+  const [verificando, setVerificando] = useState2(false);
+  const [acciones, setAcciones] = useState2({});
+  const [conflictoRev, setConflictoRev] = useState2(null);
+  const [registro, setRegistro] = useState2({});
+  const actualizarInfoDoc = useCallback2((ed) => {
     const texto = textoDelEditor(ed);
     sha256Hex(texto).then((hash) => {
       const info = { texto, hash };
@@ -23366,13 +23699,13 @@ function SeccionEscritor() {
     }).catch(() => {
     });
   }, []);
-  const programarInfoDoc = useCallback((ed) => {
+  const programarInfoDoc = useCallback2((ed) => {
     clearTimeout(timerInfo.current);
     timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO);
   }, [actualizarInfoDoc]);
-  const estadoRef = useRef("cargando");
+  const estadoRef = useRef2("cargando");
   estadoRef.current = estadoDoc;
-  const guardar = useCallback(() => {
+  const guardar = useCallback2(() => {
     const ed = editorRef.current;
     clearTimeout(timerGuardado.current);
     if (!ed || estadoRef.current === "conflicto") return Promise.resolve();
@@ -23402,13 +23735,13 @@ function SeccionEscritor() {
       }
     });
   }, []);
-  const programarGuardado = useCallback(() => {
+  const programarGuardado = useCallback2(() => {
     clearTimeout(timerGuardado.current);
     timerGuardado.current = setTimeout(() => {
       guardar();
     }, DEBOUNCE_GUARDADO);
   }, [guardar]);
-  const cargarEscrito = useCallback((cid) => {
+  const cargarEscrito = useCallback2((cid) => {
     const ed = editorRef.current;
     if (!ed) return;
     setEstadoDoc("cargando");
@@ -23437,7 +23770,7 @@ function SeccionEscritor() {
       setError(e3);
     });
   }, [actualizarInfoDoc]);
-  useEffect(() => {
+  useEffect2(() => {
     const ed = montarEditor({
       element: hostRef.current,
       content: "",
@@ -23479,7 +23812,7 @@ function SeccionEscritor() {
       editorRef.current = null;
     };
   }, [cargarEscrito, programarGuardado, programarInfoDoc]);
-  useEffect(() => {
+  useEffect2(() => {
     const ed = editorRef.current;
     if (!ed) return;
     const v3 = verificacionRef.current;
@@ -23500,7 +23833,7 @@ function SeccionEscritor() {
     fijarMarcas(ed, marcas);
   }, [verificacion, docInfo, registro]);
   verificacionRef.current = verificacion;
-  const verificar = useCallback(() => {
+  const verificar = useCallback2(() => {
     const ed = editorRef.current;
     if (!ed || verificando) return;
     setVerificando(true);
@@ -23512,7 +23845,7 @@ function SeccionEscritor() {
       actualizarInfoDoc(ed);
     })).catch(setError).finally(() => setVerificando(false));
   }, [verificando, actualizarInfoDoc]);
-  const cambiarCaso = useCallback((cid) => {
+  const cambiarCaso = useCallback2((cid) => {
     clearTimeout(timerGuardado.current);
     const continuar = () => {
       setCaseId(cid);
@@ -23526,15 +23859,15 @@ function SeccionEscritor() {
       continuar();
     }
   }, [cargarEscrito, guardar]);
-  const recargarTrasConflicto = useCallback(() => {
+  const recargarTrasConflicto = useCallback2(() => {
     cargarEscrito(casoRef.current);
   }, [cargarEscrito]);
-  const fijarRegistro = useCallback((nuevo) => {
+  const fijarRegistro = useCallback2((nuevo) => {
     registroRef.current = nuevo;
     setRegistro(nuevo);
     return guardar();
   }, [guardar]);
-  const accionCita = useCallback((indice, tipo, valor) => {
+  const accionCita = useCallback2((indice, tipo, valor) => {
     const ed = editorRef.current;
     const v3 = verificacionRef.current;
     if (!ed || !v3) return;
@@ -23607,88 +23940,95 @@ function SeccionEscritor() {
   const detalles = res && res.detalles || [];
   const msgVeredicto = res && mensajeVeredicto(res.veredicto);
   const opciones = [{ case_id: BORRADOR, legal_question: "borrador (sin caso)" }].concat(casos || []);
-  return jsxs("div", { className: "flex flex-col gap-3", children: [
-    jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx("select", {
+  return jsxs2("div", { className: "flex flex-col gap-3", children: [
+    jsxs2("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx2("select", {
         className: S.input,
         value: caseId,
         onChange: (e3) => cambiarCaso(e3.target.value),
-        children: casos === null ? jsx("option", { value: caseId, children: "Cargando casos\u2026" }) : opciones.map((c4) => jsx("option", {
+        children: casos === null ? jsx2("option", { value: caseId, children: "Cargando casos\u2026" }) : opciones.map((c4) => jsx2("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id === BORRADOR ? "borrador (sin caso)" : c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx("span", { className: S.sub, children: TEXTO_GUARDADO[estadoDoc] || estadoDoc }),
-      estadoDoc === "conflicto" ? jsxs("span", { className: "flex items-center gap-1", children: [
-        jsx("span", { className: "text-xs text-(--ui-danger)", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
-        jsx("button", {
+      jsx2("span", { className: S.sub, children: TEXTO_GUARDADO[estadoDoc] || estadoDoc }),
+      estadoDoc === "conflicto" ? jsxs2("span", { className: "flex items-center gap-1", children: [
+        jsx2("span", { className: "text-xs text-(--ui-danger)", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
+        jsx2("button", {
           type: "button",
           className: S.link,
           onClick: recargarTrasConflicto,
           children: "descargar y perder mis cambios"
         })
       ] }) : null,
-      jsx("button", {
+      jsx2("button", {
         type: "button",
         className: S.button,
         onClick: verificar,
         disabled: verificando || estadoDoc === "cargando",
         children: verificando ? "Verificando\u2026" : "Verificar citas"
       }),
-      verificando ? jsx("span", { className: S.sub, children: "La primera llamada instala el corpus (~1 min)." }) : null
+      verificando ? jsx2("span", { className: S.sub, children: "La primera llamada instala el corpus (~1 min)." }) : null
     ] }),
-    error2 ? jsx("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    aviso ? jsx("div", { className: S.sub, children: aviso }) : null,
-    jsxs("div", { className: S.card, children: [
-      jsx("div", { className: S.cardTitle, children: "Escrito" }),
-      jsx("div", { ref: hostRef })
+    error2 ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
+    aviso ? jsx2("div", { className: S.sub, children: aviso }) : null,
+    jsxs2("div", { className: S.card, children: [
+      jsx2("div", { className: S.cardTitle, children: "Escrito" }),
+      jsx2("div", { ref: hostRef })
     ] }),
-    res && res.error ? jsxs("div", { className: S.card, children: [
-      jsx("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
-      jsx("div", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
+    jsx2(ModuloPrivacidad, {
+      editorRef,
+      caseId,
+      docInfo,
+      registro,
+      setRegistro
+    }),
+    res && res.error ? jsxs2("div", { className: S.card, children: [
+      jsx2("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
+      jsx2("div", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
     ] }) : null,
-    res && !res.error ? jsxs("div", { className: "flex flex-col gap-2", children: [
-      jsxs("div", { className: "font-medium", children: [
+    res && !res.error ? jsxs2("div", { className: "flex flex-col gap-2", children: [
+      jsxs2("div", { className: "font-medium", children: [
         "Dik\xE9: " + (meta.citas_verificadas || 0) + " de " + (meta.total_citas || 0) + " citas verificadas" + (res.veredicto ? " (" + res.veredicto + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? " \xB7 al " + meta.as_of : "")
       ] }),
-      msgVeredicto ? jsx("div", { className: S.sub, children: msgVeredicto }) : null,
+      msgVeredicto ? jsx2("div", { className: S.sub, children: msgVeredicto }) : null,
       detalles.map((d2, i3) => {
         const estado = estadoCita(d2, v2.hash, docInfo.hash, registro);
         const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo;
-        return jsxs("div", { key: i3, className: S.row, children: [
-          jsx("span", {
+        return jsxs2("div", { key: i3, className: S.row, children: [
+          jsx2("span", {
             className: S.mark + " " + (estado === "verificada" ? S.ok : estado === "fallo" ? S.bad : ""),
             children: estado === "verificada" ? "\u2713" : estado === "fallo" ? "\u2717" : "\xB7"
           }),
-          jsxs("div", { className: "min-w-0", children: [
-            jsxs("div", { className: "flex items-center gap-2", children: [
-              jsx("div", { children: d2.cita_raw }),
-              jsx("span", { className: S.chip + " " + S[es.chip], children: es.texto })
+          jsxs2("div", { className: "min-w-0", children: [
+            jsxs2("div", { className: "flex items-center gap-2", children: [
+              jsx2("div", { children: d2.cita_raw }),
+              jsx2("span", { className: S.chip + " " + S[es.chip], children: es.texto })
             ] }),
-            jsx("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
-            estado === "fallo" ? jsx(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
+            jsx2("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
+            estado === "fallo" ? jsx2(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
           ] })
         ] });
       }),
-      res.problemas && res.problemas.length ? jsxs("div", { className: S.section, children: [
-        jsx("div", { className: S.sectionTitle, children: "Problemas del motor" }),
-        ...res.problemas.map((p2, i3) => jsx("div", { key: i3, className: "text-xs", children: String(p2) }))
+      res.problemas && res.problemas.length ? jsxs2("div", { className: S.section, children: [
+        jsx2("div", { className: S.sectionTitle, children: "Problemas del motor" }),
+        ...res.problemas.map((p2, i3) => jsx2("div", { key: i3, className: "text-xs", children: String(p2) }))
       ] }) : null,
-      res.no_verificadas && res.no_verificadas.length ? jsx("div", { className: S.sub, children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ") }) : null,
-      registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs("details", { className: "text-xs", children: [
-        jsx("summary", { className: "cursor-pointer " + S.sub, children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
-        ...(registro.retiros || []).map((r2, i3) => jsxs("div", { key: "r" + i3, className: "py-0.5", children: [
-          jsx("span", { className: S.sub, children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
+      res.no_verificadas && res.no_verificadas.length ? jsx2("div", { className: S.sub, children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ") }) : null,
+      registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs2("details", { className: "text-xs", children: [
+        jsx2("summary", { className: "cursor-pointer " + S.sub, children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
+        ...(registro.retiros || []).map((r2, i3) => jsxs2("div", { key: "r" + i3, className: "py-0.5", children: [
+          jsx2("span", { className: S.sub, children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx2("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
         ] })),
-        ...(registro.escaladas || []).map((e3, i3) => jsxs("div", { key: "e" + i3, className: "py-0.5", children: [
-          jsx("span", { className: S.sub, children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
+        ...(registro.escaladas || []).map((e3, i3) => jsxs2("div", { key: "e" + i3, className: "py-0.5", children: [
+          jsx2("span", { className: S.sub, children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx2("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
         ] }))
       ] }) : null,
-      jsx("div", { className: S.sub, children: AVISO_JUICIO }),
-      res.alcance ? jsx("div", { className: S.sub, children: res.alcance }) : null
+      jsx2("div", { className: S.sub, children: AVISO_JUICIO }),
+      res.alcance ? jsx2("div", { className: S.sub, children: res.alcance }) : null
     ] }) : null
   ] });
 }
@@ -103330,9 +103670,9 @@ var reactElement2VNode = (el) => {
   return res;
 };
 var isReactRenderable = (o2) => r(b(o2));
-var render2 = (jsx4, domEl) => {
+var render2 = (jsx5, domEl) => {
   delete domEl.__k;
-  Q(reactElement2VNode(jsx4), domEl);
+  Q(reactElement2VNode(jsx5), domEl);
 };
 function styleInject(css, ref) {
   if (ref === void 0) ref = {};
@@ -104426,8 +104766,8 @@ function getGraphObj(object) {
 }
 
 // src/grafo3d.js
-import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
-import { useCallback as useCallback2, useEffect as useEffect2, useMemo, useRef as useRef2, useState as useState2 } from "react";
+import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
+import { useCallback as useCallback3, useEffect as useEffect3, useMemo, useRef as useRef3, useState as useState3 } from "react";
 var COLORES_NODO = {
   instrumento: "#60a5fa",
   articulo: "#a78bfa",
@@ -104511,26 +104851,26 @@ function LienzoGrafo({
   onFallo,
   apiRef
 }) {
-  const hostEl = useRef2(null);
-  const engine = useRef2(null);
-  const [listo, setListo] = useState2(false);
-  const clickRef = useRef2(alClickNodo);
+  const hostEl = useRef3(null);
+  const engine = useRef3(null);
+  const [listo, setListo] = useState3(false);
+  const clickRef = useRef3(alClickNodo);
   clickRef.current = alClickNodo;
-  const conteosRef = useRef2(conteos);
+  const conteosRef = useRef3(conteos);
   conteosRef.current = conteos;
-  const padresRef = useRef2(padres);
+  const padresRef = useRef3(padres);
   padresRef.current = padres;
-  const clickAristaRef = useRef2(alClickArista);
+  const clickAristaRef = useRef3(alClickArista);
   clickAristaRef.current = alClickArista;
-  const hoverRef = useRef2(alHover);
+  const hoverRef = useRef3(alHover);
   hoverRef.current = alHover;
-  const fondoRef = useRef2(alFondo);
+  const fondoRef = useRef3(alFondo);
   fondoRef.current = alFondo;
-  const resalteRef = useRef2(resalte);
+  const resalteRef = useRef3(resalte);
   resalteRef.current = resalte;
-  const pool = useRef2(/* @__PURE__ */ new Map());
-  const primerAjuste = useRef2(false);
-  useEffect2(() => {
+  const pool = useRef3(/* @__PURE__ */ new Map());
+  const primerAjuste = useRef3(false);
+  useEffect3(() => {
     if (!hostEl.current) return void 0;
     if (!hayWebGL()) {
       onFallo("WebGL no est\xE1 disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.");
@@ -104621,7 +104961,7 @@ function LienzoGrafo({
       apiRef.current = null;
     };
   }, []);
-  useEffect2(() => {
+  useEffect3(() => {
     const g2 = engine.current;
     if (!listo || !g2) return;
     const visibles = /* @__PURE__ */ new Set();
@@ -104653,77 +104993,77 @@ function LienzoGrafo({
     });
     if (agregados && g2.d3ReheatSimulation) g2.d3ReheatSimulation();
   }, [proyeccion, listo]);
-  useEffect2(() => {
+  useEffect3(() => {
     const g2 = engine.current;
     if (g2 && g2.refresh) g2.refresh();
   }, [resalte, listo]);
-  return jsxs2("div", { className: "relative min-w-0", children: [
-    jsx2("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
-    !listo ? jsx2("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
+  return jsxs3("div", { className: "relative min-w-0", children: [
+    jsx3("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
+    !listo ? jsx3("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
   ] });
 }
 function UnidadDetalle({ nodo, fuente }) {
-  const [data, setData] = useState2(null);
-  const [error2, setError] = useState2(null);
-  useEffect2(() => {
+  const [data, setData] = useState3(null);
+  const [error2, setError] = useState3(null);
+  useEffect3(() => {
     setData(null);
     setError(null);
     rest("/grafo/unidad?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(setError);
   }, [nodo.id, fuente]);
-  if (error2) return jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx2("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
-  return jsxs2("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx2("div", {
+  if (error2) return jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx3("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
+  return jsxs3("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx3("div", {
       className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs",
       children: data.texto
     }),
-    jsx2("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
-    data.articulo_url ? jsx2("a", {
+    jsx3("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
+    data.articulo_url ? jsx3("a", {
       className: S.link,
       href: data.articulo_url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Art\xEDculo fuente \u2197"
     }) : null,
-    data.sha256 ? jsx2("div", {
+    data.sha256 ? jsx3("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 unidad " + data.sha256
     }) : null,
-    data.articulo_sha256 ? jsx2("div", {
+    data.articulo_sha256 ? jsx3("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 art\xEDculo " + data.articulo_sha256
     }) : null
   ] });
 }
 function NodoDetalle({ nodo, fuente }) {
-  const [data, setData] = useState2(null);
-  useEffect2(() => {
+  const [data, setData] = useState3(null);
+  useEffect3(() => {
     setData(null);
     rest("/grafo/nodo?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(() => {
     });
   }, [nodo.id, fuente]);
   if (!data) return null;
-  return jsxs2("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    data.titulo ? jsx2("div", { className: S.sub, children: data.titulo }) : null,
-    data.vigencia && data.vigencia.estado ? jsx2("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
-    data.url ? jsx2("a", {
+  return jsxs3("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    data.titulo ? jsx3("div", { className: S.sub, children: data.titulo }) : null,
+    data.vigencia && data.vigencia.estado ? jsx3("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
+    data.url ? jsx3("a", {
       className: S.link,
       href: data.url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Fuente original \u2197"
     }) : null,
-    data.sha256 ? jsx2("div", {
+    data.sha256 ? jsx3("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 " + data.sha256
     }) : null
   ] });
 }
 function TarjetaArista({ arista, fuente }) {
-  const [ev, setEv] = useState2(null);
-  const [err, setErr] = useState2(null);
+  const [ev, setEv] = useState3(null);
+  const [err, setErr] = useState3(null);
   const clave = arista ? arista.source + "|" + arista.target + "|" + arista.tipo : "";
-  useEffect2(() => {
+  useEffect3(() => {
     setEv(null);
     setErr(null);
     if (!arista) return void 0;
@@ -104733,15 +105073,15 @@ function TarjetaArista({ arista, fuente }) {
   }, [clave, fuente, arista]);
   if (!arista) return null;
   const e3 = arista.evidencia || {};
-  return jsxs2("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx2("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
-    jsx2("div", {
+  return jsxs3("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx3("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
+    jsx3("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) + " \u2192 " + (arista.target && arista.target.id ? arista.target.id : arista.target)
     }),
-    e3.regla ? jsx2("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
-    err ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
-    ev ? jsxs2("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
+    e3.regla ? jsx3("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
+    err ? jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
+    ev ? jsxs3("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
       ev.snippet || "",
       ev.n_evidencias ? " (" + ev.n_evidencias + " evidencias)" : ""
     ] }) : null
@@ -104749,39 +105089,39 @@ function TarjetaArista({ arista, fuente }) {
 }
 function TarjetaNodo({ nodo, conteos, fuente }) {
   if (!nodo) {
-    return jsx2("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
+    return jsx3("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
   }
   const n2 = nodo;
   const esUnidad = n2.tipo === "unidad";
-  return jsxs2("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsxs2("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx2("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
-      esUnidad ? jsx2("span", {
+  return jsxs3("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsxs3("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx3("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
+      esUnidad ? jsx3("span", {
         className: S.chip + " " + S.chipOff,
         style: { borderLeft: "3px solid " + (COLORES_MODALIDAD[n2.modalidad] || "#64748b") },
         children: (n2.modalidad || "otra") + (n2.modalidad_regla ? " \xB7 " + n2.modalidad_regla : "")
       }) : null,
-      esUnidad ? jsx2("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
+      esUnidad ? jsx3("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
     ] }),
-    jsx2("div", { className: "font-medium", children: n2.label }),
-    n2.tipo === "instrumento" ? jsx2("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
-    n2.tipo === "articulo" ? jsx2("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx2("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx2("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
-    esUnidad && n2.articulo ? jsx2("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
-    jsx2("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
-    esUnidad ? jsx2(UnidadDetalle, { nodo: n2, fuente }) : jsx2(NodoDetalle, { nodo: n2, fuente })
+    jsx3("div", { className: "font-medium", children: n2.label }),
+    n2.tipo === "instrumento" ? jsx3("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
+    n2.tipo === "articulo" ? jsx3("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx3("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx3("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
+    esUnidad && n2.articulo ? jsx3("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
+    jsx3("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
+    esUnidad ? jsx3(UnidadDetalle, { nodo: n2, fuente }) : jsx3(NodoDetalle, { nodo: n2, fuente })
   ] });
 }
 function NormaDetalle({ data, error: error2 }) {
-  if (error2) return jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx2("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
+  if (error2) return jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx3("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
   const arts = data.articulos || [];
-  return jsxs2("div", { className: "flex flex-col gap-1 pl-4", children: [
-    jsx2("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
-    ...arts.map((a3, i3) => jsxs2("details", { key: i3, className: "text-xs", children: [
-      jsx2("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
-      jsx2("div", {
+  return jsxs3("div", { className: "flex flex-col gap-1 pl-4", children: [
+    jsx3("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
+    ...arts.map((a3, i3) => jsxs3("details", { key: i3, className: "text-xs", children: [
+      jsx3("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
+      jsx3("div", {
         className: S.sub + " pl-3 pb-1 whitespace-pre-wrap",
         children: String(a3.texto || "").slice(0, 1200)
       })
@@ -104789,11 +105129,11 @@ function NormaDetalle({ data, error: error2 }) {
   ] });
 }
 function NormaRow({ norma }) {
-  const [abierta, setAbierta] = useState2(false);
-  const [detalle, setDetalle] = useState2(null);
-  const [error2, setError] = useState2(null);
-  const [cargando, setCargando] = useState2(false);
-  const abrir = useCallback2(() => {
+  const [abierta, setAbierta] = useState3(false);
+  const [detalle, setDetalle] = useState3(null);
+  const [error2, setError] = useState3(null);
+  const [cargando, setCargando] = useState3(false);
+  const abrir = useCallback3(() => {
     if (abierta) {
       setAbierta(false);
       return;
@@ -104805,69 +105145,69 @@ function NormaRow({ norma }) {
     rest("/grafo/corpus/norma/" + norma.leychileCode).then(setDetalle).catch(setError).finally(() => setCargando(false));
   }, [abierta, detalle, cargando, norma.leychileCode]);
   const rotulo = (norma.tipo && norma.numero ? norma.tipo + " " + norma.numero : norma.tipo) + (norma.anio ? "/" + norma.anio : "") + " \xB7 " + norma.articulos + " art.";
-  return jsxs2("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
-    jsxs2("button", {
+  return jsxs3("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
+    jsxs3("button", {
       type: "button",
       className: "flex w-full items-start gap-2 text-left hover:opacity-80",
       onClick: abrir,
       children: [
-        jsx2("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
-        jsxs2("div", { className: "min-w-0", children: [
-          jsx2("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
-          jsx2("div", { className: S.sub + " truncate", children: norma.titulo })
+        jsx3("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
+        jsxs3("div", { className: "min-w-0", children: [
+          jsx3("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
+          jsx3("div", { className: S.sub + " truncate", children: norma.titulo })
         ] })
       ]
     }),
-    abierta ? jsx2(NormaDetalle, { data: detalle, error: error2 }) : null
+    abierta ? jsx3(NormaDetalle, { data: detalle, error: error2 }) : null
   ] });
 }
 function ListaCorpus() {
-  const [corpus, setCorpus] = useState2(null);
-  const [error2, setError] = useState2(null);
-  useEffect2(() => {
+  const [corpus, setCorpus] = useState3(null);
+  const [error2, setError] = useState3(null);
+  useEffect3(() => {
     rest("/grafo/corpus").then(setCorpus).catch(setError);
   }, []);
-  if (error2) return jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (error2) return jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   const pack = corpus && corpus.packs && corpus.packs[0];
-  if (!pack) return jsx2("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
-  return jsx2("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx2(NormaRow, { key: n2.leychileCode, norma: n2 })) });
+  if (!pack) return jsx3("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
+  return jsx3("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx3(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
 function SeccionGrafo() {
-  const [red, setRed] = useState2(null);
-  const [redErr, setRedErr] = useState2(null);
-  const [personal, setPersonal] = useState2(null);
-  const [personalErr, setPersonalErr] = useState2(null);
-  const [seleccion, setSeleccion] = useState2(null);
-  const [expandidos, setExpandidos] = useState2(() => /* @__PURE__ */ new Set());
-  const [unidadesMap, setUnidadesMap] = useState2(() => /* @__PURE__ */ new Map());
-  const [ocultarArts, setOcultarArts] = useState2(false);
-  const [fuente, setFuenteState] = useState2("corpus");
-  const [fuentes, setFuentes] = useState2(null);
-  const [aristaSel, setAristaSel] = useState2(null);
-  const [hover, setHover] = useState2(null);
-  const [caminoOn, setCaminoOn] = useState2(false);
-  const [caminoIdx, setCaminoIdx] = useState2(0);
-  const [rotar, setRotar] = useState2(false);
-  const setFuente = useCallback2((f2) => {
+  const [red, setRed] = useState3(null);
+  const [redErr, setRedErr] = useState3(null);
+  const [personal, setPersonal] = useState3(null);
+  const [personalErr, setPersonalErr] = useState3(null);
+  const [seleccion, setSeleccion] = useState3(null);
+  const [expandidos, setExpandidos] = useState3(() => /* @__PURE__ */ new Set());
+  const [unidadesMap, setUnidadesMap] = useState3(() => /* @__PURE__ */ new Map());
+  const [ocultarArts, setOcultarArts] = useState3(false);
+  const [fuente, setFuenteState] = useState3("corpus");
+  const [fuentes, setFuentes] = useState3(null);
+  const [aristaSel, setAristaSel] = useState3(null);
+  const [hover, setHover] = useState3(null);
+  const [caminoOn, setCaminoOn] = useState3(false);
+  const [caminoIdx, setCaminoIdx] = useState3(0);
+  const [rotar, setRotar] = useState3(false);
+  const setFuente = useCallback3((f2) => {
     setFuenteState(f2);
     try {
       storage && storage.set("grafo.fuente", f2);
     } catch (e3) {
     }
   }, []);
-  const [query, setQuery] = useState2("");
-  const [fallo3d, setFallo3d] = useState2(null);
-  const [listaAbierta, setListaAbierta] = useState2(false);
-  const apiRef = useRef2(null);
-  const cargar = useCallback2(() => {
+  const [query, setQuery] = useState3("");
+  const [fallo3d, setFallo3d] = useState3(null);
+  const [listaAbierta, setListaAbierta] = useState3(false);
+  const apiRef = useRef3(null);
+  const cargar = useCallback3(() => {
     setRedErr(null);
     setPersonalErr(null);
     setRed(null);
     rest("/grafo/red?fuente=" + fuente, { timeoutMs: 12e4 }).then(setRed).catch(setRedErr);
     rest("/grafo/personal").then(setPersonal).catch(setPersonalErr);
   }, [fuente]);
-  useEffect2(cargar, [cargar]);
-  useEffect2(() => {
+  useEffect3(cargar, [cargar]);
+  useEffect3(() => {
     rest("/grafo/fuentes").then((fs) => {
       setFuentes(fs);
       const amb = fs && fs.find((f2) => f2.id === "ambiental" && f2.disponible);
@@ -104883,7 +105223,7 @@ function SeccionGrafo() {
     }).catch(() => {
     });
   }, []);
-  const alFallo3d = useCallback2((msg) => {
+  const alFallo3d = useCallback3((msg) => {
     setFallo3d(msg);
     setListaAbierta(true);
   }, []);
@@ -104929,7 +105269,7 @@ function SeccionGrafo() {
       links: links.filter((l2) => ids.has(l2.source) && ids.has(l2.target))
     };
   }, [nodos, aristas, ocultarArts, expandidos, unidadesMap]);
-  const alClickNodo = useCallback2((n2) => {
+  const alClickNodo = useCallback3((n2) => {
     setSeleccion(n2.id);
     if (n2.tipo === "articulo" && fuente === "corpus") {
       if (expandidos.has(n2.id)) {
@@ -104947,15 +105287,15 @@ function SeccionGrafo() {
       }
     }
   }, [expandidos, unidadesMap, fuente]);
-  const alClickArista = useCallback2((l2) => {
+  const alClickArista = useCallback3((l2) => {
     setAristaSel(l2);
   }, []);
-  const alFondo = useCallback2(() => {
+  const alFondo = useCallback3(() => {
     setSeleccion(null);
     setCaminoOn(false);
     setRotar(false);
   }, []);
-  const alHover = useCallback2((id) => setHover(id), []);
+  const alHover = useCallback3((id) => setHover(id), []);
   const resalte = useMemo(() => {
     const cam = red && (red.caminos_demo || [])[caminoIdx];
     if (caminoOn && cam && (cam.ids || []).length) {
@@ -104979,14 +105319,14 @@ function SeccionGrafo() {
     }
     return { ids, links };
   }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion]);
-  useEffect2(() => {
+  useEffect3(() => {
     if (!rotar) return void 0;
     const id = setInterval(() => {
       if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita();
     }, 40);
     return () => clearInterval(id);
   }, [rotar]);
-  const alBuscar = useCallback2((id) => {
+  const alBuscar = useCallback3((id) => {
     const n2 = indice.get(id);
     if (!n2) return;
     setSeleccion(id);
@@ -104998,11 +105338,11 @@ function SeccionGrafo() {
   const candidatos = personal && personal.candidates || [];
   const aristasP = personal && personal.edges || [];
   const totales = red && red.conteos || {};
-  return jsxs2("div", { className: "flex flex-col gap-3", children: [
-    jsxs2("div", { className: S.card, children: [
-      jsxs2("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
-        jsx2("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
-        jsxs2("select", {
+  return jsxs3("div", { className: "flex flex-col gap-3", children: [
+    jsxs3("div", { className: S.card, children: [
+      jsxs3("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
+        jsx3("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
+        jsxs3("select", {
           className: S.input,
           title: "Fuente del grafo",
           value: fuente,
@@ -105013,8 +105353,8 @@ function SeccionGrafo() {
             setSeleccion(null);
           },
           children: [
-            jsx2("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
-            jsx2("option", {
+            jsx3("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
+            jsx3("option", {
               value: "ambiental",
               disabled: !(fuentes && fuentes.find((f2) => f2.id === "ambiental" && f2.disponible)),
               title: "solo en este equipo \u2014 no publicada",
@@ -105022,56 +105362,56 @@ function SeccionGrafo() {
             })
           ]
         }),
-        fuente === "ambiental" ? jsx2("span", {
+        fuente === "ambiental" ? jsx3("span", {
           className: S.chip + " " + S.chipOff,
           children: "local \u2014 no publicado \xB7 sentencias anonimizadas \xB7 relaciones candidatas, sin validar"
         }) : null,
-        red ? jsx2("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
+        red ? jsx3("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
       ] }),
-      redErr ? jsxs2("div", { className: "flex flex-col items-start gap-1.5", children: [
-        jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
-        jsx2("button", {
+      redErr ? jsxs3("div", { className: "flex flex-col items-start gap-1.5", children: [
+        jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
+        jsx3("button", {
           type: "button",
           className: S.ghost,
           onClick: cargar,
           children: "Reintentar"
         })
-      ] }) : !red ? jsx2("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs2("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
-        jsxs2("div", { className: "min-w-0", children: [
-          jsxs2("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
-            Object.keys(COLORES_NODO).map((tipo) => jsxs2("span", {
+      ] }) : !red ? jsx3("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs3("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
+        jsxs3("div", { className: "min-w-0", children: [
+          jsxs3("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
+            Object.keys(COLORES_NODO).map((tipo) => jsxs3("span", {
               key: tipo,
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx2("span", {
+                jsx3("span", {
                   className: "inline-block h-2.5 w-2.5 rounded-full",
                   style: { background: COLORES_NODO[tipo] }
                 }),
                 NOMBRE_TIPO[tipo]
               ]
             })),
-            jsxs2("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
-              jsx2("input", {
+            jsxs3("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
+              jsx3("input", {
                 type: "checkbox",
                 checked: ocultarArts,
                 onChange: (e3) => setOcultarArts(e3.target.checked)
               }),
               "ocultar art\xEDculos"
             ] }),
-            jsx2("span", { className: S.sub, children: "|" }),
-            jsx2("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
-            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs2("span", {
+            jsx3("span", { className: S.sub, children: "|" }),
+            jsx3("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
+            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs3("span", {
               key: mod2,
               className: "flex items-center gap-1 " + S.sub,
               children: [
-                jsx2("span", {
+                jsx3("span", {
                   className: "inline-block h-2 w-2 rounded-full",
                   style: { background: COLORES_MODALIDAD[mod2] }
                 }),
                 mod2
               ]
             })),
-            jsx2("button", {
+            jsx3("button", {
               type: "button",
               className: S.link,
               onClick: () => {
@@ -105079,8 +105419,8 @@ function SeccionGrafo() {
               },
               children: "encajar"
             }),
-            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs2("span", { className: "flex items-center gap-1", children: [
-              jsxs2("select", {
+            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs3("span", { className: "flex items-center gap-1", children: [
+              jsxs3("select", {
                 className: S.input,
                 title: "Camino destacado",
                 value: caminoIdx,
@@ -105092,13 +105432,13 @@ function SeccionGrafo() {
                     apiRef.current.encuadrar(cm.ids);
                   }
                 },
-                children: (red.caminos_demo || []).map((cm, i3) => jsx2("option", {
+                children: (red.caminos_demo || []).map((cm, i3) => jsx3("option", {
                   key: i3,
                   value: i3,
                   children: cm.titulo + " \xB7 " + cm.relajacion
                 }))
               }),
-              jsx2("button", {
+              jsx3("button", {
                 type: "button",
                 className: caminoOn ? S.chip + " " + S.chipOk : S.link,
                 onClick: () => {
@@ -105113,10 +105453,10 @@ function SeccionGrafo() {
                 children: "camino destacado"
               })
             ] }) : null,
-            fuente === "ambiental" ? jsxs2("label", {
+            fuente === "ambiental" ? jsxs3("label", {
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx2("input", {
+                jsx3("input", {
                   type: "checkbox",
                   checked: rotar,
                   onChange: (e3) => setRotar(e3.target.checked)
@@ -105124,12 +105464,12 @@ function SeccionGrafo() {
                 "rotar"
               ]
             }) : null,
-            jsx2("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
+            jsx3("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
           ] }),
-          fallo3d ? jsxs2("div", { className: S.card, children: [
-            jsx2("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
-            jsx2("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
-          ] }) : jsx2(LienzoGrafo, {
+          fallo3d ? jsxs3("div", { className: S.card, children: [
+            jsx3("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
+            jsx3("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
+          ] }) : jsx3(LienzoGrafo, {
             proyeccion,
             padres,
             conteos,
@@ -105142,36 +105482,36 @@ function SeccionGrafo() {
             apiRef
           })
         ] }),
-        jsxs2("div", { className: "flex min-w-0 flex-col gap-2", children: [
-          jsx2("input", {
+        jsxs3("div", { className: "flex min-w-0 flex-col gap-2", children: [
+          jsx3("input", {
             className: S.input + " w-full",
             placeholder: "Buscar ley, c\xF3digo o art\xEDculo\u2026",
             value: query,
             onChange: (e3) => setQuery(e3.target.value)
           }),
-          q2 ? jsxs2("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
-            coincidencias.map((n2) => jsxs2("button", {
+          q2 ? jsxs3("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
+            coincidencias.map((n2) => jsxs3("button", {
               key: n2.id,
               type: "button",
               className: "block w-full px-2 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary) truncate",
               onClick: () => alBuscar(n2.id),
               children: [
-                jsx2("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
+                jsx3("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
                 n2.label
               ]
             })),
-            coincidencias.length === 0 ? jsx2("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
+            coincidencias.length === 0 ? jsx3("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
           ] }) : null,
-          jsx2("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx2(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
-          aristaSel ? jsx2("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx2(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
-          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs2("div", {
+          jsx3("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx3(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
+          aristaSel ? jsx3("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx3(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
+          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs3("div", {
             className: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",
             children: [
-              jsx2("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
+              jsx3("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
               ...(red.caminos_demo[caminoIdx].ids || []).map((id, i3) => {
                 const n2 = indice.get(id);
                 const paso = i3 > 0 ? " " + ((red.caminos_demo[caminoIdx].links[i3 - 1] || "").split("|")[2] || "\u2192") + " " : "";
-                return jsxs2("button", {
+                return jsxs3("button", {
                   key: id,
                   type: "button",
                   className: "text-left text-xs hover:bg-(--ui-bg-quaternary) truncate " + S.link,
@@ -105180,7 +105520,7 @@ function SeccionGrafo() {
                   },
                   children: [
                     i3 + 1 + ". " + (n2 ? n2.label : id),
-                    paso ? jsx2("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
+                    paso ? jsx3("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
                   ]
                 });
               })
@@ -105189,26 +105529,26 @@ function SeccionGrafo() {
         ] })
       ] })
     ] }),
-    fuente === "corpus" ? jsxs2("details", {
+    fuente === "corpus" ? jsxs3("details", {
       className: S.card,
       open: listaAbierta,
       onToggle: (e3) => setListaAbierta(e3.currentTarget.open),
       children: [
-        jsx2("summary", {
+        jsx3("summary", {
           className: "cursor-pointer " + S.cardTitle + " normal-case",
           children: "Lista del corpus (texto)"
         }),
-        listaAbierta ? jsx2("div", { className: "mt-2", children: jsx2(ListaCorpus, {}) }) : null
+        listaAbierta ? jsx3("div", { className: "mt-2", children: jsx3(ListaCorpus, {}) }) : null
       ]
     }) : null,
-    fuente === "corpus" ? jsxs2("div", { className: S.card, children: [
-      jsx2("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
-      personalErr ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx2("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs2("div", { className: "flex flex-col gap-1", children: [
-        jsx2("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
-        candidatos.length === 0 ? jsx2("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx2("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs2("div", { key: i3, className: S.row, children: [
-          jsxs2("div", { className: "min-w-0", children: [
-            jsx2("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
-            jsx2("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
+    fuente === "corpus" ? jsxs3("div", { className: S.card, children: [
+      jsx3("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
+      personalErr ? jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx3("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs3("div", { className: "flex flex-col gap-1", children: [
+        jsx3("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
+        candidatos.length === 0 ? jsx3("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx3("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs3("div", { key: i3, className: S.row, children: [
+          jsxs3("div", { className: "min-w-0", children: [
+            jsx3("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
+            jsx3("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
           ] })
         ] })) })
       ] })
@@ -105219,28 +105559,28 @@ function SeccionGrafo() {
 // src/plugin.src.js
 var ID = "dike";
 function Estado() {
-  const [estado, setEstado] = useState3(null);
-  const [err, setErr] = useState3(null);
-  const cargar = useCallback3(() => {
+  const [estado, setEstado] = useState4(null);
+  const [err, setErr] = useState4(null);
+  const cargar = useCallback4(() => {
     setErr(null);
     rest("/estado").then(setEstado).catch(setErr);
   }, []);
-  useEffect3(cargar, [cargar]);
+  useEffect4(cargar, [cargar]);
   if (err) {
     const perfil = host.state && host.state.profile && host.state.profile.get() || "";
-    return jsxs3("div", { className: "flex flex-col gap-2", children: [
-      jsx3("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
-      jsx3("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
-      jsx3("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
+    return jsxs4("div", { className: "flex flex-col gap-2", children: [
+      jsx4("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
+      jsx4("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
+      jsx4("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
     ] });
   }
-  if (!estado) return jsx3("div", { className: S.sub, children: "Consultando el corpus\u2026" });
-  return jsxs3("div", { className: "flex flex-wrap items-center gap-2", children: [
-    jsx3("span", {
+  if (!estado) return jsx4("div", { className: S.sub, children: "Consultando el corpus\u2026" });
+  return jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
+    jsx4("span", {
       className: S.chip + " " + (estado.corpus_instalado ? S.chipOk : S.chipOff),
       children: estado.corpus_instalado ? "corpus instalado" : "corpus sin instalar"
     }),
-    jsx3("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
+    jsx4("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
   ] });
 }
 var SECCIONES_NIF = [
@@ -105266,32 +105606,32 @@ function ItemNif({ valor }) {
   else if (v2 && typeof v2 === "object" && !Array.isArray(v2)) {
     texto = [v2.label || v2.id || v2.name || "", v2.description || v2.text || v2.filled_with || ""].filter(Boolean).join(" \u2014 ") || JSON.stringify(v2);
   } else texto = JSON.stringify(v2);
-  return jsx3("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx3("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
+  return jsx4("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx4("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
 }
 function SeccionNif({ titulo, valores, campo, onAgregar }) {
-  const [nuevo, setNuevo] = useState3("");
-  const [editando, setEditando] = useState3(false);
+  const [nuevo, setNuevo] = useState4("");
+  const [editando, setEditando] = useState4(false);
   const lista = Array.isArray(valores) ? valores : [];
-  return jsxs3("div", { className: S.section, children: [
-    jsxs3("div", { className: "flex items-center justify-between", children: [
-      jsx3("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
-      jsx3("button", {
+  return jsxs4("div", { className: S.section, children: [
+    jsxs4("div", { className: "flex items-center justify-between", children: [
+      jsx4("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
+      jsx4("button", {
         type: "button",
         className: S.link + " normal-case",
         onClick: () => setEditando(!editando),
         children: editando ? "cerrar" : "+ agregar"
       })
     ] }),
-    ...lista.map((v2, i3) => jsx3(ItemNif, { key: i3, valor: v2 })),
-    lista.length === 0 ? jsx3("div", { className: S.sub, children: "\u2014" }) : null,
-    editando ? jsxs3("div", { className: "flex flex-col gap-1 mt-1", children: [
-      jsx3("textarea", {
+    ...lista.map((v2, i3) => jsx4(ItemNif, { key: i3, valor: v2 })),
+    lista.length === 0 ? jsx4("div", { className: S.sub, children: "\u2014" }) : null,
+    editando ? jsxs4("div", { className: "flex flex-col gap-1 mt-1", children: [
+      jsx4("textarea", {
         className: "min-h-16 w-full rounded border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-1.5 font-mono text-xs",
         placeholder: SECCIONES_OBJETO.has(campo) ? 'JSON del \xEDtem, ej. {"label": "Trabajador"}' : "Texto del \xEDtem",
         value: nuevo,
         onChange: (ev) => setNuevo(ev.target.value)
       }),
-      jsx3("button", {
+      jsx4("button", {
         type: "button",
         className: S.ghost,
         onClick: () => {
@@ -105313,25 +105653,25 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
   ] });
 }
 function GapRow({ gap, index: index5, ocupado, onResolver }) {
-  const [by, setBy] = useState3("");
-  const [with_, setWith] = useState3("");
-  return jsxs3("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
-    jsx3("div", { children: gap.description || JSON.stringify(gap) }),
-    jsx3("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
-    jsxs3("div", { className: "flex gap-1", children: [
-      jsx3("input", {
+  const [by, setBy] = useState4("");
+  const [with_, setWith] = useState4("");
+  return jsxs4("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
+    jsx4("div", { children: gap.description || JSON.stringify(gap) }),
+    jsx4("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
+    jsxs4("div", { className: "flex gap-1", children: [
+      jsx4("input", {
         className: S.input + " w-28",
         placeholder: "qui\xE9n",
         value: by,
         onChange: (e3) => setBy(e3.target.value)
       }),
-      jsx3("input", {
+      jsx4("input", {
         className: S.input + " flex-1",
         placeholder: "con qu\xE9 se llena",
         value: with_,
         onChange: (e3) => setWith(e3.target.value)
       }),
-      jsx3("button", {
+      jsx4("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado || !by.trim() || !with_.trim(),
@@ -105342,16 +105682,16 @@ function GapRow({ gap, index: index5, ocupado, onResolver }) {
   ] });
 }
 function NifBoard({ caso, onCambio }) {
-  const [data, setData] = useState3(null);
-  const [error2, setError] = useState3(null);
-  const [conf, setConf] = useState3("");
-  const [ocupado, setOcupado] = useState3(false);
-  const cargar = useCallback3(() => {
+  const [data, setData] = useState4(null);
+  const [error2, setError] = useState4(null);
+  const [conf, setConf] = useState4("");
+  const [ocupado, setOcupado] = useState4(false);
+  const cargar = useCallback4(() => {
     setError(null);
     rest("/nif/snapshot?case_id=" + encodeURIComponent(caso.case_id)).then(setData).catch(setError);
   }, [caso.case_id]);
-  useEffect3(cargar, [cargar]);
-  const accion = useCallback3((fn) => (...args) => {
+  useEffect4(cargar, [cargar]);
+  const accion = useCallback4((fn) => (...args) => {
     if (ocupado) return;
     setOcupado(true);
     setError(null);
@@ -105362,31 +105702,31 @@ function NifBoard({ caso, onCambio }) {
   }, [ocupado, cargar, onCambio]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   if (error2 && !data) {
-    return jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+    return jsx4("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   }
-  if (!data) return jsx3("div", { className: S.sub, children: "Cargando NIF\u2026" });
+  if (!data) return jsx4("div", { className: S.sub, children: "Cargando NIF\u2026" });
   const snap = data.snapshot || {};
   const nif = snap.nif;
   if (!snap.exists || !nif) {
-    return jsx3("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
+    return jsx4("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
   }
   const patches = data.patches && data.patches.patches || [];
   const gaps = nif.gaps || [];
-  return jsxs3("div", { className: "flex flex-col gap-3", children: [
-    jsxs3("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx3("span", {
+  return jsxs4("div", { className: "flex flex-col gap-3", children: [
+    jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx4("span", {
         className: S.chip + " " + (nif.validated_by_human ? S.chipOk : S.chipOff),
         children: nif.validated_by_human ? "validado por humano" : "sin validaci\xF3n humana"
       }),
-      jsx3("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
-      jsx3("button", {
+      jsx4("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
+      jsx4("button", {
         type: "button",
         className: S.link,
         onClick: accion(() => post("/nif/validar", { case_id: caso.case_id, validated: !nif.validated_by_human })),
         children: nif.validated_by_human ? "retirar validaci\xF3n" : "marcar validado"
       }),
-      jsxs3("span", { className: "flex items-center gap-1", children: [
-        jsx3("input", {
+      jsxs4("span", { className: "flex items-center gap-1", children: [
+        jsx4("input", {
           type: "number",
           min: "0",
           max: "1",
@@ -105396,7 +105736,7 @@ function NifBoard({ caso, onCambio }) {
           value: conf,
           onChange: (e3) => setConf(e3.target.value)
         }),
-        jsx3("button", {
+        jsx4("button", {
           type: "button",
           className: S.link,
           onClick: accion(() => post("/nif/confianza", { case_id: caso.case_id, confidence: parseFloat(conf) })),
@@ -105404,10 +105744,10 @@ function NifBoard({ caso, onCambio }) {
         })
       ] })
     ] }),
-    jsx3("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
-    jsx3("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
+    jsx4("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
+    jsx4("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
       const valores = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
-      return jsx3(SeccionNif, {
+      return jsx4(SeccionNif, {
         key: campo,
         titulo,
         valores,
@@ -105419,9 +105759,9 @@ function NifBoard({ caso, onCambio }) {
         }))()
       });
     }) }),
-    gaps.length ? jsxs3("div", { className: S.section, children: [
-      jsx3("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
-      ...gaps.map((g2, i3) => g2.status === "filled" ? null : jsx3(GapRow, {
+    gaps.length ? jsxs4("div", { className: S.section, children: [
+      jsx4("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
+      ...gaps.map((g2, i3) => g2.status === "filled" ? null : jsx4(GapRow, {
         key: i3,
         gap: g2,
         index: i3,
@@ -105434,32 +105774,32 @@ function NifBoard({ caso, onCambio }) {
         }))
       }))
     ] }) : null,
-    patches.length ? jsxs3("details", { className: "text-xs", children: [
-      jsx3("summary", {
+    patches.length ? jsxs4("details", { className: "text-xs", children: [
+      jsx4("summary", {
         className: "cursor-pointer " + S.sub,
         children: "Historial de parches (" + patches.length + ")"
       }),
-      ...patches.slice(-12).reverse().map((p2, i3) => jsxs3("div", {
+      ...patches.slice(-12).reverse().map((p2, i3) => jsxs4("div", {
         key: i3,
         className: "border-b border-(--ui-stroke-tertiary) py-1",
         children: [
-          jsx3("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx3("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
-          p2.reason ? jsx3("div", { className: S.sub, children: p2.reason }) : null
+          jsx4("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx4("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
+          p2.reason ? jsx4("div", { className: S.sub, children: p2.reason }) : null
         ]
       }))
     ] }) : null,
-    error2 ? jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
+    error2 ? jsx4("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
   ] });
 }
 function SeccionNifPanel() {
-  const [lista, setLista] = useState3({ cases: [] });
-  const [error2, setError] = useState3(null);
-  const [casoSel, setCasoSel] = useState3(null);
-  const [nuevoId, setNuevoId] = useState3("");
-  const [nuevaPregunta, setNuevaPregunta] = useState3("");
-  const [ocupado, setOcupado] = useState3(false);
-  const cargar = useCallback3(() => {
+  const [lista, setLista] = useState4({ cases: [] });
+  const [error2, setError] = useState4(null);
+  const [casoSel, setCasoSel] = useState4(null);
+  const [nuevoId, setNuevoId] = useState4("");
+  const [nuevaPregunta, setNuevaPregunta] = useState4("");
+  const [ocupado, setOcupado] = useState4(false);
+  const cargar = useCallback4(() => {
     setError(null);
     rest("/nif/casos").then((d2) => {
       setLista(d2);
@@ -105470,25 +105810,25 @@ function SeccionNifPanel() {
       });
     }).catch(setError);
   }, []);
-  useEffect3(cargar, [cargar]);
+  useEffect4(cargar, [cargar]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   const casos = lista.cases || [];
-  return jsxs3("div", { className: "flex flex-col gap-3", children: [
-    jsxs3("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx3("select", {
+  return jsxs4("div", { className: "flex flex-col gap-3", children: [
+    jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx4("select", {
         className: S.input,
         value: casoSel ? casoSel.case_id : "",
         onChange: (ev) => {
           const c4 = casos.filter((x3) => x3.case_id === ev.target.value)[0];
           setCasoSel(c4 || null);
         },
-        children: casos.length === 0 ? jsx3("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx3("option", {
+        children: casos.length === 0 ? jsx4("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx4("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx3("button", {
+      jsx4("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado,
@@ -105498,19 +105838,19 @@ function SeccionNifPanel() {
         },
         children: ocupado ? "\u2026" : "Cargar caso demo"
       }),
-      jsx3("input", {
+      jsx4("input", {
         className: S.input + " w-32",
         placeholder: "id del caso",
         value: nuevoId,
         onChange: (e3) => setNuevoId(e3.target.value)
       }),
-      jsx3("input", {
+      jsx4("input", {
         className: S.input + " w-64",
         placeholder: "pregunta jur\xEDdica",
         value: nuevaPregunta,
         onChange: (e3) => setNuevaPregunta(e3.target.value)
       }),
-      jsx3("button", {
+      jsx4("button", {
         type: "button",
         className: S.button,
         disabled: ocupado || !nuevoId.trim() || !nuevaPregunta.trim(),
@@ -105525,9 +105865,9 @@ function SeccionNifPanel() {
         children: "Nuevo caso"
       })
     ] }),
-    error2 ? jsx3("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    casos.length === 0 && !error2 ? jsx3("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
-    casoSel ? jsx3(NifBoard, { caso: casoSel, onCambio: cargar }) : null
+    error2 ? jsx4("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
+    casos.length === 0 && !error2 ? jsx4("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
+    casoSel ? jsx4(NifBoard, { caso: casoSel, onCambio: cargar }) : null
   ] });
 }
 var plugin_src_default = {
@@ -105539,24 +105879,24 @@ var plugin_src_default = {
     setRest(ctx.rest);
     setStorage(ctx.storage || null);
     function DikePage() {
-      const [pestana, setPestana] = useState3("escritor");
+      const [pestana, setPestana] = useState4("escritor");
       const pestanas = [
         ["escritor", "Case Writer"],
         ["grafo", "Grafo"],
         ["nif", "NIF"]
       ];
-      return jsxs3("div", { className: S.page, children: [
-        jsxs3("div", { children: [
-          jsx3("div", { className: S.title, children: "Dik\xE9" }),
-          jsx3("div", { className: S.sub, children: "Verificaci\xF3n local de citas, mapa del corpus y tablero NIF. No es consejo legal." })
+      return jsxs4("div", { className: S.page, children: [
+        jsxs4("div", { children: [
+          jsx4("div", { className: S.title, children: "Dik\xE9" }),
+          jsx4("div", { className: S.sub, children: "Verificaci\xF3n local de citas, mapa del corpus y tablero NIF. No es consejo legal." })
         ] }),
-        jsxs3("div", { className: S.card, children: [
-          jsx3("div", { className: S.cardTitle, children: "Corpus" }),
-          jsx3(Estado, {})
+        jsxs4("div", { className: S.card, children: [
+          jsx4("div", { className: S.cardTitle, children: "Corpus" }),
+          jsx4(Estado, {})
         ] }),
-        jsxs3("div", {
+        jsxs4("div", {
           className: S.tabs,
-          children: pestanas.map(([id, label2]) => jsx3("button", {
+          children: pestanas.map(([id, label2]) => jsx4("button", {
             key: id,
             type: "button",
             className: S.tab + " " + (pestana === id ? S.tabOn : S.tabOff),
@@ -105564,9 +105904,9 @@ var plugin_src_default = {
             children: label2
           }))
         }),
-        pestana === "escritor" ? jsx3(SeccionEscritor, {}) : null,
-        pestana === "grafo" ? jsx3(SeccionGrafo, {}) : null,
-        pestana === "nif" ? jsx3(SeccionNifPanel, {}) : null
+        pestana === "escritor" ? jsx4(SeccionEscritor, {}) : null,
+        pestana === "grafo" ? jsx4(SeccionGrafo, {}) : null,
+        pestana === "nif" ? jsx4(SeccionNifPanel, {}) : null
       ] });
     }
     ctx.registerMany([
@@ -105574,7 +105914,7 @@ var plugin_src_default = {
         id: "page",
         area: ROUTES_AREA,
         data: { path: "/dike" },
-        render: () => jsx3(DikePage, {})
+        render: () => jsx4(DikePage, {})
       },
       {
         id: "nav",

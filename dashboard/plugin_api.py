@@ -523,3 +523,119 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
     if ev is None:
         raise HTTPException(status_code=404, detail="evidencia no encontrada.")
     return ev
+
+
+# ---------------------------------------------------------------------------
+# Privacidad del escrito (F2a): detección, seudónimos estables y registro de
+# envíos. I/O directo en plugin-data; el detector es puro Python (sin
+# subproceso). Fail-closed: si el registro no se puede escribir, la ruta
+# responde 5xx y el cliente no debe enviar nada.
+# ---------------------------------------------------------------------------
+
+def _privacidad():
+    """Carga el paquete ``privacidad/`` por ruta como ``dike_privacidad``."""
+    if "dike_privacidad" in sys.modules:
+        return sys.modules["dike_privacidad"]
+    spec = importlib.util.spec_from_file_location(
+        "dike_privacidad",
+        _RAIZ / "privacidad" / "__init__.py",
+        submodule_search_locations=[str(_RAIZ / "privacidad")])
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    try:
+        spec.loader.exec_module(mod)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
+    return mod
+
+
+def _texto_privacidad(body: dict) -> str:
+    texto = body.get("texto") or ""
+    if len(texto.encode("utf-8")) > _adaptador()._LIMITE_TEXTO:
+        raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
+    return texto
+
+
+@router.post("/privacidad/detectar")
+def privacidad_detectar(body: dict):
+    """Detecta datos personales visibles; con case_id aplica decisiones."""
+    mod = _adaptador()
+    pv = _privacidad()
+    texto = _texto_privacidad(body)
+    estrategia = body.get("estrategia") or "media"
+    cid = body.get("case_id")
+    conservar, enmascarar = [], []
+    if cid is not None:
+        cid = _case_id({"case_id": cid})
+        dec = pv.decisiones(mod._carpeta_de_datos(), cid)
+        conservar = [d["valor"] for d in dec.values() if d["accion"] == "conservar"]
+        enmascarar = [d["valor"] for d in dec.values() if d["accion"] == "enmascarar"]
+    entidades = pv.detectar(texto, estrategia=estrategia,
+                            conservar_valores=conservar,
+                            enmascarar_valores=enmascarar)
+    candidatos = pv.candidatos_sin_contexto(texto, entidades)
+    conteos: dict[str, int] = {}
+    for e in entidades:
+        conteos[e["categoria"]] = conteos.get(e["categoria"], 0) + 1
+    return {
+        "entidades": entidades,
+        "candidatos": candidatos,
+        "conteos": conteos,
+        "estrategia": estrategia if estrategia in pv.ESTRATEGIAS else "media",
+        "paquetes": sorted(pv.PAQUETES),
+        "version": pv.VERSION,
+        "aviso": pv.AVISO,
+    }
+
+
+@router.post("/privacidad/decision")
+def privacidad_decision(body: dict):
+    """Guarda la decisión del abogado sobre un valor."""
+    mod = _adaptador()
+    pv = _privacidad()
+    cid = _case_id(body)
+    valor = body.get("valor") or ""
+    accion = body.get("accion")
+    if accion not in ("conservar", "enmascarar", "olvidar"):
+        raise HTTPException(status_code=400,
+                            detail="accion debe ser conservar, enmascarar u olvidar.")
+    if not valor.strip() and accion != "olvidar":
+        raise HTTPException(status_code=400, detail="El valor no puede estar vacío.")
+    tipo = body.get("tipo") or "full_name"
+    dec = pv.guardar_decision(mod._carpeta_de_datos(), cid, valor, accion, tipo)
+    return {"ok": True, "decisiones": dec}
+
+
+@router.post("/privacidad/seudonimizar")
+def privacidad_seudonimizar(body: dict):
+    """Texto con tokens estables + mapa local (no sale del equipo)."""
+    mod = _adaptador()
+    pv = _privacidad()
+    cid = _case_id(body)
+    texto = _texto_privacidad(body)
+    estrategia = body.get("estrategia") or "media"
+    return pv.seudonimizar(mod._carpeta_de_datos(), cid, texto, estrategia)
+
+
+@router.post("/privacidad/envio")
+def privacidad_envio(body: dict):
+    """Registra un envío (sin contenido). Si no se puede registrar → 5xx."""
+    mod = _adaptador()
+    pv = _privacidad()
+    cid = _case_id(body)
+    destino = body.get("destino") or ""
+    sha = body.get("sha256") or ""
+    if not re.fullmatch(r"[0-9a-f]{64}", sha):
+        raise HTTPException(status_code=400, detail="sha256 inválido.")
+    if len(destino) > 200:
+        raise HTTPException(status_code=400, detail="destino demasiado largo.")
+    try:
+        pv.registrar_envio(mod._carpeta_de_datos(), cid, destino, sha,
+                           body.get("conteos") or {},
+                           body.get("estrategia") or "media",
+                           bool(body.get("seudonimizado")))
+    except OSError:
+        raise HTTPException(status_code=500,
+                            detail="No se pudo registrar el envío; no envíes el texto.")
+    return {"ok": True}

@@ -96,5 +96,64 @@
     "motor/shared/schemas/nif_patch.py": "f2a5ad8cda2d968d6b41baf953e1da02ca6c12b951db827974c48115e111f717",
     "motor/shared/schemas/normative_interaction_frame.v1.json": "752529e199fddeac89ce87b068f0b95099a7476f05da84d8a2c4bb092480bd7a",
     "motor/shared/schemas/validation_contracts.py": "207ba3f288810254dc1c64e656aa1184b90b8c282aabff12c00c2f764a947486"
+  },
+  "ported": {
+    "privacidad/": {
+      "descripcion": "Detector de datos personales + seudónimos estables (F2a). Código portado, no importado.",
+      "fuentes": [
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/dpp-ai-compliance-lab",
+          "commit": "0d1e386",
+          "licencia": "MIT",
+          "archivos_origen": [
+            "src/dpp_ai_compliance_lab/patterns.py",
+            "src/dpp_ai_compliance_lab/anonimiza_server.py",
+            "scripts/run_benchmark.py",
+            "data/goldset/chilean_pii_goldset_v0.3.0.jsonl"
+          ],
+          "archivos_destino": [
+            "privacidad/patrones.py",
+            "privacidad/detector.py",
+            "tests/fixtures/privacidad/goldset_sintetico.jsonl"
+          ]
+        },
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/graph-legal-ir/graph-legal-ir",
+          "commit": "working tree sin commit sobre fe283d6; sha256 de pii.py = bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc",
+          "licencia": "MIT (ver repo origen)",
+          "archivos_origen": [
+            "src/gnn_ambiental/privacy/pii.py"
+          ],
+          "archivos_destino": [
+            "privacidad/detector.py"
+          ]
+        },
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+          "commit": "7c13a89",
+          "licencia": "MIT",
+          "archivos_origen": [
+            "src/lib/piiMask.ts",
+            "src/lib/piiMask.goldset.ts"
+          ],
+          "archivos_destino": [
+            "privacidad/patrones.py",
+            "privacidad/detector.py",
+            "tests/fixtures/privacidad/piimask_goldset.py"
+          ]
+        },
+        {
+          "repo": "~/dike-desk",
+          "commit": "e3348d2",
+          "licencia": "MIT",
+          "archivos_origen": [
+            "scripts/legal-pack/residual-mask.ts"
+          ],
+          "archivos_destino": [
+            "privacidad/detector.py"
+          ]
+        }
+      ]
+    }
   }
 }

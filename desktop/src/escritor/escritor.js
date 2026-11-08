@@ -13,6 +13,7 @@ import {
   AVISO_JUICIO, estadoCita, etiquetaCita, localizarCitas, mensajeVeredicto,
   rangoAPos, rangosAPos, segmentosDeDoc, sha256Hex,
 } from './verificador.js'
+import { ModuloPrivacidad } from './privacidad.js'
 
 const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
@@ -462,6 +463,10 @@ export function SeccionEscritor() {
       jsx('div', { className: S.cardTitle, children: 'Escrito' }),
       jsx('div', { ref: hostRef }),
     ] }),
+
+    jsx(ModuloPrivacidad, {
+      editorRef, caseId, docInfo, registro, setRegistro,
+    }),
 
     res && res.error
       ? jsxs('div', { className: S.card, children: [

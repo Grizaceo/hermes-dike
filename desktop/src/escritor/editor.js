@@ -79,6 +79,66 @@ export function fijarMarcas(editor, marcas) {
   editor.view.dispatch(editor.state.tr.setMeta(claveMarcas, marcas))
 }
 
+// --- Marcas de privacidad (otra PluginKey; subrayado punteado por severidad) --
+// No pisa las marcas de citas: es otro set de decorations con estilo propio.
+
+const clavePriv = new PluginKey('dike-marcas-privacidad')
+
+const ESTILOS_PRIV = {
+  critical: 'border-bottom:2px dotted rgb(220,38,38);border-radius:2px',
+  high: 'border-bottom:2px dotted rgb(217,119,6);border-radius:2px',
+  medium: 'border-bottom:1px dotted rgb(107,114,128);border-radius:2px',
+  low: 'border-bottom:1px dotted rgb(156,163,175);border-radius:2px',
+  conservada: 'border-bottom:2px dotted rgb(34,197,94);border-radius:2px',
+  candidato: 'background:rgba(217,119,6,.10);border-bottom:1px dashed rgb(217,119,6);border-radius:2px',
+}
+
+const MarcasPrivacidad = Extension.create({
+  name: 'dikeMarcasPrivacidad',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: clavePriv,
+        state: {
+          init: () => [],
+          apply(tr, marcas) {
+            const nuevas = tr.getMeta(clavePriv)
+            if (nuevas) return nuevas
+            if (!tr.docChanged || !marcas.length) return marcas
+            const remapeadas = []
+            for (const m of marcas) {
+              const from = tr.mapping.map(m.from, 1)
+              const to = tr.mapping.map(m.to, -1)
+              if (from < to) remapeadas.push({ ...m, from, to })
+            }
+            return remapeadas
+          },
+        },
+        props: {
+          decorations(state) {
+            const marcas = clavePriv.getState(state) || []
+            const decos = []
+            for (const m of marcas) {
+              if (m.from >= m.to) continue
+              decos.push(Decoration.inline(m.from, m.to, {
+                class: 'dike-priv-' + m.clase,
+                style: ESTILOS_PRIV[m.clase] || '',
+                title: m.title || '',
+              }))
+            }
+            return DecorationSet.create(state.doc, decos)
+          },
+        },
+      }),
+    ]
+  },
+})
+
+// marcas: [{from, to, clase, title}] en posiciones ProseMirror.
+export function fijarMarcasPrivacidad(editor, marcas) {
+  editor.view.dispatch(editor.state.tr.setMeta(clavePriv, marcas))
+}
+
 // --- Placeholder visible sin CSS ----------------------------------------------
 
 // @tiptap/extension-placeholder solo pone data-placeholder/is-editor-empty en
@@ -115,6 +175,7 @@ export function montarEditor({ element, content, placeholder, onUpdate }) {
       StarterKit,
       Placeholder.configure({ placeholder: placeholder || 'Escribe el escrito…' }),
       MarcasCitas,
+      MarcasPrivacidad,
       Extension.create({
         name: 'dikePlaceholderWidget',
         addProseMirrorPlugins: () => [pluginPh],

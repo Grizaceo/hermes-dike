@@ -483,6 +483,7 @@ export function SeccionGrafo() {
   const [aristaSel, setAristaSel] = useState(null)
   const [hover, setHover] = useState(null)
   const [caminoOn, setCaminoOn] = useState(false)
+  const [caminoIdx, setCaminoIdx] = useState(0)
   const [rotar, setRotar] = useState(false)
   // Última fuente elegida por perfil (ctx.storage del SDK).
   const setFuente = useCallback((f) => {
@@ -593,9 +594,9 @@ export function SeccionGrafo() {
   // Resalte del foco: camino demo > selección > hover. El nodo elegido, sus
   // vecinos y las aristas entre ellos quedan a color pleno; el resto atenúa.
   const resalte = useMemo(() => {
-    if (caminoOn && red && (red.camino_demo || []).length) {
-      return { ids: new Set(red.camino_demo),
-               links: new Set(red.camino_demo_links || []) }
+    const cam = red && (red.caminos_demo || [])[caminoIdx]
+    if (caminoOn && cam && (cam.ids || []).length) {
+      return { ids: new Set(cam.ids), links: new Set(cam.links || []) }
     }
     const foco = seleccion || hover
     if (!foco) return null
@@ -608,7 +609,7 @@ export function SeccionGrafo() {
       if (t === foco) { ids.add(s); links.add(s + '|' + t + '|' + l.tipo) }
     }
     return { ids, links }
-  }, [caminoOn, red, seleccion, hover, proyeccion])
+  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion])
 
   // Órbita lenta para el video; se apaga con cualquier interacción.
   useEffect(() => {
@@ -698,20 +699,39 @@ export function SeccionGrafo() {
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
                     children: 'encajar' }),
-                  fuente === 'ambiental' && red && (red.camino_demo || []).length
-                    ? jsx('button', {
-                        type: 'button',
-                        className: caminoOn ? S.chip + ' ' + S.chipOk : S.link,
-                        onClick: () => {
-                          const on = !caminoOn
-                          setCaminoOn(on)
-                          setRotar(false)
-                          if (on && apiRef.current) {
-                            apiRef.current.encuadrar(red.camino_demo)
-                          }
-                        },
-                        children: 'camino destacado',
-                      })
+                  fuente === 'ambiental' && red && (red.caminos_demo || []).length
+                    ? jsxs('span', { className: 'flex items-center gap-1', children: [
+                        jsxs('select', {
+                          className: S.input,
+                          title: 'Camino destacado',
+                          value: caminoIdx,
+                          onChange: (e) => {
+                            const i = Number(e.target.value)
+                            setCaminoIdx(i)
+                            const cm = (red.caminos_demo || [])[i]
+                            if (caminoOn && cm && apiRef.current) {
+                              apiRef.current.encuadrar(cm.ids)
+                            }
+                          },
+                          children: (red.caminos_demo || []).map((cm, i) =>
+                            jsx('option', { key: i, value: i,
+                              children: cm.titulo + ' · ' + cm.relajacion })),
+                        }),
+                        jsx('button', {
+                          type: 'button',
+                          className: caminoOn ? S.chip + ' ' + S.chipOk : S.link,
+                          onClick: () => {
+                            const on = !caminoOn
+                            setCaminoOn(on)
+                            setRotar(false)
+                            const cm = (red.caminos_demo || [])[caminoIdx]
+                            if (on && cm && apiRef.current) {
+                              apiRef.current.encuadrar(cm.ids)
+                            }
+                          },
+                          children: 'camino destacado',
+                        }),
+                      ] })
                     : null,
                   fuente === 'ambiental' ? jsxs('label', {
                     className: 'flex items-center gap-1.5 ' + S.sub, children: [
@@ -755,14 +775,15 @@ export function SeccionGrafo() {
                   jsx(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
                 aristaSel ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
-                caminoOn && red && (red.camino_demo || []).length ? jsxs('div', {
+                caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs('div', {
                   className: 'rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1',
                   children: [
-                    jsx('div', { className: S.cardTitle, children: 'Camino destacado' }),
-                    ...red.camino_demo.map((id, i) => {
+                    jsx('div', { className: S.cardTitle, children:
+                      'Camino destacado · ' + ((red.caminos_demo || [])[caminoIdx].relajacion || '') }),
+                    ...(red.caminos_demo[caminoIdx].ids || []).map((id, i) => {
                       const n = indice.get(id)
                       const paso = i > 0
-                        ? ' ' + ((red.camino_demo_links[i - 1] || '').split('|')[2] || '→') + ' '
+                        ? ' ' + ((red.caminos_demo[caminoIdx].links[i - 1] || '').split('|')[2] || '→') + ' '
                         : ''
                       return jsxs('button', {
                         key: id, type: 'button',

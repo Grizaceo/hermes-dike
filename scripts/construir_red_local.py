@@ -137,6 +137,52 @@ def organismo_en(ventana: str) -> str | None:
     return None
 
 
+# ---------------------------------------------------------------------------
+# Etiquetas humanas de la capa ambiental (desde ids o del texto de la norma,
+# nunca del texto de sentencias)
+# ---------------------------------------------------------------------------
+
+_RX_ART = re.compile(r"^(?P<inst>.+):art:(?P<num>\d+)(?P<suf>bis|ter|qua)?(?::[0-9a-f]{4,})?$")
+_ORDINAL_TEXTO = re.compile(
+    r"^\s*Artículo\s+(primero|segundo|tercero|cuarto|quinto|sexto|séptimo|"
+    r"septimo|octavo|noveno|décimo|decimo)\b", re.IGNORECASE)
+
+
+def _corto_instrumento(inst: str, art_id: str = "") -> str:
+    """Nombre corto del instrumento (desde el id, no del texto)."""
+    if inst == "cl.norma.ley_19300":
+        return "Ley 19.300"
+    if inst == "cl.norma.ley_20417":
+        # Los artículos propios de la 20.417 llevan sufijo hash: son la
+        # ley modificadora; los planos son la LOSMA que modifica.
+        return "Ley 20.417" if re.search(r":art:\d+[a-z]*:[0-9a-f]{4,}$", art_id) else "LOSMA"
+    if inst == "cl.norma.ds_40_2012":
+        return "RSEIA (DS 40/2012)"
+    m = re.search(r"ley_(\d+)$", inst)
+    if m:
+        return f"Ley {int(m.group(1)):,}".replace(",", ".")
+    return inst.rsplit(".", 1)[-1]
+
+
+_SUF_TEXTO = {"bis": "bis", "ter": "ter", "qua": "quáter"}
+
+
+def rotulo_articulo(aid: str, texto: str = "") -> str:
+    """'Ley 19.300 art. 12 bis'; la 20.417 propia usa el ordinal del texto."""
+    m = _RX_ART.match(aid)
+    if not m:
+        return aid
+    inst = m.group("inst")
+    corto = _corto_instrumento(inst, aid)
+    suf = _SUF_TEXTO.get(m.group("suf") or "", "")
+    if inst == "cl.norma.ley_20417" and ":" in aid.split(":art:", 1)[1]:
+        mo = _ORDINAL_TEXTO.match(texto or "")
+        if mo:
+            return f"{corto} art. {mo.group(1).lower()}"
+    num = int(m.group("num"))
+    return f"{corto} art. {num}{(' ' + suf) if suf else ''}"
+
+
 # Etiquetas aprobadas de las 25 sentencias, por sufijo del id tras
 # "cl.judgment.". Fuente de verdad: la tabla acordada para la demo —
 # NUNCA texto del fallo.
@@ -262,9 +308,9 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
         else:
             arts[nid] = nodos_db[nid]
     for nid in arts:
-        m = re.match(r"(.+):art:(\d+)([a-z]*)$", nid)
-        inst = m.group(1) if m else nid.split(":")[0]
-        rot = arts[nid][1] or (f"art. {int(m.group(2))}" if m else nid)
+        m = _RX_ART.match(nid)
+        inst = m.group("inst") if m else nid.split(":")[0]
+        rot = rotulo_articulo(nid, docs.get(nid) or "")
         nodos.append({"id": nid, "tipo": "articulo", "label": rot,
                       "instrumento": inst, "n_unidades": 0})
         c["nodo_articulo"] += 1
@@ -284,7 +330,7 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
             mod, regla = modalidad(ut)
             nodos.append({
                 "id": uid, "tipo": "unidad", "clase": "normativa",
-                "label": f"{arts[nid][1] or nid}, inciso {orden}",
+                "label": f"{rotulo_articulo(nid, docs.get(nid) or '')}, inciso {_inciso_num(uid) or orden}",
                 "etiqueta": f"inciso {orden}", "orden": orden,
                 "articulo": nid, "modalidad": mod,
                 "modalidad_estado": "candidata", "modalidad_regla": regla,
@@ -298,7 +344,7 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
             uid = f"{nid}#u01"
             nodos.append({
                 "id": uid, "tipo": "unidad", "clase": "normativa",
-                "label": f"{arts[nid][1] or nid}, inciso 1",
+                "label": f"{rotulo_articulo(nid, texto)}, inciso 1",
                 "etiqueta": "inciso 1", "orden": 1,
                 "articulo": nid, "modalidad": mod,
                 "modalidad_estado": "candidata", "modalidad_regla": regla,
@@ -566,6 +612,9 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
                 if not (base <= rs < limite):
                     continue  # la mención debe estar en la MISMA oración
                 for target, e0 in por_unidad.get(u["id"], ()):
+                    if e0.get("nivel") == "ley":
+                        c["aplica_a_ley_descartadas"] += 1
+                        continue  # solo citas resueltas a artículo/inciso
                     e_start, e_end = e0["char_start"], e0["char_end"]
                     if not (base <= e_start < limite):
                         continue
@@ -597,56 +646,77 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
             cita_in[l["target"]].append(l["source"])
     doc_de = {u["id"]: u["doc"] for u in unidades_jud}
     org_de = {r["id"]: r.get("organismo") for r in resoluciones.values()}
-    relajacion = None
-    camino = []
-    for permitir_menciona, requerir_u2 in ((False, True), (True, True),
-                                           (True, False)):
-        candidatos = [r for r in resoluciones
-                      if revisa_in.get(r)
-                      or (permitir_menciona and menciona_in.get(r))]
-        if not candidatos:
-            continue
-        candidatos.sort(key=lambda r: (
-            0 if org_de.get(r) == "SMA" else 1,
-            -len(aplica_out.get(r, [])),
-            r))
-        for rid in candidatos:
-            entradas = revisa_in.get(rid) or menciona_in.get(rid)
-            u1 = sorted(entradas)[0]
-            s = doc_de.get(u1)
-            for art in sorted(aplica_out.get(rid, [])):
-                citantes = sorted(
-                    u for u in cita_in.get(art, [])
-                    if u != u1 and doc_de.get(u) == s) or sorted(
-                    u for u in cita_in.get(art, []) if u != u1)
-                u2 = citantes[0] if citantes else None
-                if requerir_u2 and u2 is None:
-                    continue
-                camino = [s, u1, rid, art] + ([u2] if u2 else [])
+    label_de = {n["id"]: n.get("label", n["id"]) for n in nodos}
+
+    def clave_res(rid: str) -> str:
+        """num/año — una global y su local cuentan como la misma resolución."""
+        m = re.search(r":(\d+)/(\d{4})", rid)
+        return m.group(0) if m else rid
+
+    def camino_para(rid: str, permitir_menciona: bool,
+                    requerir_u2: bool) -> tuple | None:
+        entradas = revisa_in.get(rid) or (
+            menciona_in.get(rid) if permitir_menciona else [])
+        if not entradas:
+            return None
+        u1 = sorted(entradas)[0]
+        s = doc_de.get(u1)
+        for art in sorted(aplica_out.get(rid, [])):
+            citantes = sorted(
+                u for u in cita_in.get(art, [])
+                if u != u1 and doc_de.get(u) == s) or sorted(
+                u for u in cita_in.get(art, []) if u != u1)
+            u2 = citantes[0] if citantes else None
+            if requerir_u2 and u2 is None:
+                continue
+            ids = [s, u1, rid, art] + ([u2] if u2 else [])
+            links = [
+                f"{ids[0]}|{ids[1]}|contiene",
+                f"{ids[1]}|{ids[2]}|" + (
+                    "revisa" if any(l["tipo"] == "revisa"
+                                    and l["source"] == ids[1]
+                                    and l["target"] == ids[2]
+                                    for l in aristas)
+                    else "menciona"),
+                f"{ids[2]}|{ids[3]}|aplica",
+            ]
+            if u2:
+                links.append(f"{ids[4]}|{ids[3]}|cita")
+            titulo = f"{label_de.get(rid, rid)} → {label_de.get(art, art)}"
+            rel = ("completo" if not permitir_menciona
+                   else "menciona" if requerir_u2 else "sin_u2")
+            return {"ids": ids, "links": links, "titulo": titulo,
+                    "relajacion": rel}
+        return None
+
+    # Ranking: completitud (completo > menciona > sin_u2), SMA, más
+    # 'aplica', menor id; hasta 3 con resoluciones distintas por num/año.
+    ordenadas = sorted(
+        resoluciones,
+        key=lambda r: (0 if org_de.get(r) == "SMA" else 1,
+                       -len(aplica_out.get(r, [])), r))
+    caminos = []
+    vistas_res = set()
+    for tier, (perm, req) in enumerate(((False, True), (True, True),
+                                      (True, False))):
+        for rid in ordenadas:
+            if len(caminos) >= 3:
                 break
-            if camino:
-                break
-        if camino:
-            relajacion = ("completo" if not permitir_menciona
-                          else "menciona" if requerir_u2 else "sin_u2")
+            if clave_res(rid) in vistas_res:
+                continue
+            cam = camino_para(rid, perm, req)
+            if cam:
+                caminos.append(cam)
+                vistas_res.add(clave_res(rid))
+                c[f"camino_relajacion_{cam['relajacion']}"] += 1
+        if len(caminos) >= 3:
             break
-    c["camino_relajacion_" + (relajacion or "ninguna")] += 1
-    camino_links = []
-    if camino:
-        camino_links = [
-            f"{camino[0]}|{camino[1]}|contiene",
-            f"{camino[1]}|{camino[2]}|" + (
-                "revisa" if any(l["tipo"] == "revisa" and l["source"] == camino[1]
-                                and l["target"] == camino[2] for l in aristas)
-                else "menciona"),
-            f"{camino[2]}|{camino[3]}|aplica",
-        ]
-        if len(camino) > 4:
-            camino_links.append(f"{camino[4]}|{camino[3]}|cita")
+    if not caminos:
+        c["camino_relajacion_ninguna"] += 1
 
     red = {"fuente": "ambiental", "local_only": True,
            "nodes": nodos, "links": aristas,
-           "camino_demo": camino, "camino_demo_links": camino_links,
+           "caminos_demo": caminos,
            "conteos": {"nodes": len(nodos), "links": len(aristas)},
            "truncado": False}
     salida.mkdir(parents=True, exist_ok=True)

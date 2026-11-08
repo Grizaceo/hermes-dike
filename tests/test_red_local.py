@@ -389,33 +389,72 @@ def _camino_fixture(builder, tmp_path, *, revisa=True, con_u2=True,
 
 def test_camino_completo(builder, tmp_path):
     red, info = _camino_fixture(builder, tmp_path)
-    assert red['camino_demo'][:4] == [
-        DOC, DOC + '#cons01', 'res:SMA:72/2018', INST + ':art:0005']
-    assert red['camino_demo'][4] == DOC + '#cons02'
-    assert red['camino_demo_links'] == [
-        DOC + '|' + DOC + '#cons01|contiene',
-        DOC + '#cons01|res:SMA:72/2018|revisa',
-        'res:SMA:72/2018|' + INST + ':art:0005|aplica',
-        DOC + '#cons02|' + INST + ':art:0005|cita']
+    cam = red['caminos_demo'][0]
+    assert cam['ids'] == [DOC, DOC + '#cons01', 'res:SMA:72/2018',
+                          INST + ':art:0005', DOC + '#cons02']
+    assert cam['relajacion'] == 'completo'
+    assert cam['links'][1].endswith('|revisa')
+    assert 'LOSMA' not in cam['titulo']
+    assert cam['titulo'].startswith('Res. N° 72/2018 · SMA')
     assert info['conteos']['camino_relajacion_completo'] == 1
 
 
 def test_camino_relaja_menciona(builder, tmp_path):
     red, info = _camino_fixture(builder, tmp_path, revisa=False)
-    assert red['camino_demo'][2] == 'res:SMA:72/2018'
-    assert red['camino_demo_links'][1].endswith('|menciona')
+    cam = red['caminos_demo'][0]
+    assert cam['ids'][2] == 'res:SMA:72/2018'
+    assert cam['links'][1].endswith('|menciona')
+    assert cam['relajacion'] == 'menciona'
     assert info['conteos']['camino_relajacion_menciona'] == 1
 
 
 def test_camino_sin_u2(builder, tmp_path):
     red, info = _camino_fixture(builder, tmp_path, con_u2=False)
-    assert len(red['camino_demo']) == 4
+    cam = red['caminos_demo'][0]
+    assert len(cam['ids']) == 4 and cam['relajacion'] == 'sin_u2'
     assert info['conteos']['camino_relajacion_sin_u2'] == 1
 
 
 def test_camino_determinista(builder, tmp_path):
-    _, info_a = _camino_fixture(builder, tmp_path / 'a')
-    _, info_b = _camino_fixture(builder, tmp_path / 'b')
+    _camino_fixture(builder, tmp_path / 'a')
+    _camino_fixture(builder, tmp_path / 'b')
     red_a = json.loads((tmp_path / 'a' / 'out' / 'red.json').read_text())
     red_b = json.loads((tmp_path / 'b' / 'out' / 'red.json').read_text())
-    assert red_a['camino_demo'] == red_b['camino_demo']
+    assert red_a['caminos_demo'] == red_b['caminos_demo']
+
+
+def test_camino_global_y_local_misma_resolucion(builder, tmp_path):
+    """Una global y su local con igual num/año cuentan como una sola."""
+    texto = ('Se reclamaron en contra de la Resolución Exenta N° 72/2018 '
+             'de la SMA y se aplicó el artículo 5 de la Ley 19.300. '
+             'Otra Resolución N° 72/2018 sin organismo también apareció.')
+    red, _ = _build(builder, tmp_path, doc_texto=texto)
+    rids = {cam['ids'][2] for cam in red['caminos_demo']}
+    assert len(rids) == len(red['caminos_demo']) == 1
+
+
+def test_aplica_a_ley_descartada(builder, tmp_path):
+    """Un 'aplica' cuya cita cayó a nivel ley no produce arista; se cuenta."""
+    texto = ('La Resolución Exenta N° 72/2018 de la SMA aplicó el '
+             'artículo 99 de la Ley 19.300.')
+    red, info = _build(builder, tmp_path, doc_texto=texto)
+    assert not _links(red, 'aplica')
+    assert info['conteos']['aplica_a_ley_descartadas'] >= 1
+
+
+def test_rotulos_norma(builder):
+    assert builder.rotulo_articulo('cl.norma.ley_19300:art:0012bis') == \
+        'Ley 19.300 art. 12 bis'
+    assert builder.rotulo_articulo('cl.norma.ley_20417:art:0041') == \
+        'LOSMA art. 41'
+    assert builder.rotulo_articulo('cl.norma.ds_40_2012:art:0003') == \
+        'RSEIA (DS 40/2012) art. 3'
+    assert builder.rotulo_articulo('cl.norma.ley_20600:art:0008') == \
+        'Ley 20.600 art. 8'
+    assert builder.rotulo_articulo('cl.norma.ley_20417:art:0003:3d6cf80',
+                                   'Artículo tercero.- Modifícase') == \
+        'Ley 20.417 art. tercero'
+    assert builder.rotulo_articulo('cl.norma.ley_20417:art:0009:abcdef1',
+                                   'Otra cosa') == 'Ley 20.417 art. 9'
+    assert builder.rotulo_articulo('cl.norma.ley_19300:art:0018qua') == \
+        'Ley 19.300 art. 18 quáter' 

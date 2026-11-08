@@ -270,11 +270,14 @@ def grafo_red(fuente: str = "corpus"):
 
     La respuesta se cachea en plugin-data por pack_hash: la primera lectura
     barre los ~8.500 artículos, las siguientes sirven el archivo."""
-    if fuente != "corpus":
+    if fuente not in ("corpus", "ambiental"):
         raise HTTPException(
             status_code=400,
-            detail=f"fuente '{fuente}' no existe: solo 'corpus' está implementada.")
+            detail=f"fuente '{fuente}' no existe: solo 'corpus' y 'ambiental' "
+                   "están implementadas.")
     mod = _adaptador()
+    if fuente == "ambiental":
+        return _red_ambiental(mod)
     # El nombre lleva la versión del contrato: un cambio de esquema no puede
     # servir una forma vieja guardada por una versión anterior del plugin.
     cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v3_{mod.PACK_HASH}.json"
@@ -305,15 +308,71 @@ def grafo_red(fuente: str = "corpus"):
     return respuesta
 
 
+def _ambiental_dir(mod) -> Path:
+    """Datos locales del grafo ambiental (solo en este equipo, no publicados)."""
+    return mod._carpeta_de_datos() / "grafo-local" / "ambiental"
+
+
+def _leer_local(mod, nombre: str) -> dict:
+    p = _ambiental_dir(mod) / nombre
+    if not p.is_file():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _red_ambiental(mod) -> dict:
+    p = _ambiental_dir(mod) / "red.json"
+    if not p.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="la capa ambiental local no está construida "
+                   "(scripts/construir_red_local.py).")
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        raise HTTPException(status_code=500, detail=f"red ambiental ilegible: {e}")
+    data["fuente"] = "ambiental"
+    data["local_only"] = True
+    data.setdefault("conteos", {})
+    return data
+
+
+@router.get("/grafo/fuentes")
+def grafo_fuentes():
+    """Fuentes disponibles para el grafo: corpus sellado y capa local."""
+    mod = _adaptador()
+    amb = _ambiental_dir(mod)
+    construido = (_leer_local(mod, "construccion.json").get("construido")
+                  if (amb / "red.json").is_file() else None)
+    return [
+        {"id": "corpus", "label": "Corpus Diké (25 leyes)",
+         "disponible": True, "local_only": False},
+        {"id": "ambiental", "label": "Ambiental local (solo en este equipo)",
+         "disponible": bool(construido), "local_only": True,
+         "construido": construido},
+    ]
+
+
 _UNIDAD_ID = re.compile(r"^[^\x00-\x1f]{4,400}#u\d{1,4}$")
+_UNIDAD_AMB_ID = re.compile(r"^[^\x00-\x1f]{4,400}$")
 _NODO_ID = re.compile(r"^[^\x00-\x1f#]{4,400}$")
 
 
 @router.get("/grafo/nodo")
-def grafo_nodo(id: str):
+def grafo_nodo(id: str, fuente: str = "corpus"):
     """Ficha de un instrumento o artículo (url, sha256, conteos, vigencia)."""
     if not _NODO_ID.match(id or ""):
         raise HTTPException(status_code=400, detail="id inválido.")
+    if fuente == "ambiental":
+        red = _red_ambiental(_adaptador())
+        nodo = next((n for n in red.get("nodes", []) if n.get("id") == id), None)
+        if nodo is None:
+            raise HTTPException(status_code=404, detail="nodo no existe en la capa local.")
+        salidas = [l for l in red.get("links", []) if l.get("source") == id]
+        return {**nodo, "n_salientes": len(salidas)}
     return _panel(["grafo", "nodo", id], corpus=True, timeout=60, memo=True)
 
 
@@ -326,8 +385,31 @@ def grafo_unidades(articulo: str):
 
 
 @router.get("/grafo/unidad")
-def grafo_unidad(id: str):
+def grafo_unidad(id: str, fuente: str = "corpus"):
     """Texto y offsets de una unidad normativa mínima (no van en /grafo/red)."""
+    if fuente == "ambiental":
+        if not _UNIDAD_AMB_ID.match(id or ""):
+            raise HTTPException(status_code=400, detail="id de unidad inválido.")
+        store = _leer_local(_adaptador(), "unidades.json")
+        u = (store.get("textos") or {}).get(id)
+        if u is None:
+            raise HTTPException(status_code=404, detail="unidad no existe en la capa local.")
+        return {"id": id, **u}
     if not _UNIDAD_ID.match(id or ""):
         raise HTTPException(status_code=400, detail="id de unidad inválido.")
     return _panel(["grafo", "unidad", id], corpus=True, timeout=60, memo=True)
+
+
+@router.get("/grafo/evidencia")
+def grafo_evidencia(link: str, fuente: str = "ambiental"):
+    """Snippet de evidencia de UNA arista (src|dst|tipo) de la capa local."""
+    if fuente != "ambiental":
+        raise HTTPException(status_code=400,
+                            detail="evidencia solo está disponible en la capa local.")
+    if not re.fullmatch(r"[^\x00-\x1f]{4,1200}", link or ""):
+        raise HTTPException(status_code=400, detail="link inválido.")
+    store = _leer_local(_adaptador(), "unidades.json")
+    ev = (store.get("evidencias") or {}).get(link)
+    if ev is None:
+        raise HTTPException(status_code=404, detail="evidencia no encontrada.")
+    return ev

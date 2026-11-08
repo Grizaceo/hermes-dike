@@ -19,6 +19,8 @@ const COLORES_ARISTA = {
   cita: '#fbbf24',
   aplica: '#38bdf8',
   revisa: '#f472b6',
+  menciona: '#a3a3a3',
+  excepciona: '#06b6d4',
 }
 const NOMBRE_TIPO = {
   instrumento: 'Instrumento',
@@ -45,6 +47,7 @@ const COLORES_MODALIDAD = {
 }
 
 function colorNodo(n) {
+  if (n.tipo === 'unidad' && n.clase === 'judicial') return '#fda4af'
   if (n.tipo === 'unidad') return COLORES_MODALIDAD[n.modalidad] || COLORES_MODALIDAD.otra
   return COLORES_NODO[n.tipo] || '#cbd5e1'
 }
@@ -71,7 +74,7 @@ function hayWebGL() {
 
 // El lienzo vive mientras la pestaña esté visible; al desmontarse (cambio de
 // pestaña o de página) se destruye el renderizador completo.
-function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef }) {
+function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista, onFallo, apiRef }) {
   const hostEl = useRef(null)
   const engine = useRef(null)
   const [listo, setListo] = useState(false)
@@ -81,6 +84,8 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
   conteosRef.current = conteos
   const padresRef = useRef(padres)
   padresRef.current = padres
+  const clickAristaRef = useRef(alClickArista)
+  clickAristaRef.current = alClickArista
   // Pool estable de nodos: reutilizar el mismo objeto por id conserva las
   // posiciones x/y/z que d3 va calculando entre cambios de proyección.
   const pool = useRef(new Map())
@@ -118,6 +123,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
       .linkDirectionalArrowLength((l) => (l.tipo === 'contiene' ? 0 : 2.5))
       .linkDirectionalArrowRelPos(0.85)
       .onNodeClick((n) => clickRef.current(n))
+      .onLinkClick((l) => { if (clickAristaRef.current) clickAristaRef.current(l) })
       .cooldownTicks(120)
       .warmupTicks(20)
       .onEngineStop(() => {
@@ -217,16 +223,16 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef
   ] })
 }
 
-function UnidadDetalle({ nodo }) {
+function UnidadDetalle({ nodo, fuente }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   useEffect(() => {
     setData(null)
     setError(null)
-    rest('/grafo/unidad?id=' + encodeURIComponent(nodo.id))
+    rest('/grafo/unidad?fuente=' + (fuente || 'corpus') + '&id=' + encodeURIComponent(nodo.id))
       .then(setData)
       .catch(setError)
-  }, [nodo.id])
+  }, [nodo.id, fuente])
   if (error) return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
   if (!data) return jsx('div', { className: S.sub, children: 'Cargando el texto de la unidad…' })
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
@@ -244,15 +250,15 @@ function UnidadDetalle({ nodo }) {
   ] })
 }
 
-function NodoDetalle({ nodo }) {
+function NodoDetalle({ nodo, fuente }) {
   // La red delgada no trae url/sha256/vigencia: la ficha los pide por nodo.
   const [data, setData] = useState(null)
   useEffect(() => {
     setData(null)
-    rest('/grafo/nodo?id=' + encodeURIComponent(nodo.id))
+    rest('/grafo/nodo?fuente=' + (fuente || 'corpus') + '&id=' + encodeURIComponent(nodo.id))
       .then(setData)
       .catch(() => {})
-  }, [nodo.id])
+  }, [nodo.id, fuente])
   if (!data) return null
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     data.titulo ? jsx('div', { className: S.sub, children: data.titulo }) : null,
@@ -266,7 +272,39 @@ function NodoDetalle({ nodo }) {
   ] })
 }
 
-function TarjetaNodo({ nodo, conteos }) {
+function TarjetaArista({ arista, fuente }) {
+  // Ficha de una arista clicada: regla, estado, nivel y snippet de evidencia.
+  const [ev, setEv] = useState(null)
+  const [err, setErr] = useState(null)
+  const clave = arista ? arista.source + '|' + arista.target + '|' + arista.tipo : ''
+  useEffect(() => {
+    setEv(null); setErr(null)
+    if (!arista) return undefined
+    if (!arista.evidencia && fuente !== 'ambiental') return undefined
+    rest('/grafo/evidencia?fuente=' + (fuente || 'corpus') + '&link=' + encodeURIComponent(clave))
+      .then(setEv)
+      .catch(setErr)
+    return undefined
+  }, [clave, fuente, arista])
+  if (!arista) return null
+  const e = arista.evidencia || {}
+  return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
+    jsx('span', { className: S.chip + ' ' + S.chipOff, children:
+      (arista.tipo || '') + ' · ' + (arista.estado || '') }),
+    jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+      children: (arista.source && arista.source.id ? arista.source.id : arista.source) +
+        ' → ' + (arista.target && arista.target.id ? arista.target.id : arista.target) }),
+    e.regla ? jsx('div', { className: S.sub, children:
+      'regla ' + e.regla + (e.nivel ? ' · nivel ' + e.nivel : '') }) : null,
+    err ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(err) }) : null,
+    ev ? jsxs('div', { className: 'max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs', children: [
+      ev.snippet || '',
+      ev.n_evidencias ? ' (' + ev.n_evidencias + ' evidencias)' : '',
+    ] }) : null,
+  ] })
+}
+
+function TarjetaNodo({ nodo, conteos, fuente }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
       'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un artículo expande sus unidades.' })
@@ -287,11 +325,18 @@ function TarjetaNodo({ nodo, conteos }) {
     n.tipo === 'instrumento' ? jsx('div', { className: S.sub, children:
       (n.n_articulos || conteos.get(n.id) || 0) + ' artículos' }) : null,
     n.tipo === 'articulo' ? jsx('div', { className: S.sub, children:
-      (n.n_unidades || 0) + ' unidades · clic para expandir/plegar' }) : null,
+      (n.n_unidades || 0) + ' unidades' +
+      (fuente === 'corpus' ? ' · clic para expandir/plegar' : '') }) : null,
+    n.tipo === 'resolucion' ? jsx('div', { className: S.sub, children:
+      (n.organismo ? n.organismo + ' · ' : '') + 'N° ' + n.numero + '/' + n.anio +
+      ' · ' + (n.menciones || 0) + ' menciones' +
+      (n.rca ? ' · RCA' : '') }) : null,
+    n.tipo === 'resolucion' ? jsx('div', { className: S.sub, children:
+      'sin texto local: inferida de menciones en sentencias' }) : null,
     esUnidad && n.articulo ? jsx('div', { className: S.sub, children:
-      'Unidad ' + (n.etiqueta || '') + ' del artículo' }) : null,
+      'Unidad ' + (n.etiqueta || '') + (n.clase === 'judicial' ? ' de la sentencia' : ' del artículo') }) : null,
     jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)', children: n.id }),
-    esUnidad ? jsx(UnidadDetalle, { nodo: n }) : jsx(NodoDetalle, { nodo: n }),
+    esUnidad ? jsx(UnidadDetalle, { nodo: n, fuente }) : jsx(NodoDetalle, { nodo: n, fuente }),
   ] })
 }
 
@@ -379,6 +424,9 @@ export function SeccionGrafo() {
   const [expandidos, setExpandidos] = useState(() => new Set())
   const [unidadesMap, setUnidadesMap] = useState(() => new Map())
   const [ocultarArts, setOcultarArts] = useState(false)
+  const [fuente, setFuente] = useState('corpus')
+  const [fuentes, setFuentes] = useState(null)
+  const [aristaSel, setAristaSel] = useState(null)
   const [query, setQuery] = useState('')
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
@@ -387,10 +435,14 @@ export function SeccionGrafo() {
   const cargar = useCallback(() => {
     setRedErr(null)
     setPersonalErr(null)
-    rest('/grafo/red?fuente=corpus', { timeoutMs: 120000 }).then(setRed).catch(setRedErr)
+    setRed(null)
+    rest('/grafo/red?fuente=' + fuente, { timeoutMs: 120000 }).then(setRed).catch(setRedErr)
     rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
-  }, [])
+  }, [fuente])
   useEffect(cargar, [cargar])
+  useEffect(() => {
+    rest('/grafo/fuentes').then(setFuentes).catch(() => {})
+  }, [])
 
   const alFallo3d = useCallback((msg) => {
     setFallo3d(msg)
@@ -419,12 +471,15 @@ export function SeccionGrafo() {
     return m
   }, [aristas])
 
-  // Artículos visibles por defecto; las unidades de un artículo se traen por
-  // /grafo/unidades al hacer clic y se inyectan al pool estable del lienzo.
+  // En ambiental TODO va visible: artículos, unidades, sentencias y
+  // resoluciones. En corpus las unidades se traen por /grafo/unidades al clic.
   const proyeccion = useMemo(() => {
-    const nodes = nodos.filter((n) => (n.tipo === 'articulo' ? !ocultarArts : true))
+    const nodes = nodos.filter((n) => {
+      if (fuente === 'ambiental') return n.tipo !== 'articulo' || !ocultarArts
+      return n.tipo === 'articulo' ? !ocultarArts : true
+    })
     const links = [...aristas]
-    if (!ocultarArts) {
+    if (fuente === 'corpus' && !ocultarArts) {
       for (const id of expandidos) {
         const d = unidadesMap.get(id)
         if (d) {
@@ -442,8 +497,8 @@ export function SeccionGrafo() {
 
   const alClickNodo = useCallback((n) => {
     setSeleccion(n.id)
-    // Clic en un artículo: trae (o pliega) sus unidades normativas mínimas.
-    if (n.tipo === 'articulo') {
+    // Clic en un artículo (corpus): trae (o pliega) sus unidades mínimas.
+    if (n.tipo === 'articulo' && fuente === 'corpus') {
       if (expandidos.has(n.id)) {
         setExpandidos((prev) => {
           const next = new Set(prev)
@@ -459,7 +514,9 @@ export function SeccionGrafo() {
         }
       }
     }
-  }, [expandidos, unidadesMap])
+  }, [expandidos, unidadesMap, fuente])
+
+  const alClickArista = useCallback((l) => { setAristaSel(l) }, [])
 
   const alBuscar = useCallback((id) => {
     const n = indice.get(id)
@@ -485,18 +542,24 @@ export function SeccionGrafo() {
       jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-2', children: [
         jsx('div', { className: S.cardTitle, children: 'Red del corpus (3D)' }),
         jsxs('select', {
-          className: S.input, disabled: true,
+          className: S.input,
           title: 'Fuente del grafo',
+          value: fuente,
+          onChange: (e) => { setFuente(e.target.value); setExpandidos(new Set()); setAristaSel(null); setSeleccion(null) },
           children: [
-            jsx('option', { children: 'Corpus Diké (25 leyes)' }),
+            jsx('option', { value: 'corpus', children: 'Corpus Diké (25 leyes)' }),
             jsx('option', {
-              disabled: true,
-              title: 'pendiente: requiere revisión de la anonimización',
+              value: 'ambiental',
+              disabled: !(fuentes && fuentes.find((f) => f.id === 'ambiental' && f.disponible)),
+              title: 'solo en este equipo — no publicada',
               children: 'Ambiental local (solo en este equipo)',
             }),
           ] }),
+        fuente === 'ambiental' ? jsx('span', { className: S.chip + ' ' + S.chipOff,
+          children: 'local — no publicado' }) : null,
         red ? jsx('div', { className: S.sub, children:
-          'pack ' + red.pack_hash + ' · ' + (totales.nodes || 0) + ' nodos · ' + (totales.links || 0) + ' aristas' +
+          (red.pack_hash ? 'pack ' + red.pack_hash + ' · ' : '') +
+          (totales.nodes || 0) + ' nodos · ' + (totales.links || 0) + ' aristas' +
           (red.truncado ? ' · truncado' : '') }) : null,
       ] }),
       redErr
@@ -543,7 +606,7 @@ export function SeccionGrafo() {
                         'El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.' }),
                     ] })
                   : jsx(LienzoGrafo, {
-                      proyeccion, padres, conteos, alClickNodo, onFallo: alFallo3d, apiRef }),
+                      proyeccion, padres, conteos, alClickNodo, alClickArista, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
                 jsx('input', {
@@ -565,7 +628,9 @@ export function SeccionGrafo() {
                     ? jsx('div', { className: S.sub + ' p-2', children: 'Sin coincidencias.' }) : null,
                 ] }) : null,
                 jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
-                  jsx(TarjetaNodo, { nodo: actual, conteos }) }),
+                  jsx(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
+                aristaSel ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
+                  jsx(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
               ] }),
             ] }),
     ] }),

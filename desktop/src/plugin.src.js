@@ -6,12 +6,14 @@
 // fila de la barra llaman al mismo backend que la pestaña web
 // (/api/plugins/dike → dashboard/plugin_api.py), que corre por perfil: si el
 // perfil activo no tiene el plugin instalado, la página lo explica en vez de
-// fallar. Tres secciones: verificar citas, grafo 3D del corpus y tablero NIF.
+// fallar. Tres pestañas: Case Writer (escrito + verificador), grafo 3D del
+// corpus y tablero NIF.
 
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
 import { mensajeError, rest, setRest, setStorage, S } from './common.js'
+import { SeccionEscritor } from './escritor/escritor.js'
 import { SeccionGrafo } from './grafo3d.js'
 
 const ID = 'dike'
@@ -47,93 +49,6 @@ function Estado() {
       'pack ' + estado.pack_hash + ' · ' + estado.leyes + ' leyes · ' + estado.articulos +
       ' artículos' + (estado.version ? ' · v' + estado.version : '') }),
   ]})
-}
-
-function Resultado({ resultado }) {
-  const r = resultado
-  if (!r) return null
-  if (r.error) {
-    let msg = String(r.error)
-    if (msg.includes(': ')) msg = msg.split(': ').slice(1).join(': ')
-    return jsxs('div', { className: S.card, children: [
-      jsx('span', { className: S.chip + ' ' + S.chipBad, children: 'sin revisar' }),
-      jsx('div', { children: 'Diké no pudo revisar el escrito: ' + msg }),
-    ]})
-  }
-  if (r.veredicto === 'SIN_CITAS' || r.veredicto === 'SIN_CORPUS') {
-    return jsx('div', { className: S.sub, children: 'Diké: ' + (r.mensaje || '') })
-  }
-  const meta = r.meta || {}
-  const detalles = r.detalles || []
-  const fechas = detalles.map(d => d.fecha_recuperacion).filter(Boolean).map(String).sort()
-  const fecha = fechas.length ? fechas[0].slice(0, 10) : '—'
-  return jsxs('div', { className: 'flex flex-col gap-2', children: [
-    jsxs('div', { className: 'font-medium', children: [
-      'Diké: ' + meta.citas_verificadas + ' de ' + meta.total_citas +
-      ' citas verificadas (' + r.veredicto + ') · corpus ' + meta.pack_hash,
-    ] }),
-    jsx('div', { className: 'flex flex-col', children:
-      detalles.map((d, i) => {
-        const ok = d.estado === 'VERIFICADA'
-        return jsxs('div', { key: i, className: S.row, children: [
-          jsx('span', { className: S.mark + ' ' + (ok ? S.ok : S.bad), children: ok ? '✓' : '✗' }),
-          jsxs('div', { className: 'min-w-0', children: [
-            jsx('div', { children: d.cita_raw }),
-            jsx('div', { className: S.meta, children:
-              ok ? [d.gid, d.fuente_url].filter(Boolean).join(' · ') : d.resolucion }),
-          ]}),
-        ]})
-      }) }),
-    (r.no_verificadas && r.no_verificadas.length)
-      ? jsx('div', { className: S.sub, children:
-          'Menciones sin artículo, no verificadas: ' + r.no_verificadas.join(', ') })
-      : null,
-    jsx('div', { className: S.sub, children:
-      'No certifica que el artículo respalde el argumento ni que la copia (obtenida ' +
-      fecha + ') sea el texto vigente hoy.' }),
-  ]})
-}
-
-function SeccionEscrito() {
-  const [texto, setTexto] = useState('')
-  const [resultado, setResultado] = useState(null)
-  const [error, setError] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
-
-  const verificar = useCallback(() => {
-    const t = texto.trim()
-    if (!t || ocupado) return
-    setOcupado(true)
-    setError(null)
-    rest('/verificar', { method: 'POST', body: { texto: t }, timeoutMs: 320000 })
-      .then(setResultado)
-      .catch(setError)
-      .finally(() => setOcupado(false))
-  }, [texto, ocupado])
-
-  return jsxs('div', { className: S.card, children: [
-    jsx('div', { className: S.cardTitle, children: 'Verificar un escrito' }),
-    jsx('textarea', {
-      className: S.textarea,
-      placeholder: 'Pega el texto del escrito…',
-      value: texto,
-      onChange: (ev) => setTexto(ev.target.value),
-    }),
-    jsxs('div', { className: 'flex items-center gap-3', children: [
-      jsx('button', {
-        type: 'button',
-        className: S.button,
-        onClick: verificar,
-        disabled: ocupado || !texto.trim(),
-        children: ocupado ? 'Verificando…' : 'Verificar citas',
-      }),
-      ocupado
-        ? jsx('span', { className: S.sub, children: 'La primera llamada instala el corpus (~1 min).' })
-        : null,
-    ] }),
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) }) : null,
-    jsx(Resultado, { resultado: resultado }),
-  ] })
 }
 
 // ---------------------------------------------------------------------------
@@ -426,9 +341,9 @@ export default {
     setRest(ctx.rest)
     setStorage(ctx.storage || null)
     function DikePage() {
-      const [pestana, setPestana] = useState('escrito')
+      const [pestana, setPestana] = useState('escritor')
       const pestanas = [
-        ['escrito', 'Verificar escrito'],
+        ['escritor', 'Case Writer'],
         ['grafo', 'Grafo'],
         ['nif', 'NIF'],
       ]
@@ -450,7 +365,7 @@ export default {
             children: label,
           })),
         }),
-        pestana === 'escrito' ? jsx(SeccionEscrito, {}) : null,
+        pestana === 'escritor' ? jsx(SeccionEscritor, {}) : null,
         pestana === 'grafo' ? jsx(SeccionGrafo, {}) : null,
         pestana === 'nif' ? jsx(SeccionNifPanel, {}) : null,
       ] })

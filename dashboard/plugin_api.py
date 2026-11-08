@@ -11,11 +11,14 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -88,6 +91,113 @@ def verificar(body: dict):
     if not isinstance(texto, str) or not texto.strip():
         raise HTTPException(status_code=400, detail="Falta el campo texto.")
     return json.loads(_adaptador().verificar_citas({"texto": texto}))
+
+
+# ---------------------------------------------------------------------------
+# Case Writer: persistencia del escrito por caso (plugin-data, I/O directo:
+# no pasa por el subproceso del motor porque no toca el corpus sellado).
+# ---------------------------------------------------------------------------
+
+_LIMITE_HTML = 2_000_000
+_LIMITE_REGISTRO = 200_000
+_escritos_lock = threading.Lock()
+
+
+def _dir_escritos(mod) -> Path:
+    return mod._carpeta_de_datos() / "escritos"
+
+
+def _leer_escrito(mod, cid: str) -> dict | None:
+    p = _dir_escritos(mod) / f"{cid}.json"
+    if not p.is_file():
+        return None
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raise HTTPException(status_code=500, detail="El escrito guardado está ilegible.")
+    return data if isinstance(data, dict) else None
+
+
+@router.get("/escrito")
+def escrito_obtener(case_id: str):
+    if not isinstance(case_id, str) or not _CASE_ID.match(case_id.strip()):
+        raise HTTPException(status_code=400, detail="case_id inválido.")
+    cid = case_id.strip()
+    data = _leer_escrito(_adaptador(), cid)
+    if data is None:
+        return {"case_id": cid, "existe": False, "html": "", "texto": "",
+                "rev": 0, "actualizado": None, "registro": {}}
+    return {
+        "case_id": cid,
+        "existe": True,
+        "html": data.get("html") or "",
+        "texto": data.get("texto") or "",
+        "rev": int(data.get("rev") or 0),
+        "actualizado": data.get("actualizado"),
+        "registro": data.get("registro") or {},
+    }
+
+
+@router.post("/escrito")
+def escrito_guardar(body: dict):
+    cid = _case_id(body)
+    html = body.get("html")
+    texto = body.get("texto")
+    rev_base = body.get("rev_base")
+    registro = body.get("registro")
+    if not isinstance(html, str):
+        raise HTTPException(status_code=400, detail="Falta el campo html.")
+    if not isinstance(texto, str):
+        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+    if not isinstance(rev_base, int) or isinstance(rev_base, bool) or rev_base < 0:
+        raise HTTPException(status_code=400, detail="rev_base debe ser entero >= 0.")
+    if registro is not None and not isinstance(registro, dict):
+        raise HTTPException(status_code=400, detail="registro debe ser un objeto JSON.")
+    mod = _adaptador()
+    if len(texto.encode("utf-8")) > mod._LIMITE_TEXTO:
+        raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
+    if len(html.encode("utf-8")) > _LIMITE_HTML:
+        raise HTTPException(status_code=400, detail="El html supera el límite permitido.")
+    if registro is not None and len(
+            json.dumps(registro, ensure_ascii=False).encode("utf-8")) > _LIMITE_REGISTRO:
+        raise HTTPException(status_code=400, detail="El registro supera el límite permitido.")
+
+    # Lectura de rev + escritura bajo un lock de proceso: dos guardados
+    # simultáneos con el mismo rev_base no pueden colar ambos.
+    with _escritos_lock:
+        actual = _leer_escrito(mod, cid)
+        rev_actual = int(actual.get("rev") or 0) if actual else 0
+        if rev_base != rev_actual:
+            raise HTTPException(status_code=409, detail={"rev_actual": rev_actual})
+        rev = rev_actual + 1
+        actualizado = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        doc = {
+            "case_id": cid,
+            "html": html,
+            "texto": texto,
+            "rev": rev,
+            "actualizado": actualizado,
+            "registro": registro if registro is not None else {},
+        }
+
+        directorio = _dir_escritos(mod)
+        directorio.mkdir(parents=True, exist_ok=True)
+        os.chmod(directorio, 0o700)
+        destino = directorio / f"{cid}.json"
+        fd, tmp = tempfile.mkstemp(dir=directorio, prefix=f".{cid}.", suffix=".tmp")
+        try:
+            os.chmod(tmp, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(json.dumps(doc, ensure_ascii=False))
+            os.replace(tmp, destino)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
+        os.chmod(destino, 0o600)
+    return {"rev": rev, "actualizado": actualizado}
 
 
 # ---------------------------------------------------------------------------

@@ -5,10 +5,15 @@
   "description": "Build del plugin Desktop de Diké (bundle ESM autocontenido).",
   "scripts": {
     "build": "node build.mjs",
-    "check": "python3 ../scripts/check_desktop_bundle.py"
+    "check": "python3 ../scripts/check_desktop_bundle.py",
+    "test": "node --test test/"
   },
   "dependencies": {
     "3d-force-graph": "1.79.0",
+    "@tiptap/core": "3.32.2",
+    "@tiptap/extension-placeholder": "3.32.2",
+    "@tiptap/pm": "3.32.2",
+    "@tiptap/starter-kit": "3.32.2",
     "three": "0.183.2"
   },
   "devDependencies": {

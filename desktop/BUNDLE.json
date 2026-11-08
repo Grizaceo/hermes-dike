@@ -1,12 +1,16 @@
 {
   "artifact": "desktop/plugin.js",
-  "sha256": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498",
-  "bytes": 3143630,
+  "sha256": "6362055d9469b5977807d56eb06bdf97d7e92abf0cd1bc83518883f98cfce9d6",
+  "bytes": 4001798,
   "built_with": {
     "esbuild": "0.28.2"
   },
   "bundled": {
     "3d-force-graph": "1.79.0",
+    "@tiptap/core": "3.32.2",
+    "@tiptap/extension-placeholder": "3.32.2",
+    "@tiptap/pm": "3.32.2",
+    "@tiptap/starter-kit": "3.32.2",
     "three": "0.183.2"
   },
   "external": [
@@ -21,7 +25,5 @@
   ],
   "licenses": "desktop/THIRD_PARTY_LICENSES.txt",
   "check": "python3 scripts/check_desktop_bundle.py",
-  "minified": false,
-  "reproduce": "cd desktop && npm ci && node build.mjs && sha256sum plugin.js",
-  "reproducible_sha256_verified": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498 (dos builds npm ci en copia limpia, mismo sha)"
+  "reproducible_sha256_verified": "6362055d9469b5977807d56eb06bdf97d7e92abf0cd1bc83518883f98cfce9d6 (dos builds npm ci en copia limpia, mismo sha)"
 }

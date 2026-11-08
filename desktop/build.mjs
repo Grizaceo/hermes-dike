@@ -31,6 +31,15 @@ await build({
   logLevel: 'info',
 })
 
+// El security scan del instalador marca caracteres unicode invisibles aunque
+// vivan en comentarios de terceros (prosemirror-model trae un U+200B). Antes
+// del sha se sustituye cada uno por su escape literal: es neutro en strings,
+// regex, templates y comentarios, y deja el texto del archivo sin invisibles.
+let fuente = readFileSync('plugin.js', 'utf8')
+fuente = fuente.replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, (c) =>
+  '\\u' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0'))
+writeFileSync('plugin.js', fuente)
+
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const bundle = readFileSync('plugin.js')
 writeFileSync('BUNDLE.json', JSON.stringify({

@@ -54,6 +54,15 @@ All writes go under the current profile's plugin data folder,
   to a temporary folder inside the data folder and removed after the call.
 - **Engine caches** and the engine's `HOME`, both redirected into the data
   folder. Nothing is written to your real home folder.
+- **NIF case boards and the personal review graph.** The panel's NIF and
+  graph-personal endpoints run `scripts/panel.py` inside the same isolated
+  subprocess, with `DIKE_USER`/`DIKE_USERS_ROOT` pointed at
+  `$HERMES_HOME/plugin-data/dike/users`. Case boards are versioned SQLite
+  stores under `<users>/<user>/cases/<case_id>/` — every edit is an
+  append-only patch attributed to an author — and personal-graph candidates
+  live under the same workspace. This data sits **outside** the sealed
+  corpus generation, so writing cases never trips the integrity check that
+  `constancia` runs on every citation call.
 
 If you do not allow these writes, do not enable the plugin; the tool's
 description tells the agent the same.
@@ -73,9 +82,12 @@ description tells the agent the same.
   to the web dashboard. `desktop/plugin.js` adds a sidebar row and a page to
   the Desktop app: the app copies it to `~/.hermes/desktop-plugins/dike/`
   and keeps it off until you enable it under **Capabilities → Plugins**.
-- `dashboard/plugin_api.py` serves `GET /api/plugins/dike/estado` and
-  `POST /api/plugins/dike/verificar`. The routes run inside Hermes — the
-  dashboard process, or the profile's plugin host under
+- `dashboard/plugin_api.py` serves `GET /api/plugins/dike/estado`,
+  `POST /api/plugins/dike/verificar`, and the NIF/graph routes
+  (`/nif/casos`, `/nif/init`, `/nif/seed`, `/nif/snapshot`, `/nif/edit`,
+  `/nif/gap`, `/nif/validar`, `/nif/confianza`, `/grafo/personal`,
+  `/grafo/corpus`, `/grafo/corpus/norma/{code}`). The routes run inside
+  Hermes — the dashboard process, or the profile's plugin host under
   `plugins.isolation: host` — behind the dashboard's own auth and the
   enabled-plugin gate, and they answer for the profile that has the plugin
   enabled.
@@ -85,6 +97,18 @@ description tells the agent the same.
   corpus check, the confined writes — applies unchanged. `/estado` only
   reports whether the corpus generation is installed; it never installs or
   downloads.
+- The NIF and graph routes run `scripts/panel.py` — plugin code, not motor
+  code — in the same isolated subprocess shape as the verifier: list argv,
+  no shell, minimal environment, timeout (90 s; 300 s for corpus reads).
+  Inputs are validated before they reach the driver: `case_id` must match a
+  strict identifier pattern, `field_path` must be one of the editable NIF
+  sections, `gap_index` an integer, `validated` a boolean, `confidence` a
+  number, and corpus norm codes numeric Ley Chile identifiers. Engine
+  stderr never reaches the browser raw: local paths are redacted and errors
+  are capped at 400 characters.
+- `grafo corpus` and `grafo corpus-norma` first re-run the sealed-corpus
+  assurance (`_asegurar_corpus`) and then only **read** the installed
+  generation: they never write inside it.
 - Both UI files are plain readable JavaScript with no build step and no
   bundled dependencies (the dashboard supplies React and its components;
   the Desktop plugin imports only `@hermes/plugin-sdk` and `react`).
@@ -104,9 +128,11 @@ description tells the agent the same.
 larger Diké codebase that this plugin never calls (for example `mcp/`,
 `hitl/` and the subagent launcher in `agent_invoker.py`; from that module,
 `constancia` uses only `resolve_document`, to read the temporary file). The
-plugin runs only two engine
-commands: `starter install`, once, to install the corpus, and `constancia
---json`, to check citations.
+plugin runs only these engine entry points: `starter install`, once, to
+install the corpus; `constancia --json`, to check citations; and, through
+`scripts/panel.py`, `lexo_cli.nif_studio.service` (versioned case boards),
+`lexo_cli.pichanga` (personal review graph) and `lexo_cli.starter.userconfig`
+(workspace resolution) for the panel's NIF and graph views.
 
 ## The corpus package
 

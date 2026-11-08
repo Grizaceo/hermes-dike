@@ -53,6 +53,178 @@ def test_api_expone_estado_y_verificar(api):
     assert '/verificar' in rutas
 
 
+def test_api_expone_panel_nif_y_grafo(api):
+    rutas = {r.path for r in api.router.routes}
+    for ruta in (
+        '/nif/casos', '/nif/init', '/nif/seed', '/nif/snapshot',
+        '/nif/edit', '/nif/gap', '/nif/validar', '/nif/confianza',
+        '/grafo/personal', '/grafo/corpus', '/grafo/corpus/norma/{code}',
+    ):
+        assert ruta in rutas, ruta
+
+
+def test_panel_valida_case_id(api):
+    from fastapi import HTTPException
+    # body-based: case_id ausente, vacío, no-string o con path traversal
+    for cuerpo in ({}, {'case_id': ''}, {'case_id': 7}, {'case_id': '../x'},
+                   {'case_id': 'a/b'}, {'case_id': 'x;rm'}):
+        with pytest.raises(HTTPException) as exc:
+            api.nif_seed(cuerpo)
+        assert exc.value.status_code == 400
+    # query param (GET snapshot): la validación vive en el endpoint
+    for malo in ('../x', 'a/b', '', 'x;y'):
+        with pytest.raises(HTTPException) as exc:
+            api.nif_snapshot(malo)
+        assert exc.value.status_code == 400
+
+
+def test_panel_edit_rechaza_campo_no_editable(api):
+    from fastapi import HTTPException
+    for campo in ('system.path', 'nif', 'facts', 'raw', 'constructor'):
+        with pytest.raises(HTTPException) as exc:
+            api.nif_edit({'case_id': 'c1', 'field_path': campo, 'value': 'x'})
+        assert exc.value.status_code == 400
+
+
+def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr=''):
+    """Sustituye adaptador + subprocess del panel por un motor falso."""
+    capturado = {}
+
+    class FakeProc:
+        pass
+
+    proc = FakeProc()
+    proc.returncode = returncode
+    proc.stdout = stdout
+    proc.stderr = stderr
+
+    def fake_run(cmd, **kw):
+        capturado['cmd'] = cmd
+        capturado['kw'] = kw
+        return proc
+
+    mod = type('M', (), {
+        '_carpeta_de_datos': staticmethod(lambda: Path('/tmp/x')),
+        '_entorno': staticmethod(lambda runtime: {}),
+        '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
+    })()
+    monkeypatch.setattr(api, '_adaptador', lambda: mod)
+    monkeypatch.setattr(api.subprocess, 'run', fake_run)
+    return capturado
+
+
+def test_panel_edit_acepta_campo_nif(api, monkeypatch):
+    capturado = _stub_motor(monkeypatch, api, stdout='{"success": true}')
+    out = api.nif_edit({'case_id': 'c1', 'field_path': 'facts.known',
+                        'value': 'hecho', 'reason': 'prueba'})
+    assert out == {'success': True}
+    cmd = capturado['cmd']
+    assert 'facts.known' in cmd
+    assert '"hecho"' in cmd or 'hecho' in cmd
+    assert 'prueba' in cmd
+
+
+def test_panel_edit_sin_value(api):
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc:
+        api.nif_edit({'case_id': 'c1', 'field_path': 'confidence'})
+    assert exc.value.status_code == 400
+
+
+def test_panel_gap_valida_indice(api):
+    from fastapi import HTTPException
+    for gap_index in ('x', None, '', '1.5'):
+        with pytest.raises(HTTPException):
+            api.nif_gap({'case_id': 'c1', 'gap_index': gap_index,
+                         'filled_by': 'a', 'filled_with': 'b'})
+    with pytest.raises(HTTPException):
+        api.nif_gap({'case_id': 'c1', 'gap_index': 0,
+                     'filled_by': '', 'filled_with': 'b'})
+
+
+def test_panel_validar_exige_booleano(api):
+    from fastapi import HTTPException
+    for valor in ('1', 1, None, 'true'):
+        with pytest.raises(HTTPException):
+            api.nif_validar({'case_id': 'c1', 'validated': valor})
+
+
+def test_panel_confianza_exige_numero(api):
+    from fastapi import HTTPException
+    for valor in ('alta', None, {}, 'NaNx'):
+        with pytest.raises(HTTPException):
+            api.nif_confianza({'case_id': 'c1', 'confidence': valor})
+
+
+def test_panel_init_exige_pregunta(api):
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException):
+        api.nif_init({'case_id': 'c1'})
+    with pytest.raises(HTTPException):
+        api.nif_init({'case_id': 'c1', 'pregunta': '  '})
+
+
+def test_panel_norma_codigo_numerico(api, monkeypatch):
+    from fastapi import HTTPException
+    for code in ('abc', '10;DROP', '-1', '1.5', '../x'):
+        with pytest.raises(HTTPException):
+            api.grafo_corpus_norma(code)
+    # código numérico pasa la validación y llega al panel como 'corpus-norma'
+    capturado = _stub_motor(monkeypatch, api, stdout='{"packs": []}')
+    out = api.grafo_corpus_norma('1058072')
+    assert isinstance(out, dict)
+    assert 'corpus-norma' in capturado['cmd']
+    assert '1058072' in capturado['cmd']
+
+
+def test_limpiar_redacta_rutas_locales(api):
+    assert '<ruta-local>' in api._limpio('falló en /home/gris96/secret/file.txt')
+    assert '/home/gris96' not in api._limpio('falló en /home/gris96/secret/file.txt')
+    assert len(api._limpio('x' * 5000)) <= 400
+
+
+def test_panel_error_motor_a_http(api, monkeypatch):
+    from fastapi import HTTPException
+    _stub_motor(monkeypatch, api,
+                stdout='{"error": "caso no existe en /home/u/cases/x"}')
+    with pytest.raises(HTTPException) as exc:
+        api.nif_casos()
+    assert exc.value.status_code == 400
+    assert '/home/u' not in exc.value.detail
+
+
+def test_panel_exit_no_cero_a_502(api, monkeypatch):
+    from fastapi import HTTPException
+    _stub_motor(monkeypatch, api, stdout='', returncode=2,
+                stderr='Traceback en /home/u/motor/x.py')
+    with pytest.raises(HTTPException) as exc:
+        api.nif_casos()
+    assert exc.value.status_code == 502
+    assert '/home/u' not in exc.value.detail
+
+
+def test_panel_timeout_a_504(api, monkeypatch):
+    from fastapi import HTTPException
+    _stub_motor(monkeypatch, api)
+
+    def timeout(*a, **k):
+        raise api.subprocess.TimeoutExpired(cmd='x', timeout=1)
+
+    monkeypatch.setattr(api.subprocess, 'run', timeout)
+    with pytest.raises(HTTPException) as exc:
+        api.nif_casos()
+    assert exc.value.status_code == 504
+
+
+def test_panel_corpus_asegura_generacion(api, monkeypatch):
+    """Las rutas /grafo/corpus* verifican la generación sellada antes de leer."""
+    capturado = _stub_motor(monkeypatch, api, stdout='{"packs": []}')
+    api.grafo_corpus()
+    assert capturado['kw'].get('cwd') == '/tmp/gen'
+    env = capturado['kw'].get('env')
+    assert env is not None
+
+
 def test_estado_sin_efectos_secundarios(api, monkeypatch, tmp_path):
     """GET /estado no instala el corpus (la primera verificación cuesta ~1 min)."""
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))

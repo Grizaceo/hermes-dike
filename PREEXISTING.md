@@ -53,3 +53,22 @@ Changes to the adapter's code during the hackathon:
     copied by the app to `~/.hermes/desktop-plugins/dike/` and opt-in under
     Capabilities → Plugins;
   - none of this changes the adapter, the tool or the command.
+- After publishing, for version 0.5.0, same authorship and review:
+  - `scripts/panel.py`, a JSON driver that runs inside the same isolated
+    subprocess and reuses the vendored engine's own modules:
+    `lexo_cli.nif_studio.service` for versioned NIF case boards,
+    `lexo_cli.pichanga` for the personal review graph, and
+    `lexo_cli.starter.userconfig` for workspace resolution;
+  - `/nif/*` and `/grafo/*` routes in `plugin_api.py` that validate inputs
+    (case ids, editable field paths, integer gap indexes, booleans,
+    numeric confidence and Ley Chile codes) before reaching the driver,
+    redact local paths from engine errors, and read the sealed corpus only
+    after `_asegurar_corpus` verifies the installed generation;
+  - the Dashboard tab and Desktop page extended with the NIF case board
+    (list, seed, snapshot, patch-attributed edits, gap filling, human
+    validation, confidence) and the graph views (sealed corpus map with
+    per-norm articles, personal GRE candidates);
+  - NIF case data lives under `plugin-data/dike/users/`, outside the
+    sealed corpus generation, so board writes never affect the integrity
+    check the citation verifier runs;
+  - none of this changes the adapter, the tool or the command.

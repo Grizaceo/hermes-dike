@@ -37,8 +37,11 @@ which takes a while. Later calls run offline.
 
 The same check also has a **Diké** tab in the web dashboard and a sidebar
 page in the Desktop app (the desktop half is opt-in: enable it under
-Capabilities → Plugins). Both paste text and call the same engine through
-the plugin's `/api/plugins/dike` backend.
+Capabilities → Plugins). The panel has three views: the citation check, a
+read-only map of the sealed corpus graph (its 25 statutes, 8,544 articles
+and edges), and a case board — the NIF — where each case's theory is
+versioned, patch-attributed and marked as human-validated. All of them call
+the same engine through the plugin's `/api/plugins/dike` backend.
 
 ## How it works
 
@@ -46,7 +49,11 @@ The plugin gives the agent one tool, `dike_verificar_citas`. It takes either
 `texto` (the pasted text) or `ruta` (a `.md`, `.txt` or `.docx` file). A relative path resolves against the
 session's working directory when Hermes reports one; gateway sessions do not,
 so there it must be absolute. The Dashboard and Desktop pages reach the same
-adapter over HTTP — text only, never file reads.
+adapter over HTTP — text only, never file reads. The panel's NIF and graph
+routes run `scripts/panel.py` in the same isolated subprocess: case boards
+are versioned SQLite stores under the plugin's data folder (outside the
+sealed corpus), and the corpus graph routes only read the verified
+installed generation.
 
 1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
    with a minimal environment: no agent credentials, and a home folder inside
@@ -98,8 +105,10 @@ corpus, check its hashes or refuse on the engine's behalf.
   (`unshare -rn`).
 - **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
   catalog entry and its pull request, the catalog banner, these README
-  corrections, the 0.3.0 adapter changes and the 0.4.0 panel surfaces
-  (Dashboard tab, Desktop page and `/api/plugins/dike` backend) listed in
+  corrections, the 0.3.0 adapter changes, the 0.4.0 panel surfaces
+  (Dashboard tab, Desktop page and `/api/plugins/dike` backend) and the
+  0.5.0 NIF case board and graph views (`scripts/panel.py`, the `/nif/*`
+  and `/grafo/*` routes, and both UI halves), listed in
   [PREEXISTING.md](PREEXISTING.md), with their tests. Claude Code (Claude Opus
   5.5) reviewed the entry independently, read-only, before those changes.
 - **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
@@ -136,6 +145,9 @@ corpus, check its hashes or refuse on the engine's behalf.
   engine, so it takes several seconds.
 - **Disk.** The installed corpus takes about 300 MB in the plugin's data
   folder ([claims.json](claims.json)).
+- **NIF cases are per-profile data.** Case boards live under the active
+  profile's plugin data; they are not synced, not signed, and a case marked
+  `validated_by_human` records who flipped the flag, not a legal opinion.
 - **Not a sandbox.** The subprocess keeps your operating-system permissions.
   What the plugin reads, writes and runs is listed in
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).

@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=ee4c543c2a4a03638dba588e53c5a83e02e9fd4b5b3b1057304462e60f038348 -->
+<!-- vitrina:translation-of README.md sha256=9f5b800542e537cb7e88102855d6ff96d79bd296cc515ad7200f627d525f6b84 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -38,8 +38,12 @@ plugin, y tarda un rato. Las siguientes funcionan sin red.
 
 La misma revisión tiene además una pestaña **Diké** en el dashboard web y una
 página en la barra lateral de la app Desktop (la mitad de escritorio es
-optativa: actívala en Capabilities → Plugins). Ambas toman texto y llaman al
-mismo motor por el backend `/api/plugins/dike` del plugin.
+optativa: actívala en Capabilities → Plugins). El panel tiene tres vistas:
+la revisión de citas, un mapa de solo lectura del grafo del corpus sellado
+(sus 25 normas, 8.544 artículos y aristas) y un tablero de caso — el NIF —
+donde la teoría de cada caso es versionada, con parches atribuidos y marca
+de validación humana. Todas llaman al mismo motor por el backend
+`/api/plugins/dike` del plugin.
 
 ## Cómo funciona
 
@@ -48,7 +52,11 @@ El plugin le da al agente una herramienta, `dike_verificar_citas`. Recibe
 ruta relativa se resuelve contra la carpeta de trabajo de la sesión cuando
 Hermes la informa; las sesiones del gateway no la informan, así que ahí la
 ruta tiene que ser absoluta. Las páginas del dashboard y de Desktop llegan al
-mismo adaptador por HTTP — solo texto, nunca lectura de archivos.
+mismo adaptador por HTTP — solo texto, nunca lectura de archivos. Las rutas
+de NIF y grafo del panel corren `scripts/panel.py` en el mismo subproceso
+aislado: los tableros de caso son almacenes SQLite versionados dentro de la
+carpeta de datos del plugin (fuera del corpus sellado), y las rutas del grafo
+del corpus solo leen la generación instalada ya verificada.
 
 1. El plugin corre el motor de Diké como subproceso (`dike constancia --json`)
    con un entorno mínimo: sin las credenciales del agente y con una carpeta
@@ -105,8 +113,10 @@ hashes ni rechazar en nombre del motor.
 - **Lo que escribió una IA después de publicar:** Devin (Claude Opus 5.5)
   escribió la entrada del catálogo y su pull request, el banner del catálogo,
   estas correcciones del README, los cambios del adaptador de la versión
-  0.3.0 y las superficies del panel de la 0.4.0 (pestaña del dashboard,
-  página de Desktop y backend `/api/plugins/dike`) que lista
+  0.3.0, las superficies del panel de la 0.4.0 (pestaña del dashboard,
+  página de Desktop y backend `/api/plugins/dike`) y el tablero NIF con las
+  vistas de grafo de la 0.5.0 (`scripts/panel.py`, las rutas `/nif/*` y
+  `/grafo/*` y las dos mitades de UI), que lista
   [PREEXISTING.md](PREEXISTING.md), con sus tests. Claude Code
   (Claude Opus 5.5) revisó la entrada de forma independiente, solo lectura,
   antes de esos cambios.
@@ -146,6 +156,9 @@ hashes ni rechazar en nombre del motor.
   arranca el motor, así que tarda varios segundos.
 - **Disco.** El corpus instalado ocupa unos 300 MB en la carpeta de datos del
   plugin ([claims.json](claims.json)).
+- **Los casos NIF son datos del perfil.** Los tableros viven en los datos del
+  plugin del perfil activo; no se sincronizan, no se firman, y un caso marcado
+  `validated_by_human` registra quién movió la marca, no una opinión legal.
 - **No es un sandbox.** El subproceso conserva tus permisos del sistema
   operativo. Lo que el plugin lee, escribe y ejecuta está en
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).

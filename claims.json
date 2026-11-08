@@ -3,8 +3,8 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
       "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "118",
-      "date": "2026-11-06"
+      "value": "143",
+      "date": "2026-11-07"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
@@ -35,6 +35,24 @@
       "command": "du -sh \"$HERMES_HOME/plugin-data/dike\"",
       "value": "307M",
       "date": "2026-11-06"
+    },
+    {
+      "claim": "The panel driver round-trips a NIF case in an isolated workspace: seed → list → edit → validate → confidence → snapshot (version increments, patches recorded, human-validation flag set)",
+      "command": "HOME=<tmp> DIKE_USER=test DIKE_USERS_ROOT=<tmp>/users PYTHONPATH=motor python scripts/panel.py nif seed demo-1 && ... nif snapshot demo-1",
+      "value": "snapshot v21, validated_by_human=true, confidence=0.7",
+      "date": "2026-11-07"
+    },
+    {
+      "claim": "The panel driver reads the sealed corpus graph read-only: 25 norms with titles/status/article counts, edge counts and vigencia records from the installed generation",
+      "command": "HOME=<gen-home> DIKE_USER=hermes DIKE_USERS_ROOT=<gen>/users PYTHONPATH=motor python scripts/panel.py grafo corpus",
+      "value": "25 norms, derived_from:8536, contains:8532",
+      "date": "2026-11-07"
+    },
+    {
+      "claim": "hermes plugins validate . --install-deps passes on the 0.5.0 tree",
+      "command": "hermes plugins validate . --install-deps",
+      "value": "Validation passed",
+      "date": "2026-11-07"
     }
   ]
 }

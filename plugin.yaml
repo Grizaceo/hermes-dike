@@ -1,14 +1,16 @@
 name: dike
-version: "0.4.0"
+version: "0.5.0"
 manifest_version: 2
 description: >-
   Checks the article citations of Chilean law in a legal brief against a local,
   hash-identified copy of 25 statutes, and refuses to certify what it cannot prove:
   each citation comes back verified (with its source, text hash and in-force status)
   or unverified with the reason. Offline after install; never signs, never calls a model.
-  Also ships a web-dashboard tab and an opt-in Desktop sidebar page that call the
-  same engine through the plugin's /api/plugins/dike backend (text only; the HTTP
-  surface never reads files).
+  The web-dashboard tab and the opt-in Desktop sidebar page add a case board (NIF):
+  versioned, patch-attributed case theory with human validation — plus a read-only
+  map of the sealed corpus graph and the personal review graph. All engine work
+  runs in the same isolated subprocess; case data stays in plugin-data, outside
+  the sealed corpus generation.
 author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike

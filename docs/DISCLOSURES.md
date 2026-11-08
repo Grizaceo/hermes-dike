@@ -161,9 +161,11 @@ network calls: it only reaches the plugin's own REST routes via `ctx.rest`.
 
 ## HTTP surface (dashboard/plugin_api.py)
 
-All routes are `GET` and read-only against the installed corpus and
-plugin-data; nothing authenticates beyond Hermes' own plugin routing and
-no route writes outside plugin-data.
+The routes sit behind Hermes' own plugin routing and authentication; the
+plugin adds no authentication of its own. The `/grafo/*` and `/estado`
+routes are `GET` and read-only. `POST /verificar` writes only a temporary
+copy of the brief, removed after the call, and `POST /nif/*` writes case
+files; no route writes outside plugin-data.
 
 - `/estado`, `/verificar` — engine + integrity status; `/verificar` runs
   the citation check (read-only, always re-verifies corpus integrity).

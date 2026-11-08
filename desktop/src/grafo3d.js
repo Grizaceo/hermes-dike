@@ -244,6 +244,28 @@ function UnidadDetalle({ nodo }) {
   ] })
 }
 
+function NodoDetalle({ nodo }) {
+  // La red delgada no trae url/sha256/vigencia: la ficha los pide por nodo.
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    setData(null)
+    rest('/grafo/nodo?id=' + encodeURIComponent(nodo.id))
+      .then(setData)
+      .catch(() => {})
+  }, [nodo.id])
+  if (!data) return null
+  return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
+    data.titulo ? jsx('div', { className: S.sub, children: data.titulo }) : null,
+    data.vigencia && data.vigencia.estado ? jsx('div', { className: S.sub, children:
+      'Vigencia: ' + data.vigencia.estado +
+      (data.vigencia.desde ? ' desde ' + data.vigencia.desde : '') }) : null,
+    data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
+      children: 'Fuente original ↗' }) : null,
+    data.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+      children: 'sha256 ' + data.sha256 }) : null,
+  ] })
+}
+
 function TarjetaNodo({ nodo, conteos }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
@@ -262,19 +284,14 @@ function TarjetaNodo({ nodo, conteos }) {
       esUnidad ? jsx('span', { className: S.chip + ' ' + S.chipOff, children: 'candidata' }) : null,
     ] }),
     jsx('div', { className: 'font-medium', children: n.label }),
-    n.instrumento ? jsx('div', { className: S.sub, children: 'Pertenece a: ' + n.instrumento }) : null,
     n.tipo === 'instrumento' ? jsx('div', { className: S.sub, children:
-      (conteos.get(n.id) || 0) + ' artículos' }) : null,
+      (n.n_articulos || conteos.get(n.id) || 0) + ' artículos' }) : null,
     n.tipo === 'articulo' ? jsx('div', { className: S.sub, children:
-      (conteos.get(n.id) || 0) + ' unidades · clic de nuevo para plegar' }) : null,
+      (n.n_unidades || 0) + ' unidades · clic para expandir/plegar' }) : null,
     esUnidad && n.articulo ? jsx('div', { className: S.sub, children:
       'Unidad ' + (n.etiqueta || '') + ' del artículo' }) : null,
     jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)', children: n.id }),
-    esUnidad ? jsx(UnidadDetalle, { nodo: n }) : null,
-    n.url ? jsx('a', { className: S.link, href: n.url, target: '_blank', rel: 'noopener noreferrer',
-      children: 'Fuente original ↗' }) : null,
-    !esUnidad && n.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
-      children: 'sha256 ' + n.sha256 }) : null,
+    esUnidad ? jsx(UnidadDetalle, { nodo: n }) : jsx(NodoDetalle, { nodo: n }),
   ] })
 }
 
@@ -360,8 +377,8 @@ export function SeccionGrafo() {
   const [personalErr, setPersonalErr] = useState(null)
   const [seleccion, setSeleccion] = useState(null)
   const [expandidos, setExpandidos] = useState(() => new Set())
+  const [unidadesMap, setUnidadesMap] = useState(() => new Map())
   const [ocultarArts, setOcultarArts] = useState(false)
-  const [mostrarUnidades, setMostrarUnidades] = useState(false)
   const [query, setQuery] = useState('')
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
@@ -370,7 +387,7 @@ export function SeccionGrafo() {
   const cargar = useCallback(() => {
     setRedErr(null)
     setPersonalErr(null)
-    rest('/grafo/red?fuente=corpus').then(setRed).catch(setRedErr)
+    rest('/grafo/red?fuente=corpus', { timeoutMs: 120000 }).then(setRed).catch(setRedErr)
     rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
   }, [])
   useEffect(cargar, [cargar])
@@ -386,55 +403,71 @@ export function SeccionGrafo() {
   const padres = useMemo(() => {
     const m = new Map()
     for (const l of aristas) if (l.tipo === 'contiene') m.set(l.target, l.source)
+    for (const id of expandidos) {
+      const d = unidadesMap.get(id)
+      if (d) {
+        for (const l of d.links || []) {
+          if (l.tipo === 'contiene') m.set(l.target, l.source)
+        }
+      }
+    }
     return m
-  }, [aristas])
+  }, [aristas, expandidos, unidadesMap])
   const conteos = useMemo(() => {
     const m = new Map()
     for (const l of aristas) if (l.tipo === 'contiene') m.set(l.source, (m.get(l.source) || 0) + 1)
     return m
   }, [aristas])
 
-  // Artículos visibles por defecto; unidad solo si su artículo está expandido
-  // (clic) o si 'mostrar todas las unidades' está marcado.
+  // Artículos visibles por defecto; las unidades de un artículo se traen por
+  // /grafo/unidades al hacer clic y se inyectan al pool estable del lienzo.
   const proyeccion = useMemo(() => {
-    const vis = nodos.filter((n) => {
-      if (n.tipo === 'unidad') {
-        return !ocultarArts && (mostrarUnidades || expandidos.has(padres.get(n.id)))
+    const nodes = nodos.filter((n) => (n.tipo === 'articulo' ? !ocultarArts : true))
+    const links = [...aristas]
+    if (!ocultarArts) {
+      for (const id of expandidos) {
+        const d = unidadesMap.get(id)
+        if (d) {
+          nodes.push(...(d.nodes || []))
+          links.push(...(d.links || []))
+        }
       }
-      if (n.tipo === 'articulo') return !ocultarArts
-      return true
-    })
-    const ids = new Set(vis.map((n) => n.id))
-    return {
-      nodes: vis,
-      links: aristas.filter((l) => ids.has(l.source) && ids.has(l.target)),
     }
-  }, [nodos, aristas, ocultarArts, mostrarUnidades, expandidos, padres])
+    const ids = new Set(nodes.map((n) => n.id))
+    return {
+      nodes,
+      links: links.filter((l) => ids.has(l.source) && ids.has(l.target)),
+    }
+  }, [nodos, aristas, ocultarArts, expandidos, unidadesMap])
 
   const alClickNodo = useCallback((n) => {
     setSeleccion(n.id)
-    // Clic en un artículo: despliega sus unidades. Los instrumentos solo seleccionan.
+    // Clic en un artículo: trae (o pliega) sus unidades normativas mínimas.
     if (n.tipo === 'articulo') {
-      setExpandidos((prev) => {
-        const next = new Set(prev)
-        if (next.has(n.id)) next.delete(n.id)
-        else next.add(n.id)
-        return next
-      })
+      if (expandidos.has(n.id)) {
+        setExpandidos((prev) => {
+          const next = new Set(prev)
+          next.delete(n.id)
+          return next
+        })
+      } else {
+        setExpandidos((prev) => new Set(prev).add(n.id))
+        if (!unidadesMap.has(n.id)) {
+          rest('/grafo/unidades?articulo=' + encodeURIComponent(n.id))
+            .then((d) => setUnidadesMap((prev) => new Map(prev).set(n.id, d)))
+            .catch(() => {})
+        }
+      }
     }
-  }, [])
+  }, [expandidos, unidadesMap])
 
   const alBuscar = useCallback((id) => {
     const n = indice.get(id)
     if (!n) return
     setSeleccion(id)
-    if (n.tipo === 'unidad') {
-      const padre = padres.get(id)
-      if (padre) setExpandidos((prev) => new Set(prev).add(padre))
-    }
     // enfocar reintenta hasta que el nodo tenga posición (reintento acotado).
     if (apiRef.current) apiRef.current.enfocar(id)
-  }, [indice, padres])
+  }, [indice])
 
   const q = query.trim().toLocaleLowerCase()
   const coincidencias = q
@@ -467,10 +500,14 @@ export function SeccionGrafo() {
           (red.truncado ? ' · truncado' : '') }) : null,
       ] }),
       redErr
-        ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(redErr) })
+        ? jsxs('div', { className: 'flex flex-col items-start gap-1.5', children: [
+            jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(redErr) }),
+            jsx('button', { type: 'button', className: S.ghost, onClick: cargar,
+              children: 'Reintentar' }),
+          ] })
         : !red
           ? jsx('div', { className: S.sub, children:
-              'Cargando la red del corpus (la primera lectura barre ~8.500 artículos)…' })
+              'Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus…' })
           : jsxs('div', { className: 'grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]', children: [
               jsxs('div', { className: 'min-w-0', children: [
                 jsxs('div', { className: 'mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs', children: [
@@ -484,11 +521,6 @@ export function SeccionGrafo() {
                     jsx('input', { type: 'checkbox', checked: ocultarArts,
                       onChange: (e) => setOcultarArts(e.target.checked) }),
                     'ocultar artículos',
-                  ] }),
-                  jsxs('label', { className: 'flex items-center gap-1.5 ' + S.sub, children: [
-                    jsx('input', { type: 'checkbox', checked: mostrarUnidades,
-                      onChange: (e) => setMostrarUnidades(e.target.checked) }),
-                    'mostrar todas las unidades (¡agrega ~20 mil nodos!)',
                   ] }),
                   jsx('span', { className: S.sub, children: '|' }),
                   jsx('span', { className: S.sub, children: 'modalidad deóntica (candidata, sin validar):' }),

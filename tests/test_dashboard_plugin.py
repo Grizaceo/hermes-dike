@@ -59,7 +59,7 @@ def test_api_expone_panel_nif_y_grafo(api):
         '/nif/casos', '/nif/init', '/nif/seed', '/nif/snapshot',
         '/nif/edit', '/nif/gap', '/nif/validar', '/nif/confianza',
         '/grafo/personal', '/grafo/corpus', '/grafo/corpus/norma/{code}',
-        '/grafo/red', '/grafo/unidad',
+        '/grafo/red', '/grafo/unidad', '/grafo/nodo', '/grafo/unidades',
     ):
         assert ruta in rutas, ruta
 
@@ -244,7 +244,7 @@ def test_grafo_red_cachea_por_pack_hash(api, monkeypatch, tmp_path):
     segundo = api.grafo_red()
     assert primero == segundo
     assert len(llamadas) == 1
-    assert (tmp_path / 'cache' / 'grafo_red_v2_testpackhash0000.json').is_file()
+    assert (tmp_path / 'cache' / 'grafo_red_v3_testpackhash0000.json').is_file()
 
 
 def test_grafo_unidad_valida_id(api, monkeypatch):
@@ -259,6 +259,27 @@ def test_grafo_unidad_valida_id(api, monkeypatch):
     out = api.grafo_unidad('eli/art_1#u01')
     assert out['texto'] == 'u'
     assert 'unidad' in capturado['cmd']
+
+
+def test_grafo_nodo_y_unidades_validan_id(api, monkeypatch):
+    from fastapi import HTTPException
+    for malo in ('', 'abc', 'x#u01', 'con#nodo', '\x00nulo'):
+        with pytest.raises(HTTPException) as exc:
+            api.grafo_nodo(malo)
+        assert exc.value.status_code == 400
+        with pytest.raises(HTTPException) as exc:
+            api.grafo_unidades(malo)
+        assert exc.value.status_code == 400
+    capturado = _stub_motor(
+        monkeypatch, api,
+        stdout='{"id": "eli/art_1", "tipo": "articulo", "n_unidades": 3}')
+    out = api.grafo_nodo('eli/art_1')
+    assert out['n_unidades'] == 3 and 'nodo' in capturado['cmd']
+    capturado = _stub_motor(
+        monkeypatch, api,
+        stdout='{"nodes": [], "links": [], "conteos": {}}')
+    out = api.grafo_unidades('eli/art_1')
+    assert 'unidades' in capturado['cmd']
 
 
 def test_limpiar_redacta_rutas_locales(api):

@@ -174,8 +174,8 @@ def test_grafo_red_minicorpus(panel, tmp_path):
     arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
     assert {a['label'] for a in arts} == {
         'Código del Trabajo, art. 161', 'Código del Trabajo, art. 168'}
-    assert all(a['instrumento'] == 'Código del Trabajo' for a in arts)
-    assert all(a['sha256'] == 'a' * 64 for a in arts)
+    assert all(a['instrumento'] == 'n:207436' for a in arts)
+    assert all('sha256' not in a and a['n_unidades'] == 0 for a in arts)
 
 
 def test_grafo_red_sin_instalado(panel):
@@ -239,8 +239,68 @@ def test_unidades_offsets_y_etiquetas(panel_mod):
     assert us[4]['texto'] == 'inciso sangrado'
 
 
-def test_grafo_red_unidades_y_excepciona(panel, tmp_path):
-    """grafo red emite unidad por línea, arista excepciona del R-EXC al anterior."""
+def test_grafo_red_es_delgada(panel, tmp_path):
+    """La red no emite unidades ni excepciona: artículos con n_unidades, ids cortos."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/1/2020'
+    (current / 'normas' / 'norma_1.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '1',
+        'eli': {'type': 'ley', 'number': '1'}, 'title': 'LEY UNO',
+        'sourceDocumentUrl': 'https://x/norma',
+    }), encoding='utf-8')
+    for eid, texto in (
+        ('art_0001', 'Una línea.\nNo obstante lo anterior, otra cosa.'),
+        ('art_0002', 'Línea única.'),
+    ):
+        (current / 'articulos' / f'articulo_1_{eid}.json').write_text(json.dumps({
+            '@id': aid + '/' + eid, 'eId': eid, 'label': eid,
+            'text': texto, 'textSha256': 'b' * 64,
+        }), encoding='utf-8')
+    out = panel('grafo', 'red')
+    insts = [n for n in out['nodes'] if n['tipo'] == 'instrumento']
+    arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
+    assert not [n for n in out['nodes'] if n['tipo'] == 'unidad']
+    assert not [l for l in out['links'] if l['tipo'] == 'excepciona']
+    assert set(insts[0]) == {'id', 'tipo', 'label', 'n_articulos'}
+    assert insts[0]['n_articulos'] == 2
+    assert set(arts[0]) == {'id', 'tipo', 'label', 'instrumento', 'n_unidades'}
+    assert arts[0]['instrumento'] == 'n:1'  # id del instrumento, no el nombre
+    assert arts[0]['id'].startswith('a:1:')
+    assert sorted(a['n_unidades'] for a in arts) == [1, 2]
+    for l in out['links']:
+        assert set(l) == {'source', 'target', 'tipo', 'estado'}
+    ids = {n['id'] for n in out['nodes']}
+    assert all(l['source'] in ids and l['target'] in ids for l in out['links'])
+
+
+def test_grafo_red_presupuesto_bytes(panel, tmp_path):
+    """Cada nodo-artículo aporta <200 B al payload: ~1,7 MB para 8.544."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/9/2020'
+    (current / 'normas' / 'norma_9.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '9',
+        'eli': {'type': 'ley', 'number': '9'}, 'title': 'LEY NUEVE',
+        'sourceDocumentUrl': 'https://x/norma', 'sha256': 'x' * 64,
+    }), encoding='utf-8')
+    for i in range(10):
+        (current / 'articulos' / f'articulo_9_art_{i:04d}.json').write_text(json.dumps({
+            '@id': f'{aid}/art_{i:04d}', 'eId': f'art_{i:04d}', 'label': str(i + 1),
+            'text': 'línea uno\nlínea dos', 'textSha256': 'c' * 64,
+            'provenance': {'wasDerivedFrom': 'https://x/art'},
+        }), encoding='utf-8')
+    out = panel('grafo', 'red')
+    arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
+    links = [l for l in out['links'] if l['tipo'] == 'contiene']
+    bytes_art = sum(len(json.dumps(n, ensure_ascii=False)) for n in arts)
+    assert bytes_art / len(arts) < 200
+
+
+def test_grafo_unidades_forma_y_excepciona(panel, tmp_path):
+    """grafo unidades: mismos nodos unidad que antes emitía la red completa."""
     current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
     (current / 'normas').mkdir(parents=True)
     (current / 'articulos').mkdir(parents=True)
@@ -254,26 +314,54 @@ def test_grafo_red_unidades_y_excepciona(panel, tmp_path):
         'text': 'Regla general del artículo.\nNo obstante lo anterior, otra cosa.',
         'textSha256': 'b' * 64,
     }), encoding='utf-8')
-    out = panel('grafo', 'red')
-    arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
-    unidades = [n for n in out['nodes'] if n['tipo'] == 'unidad']
-    assert len(arts) == 1 and len(unidades) == 2
+    out = panel('grafo', 'unidades', 'a:1:art_0001')
+    unidades = out['nodes']
+    assert len(unidades) == 2
     for u in unidades:
         assert u['clase'] == 'normativa'
         assert u['modalidad_estado'] == 'candidata'
-        assert u['articulo'] == arts[0]['id']
-        assert u['id'].startswith(arts[0]['id'] + '#u')
-    contiene = [l for l in out['links'] if l['tipo'] == 'contiene']
-    assert any(l['source'] == arts[0]['id'] and l['target'] == unidades[0]['id']
-               for l in contiene)
+        assert u['articulo'] == 'a:1:art_0001'
+        assert u['id'].startswith('a:1:art_0001#u')
+    assert unidades[1]['modalidad'] == 'excepcion'
+    ids = {n['id'] for n in unidades}
+    for l in out['links']:
+        assert l['source'] in ids or l['source'] == 'a:1:art_0001'
+        assert l['target'] in ids or l['target'] == 'a:1:art_0001'
     exc = [l for l in out['links'] if l['tipo'] == 'excepciona']
-    assert len(exc) == 1
-    assert exc[0]['estado'] == 'candidata'
+    assert len(exc) == 1 and exc[0]['estado'] == 'candidata'
     assert exc[0]['source'] == unidades[1]['id']
     assert exc[0]['target'] == unidades[0]['id']
 
 
-def test_grafo_red_sin_excepciona_en_primera(panel, tmp_path):
+def test_grafo_nodo_instrumento_y_articulo(panel, tmp_path):
+    """grafo nodo: ficha con url, sha256, conteos y vigencia."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    aid = 'https://dike.invalid/eli/cl/ley/5/2020'
+    (current / 'normas' / 'norma_5.json').write_text(json.dumps({
+        '@id': aid, 'leychileCode': '5',
+        'eli': {'type': 'ley', 'number': '5'}, 'title': 'LEY CINCO',
+        'sourceDocumentUrl': 'https://x/ley5',
+        'temporal': {'status': 'vigente', 'from': '2020-01-01'},
+    }), encoding='utf-8')
+    (current / 'articulos' / 'articulo_5_art_0001.json').write_text(json.dumps({
+        '@id': aid + '/art_0001', 'eId': 'art_0001', 'label': '1',
+        'text': 'una\ndos\ntres', 'textSha256': 'd' * 64,
+        'temporal': {'status': 'vigente', 'from': '2020-01-01'},
+    }), encoding='utf-8')
+    ni = panel('grafo', 'nodo', 'n:5')
+    assert ni['tipo'] == 'instrumento' and ni['n_articulos'] == 1
+    assert ni['url'] == 'https://x/ley5' and len(ni['sha256']) == 64
+    assert ni['vigencia']['estado'] == 'vigente'
+    na = panel('grafo', 'nodo', 'a:5:art_0001')
+    assert na['tipo'] == 'articulo' and na['n_unidades'] == 3
+    assert na['sha256'] == 'd' * 64
+    falta = panel('grafo', 'nodo', 'n:99')
+    assert 'error' in falta
+
+
+def test_grafo_unidades_sin_excepciona_en_primera(panel, tmp_path):
     """Un R-EXC como primera unidad no emite excepciona (no hay anterior)."""
     current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
     (current / 'normas').mkdir(parents=True)
@@ -287,7 +375,7 @@ def test_grafo_red_sin_excepciona_en_primera(panel, tmp_path):
         '@id': aid + '/art_0001', 'eId': 'art_0001', 'label': '1',
         'text': 'Salvo pacto en contrario, el plazo es de un año.',
     }), encoding='utf-8')
-    out = panel('grafo', 'red')
+    out = panel('grafo', 'unidades', 'a:2:art_0001')
     assert not [l for l in out['links'] if l['tipo'] == 'excepciona']
 
 
@@ -308,13 +396,13 @@ def test_grafo_unidad_texto_y_offsets(panel, tmp_path):
         'text': texto, 'textSha256': 'c' * 64,
         'provenance': {'wasDerivedFrom': 'https://x/art'},
     }), encoding='utf-8')
-    out = panel('grafo', 'unidad', aid + '/art_0001#u02')
+    out = panel('grafo', 'unidad', 'a:3:art_0001#u02')
     assert out['texto'] == 'Segunda regla con sangría.'
     assert texto[out['char_start']:out['char_end']] == out['texto']
-    assert out['articulo'] == aid + '/art_0001'
+    assert out['articulo'] == 'a:3:art_0001'
     assert out['articulo_url'] == 'https://x/art'
     assert out['articulo_sha256'] == 'c' * 64
     assert out['sha256'] == hashlib.sha256(
         'Segunda regla con sangría.'.encode('utf-8')).hexdigest()
-    fuera = panel('grafo', 'unidad', aid + '/art_0001#u09')
+    fuera = panel('grafo', 'unidad', 'a:3:art_0001#u09')
     assert 'error' in fuera

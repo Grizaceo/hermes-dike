@@ -189,6 +189,43 @@ def _modalidad(linea: str) -> tuple[str, str | None]:
 
 
 # ---------------------------------------------------------------------------
+# Resolución de ids de nodo: forma compacta a:CODE:EID / n:CODE (archivo
+# directo) y @id largo heredado (glob + comparación) como respaldo.
+# ---------------------------------------------------------------------------
+
+def _candidatos_articulo(current: Path, aid: str):
+    """Archivos candidatos del artículo `aid` (1 en forma compacta)."""
+    if aid.startswith("a:") and aid.count(":") >= 2:
+        code, eid = aid.split(":", 2)[1:]
+        p = current / "articulos" / f"articulo_{code}_{eid}.json"
+        if p.is_file():
+            return [p]
+        return []
+    eid = aid.rsplit("/", 1)[-1]
+    if not re.fullmatch(r"[\w.-]+", eid):
+        return []
+    return sorted((current / "articulos").glob(f"articulo_*_{eid}.json"))
+
+
+def _es_articulo(data: dict, aid: str) -> bool:
+    """¿Este JSON es el artículo pedido? Forma compacta o @id."""
+    if aid.startswith("a:"):
+        code = data.get("leychileCode") or (data.get("norma") or {}).get("leychileCode")
+        eid = data.get("eId")
+        if code is not None and eid is not None:
+            return aid == f"a:{code}:{eid}"
+        return True  # ruta directa por nombre de archivo
+    return str(data.get("@id") or "") == aid
+
+
+def _candidatos_norma(current: Path, nid: str):
+    if nid.startswith("n:"):
+        p = current / "normas" / f"norma_{nid[2:]}.json"
+        return [p] if p.is_file() else []
+    return sorted((current / "normas").glob("norma_*.json"))
+
+
+# ---------------------------------------------------------------------------
 # NIF — tablero de la teoría del caso (lexo_cli.nif_studio.service)
 # ---------------------------------------------------------------------------
 
@@ -403,13 +440,10 @@ def _grafo(args: list[str]) -> int:
         if not m:
             return _fail("id de unidad inválido.")
         aid, num = m.group(1), int(m.group(2))
-        eid = aid.rsplit("/", 1)[-1]
-        if not re.fullmatch(r"[\w.-]+", eid):
-            return _fail("id de unidad inválido.")
         for current in _corpus_dirs():
-            for af in (current / "articulos").glob(f"articulo_*_{eid}.json"):
+            for af in _candidatos_articulo(current, aid):
                 a = _read_json(af) or {}
-                if str(a.get("@id") or "") != aid:
+                if not _es_articulo(a, aid):
                     continue
                 texto = a.get("text") or ""
                 unidades = _unidades(texto)
@@ -436,11 +470,105 @@ def _grafo(args: list[str]) -> int:
                 return 0
         return _fail("unidad no encontrada en el corpus instalado.")
 
+    if op == "unidades":
+        # Nodos 'unidad' de UN artículo + sus aristas contiene/excepciona:
+        # la vista los pide al expandir el artículo, no en la red completa.
+        if len(rest) != 1:
+            return _fail("grafo unidades <id articulo>")
+        aid = rest[0]
+        for current in _corpus_dirs():
+            for af in _candidatos_articulo(current, aid):
+                a = _read_json(af) or {}
+                if not _es_articulo(a, aid):
+                    continue
+                # Rótulo del instrumento para las labels de las unidades.
+                corto = aid
+                code = af.stem.split("_")[1]
+                nf = current / "normas" / f"norma_{code}.json"
+                if nf.is_file():
+                    n = _read_json(nf) or {}
+                    corto = _nombre_corto(n.get("eli") or {}) or corto
+                rotulo_art = str(a.get("label") or a.get("eId") or af.stem)
+                nodos_u: list[dict] = []
+                aristas_u: list[dict] = []
+                unidades = _unidades(a.get("text") or "")
+                for i, u in enumerate(unidades):
+                    uid = f"{aid}#u{u['orden']:02d}"
+                    mod, regla = _modalidad(u["texto"])
+                    nodos_u.append({
+                        "id": uid,
+                        "tipo": "unidad",
+                        "label": f"{rotulo_art}, {u['etiqueta']}",
+                        "clase": "normativa",
+                        "etiqueta": u["etiqueta"],
+                        "orden": u["orden"],
+                        "articulo": aid,
+                        "modalidad": mod,
+                        "modalidad_estado": "candidata",
+                        "modalidad_regla": regla,
+                    })
+                    aristas_u.append({
+                        "source": aid, "target": uid,
+                        "tipo": "contiene", "estado": "verificada_estructura",
+                    })
+                    if regla == "R-EXC" and i > 0:
+                        aristas_u.append({
+                            "source": uid, "target": f"{aid}#u{i:02d}",
+                            "tipo": "excepciona", "estado": "candidata",
+                        })
+                _out({"nodes": nodos_u, "links": aristas_u,
+                      "conteos": {"nodes": len(nodos_u), "links": len(aristas_u)}})
+                return 0
+        return _fail("artículo no encontrado en el corpus instalado.")
+
+    if op == "nodo":
+        # Ficha de un instrumento o artículo: url, sha256, conteos y vigencia.
+        if len(rest) != 1:
+            return _fail("grafo nodo <id>")
+        nid = rest[0]
+        for current in _corpus_dirs():
+            for nf in _candidatos_norma(current, nid):
+                n = _read_json(nf) or {}
+                code = str(n.get("leychileCode") or nf.stem.removeprefix("norma_"))
+                if not (nid == f"n:{code}" or str(n.get("@id") or "") == nid):
+                    continue
+                n_arts = len(list((current / "articulos").glob(f"articulo_{code}_*.json")))
+                temporal = n.get("temporal") or {}
+                _out({
+                    "id": nid, "tipo": "instrumento",
+                    "label": _nombre_corto(n.get("eli") or {}),
+                    "titulo": n.get("title") or "",
+                    "url": n.get("sourceDocumentUrl") or n.get("sourceUri") or None,
+                    "sha256": hashlib.sha256(nf.read_bytes()).hexdigest(),
+                    "n_articulos": n_arts,
+                    "vigencia": {"estado": temporal.get("status") or "",
+                                 "desde": temporal.get("from") or ""},
+                })
+                return 0
+            for af in _candidatos_articulo(current, nid):
+                a = _read_json(af) or {}
+                if not _es_articulo(a, nid):
+                    continue
+                temporal = a.get("temporal") or {}
+                _out({
+                    "id": nid, "tipo": "articulo",
+                    "label": str(a.get("label") or a.get("eId") or af.stem),
+                    "url": (a.get("provenance") or {}).get("wasDerivedFrom") or None,
+                    "sha256": a.get("textSha256")
+                        or (a.get("citation") or {}).get("textSha256"),
+                    "n_unidades": len(_unidades(a.get("text") or "")),
+                    "vigencia": {"estado": temporal.get("status") or "",
+                                 "desde": temporal.get("from") or ""},
+                })
+                return 0
+        return _fail("nodo no encontrado en el corpus instalado.")
+
     if op == "red":
-        # La red completa del corpus en UNA lectura: un nodo por instrumento,
-        # uno por artículo y una arista 'contiene' por artículo. El contrato
-        # ya admite tipos que esta fase no emite (sentencia, resolucion;
-        # cita, aplica, revisa; candidata, aprobada).
+        # Payload DELGADO: un nodo por instrumento y uno por artículo con sus
+        # conteos, aristas 'contiene' mínimas. Las unidades, el texto y los
+        # hashes llegan por consulta (grafo unidades / grafo nodo / grafo
+        # unidad): la red completa viaja por el IPC de la app y un cuerpo de
+        # ~20 MB agotaba el timeout de 30 s del renderer.
         nodos: list[dict] = []
         aristas: list[dict] = []
         for current in _corpus_dirs():
@@ -452,29 +580,28 @@ def _grafo(args: list[str]) -> int:
                 eli = n.get("eli") or {}
                 code = str(n.get("leychileCode") or nf.stem.removeprefix("norma_"))
                 corto = _nombre_corto(eli) or (n.get("title") or code)
-                nid = str(n.get("@id") or f"norma:{code}")
+                # Ids opacos CORTOS: con ~8.544 artículos el @id largo (~50
+                # caracteres) inflaba el payload por encima del presupuesto
+                # de 2,5 MB; a:CODE:EID localiza el archivo directamente.
+                nid = f"n:{code}"
+                archivos = sorted((current / "articulos").glob(f"articulo_{code}_*.json"))
                 nodos.append({
                     "id": nid,
                     "tipo": "instrumento",
                     "label": corto,
-                    "instrumento": None,
-                    "url": n.get("sourceDocumentUrl") or n.get("sourceUri") or None,
-                    "sha256": hashlib.sha256(nf.read_bytes()).hexdigest(),
+                    "n_articulos": len(archivos),
                 })
-                archivos = sorted((current / "articulos").glob(f"articulo_{code}_*.json"))
                 for af in archivos:
                     a = _read_json(af) or {}
-                    aid = str(a.get("@id") or af.stem)
+                    eid = str(a.get("eId") or af.stem[len("articulo_" + code + "_"):])
+                    aid = f"a:{code}:{eid}"
                     rotulo = str(a.get("label") or a.get("eId") or af.stem)
-                    rotulo_art = f"{corto}, art. {rotulo}"
                     nodos.append({
                         "id": aid,
                         "tipo": "articulo",
-                        "label": rotulo_art,
-                        "instrumento": corto,
-                        "url": (a.get("provenance") or {}).get("wasDerivedFrom") or None,
-                        "sha256": a.get("textSha256")
-                            or (a.get("citation") or {}).get("textSha256"),
+                        "label": f"{corto}, art. {rotulo}",
+                        "instrumento": nid,
+                        "n_unidades": len(_unidades(a.get("text") or "")),
                     })
                     aristas.append({
                         "source": nid,
@@ -482,38 +609,6 @@ def _grafo(args: list[str]) -> int:
                         "tipo": "contiene",
                         "estado": "verificada_estructura",
                     })
-                    unidades = _unidades(a.get("text") or "")
-                    for i, u in enumerate(unidades):
-                        uid = f"{aid}#u{u['orden']:02d}"
-                        mod, regla = _modalidad(u["texto"])
-                        nodos.append({
-                            "id": uid,
-                            "tipo": "unidad",
-                            "label": f"{rotulo_art}, {u['etiqueta']}",
-                            "instrumento": corto,
-                            "url": None,
-                            "sha256": hashlib.sha256(u["texto"].encode("utf-8")).hexdigest(),
-                            "clase": "normativa",
-                            "etiqueta": u["etiqueta"],
-                            "orden": u["orden"],
-                            "articulo": aid,
-                            "modalidad": mod,
-                            "modalidad_estado": "candidata",
-                            "modalidad_regla": regla,
-                        })
-                        aristas.append({
-                            "source": aid,
-                            "target": uid,
-                            "tipo": "contiene",
-                            "estado": "verificada_estructura",
-                        })
-                        if regla == "R-EXC" and i > 0:
-                            aristas.append({
-                                "source": uid,
-                                "target": f"{aid}#u{i:02d}",
-                                "tipo": "excepciona",
-                                "estado": "candidata",
-                            })
         _out({
             "nodes": nodos,
             "links": aristas,

@@ -247,7 +247,7 @@ def grafo_red(fuente: str = "corpus"):
     mod = _adaptador()
     # El nombre lleva la versión del contrato: un cambio de esquema no puede
     # servir una forma vieja guardada por una versión anterior del plugin.
-    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v2_{mod.PACK_HASH}.json"
+    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v3_{mod.PACK_HASH}.json"
     try:
         if cache.is_file():
             data = json.loads(cache.read_text(encoding="utf-8"))
@@ -276,6 +276,23 @@ def grafo_red(fuente: str = "corpus"):
 
 
 _UNIDAD_ID = re.compile(r"^[^\x00-\x1f]{4,400}#u\d{1,4}$")
+_NODO_ID = re.compile(r"^[^\x00-\x1f#]{4,400}$")
+
+
+@router.get("/grafo/nodo")
+def grafo_nodo(id: str):
+    """Ficha de un instrumento o artículo (url, sha256, conteos, vigencia)."""
+    if not _NODO_ID.match(id or ""):
+        raise HTTPException(status_code=400, detail="id inválido.")
+    return _panel(["grafo", "nodo", id], corpus=True, timeout=60)
+
+
+@router.get("/grafo/unidades")
+def grafo_unidades(articulo: str):
+    """Nodos 'unidad' de un artículo + aristas contiene/excepciona."""
+    if not _NODO_ID.match(articulo or ""):
+        raise HTTPException(status_code=400, detail="id de artículo inválido.")
+    return _panel(["grafo", "unidades", articulo], corpus=True, timeout=60)
 
 
 @router.get("/grafo/unidad")

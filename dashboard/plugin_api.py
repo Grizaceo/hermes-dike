@@ -245,7 +245,9 @@ def grafo_red(fuente: str = "corpus"):
             status_code=400,
             detail=f"fuente '{fuente}' no existe: solo 'corpus' está implementada.")
     mod = _adaptador()
-    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_{mod.PACK_HASH}.json"
+    # El nombre lleva la versión del contrato: un cambio de esquema no puede
+    # servir una forma vieja guardada por una versión anterior del plugin.
+    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_v1_{mod.PACK_HASH}.json"
     try:
         if cache.is_file():
             data = json.loads(cache.read_text(encoding="utf-8"))

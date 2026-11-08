@@ -244,7 +244,7 @@ def test_grafo_red_cachea_por_pack_hash(api, monkeypatch, tmp_path):
     segundo = api.grafo_red()
     assert primero == segundo
     assert len(llamadas) == 1
-    assert (tmp_path / 'cache' / 'grafo_red_testpackhash0000.json').is_file()
+    assert (tmp_path / 'cache' / 'grafo_red_v1_testpackhash0000.json').is_file()
 
 
 def test_limpiar_redacta_rutas_locales(api):

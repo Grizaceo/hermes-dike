@@ -319,7 +319,7 @@ function NifBoard({ caso, onCambio }) {
         ] })
       : null,
     patches.length
-      ? jsx('details', { className: 'text-xs', children: [
+      ? jsxs('details', { className: 'text-xs', children: [
           jsx('summary', { className: 'cursor-pointer ' + S.sub,
             children: 'Historial de parches (' + patches.length + ')' }),
           ...patches.slice(-12).reverse().map((p, i) => jsxs('div', {

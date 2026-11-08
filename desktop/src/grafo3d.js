@@ -54,7 +54,7 @@ function hayWebGL() {
 
 // El lienzo vive mientras la pestaña esté visible; al desmontarse (cambio de
 // pestaña o de página) se destruye el renderizador completo.
-function LienzoGrafo({ proyeccion, conteos, alClickNodo, onFallo, apiRef }) {
+function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, onFallo, apiRef }) {
   const hostEl = useRef(null)
   const engine = useRef(null)
   const [listo, setListo] = useState(false)
@@ -62,6 +62,12 @@ function LienzoGrafo({ proyeccion, conteos, alClickNodo, onFallo, apiRef }) {
   clickRef.current = alClickNodo
   const conteosRef = useRef(conteos)
   conteosRef.current = conteos
+  const padresRef = useRef(padres)
+  padresRef.current = padres
+  // Pool estable de nodos: reutilizar el mismo objeto por id conserva las
+  // posiciones x/y/z que d3 va calculando entre cambios de proyección.
+  const pool = useRef(new Map())
+  const primerAjuste = useRef(false)
 
   useEffect(() => {
     if (!hostEl.current) return undefined
@@ -98,7 +104,12 @@ function LienzoGrafo({ proyeccion, conteos, alClickNodo, onFallo, apiRef }) {
       .cooldownTicks(120)
       .warmupTicks(20)
       .onEngineStop(() => {
-        if (engine.current) engine.current.zoomToFit(400, 40)
+        // Solo el primer asentamiento reencuadra: después de una expansión o
+        // un foco de búsqueda la cámara no se mueve sola (botón "encajar").
+        if (!primerAjuste.current && engine.current) {
+          primerAjuste.current = true
+          engine.current.zoomToFit(400, 40)
+        }
       })
     const ajustar = () => {
       if (hostEl.current && graph) {
@@ -113,13 +124,22 @@ function LienzoGrafo({ proyeccion, conteos, alClickNodo, onFallo, apiRef }) {
       enfocar: (id) => {
         const g = engine.current
         if (!g) return
-        const n = g.graphData().nodes.find((x) => x.id === id)
-        if (n) {
-          g.cameraPosition(
-            { x: (n.x || 0) + 60, y: (n.y || 0) + 40, z: (n.z || 0) + 150 },
-            { x: n.x || 0, y: n.y || 0, z: n.z || 0 },
-            600)
+        // Un nodo recién expandido tarda un tick en tener posición: reintenta
+        // acotado (~2 s) en vez de un timeout fijo que puede llegar tarde.
+        let intentos = 0
+        const intentar = () => {
+          const n = g.graphData().nodes.find((x) => x.id === id)
+          if (n && Number.isFinite(n.x)) {
+            g.cameraPosition(
+              { x: n.x + 60, y: (n.y || 0) + 40, z: (n.z || 0) + 150 },
+              { x: n.x, y: n.y || 0, z: n.z || 0 },
+              600)
+          } else if (intentos < 40) {
+            intentos += 1
+            setTimeout(intentar, 50)
+          }
         }
+        intentar()
       },
       zoomFit: () => {
         if (engine.current) engine.current.zoomToFit(400, 40)
@@ -140,11 +160,38 @@ function LienzoGrafo({ proyeccion, conteos, alClickNodo, onFallo, apiRef }) {
   useEffect(() => {
     const g = engine.current
     if (!listo || !g) return
-    // d3 muta nodos y extremos de las aristas: clonar en la frontera.
+    // Reutilizar el objeto de cada id conserva las posiciones de d3 entre
+    // proyecciones; clonar todo reiniciaba el layout en cada expansión.
+    const visibles = new Set()
+    let agregados = false
+    const nodes = proyeccion.nodes.map((n) => {
+      visibles.add(n.id)
+      const prev = pool.current.get(n.id)
+      if (prev) {
+        Object.assign(prev, n)
+        return prev
+      }
+      agregados = true
+      const nuevo = { ...n }
+      // Artículo nuevo: nace junto a su instrumento (con un pequeño jitter).
+      const padre = pool.current.get(padresRef.current.get(n.id))
+      if (padre && Number.isFinite(padre.x)) {
+        nuevo.x = padre.x + (Math.random() - 0.5) * 12
+        nuevo.y = (padre.y || 0) + (Math.random() - 0.5) * 12
+        nuevo.z = (padre.z || 0) + (Math.random() - 0.5) * 12
+      }
+      pool.current.set(n.id, nuevo)
+      return nuevo
+    })
+    for (const id of [...pool.current.keys()]) {
+      if (!visibles.has(id)) pool.current.delete(id)
+    }
+    // Las aristas sí son objetos frescos, pero con source/target como ids.
     g.graphData({
-      nodes: proyeccion.nodes.map((n) => ({ ...n })),
+      nodes,
       links: proyeccion.links.map((l) => ({ ...l })),
     })
+    if (agregados && g.d3ReheatSimulation) g.d3ReheatSimulation()
   }, [proyeccion, listo])
 
   return jsxs('div', { className: 'relative min-w-0', children: [
@@ -185,7 +232,7 @@ function NormaDetalle({ data, error }) {
     jsx('div', { className: S.sub, children:
       (data.articulos_total || arts.length) + ' artículos' +
       (data.articulos_truncados ? ' (mostrando ' + arts.length + ')' : '') }),
-    ...arts.map((a, i) => jsx('details', { key: i, className: 'text-xs', children: [
+    ...arts.map((a, i) => jsxs('details', { key: i, className: 'text-xs', children: [
       jsx('summary', { className: 'cursor-pointer py-0.5', children:
         'art. ' + (a.label || a.eId) +
         (a.estado ? ' · ' + a.estado : '') +
@@ -318,8 +365,8 @@ export function SeccionGrafo() {
       const padre = padres.get(id)
       if (padre) setExpandidos((prev) => new Set(prev).add(padre))
     }
-    // La cámara vuela una vez que el nodo ya está en el grafo.
-    setTimeout(() => { if (apiRef.current) apiRef.current.enfocar(id) }, 250)
+    // enfocar reintenta hasta que el nodo tenga posición (reintento acotado).
+    if (apiRef.current) apiRef.current.enfocar(id)
   }, [indice, padres])
 
   const q = query.trim().toLocaleLowerCase()
@@ -367,13 +414,13 @@ export function SeccionGrafo() {
                     proyeccion.nodes.length + ' visibles · ' + proyeccion.links.length + ' aristas' }),
                 ] }),
                 fallo3d
-                  ? jsx('div', { className: S.card, children: [
+                  ? jsxs('div', { className: S.card, children: [
                       jsx('div', { className: 'text-xs text-(--ui-danger)', children: fallo3d }),
                       jsx('div', { className: S.sub, children:
                         'El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.' }),
                     ] })
                   : jsx(LienzoGrafo, {
-                      proyeccion, conteos, alClickNodo, onFallo: alFallo3d, apiRef }),
+                      proyeccion, padres, conteos, alClickNodo, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
                 jsx('input', {

@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=9f5b800542e537cb7e88102855d6ff96d79bd296cc515ad7200f627d525f6b84 -->
+<!-- vitrina:translation-of README.md sha256=5a14cf286f12ee40ab3393fe24ce7922d07ca82991b13b2b55361667527a3e68 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -117,7 +117,9 @@ hashes ni rechazar en nombre del motor.
   página de Desktop y backend `/api/plugins/dike`) y el tablero NIF con las
   vistas de grafo de la 0.5.0 (`scripts/panel.py`, las rutas `/nif/*` y
   `/grafo/*` y las dos mitades de UI), que lista
-  [PREEXISTING.md](PREEXISTING.md), con sus tests. Claude Code
+  [PREEXISTING.md](PREEXISTING.md), con sus tests, más el grafo 3D del
+  corpus de la 0.6.0 (`/grafo/red` y la página Desktop empaquetada con
+  esbuild). Claude Code
   (Claude Opus 5.5) revisó la entrada de forma independiente, solo lectura,
   antes de esos cambios.
 - **Verificado por Devin (todavía no lo comprobé yo):** en Hermes v0.23.0, la

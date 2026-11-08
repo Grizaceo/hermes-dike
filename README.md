@@ -109,7 +109,8 @@ corpus, check its hashes or refuse on the engine's behalf.
   (Dashboard tab, Desktop page and `/api/plugins/dike` backend) and the
   0.5.0 NIF case board and graph views (`scripts/panel.py`, the `/nif/*`
   and `/grafo/*` routes, and both UI halves), listed in
-  [PREEXISTING.md](PREEXISTING.md), with their tests. Claude Code (Claude Opus
+  [PREEXISTING.md](PREEXISTING.md), with their tests, plus the 0.6.0 3D
+  corpus graph (`/grafo/red` and the esbuild-bundled Desktop page). Claude Code (Claude Opus
   5.5) reviewed the entry independently, read-only, before those changes.
 - **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
   from GitHub with `hermes plugins install Grizaceo/hermes-dike` and running

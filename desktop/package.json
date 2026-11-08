@@ -1,0 +1,17 @@
+{
+  "name": "dike-desktop",
+  "private": true,
+  "version": "0.6.0",
+  "description": "Build del plugin Desktop de Diké (bundle ESM autocontenido).",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "python3 ../scripts/check_desktop_bundle.py"
+  },
+  "dependencies": {
+    "3d-force-graph": "1.79.0",
+    "three": "0.183.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

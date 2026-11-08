@@ -130,6 +130,50 @@ def test_grafo_corpus_sin_instalado(panel):
     assert out.get('packs') == []
 
 
+def test_grafo_red_minicorpus(panel, tmp_path):
+    """grafo red emite la red completa en una lectura: instrumento → artículos."""
+    current = tmp_path / 'users' / 'test' / 'starter' / 'mini' / 'current'
+    (current / 'normas').mkdir(parents=True)
+    (current / 'articulos').mkdir(parents=True)
+    (current / 'normas' / 'norma_207436.json').write_text(json.dumps({
+        '@id': 'https://dike.invalid/eli/cl/codigo/codigo-del-trabajo',
+        'leychileCode': '207436',
+        'eli': {'type': 'codigo', 'number': 'codigo-del-trabajo'},
+        'title': 'FIJA EL TEXTO DEL CODIGO DEL TRABAJO',
+        'sourceDocumentUrl': 'https://x/ct',
+    }), encoding='utf-8')
+    for art in ('0161', '0168'):
+        (current / 'articulos' / f'articulo_207436_art_{art}.json').write_text(json.dumps({
+            '@id': f'https://dike.invalid/eli/cl/codigo/codigo-del-trabajo/art_{art}',
+            'eId': f'art_{art}', 'label': str(int(art)),
+            'textSha256': 'a' * 64,
+            'provenance': {'wasDerivedFrom': 'https://x/ct/' + art},
+        }), encoding='utf-8')
+
+    out = panel('grafo', 'red')
+    assert out['conteos'] == {'nodes': 3, 'links': 2}
+    assert out['truncado'] is False
+    ids = {n['id'] for n in out['nodes']}
+    assert len(ids) == 3
+    for link in out['links']:
+        assert link['tipo'] == 'contiene'
+        assert link['estado'] == 'verificada_estructura'
+        assert link['source'] in ids and link['target'] in ids
+    inst = next(n for n in out['nodes'] if n['tipo'] == 'instrumento')
+    assert inst['label'] == 'Código del Trabajo'
+    arts = [n for n in out['nodes'] if n['tipo'] == 'articulo']
+    assert {a['label'] for a in arts} == {
+        'Código del Trabajo, art. 161', 'Código del Trabajo, art. 168'}
+    assert all(a['instrumento'] == 'Código del Trabajo' for a in arts)
+    assert all(a['sha256'] == 'a' * 64 for a in arts)
+
+
+def test_grafo_red_sin_instalado(panel):
+    out = panel('grafo', 'red')
+    assert out['nodes'] == [] and out['links'] == []
+    assert out['conteos'] == {'nodes': 0, 'links': 0}
+
+
 def test_sin_args(panel):
     out = panel('nif')
     assert 'error' in out

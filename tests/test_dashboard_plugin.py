@@ -59,6 +59,7 @@ def test_api_expone_panel_nif_y_grafo(api):
         '/nif/casos', '/nif/init', '/nif/seed', '/nif/snapshot',
         '/nif/edit', '/nif/gap', '/nif/validar', '/nif/confianza',
         '/grafo/personal', '/grafo/corpus', '/grafo/corpus/norma/{code}',
+        '/grafo/red',
     ):
         assert ruta in rutas, ruta
 
@@ -86,7 +87,8 @@ def test_panel_edit_rechaza_campo_no_editable(api):
         assert exc.value.status_code == 400
 
 
-def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr=''):
+def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
+                datos=None, llamadas=None):
     """Sustituye adaptador + subprocess del panel por un motor falso."""
     capturado = {}
 
@@ -101,10 +103,13 @@ def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr=''):
     def fake_run(cmd, **kw):
         capturado['cmd'] = cmd
         capturado['kw'] = kw
+        if llamadas is not None:
+            llamadas.append(cmd)
         return proc
 
     mod = type('M', (), {
-        '_carpeta_de_datos': staticmethod(lambda: Path('/tmp/x')),
+        'PACK_HASH': 'testpackhash0000',
+        '_carpeta_de_datos': staticmethod(lambda: datos or Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
     })()
@@ -175,6 +180,71 @@ def test_panel_norma_codigo_numerico(api, monkeypatch):
     assert isinstance(out, dict)
     assert 'corpus-norma' in capturado['cmd']
     assert '1058072' in capturado['cmd']
+
+
+_RED_FALSA = json.dumps({
+    'nodes': [
+        {'id': 'eli:ley/1', 'tipo': 'instrumento', 'label': 'Ley 1',
+         'instrumento': None, 'url': 'https://x/1', 'sha256': 'a' * 64},
+        {'id': 'eli:ley/1/art_1', 'tipo': 'articulo', 'label': 'Ley 1, art. 1',
+         'instrumento': 'Ley 1', 'url': 'https://x/1a', 'sha256': 'b' * 64},
+        {'id': 'eli:ley/1/art_2', 'tipo': 'articulo', 'label': 'Ley 1, art. 2',
+         'instrumento': 'Ley 1', 'url': None, 'sha256': None},
+    ],
+    'links': [
+        {'source': 'eli:ley/1', 'target': 'eli:ley/1/art_1',
+         'tipo': 'contiene', 'estado': 'verificada_estructura'},
+        {'source': 'eli:ley/1', 'target': 'eli:ley/1/art_2',
+         'tipo': 'contiene', 'estado': 'verificada_estructura'},
+    ],
+    'conteos': {'nodes': 3, 'links': 2},
+    'truncado': False,
+})
+
+
+def test_grafo_red_forma_y_conteos(api, monkeypatch, tmp_path):
+    _stub_motor(monkeypatch, api, stdout=_RED_FALSA, datos=tmp_path)
+    out = api.grafo_red()
+    assert out['fuente'] == 'corpus'
+    assert out['pack_hash'] == 'testpackhash0000'
+    assert out['local_only'] is False
+    assert out['truncado'] is False
+    assert out['conteos'] == {'nodes': 3, 'links': 2}
+    assert out['conteos']['nodes'] == len(out['nodes'])
+    assert out['conteos']['links'] == len(out['links'])
+    for n in out['nodes']:
+        assert n['tipo'] in ('instrumento', 'articulo', 'sentencia', 'resolucion')
+        assert set(n) == {'id', 'tipo', 'label', 'instrumento', 'url', 'sha256'}
+    for link in out['links']:
+        assert link['tipo'] in ('contiene', 'cita', 'aplica', 'revisa')
+        assert link['estado'] in ('verificada_estructura', 'candidata', 'aprobada')
+
+
+def test_grafo_red_aristas_apuntan_a_nodos(api, monkeypatch, tmp_path):
+    _stub_motor(monkeypatch, api, stdout=_RED_FALSA, datos=tmp_path)
+    out = api.grafo_red()
+    ids = {n['id'] for n in out['nodes']}
+    for link in out['links']:
+        assert link['source'] in ids and link['target'] in ids
+
+
+def test_grafo_red_fuente_desconocida_400(api):
+    from fastapi import HTTPException
+    for fuente in ('personal', 'todas', '', '../x'):
+        with pytest.raises(HTTPException) as exc:
+            api.grafo_red(fuente)
+        assert exc.value.status_code == 400
+
+
+def test_grafo_red_cachea_por_pack_hash(api, monkeypatch, tmp_path):
+    llamadas = []
+    _stub_motor(monkeypatch, api, stdout=_RED_FALSA, datos=tmp_path,
+                llamadas=llamadas)
+    primero = api.grafo_red()
+    segundo = api.grafo_red()
+    assert primero == segundo
+    assert len(llamadas) == 1
+    assert (tmp_path / 'cache' / 'grafo_red_testpackhash0000.json').is_file()
 
 
 def test_limpiar_redacta_rutas_locales(api):
@@ -268,19 +338,24 @@ def test_verificar_pasa_texto_al_adaptador(api, monkeypatch):
 
 
 def test_desktop_registra_pagina_nav_y_paleta():
-    src = (DESKTOP / 'plugin.js').read_text()
+    """Contrato del plugin en la FUENTE (desktop/plugin.js se minifica:
+    los identificadores cambian de nombre al compilar el bundle)."""
+    src = (DESKTOP / 'src' / 'plugin.src.js').read_text()
     assert "id: ID" in src
     assert "ROUTES_AREA" in src and "path: '/dike'" in src
     assert "SIDEBAR_NAV_AREA" in src
     assert "PALETTE_AREA" in src
+    bundle = (DESKTOP / 'plugin.js').read_text()
+    assert 'path:"/dike"' in bundle
 
 
 def test_desktop_usa_ctx_rest_no_host_rest():
     """El SDK del Desktop expone REST en ctx (PluginContext), no en host:
     host.rest no existe y rompe el render de toda la página."""
-    src = (DESKTOP / 'plugin.js').read_text()
+    src = (DESKTOP / 'src' / 'plugin.src.js').read_text()
     assert 'host.rest' not in src
     assert 'ctx.rest' in src
+    assert 'host.rest' not in (DESKTOP / 'plugin.js').read_text()
 
 
 def test_web_tab_registra_dike():
@@ -288,6 +363,17 @@ def test_web_tab_registra_dike():
     assert '__HERMES_PLUGINS__.register("dike"' in src
     assert '/api/plugins/dike/verificar' in src
     assert '/api/plugins/dike/estado' in src
+
+
+def test_desktop_bundle_imports_permitidos():
+    """El bundle desktop/plugin.js solo importa @hermes/plugin-sdk y react*:
+    el cargador runtime de la app rechaza cualquier otro especificador, y el
+    chequeo además veta import() dinámico, eval y new Function en código."""
+    script = ROOT / 'scripts' / 'check_desktop_bundle.py'
+    proc = subprocess.run(
+        [sys.executable, str(script), str(DESKTOP / 'plugin.js')],
+        capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0, proc.stderr
 
 
 @pytest.mark.skipif(NODE is None, reason='node no está en PATH')

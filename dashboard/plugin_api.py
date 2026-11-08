@@ -232,3 +232,42 @@ def grafo_corpus_norma(code: str):
     if not code.isdigit():
         raise HTTPException(status_code=400, detail="code debe ser el leychileCode numérico.")
     return _panel(["grafo", "corpus-norma", code], corpus=True, timeout=300)
+
+
+@router.get("/grafo/red")
+def grafo_red(fuente: str = "corpus"):
+    """La red del grafo en una sola llamada (hoy solo el corpus sellado).
+
+    La respuesta se cachea en plugin-data por pack_hash: la primera lectura
+    barre los ~8.500 artículos, las siguientes sirven el archivo."""
+    if fuente != "corpus":
+        raise HTTPException(
+            status_code=400,
+            detail=f"fuente '{fuente}' no existe: solo 'corpus' está implementada.")
+    mod = _adaptador()
+    cache = mod._carpeta_de_datos() / "cache" / f"grafo_red_{mod.PACK_HASH}.json"
+    try:
+        if cache.is_file():
+            data = json.loads(cache.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+    except (OSError, json.JSONDecodeError):
+        pass
+    data = _panel(["grafo", "red"], corpus=True, timeout=300)
+    respuesta = {
+        "fuente": "corpus",
+        "pack_hash": mod.PACK_HASH,
+        "local_only": False,
+        "nodes": data.get("nodes") or [],
+        "links": data.get("links") or [],
+        "conteos": data.get("conteos") or {},
+        "truncado": bool(data.get("truncado")),
+    }
+    try:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        tmp = cache.with_suffix(".tmp")
+        tmp.write_text(json.dumps(respuesta, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(cache)
+    except OSError:
+        pass
+    return respuesta

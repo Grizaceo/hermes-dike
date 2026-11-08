@@ -18,6 +18,7 @@ vendorizado queda intacto: este archivo es código del plugin, no del motor.
     python scripts/panel.py grafo personal
     python scripts/panel.py grafo corpus
     python scripts/panel.py grafo corpus-norma <leychileCode>
+    python scripts/panel.py grafo red
 
 Casos NIF y el grafo personal viven en ``DIKE_USERS_ROOT/<DIKE_USER>/`` — el
 plugin-data del perfil, FUERA de la generación sellada del corpus: escribir
@@ -27,6 +28,7 @@ corpus sellado solo se lee (``grafo corpus*``), nunca se escribe.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -75,6 +77,37 @@ def _read_json(path: Path):
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
+
+
+# Rótulos cortos de los instrumentos del pack chile-base. Para 'codigo' y
+# 'constitucion' el eli.number es un slug, no una numeración.
+_NOMBRES_CODIGO = {
+    "constitucion": "Constitución",
+    "codigo-aguas": "Código de Aguas",
+    "codigo-civil": "Código Civil",
+    "codigo-comercio": "Código de Comercio",
+    "codigo-del-trabajo": "Código del Trabajo",
+    "codigo-organico-tribunales": "Código Orgánico de Tribunales",
+    "codigo-penal": "Código Penal",
+    "codigo-procesal-penal": "Código Procesal Penal",
+    "codigo-tributario": "Código Tributario",
+    "cpc": "Código de Procedimiento Civil",
+}
+
+
+def _nombre_corto(eli: dict) -> str:
+    """'Código del Trabajo', 'Ley 20.720', 'DL 3.500', 'Constitución'."""
+    tipo = str(eli.get("type") or "").strip()
+    numero = str(eli.get("number") or "").strip()
+    if numero in _NOMBRES_CODIGO:
+        return _NOMBRES_CODIGO[numero]
+    if tipo == "constitucion":
+        return "Constitución"
+    digitos = numero if numero.isdigit() else re.sub(r"^\D+", "", numero)
+    if digitos.isdigit():
+        numero = f"{int(digitos):,}".replace(",", ".")
+    nombre = {"ley": "Ley", "decreto-ley": "DL"}.get(tipo, tipo.capitalize() or "Norma")
+    return f"{nombre} {numero}".strip()
 
 
 # ---------------------------------------------------------------------------
@@ -281,6 +314,59 @@ def _grafo(args: list[str]) -> int:
             })
             return 0
         return _fail(f"norma {code} no está en el corpus instalado.")
+
+    if op == "red":
+        # La red completa del corpus en UNA lectura: un nodo por instrumento,
+        # uno por artículo y una arista 'contiene' por artículo. El contrato
+        # ya admite tipos que esta fase no emite (sentencia, resolucion;
+        # cita, aplica, revisa; candidata, aprobada).
+        nodos: list[dict] = []
+        aristas: list[dict] = []
+        for current in _corpus_dirs():
+            normas_dir = current / "normas"
+            if not normas_dir.is_dir():
+                continue
+            for nf in sorted(normas_dir.glob("norma_*.json")):
+                n = _read_json(nf) or {}
+                eli = n.get("eli") or {}
+                code = str(n.get("leychileCode") or nf.stem.removeprefix("norma_"))
+                corto = _nombre_corto(eli) or (n.get("title") or code)
+                nid = str(n.get("@id") or f"norma:{code}")
+                nodos.append({
+                    "id": nid,
+                    "tipo": "instrumento",
+                    "label": corto,
+                    "instrumento": None,
+                    "url": n.get("sourceDocumentUrl") or n.get("sourceUri") or None,
+                    "sha256": hashlib.sha256(nf.read_bytes()).hexdigest(),
+                })
+                archivos = sorted((current / "articulos").glob(f"articulo_{code}_*.json"))
+                for af in archivos:
+                    a = _read_json(af) or {}
+                    aid = str(a.get("@id") or af.stem)
+                    rotulo = str(a.get("label") or a.get("eId") or af.stem)
+                    nodos.append({
+                        "id": aid,
+                        "tipo": "articulo",
+                        "label": f"{corto}, art. {rotulo}",
+                        "instrumento": corto,
+                        "url": (a.get("provenance") or {}).get("wasDerivedFrom") or None,
+                        "sha256": a.get("textSha256")
+                            or (a.get("citation") or {}).get("textSha256"),
+                    })
+                    aristas.append({
+                        "source": nid,
+                        "target": aid,
+                        "tipo": "contiene",
+                        "estado": "verificada_estructura",
+                    })
+        _out({
+            "nodes": nodos,
+            "links": aristas,
+            "conteos": {"nodes": len(nodos), "links": len(aristas)},
+            "truncado": False,
+        })
+        return 0
 
     return _fail(f"grafo: objetivo desconocido '{op}'.")
 

@@ -1,0 +1,24 @@
+{
+  "artifact": "desktop/plugin.js",
+  "sha256": "3d900303599b6526a04c00b4ef1d433c5693902fc11d8a42cc43100d8d94d151",
+  "bytes": 1340142,
+  "built_with": {
+    "esbuild": "0.28.2"
+  },
+  "bundled": {
+    "3d-force-graph": "1.79.0",
+    "three": "0.183.2"
+  },
+  "external": [
+    "@hermes/plugin-sdk",
+    "react",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime"
+  ],
+  "stubbed": [
+    "ngraph.graph",
+    "ngraph.forcelayout"
+  ],
+  "licenses": "desktop/THIRD_PARTY_LICENSES.txt",
+  "check": "python3 scripts/check_desktop_bundle.py"
+}

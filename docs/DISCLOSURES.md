@@ -49,7 +49,9 @@ All writes go under the current profile's plugin data folder,
   `installed corpus integrity mismatch`. **Limit:** a change that preserves
   size and mtime exactly is caught only at the next process start, not
   mid-process. The 5 MB tarball digest is cached per process. The installed corpus takes about
-  300 MB ([claims.json](../claims.json)).
+  300 MB ([claims.json](../claims.json)). Read-only graph endpoints
+  (`/grafo/*`) reuse the verified generation for up to 60 seconds instead
+  of re-checking integrity on every call; `/verificar` always checks.
 - **Temporary files.** The text to check (or the `.docx` bytes) is written
   to a temporary folder inside the data folder and removed after the call.
 - **Engine caches** and the engine's `HOME`, both redirected into the data

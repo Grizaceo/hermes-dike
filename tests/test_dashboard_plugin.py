@@ -88,7 +88,7 @@ def test_panel_edit_rechaza_campo_no_editable(api):
 
 
 def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
-                datos=None, llamadas=None):
+                datos=None, llamadas=None, asegurar=None):
     """Sustituye adaptador + subprocess del panel por un motor falso."""
     capturado = {}
 
@@ -111,7 +111,12 @@ def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
         'PACK_HASH': 'testpackhash0000',
         '_carpeta_de_datos': staticmethod(lambda: datos or Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
-        '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
+        '_asegurar_corpus': staticmethod(
+            asegurar or (lambda datos: {'generation': '/tmp/gen'})),
+        # verificar_citas llama internamente _asegurar_corpus en producción.
+        'verificar_citas': staticmethod(
+            (lambda body: asegurar(None) and '{"ok": true}') if asegurar
+            else (lambda body: '{"ok": true}')),
     })()
     monkeypatch.setattr(api, '_adaptador', lambda: mod)
     monkeypatch.setattr(api.subprocess, 'run', fake_run)
@@ -280,6 +285,31 @@ def test_grafo_nodo_y_unidades_validan_id(api, monkeypatch):
         stdout='{"nodes": [], "links": [], "conteos": {}}')
     out = api.grafo_unidades('eli/art_1')
     assert 'unidades' in capturado['cmd']
+
+
+def test_corpus_memo_solo_lectura(api, monkeypatch, tmp_path):
+    """Dos lecturas del grafo dentro del TTL = 1 _asegurar_corpus;
+    dos /verificar = 2 (la integridad nunca usa la memo)."""
+    gen = tmp_path / 'gen'
+    gen.mkdir()
+    contador = {'n': 0}
+
+    def fake_asegurar(datos):
+        contador['n'] += 1
+        return {'generation': str(gen)}
+
+    _stub_motor(monkeypatch, api,
+                stdout='{"nodes": [], "links": [], "conteos": {}}',
+                datos=tmp_path, asegurar=fake_asegurar)
+    api._corpus_memo.clear()
+    api.grafo_unidades('a:1:art_0001')
+    api.grafo_unidades('a:1:art_0002')
+    api.grafo_nodo('n:1001')
+    api.grafo_unidad('a:1:art_0001#u01')
+    assert contador['n'] == 1
+    api.verificar({'texto': 'cita art. 161'})
+    api.verificar({'texto': 'otra cita'})
+    assert contador['n'] == 3  # 1 del memo + 2 verificaciones sin memo
 
 
 def test_limpiar_redacta_rutas_locales(api):

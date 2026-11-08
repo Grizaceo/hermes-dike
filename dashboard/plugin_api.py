@@ -14,6 +14,8 @@ import json
 import re
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -97,17 +99,45 @@ def _limpio(texto: str) -> str:
     return _RUTA_LOCAL.sub("<ruta-local>", str(texto))[:400]
 
 
-def _panel(args: list, *, corpus: bool = False, timeout: int = 90) -> dict:
+_CORPUS_MEMO_TTL = 60.0
+_corpus_memo: dict[str, tuple[float, dict]] = {}
+_corpus_memo_lock = threading.Lock()
+
+
+def _asegurar_corpus_memo(mod, datos: Path) -> dict:
+    """``_asegurar_corpus`` con memo de 60 s para consultas de solo lectura.
+
+    La vista del grafo muestra metadatos del corpus y no certifica nada: la
+    garantía de integridad que importa se aplica en cada ``/verificar``,
+    que nunca pasa por esta memo. Ahorra ~4 s por consulta del usuario.
+    """
+    clave = str(datos)
+    ahora = time.monotonic()
+    with _corpus_memo_lock:
+        hit = _corpus_memo.get(clave)
+        if (hit is not None and ahora - hit[0] < _CORPUS_MEMO_TTL
+                and Path(hit[1].get("generation") or "").is_dir()):
+            return hit[1]
+    instalado = mod._asegurar_corpus(datos)
+    with _corpus_memo_lock:
+        _corpus_memo[clave] = (time.monotonic(), instalado)
+    return instalado
+
+
+def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
+           memo: bool = False) -> dict:
     """Corre ``scripts/panel.py`` en el subproceso aislado del motor.
 
     Sin ``corpus`` el workspace es el plugin-data (casos NIF y grafo personal
     persisten ahí, fuera de la generación sellada). Con ``corpus`` se asegura
     la generación instalada y el panel lee el corpus sellado — nunca escribe.
+    ``memo`` reusa la generación 60 s (solo endpoints de lectura del grafo).
     """
     mod = _adaptador()
     datos = mod._carpeta_de_datos().resolve()
     if corpus:
-        instalado = mod._asegurar_corpus(datos)
+        instalado = (_asegurar_corpus_memo(mod, datos) if memo
+                     else mod._asegurar_corpus(datos))
         runtime = Path(instalado["generation"])
     else:
         runtime = datos
@@ -224,14 +254,14 @@ def grafo_personal():
 
 @router.get("/grafo/corpus")
 def grafo_corpus():
-    return _panel(["grafo", "corpus"], corpus=True, timeout=300)
+    return _panel(["grafo", "corpus"], corpus=True, timeout=300, memo=True)
 
 
 @router.get("/grafo/corpus/norma/{code}")
 def grafo_corpus_norma(code: str):
     if not code.isdigit():
         raise HTTPException(status_code=400, detail="code debe ser el leychileCode numérico.")
-    return _panel(["grafo", "corpus-norma", code], corpus=True, timeout=300)
+    return _panel(["grafo", "corpus-norma", code], corpus=True, timeout=300, memo=True)
 
 
 @router.get("/grafo/red")
@@ -284,7 +314,7 @@ def grafo_nodo(id: str):
     """Ficha de un instrumento o artículo (url, sha256, conteos, vigencia)."""
     if not _NODO_ID.match(id or ""):
         raise HTTPException(status_code=400, detail="id inválido.")
-    return _panel(["grafo", "nodo", id], corpus=True, timeout=60)
+    return _panel(["grafo", "nodo", id], corpus=True, timeout=60, memo=True)
 
 
 @router.get("/grafo/unidades")
@@ -292,7 +322,7 @@ def grafo_unidades(articulo: str):
     """Nodos 'unidad' de un artículo + aristas contiene/excepciona."""
     if not _NODO_ID.match(articulo or ""):
         raise HTTPException(status_code=400, detail="id de artículo inválido.")
-    return _panel(["grafo", "unidades", articulo], corpus=True, timeout=60)
+    return _panel(["grafo", "unidades", articulo], corpus=True, timeout=60, memo=True)
 
 
 @router.get("/grafo/unidad")
@@ -300,4 +330,4 @@ def grafo_unidad(id: str):
     """Texto y offsets de una unidad normativa mínima (no van en /grafo/red)."""
     if not _UNIDAD_ID.match(id or ""):
         raise HTTPException(status_code=400, detail="id de unidad inválido.")
-    return _panel(["grafo", "unidad", id], corpus=True, timeout=60)
+    return _panel(["grafo", "unidad", id], corpus=True, timeout=60, memo=True)

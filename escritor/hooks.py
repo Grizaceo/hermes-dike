@@ -1,7 +1,9 @@
 """Hooks del chat del escrito (Case Writer de Diké).
 
-El Desktop crea sesiones con ``source: "dike-escritor"``; ese source llega a
-``pre_llm_call`` como ``platform``. En esas sesiones se inyectan las
+El Desktop marca sus turnos con el sobre ``<dike-escritor v="1">`` al inicio
+del mensaje del usuario (el ``session.create`` canónico no lleva ``source``
+al hook); ``platform == "dike-escritor"`` también marca si el transporte lo
+conserva. En esas sesiones se inyectan las
 instrucciones de ``instrucciones.md`` (primer turno), un recordatorio en los
 turnos siguientes, y se bloquea toda herramienta fuera de la lista blanca.
 Fail-closed: si las instrucciones no se pueden leer, no se envía nada al
@@ -103,15 +105,54 @@ def _marcada(session_id) -> bool:
         return session_id in _sesiones_marcadas
 
 
+MARCADOR_MENSAJE = '<dike-escritor v="1"'
+
+
+def _texto_usuario(user_message) -> str:
+    """user_message puede ser str o lista de partes de contenido."""
+    if isinstance(user_message, str):
+        return user_message
+    if isinstance(user_message, list):
+        partes = []
+        for parte in user_message:
+            if isinstance(parte, str):
+                partes.append(parte)
+            elif isinstance(parte, dict):
+                partes.append(str(parte.get("text") or ""))
+        return "".join(partes)
+    return ""
+
+
+def _es_sesion_escritor(kw) -> bool:
+    """La sesión es del chat del escrito si el platform lo dice O si el
+    mensaje del usuario empieza con el marcador (tras espacios). El marcador
+    es la prueba de transporte: el create canónico no lleva `source`, así que
+    el Desktop lo firma en cada turno. Falsificar el marcador solo restringe.
+    """
+    if kw.get("platform") == FUENTE_ESCRITOR:
+        return True
+    if _texto_usuario(kw.get("user_message")).lstrip().startswith(MARCADOR_MENSAJE):
+        return True
+    # una vez marcada, los turnos siguientes cuentan aunque vengan sin sobre
+    return _marcada(kw.get("session_id"))
+
+
 def pre_llm_call(**kw):
-    """Inyecta instrucciones/recordatorio en sesiones del chat del escrito."""
-    if kw.get("platform") != FUENTE_ESCRITOR:
+    """Inyecta instrucciones/recordatorio en sesiones del chat del escrito.
+
+    Instrucciones completas en el primer turno O si la sesión no estaba
+    marcada en este proceso (gateway reiniciado, sesión reanudada o
+    re-sembrada: el modelo puede no tenerlas en contexto). Solo el
+    recordatorio si ya estaba marcada y no es primer turno.
+    """
+    if not _es_sesion_escritor(kw):
         return None
     session_id = kw.get("session_id")
+    primera_vez = not _marcada(session_id)
     # Marcar en TODOS los turnos: un gateway reiniciado vuelve a marcar la
     # sesión reanudada antes de cualquier tool.
     _marcar(session_id)
-    if kw.get("is_first_turn"):
+    if kw.get("is_first_turn") or primera_vez:
         texto = _instrucciones()
         if texto is None:
             _auditoria("bloqueo", session_id, tool="pre_llm_call")

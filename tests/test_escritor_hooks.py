@@ -51,6 +51,8 @@ def test_primer_turno_inyecta_instrucciones(hooks, sesiones):
 
 
 def test_turno_posterior_recordatorio(hooks, sesiones):
+    # la sesión ya está marcada (turno previo) → recordatorio, no instrucciones
+    hooks._marcar('s9')
     out = hooks.pre_llm_call(platform='dike-escritor', session_id='s9',
                              is_first_turn=False)
     assert out == {'context': hooks.RECORDATORIO}
@@ -131,3 +133,57 @@ def test_register_registra_hooks_y_tool(hooks):
     assert {'pre_llm_call', 'pre_tool_call'} <= nombres
     assert 'dike_verificar_citas' in registrado['tools']
     sys.modules.pop(spec.name, None)
+
+
+def test_instrucciones_si_sesion_no_marcada(hooks, sesiones):
+    """Gateway reiniciado: sesión reanudada sin marca → instrucciones, no recordatorio."""
+    hooks._sesiones_marcadas.clear()
+    esperado = (ROOT / 'escritor' / 'instrucciones.md').read_text(encoding='utf-8')
+    out = hooks.pre_llm_call(platform='dike-escritor', session_id='reanudada',
+                             is_first_turn=False)
+    assert out == {'context': esperado}
+    # segundo turno ya marcada → recordatorio
+    out2 = hooks.pre_llm_call(platform='dike-escritor', session_id='reanudada',
+                              is_first_turn=False)
+    assert out2 == {'context': hooks.RECORDATORIO}
+
+
+def test_marcador_mensaje_sin_platform(hooks, sesiones):
+    """El marcador <dike-escritor v="1"> marca aunque platform no lo diga."""
+    hooks._sesiones_marcadas.clear()
+    esperado = (ROOT / 'escritor' / 'instrucciones.md').read_text(encoding='utf-8')
+    turno = '<dike-escritor v="1" case="c1" rev="0" modo="completo">\n<escrito>x</escrito>\n</dike-escritor>\n<pregunta>q</pregunta>'
+    out = hooks.pre_llm_call(platform='otro', session_id='m1',
+                             user_message=turno, is_first_turn=False)
+    assert out == {'context': esperado}
+    assert hooks._marcada('m1')
+    # segundo turno ya marcada → recordatorio aunque sin marcador
+    out2 = hooks.pre_llm_call(platform='otro', session_id='m1',
+                              user_message='texto plano', is_first_turn=False)
+    assert out2 == {'context': hooks.RECORDATORIO}
+    # y su herramienta queda restringida
+    assert hooks.pre_tool_call(session_id='m1', tool_name='terminal')['action'] == 'block'
+
+
+def test_marcador_solo_al_inicio(hooks, sesiones):
+    """El marcador debe venir al inicio (tras espacios), no en el medio."""
+    hooks._sesiones_marcadas.clear()
+    assert hooks.pre_llm_call(
+        platform='otro', session_id='m2',
+        user_message='texto previo <dike-escritor v="1" case="c">') is None
+    assert not hooks._marcada('m2')
+    # con espacios al inicio sí marca
+    out = hooks.pre_llm_call(
+        platform='otro', session_id='m2',
+        user_message='  <dike-escritor v="1" case="c">', is_first_turn=False)
+    assert out is not None and hooks._marcada('m2')
+
+
+def test_marcador_lista_de_partes(hooks, sesiones):
+    """user_message como lista de partes de contenido."""
+    hooks._sesiones_marcadas.clear()
+    partes = [{'type': 'text', 'text': '<dike-escritor v="1" case="c">'},
+              {'type': 'text', 'text': 'resto'}]
+    out = hooks.pre_llm_call(platform='otro', session_id='m3',
+                             user_message=partes, is_first_turn=False)
+    assert out is not None and hooks._marcada('m3')

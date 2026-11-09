@@ -44,10 +44,14 @@ def _ruta_caso(dir_datos: Path, case_id: str) -> Path:
 
 
 def _leer(dir_datos: Path, case_id: str) -> dict:
+    """Mapa + decisiones del caso. Solo un archivo INEXISTENTE da el estado
+    vacío: un JSON corrupto levanta excepción (la ruta responde 5xx y no sale
+    nada) — nunca se reinicia el mapa, que haría que [PERSONA_1] pasara a ser
+    otra persona."""
     ruta = _ruta_caso(dir_datos, case_id)
     try:
         return json.loads(ruta.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except FileNotFoundError:
         return {"mapa": {}, "decisiones": {}}
 
 
@@ -140,9 +144,14 @@ def seudonimizar(dir_datos: Path, case_id: str, texto: str,
             cubiertos.append((e["inicio"], e["fin"]))
 
         # Valores ya mapeados en el caso se enmascaran donde reaparezcan,
-        # aunque en este texto no tengan contexto de detección.
+        # aunque en este texto no tengan contexto de detección — salvo los
+        # que el abogado marcó 'conservar'.
+        conservados = {normalizar_valor(d["valor"])
+                       for d in decisiones_doc.values() if d["accion"] == "conservar"}
         import re as _re
         for vn, entrada in mapa.items():
+            if vn in conservados:
+                continue
             patron = _re.compile(
                 r"(?<!\w)" + _re.escape(entrada["valor"]) + r"(?!\w)",
                 _re.IGNORECASE | _re.UNICODE)

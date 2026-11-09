@@ -16,6 +16,8 @@ await build({
   minify: false,
   legalComments: 'linked',
   sourcemap: false,
+  // El prompt de NIF vivo viaja literal en el bundle (escritor/nif_propuestas.md)
+  loader: { '.md': 'text' },
   external: [
     '@hermes/plugin-sdk',
     'react',

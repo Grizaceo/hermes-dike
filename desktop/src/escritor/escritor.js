@@ -14,6 +14,8 @@ import {
   rangoAPos, rangosAPos, segmentosDeDoc, sha256Hex,
 } from './verificador.js'
 import { ModuloPrivacidad } from './privacidad.js'
+import { ChatEscritor } from './chat.js'
+import { NifPropuestas } from './nif-propuestas.js'
 
 const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
@@ -114,6 +116,7 @@ export function SeccionEscritor() {
   const hostRef = useRef(null)
   const editorRef = useRef(null)
   const revRef = useRef(0)
+  const [chatSesion, setChatSesion] = useState(null)
   const registroRef = useRef({})
   const casoRef = useRef(BORRADOR)
   const textoGuardadoRef = useRef('')
@@ -466,6 +469,19 @@ export function SeccionEscritor() {
 
     jsx(ModuloPrivacidad, {
       editorRef, caseId, docInfo, registro, setRegistro,
+    }),
+
+    jsx(ChatEscritor, {
+      editorRef, caseId, docInfo, verificacion, registro, setRegistro,
+      estrategiaPriv: ((registro || {}).privacidad || {}).estrategia,
+      rev: revRef.current,
+      onSesion: setChatSesion,
+    }),
+
+    jsx(NifPropuestas, {
+      editorRef, caseId, registro, setRegistro,
+      sesion: chatSesion,
+      tieneNif: caseId !== 'borrador',
     }),
 
     res && res.error

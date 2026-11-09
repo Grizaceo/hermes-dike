@@ -1,7 +1,7 @@
 {
   "artifact": "desktop/plugin.js",
-  "sha256": "cccded3737ab591355d82948d5ce3d51ba225ea31bece85d6fa6c616b8320fa2",
-  "bytes": 4015219,
+  "sha256": "28c23f291f23800140bfd89c149f53fe18d48c515628c869b462dee7ca3b2323",
+  "bytes": 4062249,
   "built_with": {
     "esbuild": "0.28.2"
   },
@@ -25,5 +25,5 @@
   ],
   "licenses": "desktop/THIRD_PARTY_LICENSES.txt",
   "check": "python3 scripts/check_desktop_bundle.py",
-  "reproducible_sha256_verified": "cccded3737ab591355d82948d5ce3d51ba225ea31bece85d6fa6c616b8320fa2 (dos builds npm ci en copia limpia, mismo sha)"
+  "reproducible_sha256_verified": "28c23f291f23800140bfd89c149f53fe18d48c515628c869b462dee7ca3b2323 (dos builds npm ci, mismo sha)"
 }

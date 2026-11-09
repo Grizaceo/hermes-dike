@@ -357,3 +357,42 @@ def test_rendimiento_400kb(pv):
     t0 = time.perf_counter()
     pv.detectar(texto)
     assert time.perf_counter() - t0 < 3.0
+
+
+def test_mapa_corrupto_falla_no_reinicia(pv, tmp_path):
+    """Un archivo de caso corrupto es error (fail-closed), nunca mapa vacío."""
+    import json as _json
+    r = pv.seudonimizar(tmp_path, 'c1', 'doña Ana Rojas Vidal.')
+    assert '[PERSONA_1]' in r['texto']
+    (tmp_path / 'privacidad' / 'c1.json').write_text('{{{{no-json', encoding='utf-8')
+    with pytest.raises(Exception):
+        pv.seudonimizar(tmp_path, 'c1', 'otra vez.')
+    # archivo ausente sí da estado vacío
+    (tmp_path / 'privacidad' / 'c2.json').unlink(missing_ok=True)
+    r2 = pv.seudonimizar(tmp_path, 'c2', 'nada.')
+    assert r2['mapa'] == r2.get('mapa', {})  # sin error
+
+
+def test_conservar_no_se_enmascara_al_reaparecer(pv, tmp_path):
+    """Valor mapeado y luego 'conservar': no se enmascara donde reaparece."""
+    t = 'Comparece doña Ana Rojas Vidal.'
+    r1 = pv.seudonimizar(tmp_path, 'c1', t)
+    assert '[PERSONA_1]' in r1['texto']
+    pv.guardar_decision(tmp_path, 'c1', 'Ana Rojas Vidal', 'conservar')
+    r2 = pv.seudonimizar(tmp_path, 'c1', 'otra vez Ana Rojas Vidal sin contexto.')
+    assert 'Ana Rojas Vidal' in r2['texto']
+    assert '[PERSONA_1]' not in r2['texto']
+
+
+def test_olvidar_vuelve_al_default(pv, tmp_path):
+    """'olvidar' quita la decisión: vuelve el comportamiento por defecto."""
+    pv.guardar_decision(tmp_path, 'c1', 'Ana Rojas Vidal', 'enmascarar')
+    r1 = pv.seudonimizar(tmp_path, 'c1', 'Ana Rojas Vidal sin contexto.')
+    assert 'Ana Rojas Vidal' not in r1['texto']
+    pv.guardar_decision(tmp_path, 'c1', 'Ana Rojas Vidal', 'conservar')
+    r2 = pv.seudonimizar(tmp_path, 'c1', 'Ana Rojas Vidal otra vez.')
+    assert 'Ana Rojas Vidal' in r2['texto']
+    pv.guardar_decision(tmp_path, 'c1', 'Ana Rojas Vidal', 'olvidar')
+    # sin decisión: el valor mapeado reaparece → se enmascara (default)
+    r3 = pv.seudonimizar(tmp_path, 'c1', 'Ana Rojas Vidal de nuevo.')
+    assert 'Ana Rojas Vidal' not in r3['texto']

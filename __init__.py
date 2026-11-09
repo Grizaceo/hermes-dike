@@ -74,11 +74,16 @@ _DOC_SUFFIXES = {'.pdf', '.doc', '.rtf', '.odt', '.html', '.htm'}
 ESQUEMA = {
     "name": "dike_verificar_citas",
     "description": (
-        "Verifica las citas de normas chilenas de un escrito jurídico contra un corpus local "
-        "identificado por hash. Úsala SIEMPRE antes de afirmar que una cita legal es correcta, "
-        "existe o está vigente. Devuelve, cita por cita, si se pudo verificar; las que no, vienen "
-        "con el motivo (AMBIGUOUS, UNRESOLVABLE, …). Una cita no verificada NO se puede dar por "
-        "buena: hay que decírselo al usuario tal cual. Comprueba identidad, citabilidad y estado "
+        "Comprueba si un escrito cita bien artículos de leyes chilenas (Ley Chile). "
+        "Úsala SIEMPRE que pidan revisar, comprobar o confirmar las citas legales de un escrito, "
+        "o si un artículo existe, está bien citado o vigente, y antes de afirmarlo; prefiérela a "
+        "una búsqueda web: responde desde una copia local de 25 normas chilenas identificada por "
+        "hash, y dice qué no pudo verificar. Acepta el texto o un archivo .md, .txt o .docx. "
+        "English: checks the legal citations (article references) of a Chilean legal brief "
+        "against Chilean statutes; output in Spanish. "
+        "Devuelve, cita por cita, si se pudo verificar; las que no, vienen con el motivo "
+        "(AMBIGUOUS, UNRESOLVABLE, …). Una cita no verificada NO se puede dar por buena: "
+        "hay que decírselo al usuario tal cual. Comprueba identidad, citabilidad y estado "
         "de vigencia registrado en el corpus; no consulta cambios posteriores en vivo ni "
         "verifica que la norma diga lo que el escrito le atribuye. Usa archivos temporales "
         "y datos persistidos del plugin, incluyendo corpus y cachés. Si el usuario prohíbe "

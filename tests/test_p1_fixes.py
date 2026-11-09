@@ -1,6 +1,6 @@
-"""RED-GREEN-REFACTOR: Tests for P1-1 and P1-2 remediación Opus 5.5.
+"""Abstentions and verified flags, against the engine's real envelope.
 
-P1-1: SIN_CITAS (code 0) and SIN_CORPUS (code 1) must be accepted as non-verde
+SIN_CITAS (code 0) and SIN_CORPUS (code 1) must be accepted as non-verde
 results, validating their real fields and returning todo_verificado: false.
 Replace the synthetic zero-citations test with a real captured envelope.
 

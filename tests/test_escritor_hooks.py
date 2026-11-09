@@ -162,13 +162,16 @@ def test_register_registra_hooks_y_tool(hooks):
         def register_command(self, *a, **kw):
             pass
 
-        def register_skill(self, *a, **kw):
-            pass
+        def register_skill(self, nombre, ruta, description='', **kw):
+            registrado.setdefault('skills', []).append((nombre, description))
 
     mod.register(CtxFalso())
     nombres = {n for n, _ in registrado['hooks']}
     assert {'pre_llm_call', 'pre_tool_call'} <= nombres
     assert 'dike_verificar_citas' in registrado['tools']
+    # La skill entra al listado de Hermes con su descripción, no en blanco.
+    assert registrado['skills'] and all(desc for _, desc in registrado['skills'])
+    assert registrado['skills'][0][0] == 'dike-ordenamiento'
     sys.modules.pop(spec.name, None)
 
 

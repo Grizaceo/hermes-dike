@@ -40,7 +40,7 @@ _RAIZ = Path(__file__).resolve().parent
 _MOTOR = _RAIZ / "motor"
 _CORPUS = _RAIZ / "corpus"
 # pack_hash (16 hex del SHA-256 del árbol) del corpus vendorizado en corpus/: snapshot
-# chile-base d31d3dc0… (D2 + P12/P13), el mismo que firma el kit del hackathon (firma n.º 2).
+# chile-base d31d3dc0… con sus correcciones de vigencia; procedencia en corpus/README.md.
 PACK_HASH = 'af1422d66d1e6eee'
 _USUARIO = "hermes"
 _NOMBRE_CORPUS = "chile-base"
@@ -745,6 +745,17 @@ def _escritor_hooks():
     return mod
 
 
+def _descripcion_skill(ruta: Path) -> str:
+    """La línea description: del frontmatter, para el listado de skills de Hermes."""
+    try:
+        texto = ruta.read_text(encoding='utf-8')
+    except OSError:
+        return ''
+    cabecera = re.match(r'---\n(.*?)\n---', texto, re.DOTALL)
+    linea = re.search(r'^description:\s*(.+)$', cabecera.group(1), re.MULTILINE) if cabecera else None
+    return linea.group(1).strip().strip('"\'') if linea else ''
+
+
 def register(ctx):
     global _CTX
     _CTX = ctx
@@ -755,5 +766,6 @@ def register(ctx):
     if carpeta.is_dir():
         for hija in sorted(carpeta.iterdir()):
             if (hija / 'SKILL.md').is_file():
-                ctx.register_skill(hija.name, hija / 'SKILL.md')
+                ctx.register_skill(hija.name, hija / 'SKILL.md',
+                                   description=_descripcion_skill(hija / 'SKILL.md'))
     _escritor_hooks().register_hooks(ctx)

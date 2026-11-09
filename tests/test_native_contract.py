@@ -1,6 +1,6 @@
 """Native entrypoint regression tests: actual constancia envelope, not commitment.
 
-P1-1 remediación: the synthetic zero-citations test (test_zero_citations_never_certifies)
+The synthetic zero-citations test (test_zero_citations_never_certifies)
 was replaced by test_p1_fixes.py::test_sin_citas_code0_never_verified and
 test_zero_citations_uses_real_engine_envelope, which use the real SIN_CITAS
 envelope shape from the engine.

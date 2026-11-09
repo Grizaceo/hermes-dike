@@ -215,6 +215,20 @@ def _verificar_generacion(datos: Path, generation: Path, esperado: str) -> dict:
     return {'generation': str(generation)}
 
 
+def _comprobar_generacion_completa(generation: Path) -> None:
+    """Full SHA-256 of the installed generation against its record, now."""
+    marker = generation / 'installed.json'
+    if not marker.is_file():
+        # Sin registro no hay instalación publicada que comparar; _verificar_generacion
+        # ya rechaza una generación real sin él antes de llamar al motor.
+        return
+    for key in [k for k in _PROC_VERIFIED if k[0] == str(generation)]:
+        _PROC_VERIFIED.discard(key)
+    record = json.loads(marker.read_text())
+    if _hash_archivos_corpus(generation) != record.get('files'):
+        raise ValueError('installed corpus integrity mismatch')
+
+
 def _asegurar_corpus(datos: Path) -> dict:
     """Validate package and installed generation; publish only complete installs."""
     datos.mkdir(parents=True, exist_ok=True)
@@ -289,9 +303,12 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
                 'motivo': raw.codigo, 'todo_verificado': False}
     elif isinstance(raw, (ValueError, TypeError, KeyError)):
         code, message = 'CONTRACT_OR_INPUT_ERROR', 'Entrada, corpus o respuesta incompatibles con el contrato.'
-        # Fixed diagnostics retained for existing integrity tests, no raw interpolation.
+        # Fixed diagnostics, no raw interpolation. The English phrase stays as a stable marker.
         if isinstance(raw, ValueError) and str(raw) == 'installed corpus integrity mismatch':
-            message = 'installed corpus integrity mismatch'
+            code, message = 'CORPUS_INTEGRITY_ERROR', (
+                'installed corpus integrity mismatch: el corpus instalado no coincide con lo que se '
+                'registró al instalarlo, así que no se verificó ninguna cita. Borra '
+                'plugin-data/dike/generations y la siguiente llamada lo reinstala.')
     elif isinstance(raw, OSError):
         code, message = 'IO_ERROR', 'No se pudo acceder a los datos requeridos.'
     # Classify known missing-dependency signatures without echoing arbitrary content.
@@ -302,6 +319,7 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
 
 # ── Validación del contrato de constancia ────────────────────────────────
 
+_GID_VERIFICADO = re.compile(r'cl\.[^\s:]+:art:[0-9a-z_]+')
 _VERIFIED_RESOLUTION = "RESOLVED"
 _VERIFIED_VIGENCIA = "IN_FORCE"
 _VERIFIED_HISTORICAL = "CURRENT_VERSION_APPLIES"
@@ -365,6 +383,11 @@ def _validar_constancia(c, code, *, as_of=None):
             for key in ('gid', 'fuente_url', 'fecha_recuperacion'):
                 if not isinstance(detail.get(key), str) or not detail[key].strip():
                     raise ValueError('missing verified evidence')
+            # Forma de la evidencia: un gid de norma chilena y una URL de fuente.
+            if not _GID_VERIFICADO.fullmatch(detail['gid']):
+                raise ValueError('invalid verified gid')
+            if not detail['fuente_url'].startswith(('https://', 'http://')):
+                raise ValueError('invalid verified source')
             if not isinstance(detail.get('texto_hash'), str) or not re.fullmatch(r'[0-9a-f]{64}', detail['texto_hash']):
                 raise ValueError('invalid verified hash')
             if (detail.get('resolucion') != 'RESOLVED' or detail.get('vigencia') != 'IN_FORCE'
@@ -543,6 +566,7 @@ def _texto_input(args):
     return value
 
 
+_URL = re.compile(r'https?://[^\s"\'<>]+')
 _LIMITE_MENCION = 300
 _LIMITE_PROBLEMA = 1000
 _LIMITE_MENCIONES = 200
@@ -601,12 +625,21 @@ def _salida_publica(c):
     if 'problemas' in out:
         out['problemas'] = _acotar(out['problemas'], _LIMITE_PROBLEMA)
     # Redact local filesystem locators in messages, including missing-corpus reasons.
+    # URLs are kept whole; everything around them is cleaned, including a path
+    # that follows a URL at the start of the string.
+    def rutas(texto):
+        texto = re.sub(r'(?<![\w:/])/(?:[^\s,;\"\']+)', '<ruta-local>', texto)
+        return re.sub(r'(?<![\w/])[A-Za-z]:[\\/][^\s,;\"\']+', '<ruta-local>', texto)
+
     def clean(value):
         if isinstance(value, dict): return {k: clean(v) for k, v in value.items()}
         if isinstance(value, list): return [clean(v) for v in value]
-        if isinstance(value, str) and not value.startswith(('https://', 'http://')):
-            value = re.sub(r'(?<![\w:/])/(?:[^\s,;\"\']+)', '<ruta-local>', value)
-            value = re.sub(r'(?<![\w/])[A-Za-z]:[\\/][^\s,;\"\']+', '<ruta-local>', value)
+        if isinstance(value, str):
+            partes, pos = [], 0
+            for url in _URL.finditer(value):
+                partes += [rutas(value[pos:url.start()]), url.group(0)]
+                pos = url.end()
+            value = ''.join(partes) + rutas(value[pos:])
         return value
     return clean(out)
 
@@ -636,6 +669,11 @@ def verificar_citas(args: dict, **kwargs) -> str:
         except json.JSONDecodeError as exc:
             return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
                               _error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
+        if c['veredicto'] == 'SIN_CORPUS' and installed.get('generation'):
+            # El motor no reconoció un corpus que el adaptador dio por bueno (por
+            # ejemplo, un byte cambiado con tamaño y fecha intactos en un proceso que
+            # ya lo había verificado): se recalcula todo y, si difiere, es corrupción.
+            _comprobar_generacion_completa(Path(installed['generation']))
         c = _degradar_cuerpos_en_conflicto(c)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:

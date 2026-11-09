@@ -152,6 +152,33 @@ def test_muchas_menciones_se_resumen(m):
     assert out['todo_verificado'] is False
 
 
+def test_redaccion_limpia_rutas_que_siguen_a_una_url(m):
+    """Un string que empezaba con URL se saltaba entero y conservaba rutas locales."""
+    c = _sin_citas([])
+    c['mensaje'] = 'https://ejemplo.cl/a /home/usuario/secreto C:\\x\\y'
+    out = m._salida_publica(c)
+    assert out['mensaje_motor'] == 'https://ejemplo.cl/a <ruta-local> <ruta-local>'
+    detalle = _verificada('artículo 161 del Código del Trabajo', 'cl.norma.ct:art:0161')
+    out = m._salida_publica(_constancia([detalle]))
+    assert out['detalles'][0]['fuente_url'] == detalle['fuente_url']
+
+
+@pytest.mark.parametrize('campo, valor', [
+    ('gid', 'inventado'), ('gid', 'cl.norma.ct:art:0161 y algo más'), ('fuente_url', 'inventado'),
+])
+def test_evidencia_con_forma_invalida_no_pasa_el_contrato(m, campo, valor):
+    detalle = _verificada('artículo 161 del Código del Trabajo', 'cl.norma.ct:art:0161')
+    detalle[campo] = valor
+    with pytest.raises(ValueError):
+        m._validar_constancia(_constancia([detalle]), 0, as_of='2026-11-09')
+
+
+def test_evidencia_valida_pasa_el_contrato(m):
+    detalles = [_verificada('artículo 161 del Código del Trabajo', 'cl.norma.ct:art:0161'),
+                _verificada('artículo 1° bis del Código Civil', 'cl.norma.cc:art:0001_bis')]
+    assert m._validar_constancia(_constancia(detalles), 0, as_of='2026-11-09')
+
+
 def test_degradar_quita_el_articulo_de_la_lista_de_verificadas(m):
     c = _constancia([_verificada('Código del Trabajo\nartículo 161 del Código Civil', 'cl.norma.ct:art:0161')])
     out = m._salida_publica(m._degradar_cuerpos_en_conflicto(c))

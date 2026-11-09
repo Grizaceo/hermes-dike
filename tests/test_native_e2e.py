@@ -1,6 +1,7 @@
 """Real engine, private plugin data, no productive home, no signing."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -49,6 +50,35 @@ def test_installed_tamper_fails_closed(real):
         assert result['todo_verificado'] is False
     finally:
         victim.write_bytes(original)
+
+
+def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(real):
+    """En un proceso que ya verificó el corpus, un byte cambiado con tamaño y fecha
+    intactos pasaba el chequeo por stat y el motor respondía SIN_CORPUS: parecía
+    «no hay corpus». Ahora se recalcula todo y se informa como corrupción."""
+    m, data, _, _ = real
+    # Una llamada limpia deja el registro y la caché del proceso al día.
+    limpio = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+    assert limpio.get('veredicto') == 'TODAS_VERIFICADAS', limpio
+    victim = next((data / 'generations').glob(
+        '*/users/*/starter/*/snapshots/*/articulos/articulo_207436_art_0161.json'))
+    original = victim.read_bytes()
+    info = victim.stat()
+    inicio = original.index(b'"', original.index(b'"text"') + len(b'"text"') + 1) + 1
+    i = next(j for j in range(inicio, len(original)) if chr(original[j]).isascii() and chr(original[j]).isalpha())
+    cambiado = original[:i] + bytes([original[i] ^ 0x20]) + original[i + 1:]
+    try:
+        victim.write_bytes(cambiado)
+        os.utime(victim, ns=(info.st_atime_ns, info.st_mtime_ns))
+        assert victim.stat().st_size == info.st_size
+        result = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+        assert result.get('error_code') == 'CORPUS_INTEGRITY_ERROR', result
+        assert result['todo_verificado'] is False
+    finally:
+        victim.write_bytes(original)
+        os.utime(victim, ns=(info.st_atime_ns, info.st_mtime_ns))
+    again = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+    assert again.get('veredicto') == 'TODAS_VERIFICADAS', again
 
 
 def test_cuerpo_de_la_linea_anterior_no_certifica_otra_norma(real):

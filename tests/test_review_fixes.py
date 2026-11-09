@@ -84,8 +84,12 @@ def test_bad_encoding(native, tmp_path):
 
 
 def test_integrity_message_survives(native):
+    """El marcador estable sigue; ahora con código propio y cómo recuperarse."""
     exc = ValueError('installed corpus integrity mismatch')
-    assert native._error_adaptador(exc)['error'] == 'CONTRACT_OR_INPUT_ERROR: installed corpus integrity mismatch'
+    out = native._error_adaptador(exc)
+    assert out['error_code'] == 'CORPUS_INTEGRITY_ERROR'
+    assert out['error'].startswith('CORPUS_INTEGRITY_ERROR: installed corpus integrity mismatch')
+    assert 'plugin-data/dike/generations' in out['error'] and out['todo_verificado'] is False
 
 
 # ── docx ────────────────────────────────────────────────────────────

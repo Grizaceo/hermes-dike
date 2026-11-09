@@ -108372,10 +108372,16 @@ function Estado() {
     ] });
   }
   if (!estado) return jsx7("div", { className: S.sub, children: "Consultando el corpus\u2026" });
+  const aislado = estado.aislamiento && estado.aislamiento.modo === "bwrap";
+  const motivo = estado.aislamiento && estado.aislamiento.motivo || "";
   return jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
     jsx7("span", {
       className: S.chip + " " + (estado.corpus_instalado ? S.chipOk : S.chipOff),
       children: estado.corpus_instalado ? "corpus instalado" : "corpus sin instalar"
+    }),
+    jsx7("span", {
+      className: S.chip + " " + (aislado ? S.chipOk : S.chipOff),
+      children: aislado ? "aislado (bubblewrap)" : "sin aislamiento: " + motivo
     }),
     jsx7("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
   ] });

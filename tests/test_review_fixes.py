@@ -240,7 +240,10 @@ def test_comando_sin_citas(native):
                                     'pack_hash': 'af1422d66d1e6eee'},
                            'mensaje': 'sin citas'}), '')
     out = native._comando('texto sin nada')
-    assert out == 'Diké: No se detectaron citas con artículo verificables; esto no acredita las menciones normativas del escrito.'
+    lineas = out.split('\n')
+    assert lineas[0] == ('Diké: No se detectaron citas con artículo verificables; '
+                         'esto no acredita las menciones normativas del escrito.')
+    assert lineas[1].startswith('Aislamiento: ')
 
 
 # ── M2: stat scheme ─────────────────────────────────────────────────

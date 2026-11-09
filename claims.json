@@ -113,6 +113,12 @@
       "command": "~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_guardas_adaptador.py -k controles -q",
       "value": "INPUT_CONTROL",
       "date": "2026-11-09"
+    },
+    {
+      "claim": "Bubblewrap isolation adds no perceptible latency: grafo buscar median 1.719 s inside bwrap vs 1.781 s degraded; constancia median 15.603 s cold / 13.091 s warm inside bwrap vs 15.744 s / 12.853 s degraded (5 runs each, fresh process per run, 2026-11-09)",
+      "command": "HERMES_HOME=$PWD/.workshop/tmp/home PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/dike-scratch/site-packages ~/.hermes/hermes-agent/venv/bin/python .workshop/tmp/medir_driver.py  (degradado: PATH=$PWD/.workshop/tmp/sin-bwrap-bin); raw en .workshop/tmp/medicion_raw.json y .workshop/grafo-sandbox-terceros-2026-11-09/medicion-parte1.md",
+      "value": "buscar 1.719s vs 1.781s; constancia 15.6/13.1s vs 15.7/12.9s",
+      "date": "2026-11-09"
     }
   ]
 }

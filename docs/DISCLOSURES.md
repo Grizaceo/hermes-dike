@@ -15,9 +15,43 @@ for the catalog review and for anyone deciding whether to install it.
   process, because the engine needs the same installed dependencies
   (pydantic, pyyaml, rich, requests, cryptography). Hermes's own source tree
   is not added; since those `site-packages` may make Hermes importable in the
-  child anyway, this is a minimal environment, not isolation.
-- **This is not a sandbox.** The subprocess runs with your operating-system
-  permissions.
+  child anyway, this is a minimal environment — and, when bubblewrap is
+  usable, a sandbox on top of it (below).
+- **Bubblewrap isolation, when available.** `aislamiento.py` runs the engine
+  and `scripts/panel.py` inside `bwrap` whenever the host allows user
+  namespaces. The sandbox profile is:
+  - flags `--unshare-all --die-with-parent --new-session --proc /proc
+    --dev /dev --tmpfs /tmp --chdir <cwd>` — a fresh network, IPC and user
+    namespace, so **there is no network** inside;
+  - `/usr` read-only; `/lib`, `/lib64`, `/lib32`, `/bin` and `/sbin`
+    replicated per the host layout (symlink or read-only bind);
+  - `sys.base_prefix`, the `sys.executable` symlink chain and
+    `sys.prefix/pyvenv.cfg` read-only (not the whole virtualenv);
+  - read-only the `site-packages`/`dist-packages` that hold the measured
+    engine/panel modules, and the plugin's `motor/`, `scripts/` and
+    `data/arbol/`;
+  - of `/etc`, only `ld.so.cache` and `localtime`, read-only;
+  - writable, only the paths each command declares. `starter install` mounts
+    the staging generation writable and the unpacked source read-only;
+    `constancia` mounts the generation read-only (its sealed `users/` stays
+    read-only), the folder holding the brief read-only, and
+    `generation/home` + `generation/roots_cache` writable; the panel's NIF
+    and personal-graph ops mount the plugin-data workspace with `users/`,
+    `home/` and `roots_cache/` writable; the corpus graph ops mount the
+    sealed generation read-only with `home/` + `roots_cache/` writable.
+- **What stays outside the sandbox.** When `bwrap` is missing or the kernel
+  refuses user namespaces, the same commands run without it and every
+  response declares `aislamiento.modo: "ninguno"` with the reason (policy
+  `sandbox: auto`, the default). With `sandbox: requerido` — or any other
+  value — the plugin fails closed with `SANDBOX_UNAVAILABLE` and verifies
+  nothing. Even inside the sandbox, these run in the Hermes process, not in
+  the child: the HTTP routes that never spawn the engine (`/privacidad/*`,
+  `/escrito`, `/prediccion/*`, which reads the corpus in-process), the
+  `/grafo/red` cache read, the local ambient-layer reads, the tar
+  extraction and the hash verification of the corpus package (both in the
+  adapter), Hermes itself, and the model behind the Case Writer chat. The
+  sandbox confines the engine and panel subprocesses; it does not confine
+  the plugin host.
 - **What the plugin does with the engine's answer.** It validates the
   answer against a fixed contract (a malformed one is an error, never a
   pass) and only ever removes certification: a citation whose text names one

@@ -238,11 +238,27 @@ def _stub_motor(monkeypatch, api, stdout='{}'):
         capturado['kw'] = kw
         return proc
 
+    def fake_panel_json(args, *, runtime, timeout=90, entrada=None):
+        return subprocess.run(
+            [sys.executable, str(PANEL), *args],
+            env={}, cwd=str(runtime), input=entrada, capture_output=True,
+            text=True, timeout=timeout)
+
+    class _AislamientoFalso:
+        class SandboxNoDisponible(Exception):
+            pass
+
+        @staticmethod
+        def estado():
+            return {'modo': 'bwrap'}
+
     mod = type('M', (), {
         'PACK_HASH': 'testpackhash0000',
         '_carpeta_de_datos': staticmethod(lambda: Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
+        '_panel_json': staticmethod(fake_panel_json),
+        '_aislamiento': staticmethod(lambda: _AislamientoFalso),
     })()
     monkeypatch.setattr(api, '_adaptador', lambda: mod)
     monkeypatch.setattr(api.subprocess, 'run', fake_run)

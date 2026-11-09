@@ -12,13 +12,19 @@ sin él, y sus módulos (`lexo_cli`, `shared`, `dike_id`) no se mezclan con los
 de Hermes.
 
 El subproceso recibe un entorno mínimo y un HOME de datos del plugin: no se
-le pasan las variables de credenciales del agente. Esto no es un sandbox ni
-impide técnicamente acceder a otros archivos. El corpus se instala, la primera
-vez, en la carpeta de datos del plugin.
+le pasan las variables de credenciales del agente. Cuando el equipo lo
+permite, el motor y el panel corren además dentro de bubblewrap
+(``aislamiento.py``): sin red y con solo las rutas que cada comando
+necesita montadas — la generación sellada en solo lectura, las cachés y el
+workspace del plugin en escritura. Si bubblewrap no está disponible el
+plugin sigue funcionando igual y lo declara (``aislamiento.modo``); con la
+política ``sandbox: requerido`` falla cerrado. El corpus se instala, la
+primera vez, en la carpeta de datos del plugin.
 
 El adaptador llama al motor de verificación como subproceso, no a otro modelo.
-Los destinos de ejecución se redirigen a datos del plugin; no es aislamiento
-del filesystem. No firma. Conserva evidencia del motor y delimita su alcance.
+Los destinos de ejecución se redirigen a datos del plugin y, dentro del
+sandbox, a los montajes que cada comando declara. No firma. Conserva
+evidencia del motor y delimita su alcance.
 """
 from __future__ import annotations
 
@@ -39,6 +45,7 @@ from pathlib import Path
 _RAIZ = Path(__file__).resolve().parent
 _MOTOR = _RAIZ / "motor"
 _CORPUS = _RAIZ / "corpus"
+_PANEL = _RAIZ / "scripts" / "panel.py"
 # pack_hash (16 hex del SHA-256 del árbol) del corpus vendorizado en corpus/: snapshot
 # chile-base d31d3dc0… con sus correcciones de vigencia; procedencia en corpus/README.md.
 PACK_HASH = 'af1422d66d1e6eee'
@@ -139,12 +146,96 @@ def _entorno(datos: Path) -> dict:
     return env
 
 
-def _dike(argumentos: list, datos: Path, timeout: int = 300) -> subprocess.CompletedProcess:
-    return subprocess.run(
+# ── Aislamiento del subproceso (bubblewrap) ─────────────────────────────
+
+def _aislamiento():
+    """Carga ``aislamiento.py`` una vez y lo comparte vía ``sys.modules``.
+
+    El dashboard carga este adaptador por ruta en cada petición y el agente
+    lo carga una vez: guardar el módulo en ``sys.modules`` bajo un nombre
+    fijo hace que todos compartan la misma sonda y la misma política.
+    """
+    mod = sys.modules.get("dike_aislamiento")
+    if mod is None:
+        spec = importlib.util.spec_from_file_location(
+            "dike_aislamiento", _RAIZ / "aislamiento.py")
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["dike_aislamiento"] = mod
+        spec.loader.exec_module(mod)
+    return mod
+
+
+def _politica_sandbox():
+    """Valor del setting ``sandbox``: del ctx del agente o de la config de Hermes.
+
+    En el proceso del plugin ``ctx.get_config`` lee
+    ``plugins.entries.dike.settings.sandbox``. En el dashboard no hay ctx:
+    se lee la misma configuración por ``hermes_cli``. Cualquier valor que no
+    sea ``auto`` se trata como ``requerido`` (fail-closed) en aislamiento.py.
+    """
+    try:
+        if _CTX is not None:
+            return _CTX.get_config("sandbox", "auto")
+    except Exception:
+        pass
+    try:
+        from hermes_cli.config import load_config_readonly
+        from hermes_cli.plugins_state import _plugin_settings_entry
+        entry = _plugin_settings_entry(load_config_readonly() or {}, "dike")
+        if isinstance(entry, dict):
+            settings = entry.get("settings")
+            if isinstance(settings, dict) and "sandbox" in settings:
+                return settings["sandbox"]
+    except Exception:
+        pass
+    return "auto"
+
+
+_aislamiento().establecer_politica(_politica_sandbox)
+
+
+def _dike(argumentos: list, datos: Path, timeout: int = 300, *,
+          lectura=None, escritura=None) -> subprocess.CompletedProcess:
+    return _aislamiento().ejecutar(
         [sys.executable, "-m", "lexo_cli", *argumentos],
-        env=_entorno(datos), cwd=str(datos), capture_output=True, text=True,
-        encoding="utf-8", errors="replace", timeout=timeout,
-    )
+        lectura=lectura or [], escritura=escritura or [],
+        cwd=str(datos), env=_entorno(datos), timeout=timeout)
+
+
+def _panel_lectura_escritura(args: list, runtime: Path):
+    """(lectura, escritura) del sandbox para un op de ``scripts/panel.py``.
+
+    Medido con strace el 2026-11-09. Los ops ``nif`` y ``grafo personal``
+    usan el workspace escribible del plugin-data (``users/`` y ``home/``);
+    los ``grafo`` de corpus solo leen la generación sellada y escriben en
+    sus cachés (``home/`` y ``roots_cache/``). ``users/`` de la generación
+    queda siempre en solo lectura: en ambos casos ``runtime`` se monta ro y
+    los subdirectorios escribibles se montan encima en rw.
+    """
+    runtime = Path(runtime)
+    grupo = args[0] if args else ""
+    if grupo == "nif":
+        return [runtime], [runtime / "users", runtime / "home",
+                           runtime / "roots_cache"]
+    if grupo == "grafo" and len(args) > 1 and args[1] == "personal":
+        return [runtime], [runtime / "users", runtime / "home",
+                           runtime / "roots_cache"]
+    return [runtime], [runtime / "home", runtime / "roots_cache"]
+
+
+def _panel_json(args: list, *, runtime, timeout: int = 90, entrada=None):
+    """Corre ``scripts/panel.py`` por ``aislamiento.ejecutar``.
+
+    Devuelve el ``CompletedProcess``; el llamador (dashboard) traduce
+    timeout/salida a sus códigos HTTP. ``runtime`` es la generación sellada
+    para los ops de corpus o el plugin-data para nif/grafo personal.
+    """
+    runtime = Path(runtime)
+    lectura, escritura = _panel_lectura_escritura(args, runtime)
+    return _aislamiento().ejecutar(
+        [sys.executable, str(_PANEL), *args],
+        lectura=lectura, escritura=escritura,
+        cwd=str(runtime), env=_entorno(runtime), timeout=timeout, stdin=entrada)
 
 
 def _hash_archivos_corpus(generation: Path) -> dict:
@@ -264,7 +355,8 @@ def _asegurar_corpus(datos: Path) -> dict:
             with tarfile.open(paquete) as tar:
                 tar.extractall(unpack, filter='data')
             result = _dike(['starter', '--user', _USUARIO, 'install', str(unpack / _NOMBRE_CORPUS),
-                            '--name', _NOMBRE_CORPUS, '--json'], stage)
+                            '--name', _NOMBRE_CORPUS, '--json'], stage,
+                           lectura=[unpack], escritura=[stage])
             if result.returncode != 0:
                 raise subprocess.CalledProcessError(result.returncode, ['starter', 'install'], stderr=result.stderr)
             if not isinstance(json.loads(result.stdout), dict):
@@ -291,8 +383,12 @@ def _asegurar_corpus(datos: Path) -> dict:
 
 def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None):
     """Return controlled diagnostics only; never forward exception/stderr text."""
+    aislado = _aislamiento().estado()
     code = 'ADAPTER_ERROR'
     message = 'No se pudo completar la comprobación.'
+    if isinstance(raw, _aislamiento().SandboxNoDisponible):
+        return {'error': f'SANDBOX_UNAVAILABLE: {raw}', 'error_code': 'SANDBOX_UNAVAILABLE',
+                'todo_verificado': False, 'aislamiento': aislado}
     if isinstance(raw, subprocess.TimeoutExpired):
         code, message = 'TIMEOUT', 'El motor no respondió dentro del plazo.'
     elif returncode is not None and returncode not in (0, 1):
@@ -305,7 +401,7 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
         stderr = raw.stderr if isinstance(raw.stderr, str) else ''
     elif isinstance(raw, EntradaInvalida):
         return {'error': f'INPUT_ERROR: {raw}', 'error_code': 'INPUT_ERROR',
-                'motivo': raw.codigo, 'todo_verificado': False}
+                'motivo': raw.codigo, 'todo_verificado': False, 'aislamiento': aislado}
     elif isinstance(raw, (ValueError, TypeError, KeyError)):
         code, message = 'CONTRACT_OR_INPUT_ERROR', 'Entrada, corpus o respuesta incompatibles con el contrato.'
         # Fixed diagnostics, no raw interpolation. The English phrase stays as a stable marker.
@@ -319,7 +415,8 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
     # Classify known missing-dependency signatures without echoing arbitrary content.
     if code == 'ENGINE_EXIT_ERROR' and 'ModuleNotFoundError' in stderr:
         message = 'Falta una dependencia del motor en el entorno de ejecución.'
-    return {'error': f'{code}: {message}', 'error_code': code, 'todo_verificado': False}
+    return {'error': f'{code}: {message}', 'error_code': code,
+            'todo_verificado': False, 'aislamiento': aislado}
 
 
 # ── Validación del contrato de constancia ────────────────────────────────
@@ -607,6 +704,12 @@ def _salida_publica(c):
             retrieved = datetime.fromisoformat(detail['fecha_recuperacion'])
             temporal.append({'gid': detail['gid'], 'fecha_recuperacion': detail['fecha_recuperacion'],
                              'antiguedad_dias': (day - retrieved.date()).days})
+    aislado = _aislamiento().estado()
+    if aislado.get('modo') == 'bwrap':
+        efecto_subproceso = 'subproceso en bubblewrap sin red'
+    else:
+        efecto_subproceso = ('subproceso sin aislamiento '
+                             f"(modo degradado: {aislado.get('motivo', 'OTRO')})")
     out = {k: c[k] for k in ('veredicto', 'detalles', 'citation_disclosure', 'problemas') if k in c}
     out.update({
         'mensaje': messages[c['veredicto']],
@@ -619,7 +722,9 @@ def _salida_publica(c):
         'certificacion_vigencia_actual': False,
         'no_verificadas': _acotar(no_verificadas, _LIMITE_MENCION),
         'evidencia_temporal': temporal,
-        'efectos_de_ejecucion': ['archivos temporales', 'instalación y uso del corpus local', 'cachés del motor'],
+        'efectos_de_ejecucion': [efecto_subproceso, 'archivos temporales',
+                                'instalación y uso del corpus local', 'cachés del motor'],
+        'aislamiento': aislado,
         'meta': {k: c['meta'][k] for k in ('origen', 'as_of', 'fecha_constancia', 'pack_hash',
                                         'total_citas', 'citas_verificadas', 'citas_fallidas') if k in c['meta']},
     })
@@ -664,7 +769,9 @@ def verificar_citas(args: dict, **kwargs) -> str:
                 archivo.write_bytes(contenido)
             else:
                 archivo.write_text(contenido, encoding='utf-8')
-            result = _dike(['constancia', str(archivo), '--as-of', expected_day, '--json'], runtime)
+            result = _dike(['constancia', str(archivo), '--as-of', expected_day, '--json'], runtime,
+                           lectura=[runtime, archivo.parent],
+                           escritura=[runtime / 'home', runtime / 'roots_cache'])
         stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
         if returncode not in (0, 1):
             return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
@@ -688,29 +795,40 @@ def verificar_citas(args: dict, **kwargs) -> str:
 def _error_docx(stderr: str):
     """Classify an engine-side .docx read failure by fixed markers; never forward stderr."""
     # El motor imprime con rich, que corta las líneas a 80 columnas.
+    aislado = _aislamiento().estado()
     stderr = ' '.join((stderr or '').split())
     if 'ModuleNotFoundError' in stderr or 'falta la librería python-docx' in stderr:
         return {'error': 'ENGINE_EXIT_ERROR: Falta una dependencia del motor en el entorno de ejecución.',
-                'error_code': 'ENGINE_EXIT_ERROR', 'todo_verificado': False}
+                'error_code': 'ENGINE_EXIT_ERROR', 'todo_verificado': False,
+                'aislamiento': aislado}
     if any(m in stderr for m in ('DocumentoIlegible', 'PackageNotFoundError', 'BadZipFile')):
         return {'error': f'INPUT_ERROR: {_MSG_INPUT_DOCX}', 'error_code': 'INPUT_ERROR',
-                'motivo': 'INPUT_DOCX', 'todo_verificado': False}
+                'motivo': 'INPUT_DOCX', 'todo_verificado': False,
+                'aislamiento': aislado}
     return None
+
+
+def _linea_aislamiento(out: dict) -> str:
+    aislado = out.get('aislamiento') or {}
+    if aislado.get('modo') == 'bwrap':
+        return 'Aislamiento: el motor corrió en bubblewrap, sin red.'
+    return f"Aislamiento: sin sandbox ({aislado.get('motivo', 'OTRO')})."
 
 
 def _formatear_salida(out: dict) -> str:
     """Texto legible del comando: el tool sigue devolviendo JSON."""
+    linea = _linea_aislamiento(out)
     if 'error' in out:
         error = str(out['error'])
         message = error.split(': ', 1)[1] if ': ' in error else error
-        return f'Diké no pudo revisar el escrito: {message}'
+        return f'Diké no pudo revisar el escrito: {message}\n{linea}'
     veredicto = out.get('veredicto')
     meta = out.get('meta') or {}
     if veredicto in ('SIN_CITAS', 'SIN_CORPUS'):
-        return f"Diké: {out.get('mensaje') or ''}"
+        return f"Diké: {out.get('mensaje') or ''}\n{linea}"
     detalles = out.get('detalles') or []
     lines = [f"Diké: {meta.get('citas_verificadas')} de {meta.get('total_citas')} citas verificadas "
-             f"({veredicto}) · corpus {meta.get('pack_hash')}"]
+             f"({veredicto}) · corpus {meta.get('pack_hash')}", linea]
     fechas = []
     for d in detalles:
         cita = str(d.get('cita_raw') or '')[:120]

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Panel Diké — driver JSON del motor para la pestaña web y la página Desktop.
 
-Corre en el MISMO subproceso aislado que ``python -m lexo_cli``: lo lanza
-``dashboard/plugin_api.py`` con el ``_entorno`` del adaptador (HOME,
-LEXO_CONFIG, DIKE_USER y DIKE_USERS_ROOT redirigidos al plugin-data, y
-PYTHONPATH apuntando a ``motor/`` más los paquetes del anfitrión). El motor
-vendorizado queda intacto: este archivo es código del plugin, no del motor.
+Corre en el subproceso del motor que lanza ``dashboard/plugin_api.py`` (vía
+``__init__._panel_json`` → ``aislamiento.ejecutar``): con el ``_entorno`` del
+adaptador (HOME, LEXO_CONFIG, DIKE_USER y DIKE_USERS_ROOT redirigidos al
+plugin-data, y PYTHONPATH apuntando a ``motor/`` más los paquetes del
+anfitrión), y dentro de bubblewrap cuando el equipo lo permite — sin red y
+con solo las rutas que el op necesita. El motor vendorizado queda intacto:
+este archivo es código del plugin, no del motor.
 
     python scripts/panel.py nif list
     python scripts/panel.py nif init <case_id> "<pregunta>" [problem_type]

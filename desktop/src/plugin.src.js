@@ -41,10 +41,16 @@ function Estado() {
     ]})
   }
   if (!estado) return jsx('div', { className: S.sub, children: 'Consultando el corpus…' })
+  const aislado = estado.aislamiento && estado.aislamiento.modo === 'bwrap'
+  const motivo = (estado.aislamiento && estado.aislamiento.motivo) || ''
   return jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
     jsx('span', {
       className: S.chip + ' ' + (estado.corpus_instalado ? S.chipOk : S.chipOff),
       children: estado.corpus_instalado ? 'corpus instalado' : 'corpus sin instalar',
+    }),
+    jsx('span', {
+      className: S.chip + ' ' + (aislado ? S.chipOk : S.chipOff),
+      children: aislado ? 'aislado (bubblewrap)' : 'sin aislamiento: ' + motivo,
     }),
     jsx('span', { className: S.sub, children:
       'pack ' + estado.pack_hash + ' · ' + estado.leyes + ' leyes · ' + estado.articulos +

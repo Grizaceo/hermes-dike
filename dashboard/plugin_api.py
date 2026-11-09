@@ -3,8 +3,11 @@
 Hermes lo monta en ``/api/plugins/dike/`` (dashboard web) o lo enruta al
 plugin host del perfil activo (Desktop). Reutiliza el adaptador del agente
 cargándolo por ruta: misma validación de entrada, mismo corpus sellado, mismo
-subproceso del motor. A propósito solo acepta texto: la superficie HTTP no
-expone la lectura de archivos locales que el adaptador sí permite por ``ruta``.
+subproceso del motor — que corre dentro de bubblewrap cuando el equipo lo
+permite (``aislamiento.py``; sin red y con solo las rutas que cada op
+necesita) y en modo degradado declarado cuando no. A propósito solo acepta
+texto: la superficie HTTP no expone la lectura de archivos locales que el
+adaptador sí permite por ``ruta``.
 """
 
 from __future__ import annotations
@@ -26,7 +29,6 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 _RAIZ = Path(__file__).resolve().parent.parent
-_PANEL = _RAIZ / "scripts" / "panel.py"
 _LEYES = 25
 _ARTICULOS = 8544
 # Secciones del NIF que la superficie web puede editar (las mismas listas del
@@ -93,6 +95,7 @@ def estado():
         "leyes": _LEYES,
         "articulos": _ARTICULOS,
         "version": _version(),
+        "aislamiento": mod._aislamiento().estado(),
     }
 
 
@@ -247,7 +250,7 @@ def _asegurar_corpus_memo(mod, datos: Path) -> dict:
 
 def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
            memo: bool = False, entrada: str | None = None) -> dict:
-    """Corre ``scripts/panel.py`` en el subproceso aislado del motor.
+    """Corre ``scripts/panel.py`` en el subproceso del motor (bubblewrap si aplica).
 
     Sin ``corpus`` el workspace es el plugin-data (casos NIF y grafo personal
     persisten ahí, fuera de la generación sellada). Con ``corpus`` se asegura
@@ -266,13 +269,10 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
     else:
         runtime = datos
     try:
-        proc = subprocess.run(
-            [sys.executable, str(_PANEL), *args],
-            env=mod._entorno(runtime), cwd=str(runtime),
-            input=entrada,
-            capture_output=True, text=True, encoding="utf-8",
-            errors="replace", timeout=timeout,
-        )
+        proc = mod._panel_json(args, runtime=runtime, timeout=timeout,
+                               entrada=entrada)
+    except mod._aislamiento().SandboxNoDisponible as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="El motor tardó demasiado.")
     salida = proc.stdout.strip()

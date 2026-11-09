@@ -108,12 +108,28 @@ def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
             llamadas.append(cmd)
         return proc
 
+    def fake_panel_json(args, *, runtime, timeout=90, entrada=None):
+        return subprocess.run(
+            [sys.executable, str(ROOT / 'scripts' / 'panel.py'), *args],
+            env={}, cwd=str(runtime), input=entrada, capture_output=True,
+            text=True, timeout=timeout)
+
+    class _AislamientoFalso:
+        class SandboxNoDisponible(Exception):
+            pass
+
+        @staticmethod
+        def estado():
+            return {'modo': 'bwrap'}
+
     mod = type('M', (), {
         'PACK_HASH': 'testpackhash0000',
         '_carpeta_de_datos': staticmethod(lambda: datos or Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(
             asegurar or (lambda datos: {'generation': '/tmp/gen'})),
+        '_panel_json': staticmethod(fake_panel_json),
+        '_aislamiento': staticmethod(lambda: _AislamientoFalso),
         # verificar_citas llama internamente _asegurar_corpus en producción.
         'verificar_citas': staticmethod(
             (lambda body: asegurar(None) and '{"ok": true}') if asegurar

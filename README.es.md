@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=78227c87b1e72bdaa9cbc6c8c7f0a2868fd8896e59ad5e3df32a47e01726b46d -->
+<!-- vitrina:translation-of README.md sha256=10329205678f406913b6bea77663bc7fcbfe64521a06a2a2b92872c76f999204 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -23,6 +23,11 @@ y se niega a certificar lo que no puede probar.
   copiado sin cambios; `VENDORED.json` indica el commit y el hash de cada
   archivo. [PREEXISTING.md](PREEXISTING.md) dice qué existía antes del
   hackathon y qué se hizo durante él.
+- **Perfiles de sistemas jurídicos (framework, aditivo).** `ordenamiento/`
+  permite que un pack declare su perfil jurisdiccional y lo valida nivel por
+  nivel (C0–C1 hoy, C2–C3 planificados); Chile es el perfil de referencia. Ver
+  [docs/legal-systems.md](docs/legal-systems.md). Los packs no `cl` aún no
+  se verifican con `/dike-verificar`.
 
 ## Cómo correrlo
 
@@ -69,6 +74,14 @@ de NIF y grafo del panel corren `scripts/panel.py` en el mismo subproceso
 aislado: los tableros de caso son almacenes SQLite versionados dentro de la
 carpeta de datos del plugin (fuera del corpus sellado), y las rutas del grafo
 del corpus solo leen la generación instalada ya verificada.
+
+Junto a la verificación, `scripts/ordenamiento.py` (solo stdlib, offline)
+genera la plantilla, valida y construye packs de normas para otros sistemas
+jurídicos: un perfil declara la fuente oficial, los códigos de unidad, las
+plantillas de IRI y la regla de año de la jurisdicción; `validar-pack` luego
+califica el pack — hoy C0 (manifiesto y hashes) y C1 (vocabulario del
+núcleo), con C2/C3 planificados. El perfil `cl` reproduce el pack sellado
+`chile-base`. Detalles en [docs/legal-systems.md](docs/legal-systems.md).
 
 1. El plugin corre el motor de Diké como subproceso (`dike constancia --json`)
    con un entorno mínimo: sin las credenciales del agente y con una carpeta
@@ -172,6 +185,11 @@ en [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
 
 - **Ley chilena, 25 normas.** Las citas de otras normas vuelven sin
   verificar. La salida está en español.
+- **Otros sistemas jurídicos se validan como pack, no se verifican como
+  citas.** El framework `ordenamiento/` revisa packs de otras jurisdicciones
+  hasta el nivel C1 hoy (C2/C3 no se evalúan), pero `/dike-verificar` no
+  puede verificar sus citas hasta que la gramática dike-id acepte prefijos
+  distintos de `cl`.
 - **Solo citas de artículo.** Una mención como "Ley 19.496" sin artículo
   aparece en `no_verificadas`, no se verifica.
 - **La ausencia no es prueba.** Una cita que el corpus no puede resolver puede

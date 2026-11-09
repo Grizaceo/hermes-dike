@@ -224,6 +224,27 @@
           "nota": "Copiados byte a byte. arbol_derecho_anclas.json: 85 nodos, 51 anclas (37 únicas). arbol_lexicon.json: 44 nodos, 312 términos — semilla derivada del corpus (aproximación, no el original, según start_v3.sh). Contenido revisado: solo nombres de materia, términos, gids y coordenadas de layout."
         }
       ]
+    },
+    "ordenamiento/": {
+      "descripcion": "Constructor de packs de normas por perfil de ordenamiento (port generalizado de construir_paquete_normas.py).",
+      "fuentes": [
+        {
+          "repo": "https://github.com/Grizaceo/dike",
+          "commit": "885ca8530f9fbb0aa8c693d819b2118718392ff4",
+          "licencia": "MIT",
+          "sha256_origen": {
+            "hermes-plugin/scripts/construir_paquete_normas.py": "69e5abe841e1e38e4653e58bdf13ca58518fe4fc9261fa6c10e711cb5e3d3499"
+          },
+          "archivos_origen": [
+            "hermes-plugin/scripts/construir_paquete_normas.py"
+          ],
+          "nota": "M1 (articulosArchivo confinado al directorio de la config) y M2 (validate rechaza symlinks dentro del pack; aquí en ordenamiento/validar.py) se reimplementaron porque el árbol upstream tiene esos fixes sin commit: no se copian. El gate de privacidad para normas es nuevo, no viene de upstream.",
+          "archivos_destino": [
+            "ordenamiento/construir.py",
+            "ordenamiento/validar.py"
+          ]
+        }
+      ]
     }
   }
 }

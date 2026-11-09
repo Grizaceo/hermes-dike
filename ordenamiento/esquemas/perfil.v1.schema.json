@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dike.invalid/esquemas/perfil-ordenamiento-v1.schema.json",
+  "title": "Perfil de ordenamiento jurídico Diké v1",
+  "description": "Contrato de un perfil de ordenamiento (formato dike-perfil-ordenamiento-v1). El validador Python deriva los campos obligatorios de este esquema.",
+  "type": "object",
+  "required": ["formato", "perfil", "perfilVersion", "nucleoVersion", "nombre", "identidad", "normas", "extensiones", "formatosReconocidos", "vigencia", "privacidad"],
+  "properties": {
+    "formato": {"type": "string", "const": "dike-perfil-ordenamiento-v1"},
+    "perfil": {"type": "string", "pattern": "^[a-z]{2}(-[a-z0-9]{1,3})?$"},
+    "perfilVersion": {"type": "string"},
+    "nucleoVersion": {"type": "string"},
+    "nombre": {"type": "string"},
+    "identidad": {
+      "type": "object",
+      "required": ["jurisdiccion", "subdivision", "idiomas", "fuentesOficiales"],
+      "properties": {
+        "jurisdiccion": {"type": "string", "pattern": "^[a-z]{2}$"},
+        "subdivision": {"type": ["string", "null"], "pattern": "^[a-z]{2}-[a-z0-9]{1,3}$"},
+        "idiomas": {"type": "array", "items": {"type": "string"}},
+        "fuentesOficiales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "nombre", "url", "atribucion", "idLocal", "licenciaTextos", "usoIA"],
+            "properties": {
+              "id": {"type": "string"},
+              "nombre": {"type": "string"},
+              "url": {"type": "string"},
+              "atribucion": {"type": "string"},
+              "idLocal": {"type": "string"},
+              "licenciaTextos": {"type": "string"},
+              "usoIA": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "normas": {
+      "type": "object",
+      "required": ["tipos", "niveles", "unidades", "patronArticulo", "acunacion", "reglaAnio", "excepciones"],
+      "properties": {
+        "tipos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["codigo", "nombre", "nivel"],
+            "properties": {
+              "codigo": {"type": "string"},
+              "nombre": {"type": "string"},
+              "nivel": {"type": "integer"}
+            }
+          }
+        },
+        "niveles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nivel", "nombre", "mapeaA"],
+            "properties": {
+              "nivel": {"type": "integer"},
+              "nombre": {"type": "string"},
+              "mapeaA": {"type": "string"}
+            }
+          }
+        },
+        "unidades": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nombreLocal", "codigo"],
+            "properties": {
+              "nombreLocal": {"type": "string"},
+              "codigo": {"type": "string"}
+            }
+          }
+        },
+        "patronArticulo": {"type": "string"},
+        "acunacion": {
+          "type": "object",
+          "required": ["plantillaNorma", "plantillaUnidad", "plantillaVigencia", "reglaArista"],
+          "properties": {
+            "plantillaNorma": {"type": "string"},
+            "plantillaUnidad": {"type": "string"},
+            "plantillaVigencia": {"type": "string"},
+            "reglaArista": {"type": "string"}
+          }
+        },
+        "reglaAnio": {"type": "string"},
+        "excepciones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["idLocal", "campo", "valor", "motivo"],
+            "properties": {
+              "idLocal": {"type": "string"},
+              "campo": {"type": "string"},
+              "valor": {"type": ["string", "integer"]},
+              "motivo": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "extensiones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["termino", "mapeaA", "relacion"],
+        "properties": {
+          "termino": {"type": "string"},
+          "mapeaA": {"type": "string"},
+          "relacion": {"type": "string", "enum": ["equivalente", "mas_estrecho", "mas_amplio", "relacionado"]},
+          "nota": {"type": "string"}
+        }
+      }
+    },
+    "formatosReconocidos": {"type": "array", "items": {"type": "string"}},
+    "vigencia": {
+      "type": "object",
+      "required": ["estados", "desconocidaPermitida"],
+      "properties": {
+        "estados": {"type": "array", "items": {"type": "string"}},
+        "desconocidaPermitida": {"type": "boolean"}
+      }
+    },
+    "privacidad": {
+      "type": "object",
+      "required": ["paquete"],
+      "properties": {
+        "paquete": {"type": "string"}
+      }
+    },
+    "referencias": {
+      "type": "object",
+      "properties": {
+        "materias": {"$ref": "#/$defs/referencia"},
+        "aliasCitas": {"$ref": "#/$defs/referencia"},
+        "tribunales": {"$ref": "#/$defs/referencia"}
+      }
+    }
+  },
+  "$defs": {
+    "referencia": {
+      "type": "object",
+      "required": ["ruta", "sha256"],
+      "properties": {
+        "ruta": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "nota": {"type": "string"}
+      }
+    }
+  }
+}

@@ -95,6 +95,12 @@
       "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current  # fields clara, materia_top1_cubre_esperado",
       "value": "clara 8/31, materia_top1_cubre_esperado 14/31",
       "date": "2026-11-08"
+    },
+    {
+      "claim": "The ordenamiento profile cl reproduces the sealed chile-base pack at compatibility level C1 (25 norms, 8544 articles, 8569 temporal windows, 17068 edges re-minted)",
+      "command": "~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_ordenamiento.py::test_chile_base_c1 -q",
+      "value": "C1; 34206/34206 ids re-minted (25/8544/8569/17068); 3 declared year exceptions",
+      "date": "2026-11-09"
     }
   ]
 }

@@ -22,6 +22,11 @@ to certify what it cannot prove.
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
   hackathon and what was done during it.
+- **Legal-system profiles (framework, additive).** `ordenamiento/` lets a
+  pack declare its jurisdiction profile and validates it level by level
+  (C0–C1 today, C2–C3 planned); Chile is the reference profile. See
+  [docs/legal-systems.md](docs/legal-systems.md). Non-`cl` packs are not
+  verifiable by `/dike-verificar` yet.
 
 ## Quickstart
 
@@ -64,6 +69,14 @@ routes run `scripts/panel.py` in the same isolated subprocess: case boards
 are versioned SQLite stores under the plugin's data folder (outside the
 sealed corpus), and the corpus graph routes only read the verified
 installed generation.
+
+Alongside verification, `scripts/ordenamiento.py` (stdlib only, offline)
+scaffolds, validates and builds statute packs for other legal systems:
+a profile declares the jurisdiction's official source, unit codes, IRI
+templates and year rule; `validar-pack` then grades the pack — today C0
+(manifest and hashes) and C1 (core vocabulary), with C2/C3 planned. The
+`cl` profile reproduces the sealed `chile-base` pack. Details in
+[docs/legal-systems.md](docs/legal-systems.md).
 
 The Desktop page renders that corpus graph in 3D: an instrument →
 article → inciso hierarchy where each minimal normative unit carries a
@@ -175,6 +188,10 @@ chat, live NIF and the experimental predictor — is described in
 
 - **Chilean law, 25 statutes.** Citations of other statutes come back
   unverified. Output is in Spanish.
+- **Other legal systems are pack-validated, not citation-verified.** The
+  `ordenamiento/` framework checks packs of other jurisdictions up to level
+  C1 today (C2/C3 are not evaluated), but `/dike-verificar` cannot verify
+  their citations until the dike-id grammar accepts non-`cl` prefixes.
 - **Article citations only.** A mention such as "Ley 19.496" without an article
   is listed in `no_verificadas`, not verified.
 - **Absence is not proof.** A citation the corpus cannot resolve may still

@@ -1,0 +1,62 @@
+{
+  "formato": "dike-perfil-ordenamiento-v1",
+  "perfil": "xx",
+  "perfilVersion": "1.0.0",
+  "nucleoVersion": "1.0.0",
+  "nombre": "País Ficticio (datos 100 % inventados para pruebas)",
+  "identidad": {
+    "jurisdiccion": "xx",
+    "subdivision": null,
+    "idiomas": ["es"],
+    "fuentesOficiales": [
+      {
+        "id": "fuente-xx",
+        "nombre": "Fuente Ficticia de Ejemplo",
+        "url": "https://example.invalid/xx",
+        "atribucion": "Fuente Ficticia de Ejemplo — texto inventado, sin valor jurídico",
+        "idLocal": "idFuente",
+        "licenciaTextos": "dominio-publico-sintetico",
+        "usoIA": "Texto inventado para pruebas; sin restricciones."
+      }
+    ]
+  },
+  "normas": {
+    "tipos": [
+      {"codigo": "ley", "nombre": "Ley", "nivel": 2},
+      {"codigo": "decreto", "nombre": "Decreto", "nivel": 3}
+    ],
+    "niveles": [
+      {"nivel": 1, "nombre": "Constitucional", "mapeaA": "nucleo:NivelConstitucional"},
+      {"nivel": 2, "nombre": "Legal", "mapeaA": "nucleo:NivelLegal"},
+      {"nivel": 3, "nombre": "Reglamentario", "mapeaA": "nucleo:NivelReglamentario"}
+    ],
+    "unidades": [
+      {"nombreLocal": "artículo", "codigo": "art"},
+      {"nombreLocal": "inciso", "codigo": "inc"},
+      {"nombreLocal": "numeral", "codigo": "num"},
+      {"nombreLocal": "literal", "codigo": "lit"},
+      {"nombreLocal": "libro", "codigo": "lib"},
+      {"nombreLocal": "título", "codigo": "tit"},
+      {"nombreLocal": "capítulo", "codigo": "cap"},
+      {"nombreLocal": "párrafo", "codigo": "par"},
+      {"nombreLocal": "sección", "codigo": "sec"},
+      {"nombreLocal": "división", "codigo": "div"}
+    ],
+    "patronArticulo": "^Art[íi]culo\\s+(\\d+)",
+    "acunacion": {
+      "plantillaNorma": "eli/{jur}/{tipo}/{numero}/{anio}",
+      "plantillaUnidad": "{norma}/{eId}",
+      "plantillaVigencia": "{recurso}/vigencia",
+      "reglaArista": "actual"
+    },
+    "reglaAnio": "publicacion",
+    "excepciones": []
+  },
+  "extensiones": [],
+  "formatosReconocidos": ["lexo-starter-graph-v1", "dike-ordenamiento-pack-v1"],
+  "vigencia": {
+    "estados": ["VIGENTE", "DEROGADA", "FUTURA", "ULTRAACTIVA", "DESCONOCIDA"],
+    "desconocidaPermitida": true
+  },
+  "privacidad": {"paquete": "generico"}
+}

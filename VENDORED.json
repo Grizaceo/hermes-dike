@@ -103,8 +103,15 @@
       "fuentes": [
         {
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/dpp-ai-compliance-lab",
-          "commit": "0d1e386",
-          "licencia": "MIT",
+          "commit": "working tree sin commit sobre 0d1e386 (el comportamiento portado es el del árbol de trabajo; 0d1e386 da F1 0.8078 en el mismo goldset)",
+          "licencia": "MIT declarada en pyproject.toml (el repo no tiene archivo LICENSE)",
+          "sha256_origen": {
+            "src/dpp_ai_compliance_lab/patterns.py": "2355dfc7004cf81a6a5d0b9a2041382973926bcbaa3d8ea27e72ed214d013360",
+            "src/dpp_ai_compliance_lab/anonimiza_server.py": "743cafa1d0eb4fa04e1b33de3dc57e21f580b6f154eca69e477027c7a0d10cd1",
+            "scripts/run_benchmark.py": "16fa0ab88a987947c1dd363d6e4a61f40bd0e1f2d5b7e121b4cac5f245f2ff8d",
+            "data/goldset/chilean_pii_goldset_v0.3.0.jsonl": "fead3cf42aaade1a9f48cc7d5526494bb051f95ba4eb46d83d5b87585800180d"
+          },
+          "nota": "el goldset v0.3.0 está sin trackear en dpp (viene del árbol de trabajo)",
           "archivos_origen": [
             "src/dpp_ai_compliance_lab/patterns.py",
             "src/dpp_ai_compliance_lab/anonimiza_server.py",
@@ -120,7 +127,10 @@
         {
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/graph-legal-ir/graph-legal-ir",
           "commit": "working tree sin commit sobre fe283d6; sha256 de pii.py = bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc",
-          "licencia": "MIT (ver repo origen)",
+          "licencia": "sin archivo LICENSE en el repo origen (autor: Grizaceo)",
+          "sha256_origen": {
+            "src/gnn_ambiental/privacy/pii.py": "bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc"
+          },
           "archivos_origen": [
             "src/gnn_ambiental/privacy/pii.py"
           ],
@@ -132,13 +142,20 @@
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
           "commit": "7c13a89",
           "licencia": "MIT",
+          "sha256_origen": {
+            "src/lib/piiMask.ts": "d1cf46b7041bf44cdee42cb881305396289129930f9c76c491b12b10863c5890",
+            "src/lib/piiMask.goldset.ts": "421faa3831cb0e40c944826902548b58f5a52f3352bb02122e4b483408dc105a",
+            "src/lib/nombresPila.ts": "ec1dc6bc3b648db05896db6b25aebda420c15b9d0c015a2df2a26179acb461bd"
+          },
           "archivos_origen": [
             "src/lib/piiMask.ts",
-            "src/lib/piiMask.goldset.ts"
+            "src/lib/piiMask.goldset.ts",
+            "src/lib/nombresPila.ts"
           ],
           "archivos_destino": [
             "privacidad/patrones.py",
             "privacidad/detector.py",
+            "privacidad/nombres_pila.py",
             "tests/fixtures/privacidad/piimask_goldset.py"
           ]
         },
@@ -146,6 +163,9 @@
           "repo": "~/dike-desk",
           "commit": "e3348d2",
           "licencia": "MIT",
+          "sha256_origen": {
+            "scripts/legal-pack/residual-mask.ts": "118d595eac6c7c61d4413e0e9456d58778ff45f5d450d72fbf090d7e7213722f"
+          },
           "archivos_origen": [
             "scripts/legal-pack/residual-mask.ts"
           ],

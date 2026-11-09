@@ -100,8 +100,12 @@ _GENERICO = [
 # ---------------------------------------------------------------------------
 
 # Borde izquierdo (?<![\d.]) y no (?<!\w): el OCR deja RUN pegados a letras
-# («Nº12.345.678-9») que así también se detectan (graph-legal-ir).
-_RUT = r"(?<![\d.])(?:\d{1,2}(?:\.\d{3}){2}|\d{7,8})-[\dkK](?!\w)"
+# («Nº12.345.678-9») que así también se detectan (graph-legal-ir). La rama
+# con «l»/«I» inicial cubre el OCR que confunde el «1» («l0.381.620-4»):
+# la letra queda dentro del match y no puede ir precedida de letra, dígito
+# ni punto; detrás exige un dígito y la forma con puntos.
+_RUT = (r"(?<![\d.])(?:\d{1,2}(?:\.\d{3}){2}|\d{7,8}"
+        r"|(?<![^\W\d_])[lI]\d(?:\.\d{3}){2})-[\dkK](?!\w)")
 
 _CL = [
     Patron("rut", "rut", "identificador_directo", "critical", re.compile(_RUT)),
@@ -119,6 +123,12 @@ _CL = [
                       r"|[2-8]\s\d{3,4}\s\d{4})(?!\w)")),
     Patron("patente", "patente_cl", "identificador_directo", "high",
            re.compile(r"(?i)\b(?:patente|placa)\s+[A-Z]{2,4}[.-]?\d{2,4}\b")),
+
+    # Rol de avalúo fiscal/municipal (predio): «rol de avalúo 1234-56»,
+    # «rol SII N° 1234-56». El «ROL» de causa (ROL C-1234-2024) es ancla.
+    Patron("rol_avaluo", "rol_avaluo", "ubicacion", "high",
+           re.compile(r"(?i)\brol\s+(?:de\s+aval[úu]o(?:\s+fiscal)?|s\.?i\.?i\.?)\s*"
+                      r"(?:N[°º]\.?\s*)?[:\s]*(\d{1,5}-\d{1,4})(?!\w)"), grupo=1),
 
     # --- Anclas de causa: RIT/RUC/ROL se CONSERVAN (ancla_causa) ----------
     Patron("rit", "rit", "ancla_causa", "high",

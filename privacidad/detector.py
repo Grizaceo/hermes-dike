@@ -19,9 +19,10 @@ import re
 import unicodedata
 from collections.abc import Iterable
 
+from dike_privacidad.nombres_pila import NOMBRES_PILA
 from dike_privacidad.patrones import patrones_de, dv_rut_valido
 
-VERSION = "privacidad-f2a-1"
+VERSION = "privacidad-f2a-2"
 
 AVISO = (
     "Seudonimización, no anonimización: el mapa queda en este equipo. "
@@ -171,11 +172,11 @@ _PALABRAS_CORTE = frozenset(
         "ambiente", "salud", "impuestos", "internos", "aguas", "oficina",
         "caso", "oriente", "poniente", "norte", "sur", "centro", "metropolitana",
         "ministros", "encargado", "encargada", "conservador", "conservadora",
-        "administrador", "administradora", "familiar",
+        "administrador", "administradora", "familiar", "hospital", "rit", "ruc",
     })
 
 _PARTICULAS = frozenset({"de", "del", "la", "los", "las", "y", "e"})
-_FOLD_TAB = {ord(c): None for c in "̀-ͯ"}
+_FOLD_TAB = {i: None for i in range(0x300, 0x370)}  # diacríticos U+0300–U+036F
 
 
 def _fold(palabra: str) -> str:
@@ -445,6 +446,54 @@ def _propagar_nombres(texto: str, nombres: Iterable[str], kept, ocupados):
 
 
 # ---------------------------------------------------------------------------
+# Nombres sin contexto (lexo-case-writer piiMask.ts `nombresSinContexto`)
+# ---------------------------------------------------------------------------
+
+# Conectores del nombre: «de la», «de los», «de las», «del», «de», «y»
+# (NOMBRE_CONECTOR de piiMask; «e» no está en la lista original).
+_NOMBRE_CONECTOR = r"(?i:de la|de los|de las|del|de|y)"
+_CONECTORES_NOMBRE = frozenset({"de", "del", "la", "los", "las", "y"})
+# Secuencia de 2 a 6 palabras de nombre unidas por espacios (nunca salto de
+# línea), sin preceder letra, «_» ni «[».
+_SECUENCIA_NOMBRE = re.compile(
+    r"(?<![^\W\d_]|[_\[])" + _PALABRA_NOMBRE
+    + r"(?:[ \t]+(?:(?:" + _NOMBRE_CONECTOR + r")[ \t]+)?" + _PALABRA_NOMBRE + r"){1,5}",
+    re.UNICODE)
+
+
+def _nombres_sin_contexto(norm: str) -> list[tuple[int, int]]:
+    """Rangos [inicio, fin) de nombres de pila + apellido sin contexto.
+
+    Port de ``nombresSinContexto`` (piiMask.ts): el primer token no-conector
+    cuyo ``_fold`` está en NOMBRES_PILA abre el nombre; se extiende mientras
+    el token no sea palabra de corte; un nombre de pila solo no cuenta.
+    """
+    found = []
+    for m in _SECUENCIA_NOMBRE.finditer(norm):
+        base = m.start()
+        tokens = [
+            (w.group(0), base + w.start(), base + w.end(),
+             w.group(0).casefold() in _CONECTORES_NOMBRE)
+            for w in re.finditer(r"\S+", m.group(0))
+        ]
+        i = next((k for k, t in enumerate(tokens)
+                  if not t[3] and _fold(t[0]) in NOMBRES_PILA), -1)
+        if i < 0:
+            continue
+        last = i
+        for j in range(i + 1, len(tokens)):
+            if tokens[j][3]:
+                continue
+            if _es_palabra_corte(tokens[j][0]):
+                break
+            last = j
+        if last == i:
+            continue
+        found.append((tokens[i][1], tokens[last][2]))
+    return found
+
+
+# ---------------------------------------------------------------------------
 # Resolución de solapes (dpp _resolve_overlaps)
 # ---------------------------------------------------------------------------
 
@@ -619,6 +668,19 @@ def detectar(texto: str, estrategia: str = _ESTRATEGIA_DEFAULT,
         crudo.append(_h(ns, ne, norm[ns:ne], "full_name", "persona", "high",
                         "nombre_propagado"))
 
+    # 5b. Nombres sin contexto (gazetteer): severidad medium ⇒ se enmascara
+    # en estricta y queda como candidato en media/ligera. No alimenta la
+    # propagación ni pisa jueces ni spans ya ocupados.
+    for ns, ne in _nombres_sin_contexto(norm):
+        if ocupados.hay(ns, ne):
+            continue
+        valor = norm[ns:ne]
+        if _is_kept(valor, kept) or juez_idx.hay(ns, ne):
+            continue
+        crudo.append(_h(ns, ne, valor, "full_name", "persona", "medium",
+                        "nombre_gazetteer"))
+        ocupados.agregar(ns, ne)
+
     # 6. Post-pasada de tratamientos (residual-mask).
     for ns, ne in _residual_spans(norm, ocupados):
         crudo.append(_h(ns, ne, norm[ns:ne], "full_name", "persona", "medium",
@@ -672,9 +734,11 @@ _SECUENCIA_CAND = re.compile(
 
 def candidatos_sin_contexto(texto: str, entidades: list[dict]) -> list[dict]:
     """Secuencias de 2–4 palabras capitalizadas que no son vocabulario ni
-    entidad ya detectada."""
+    entidad ya detectada. Las conservadas solo por estrategia (p. ej. el
+    gazetteer en media) NO bloquean: siguen visibles como candidatos."""
     norm, mapa = normalizar(texto)
-    ocupados = [(e["inicio"], e["fin"]) for e in entidades]
+    ocupados = [(e["inicio"], e["fin"]) for e in entidades
+                if not (e["accion"] == "conservar" and e.get("motivo") == "por_estrategia")]
     out = []
     for m in _SECUENCIA_CAND.finditer(norm):
         ns, ne = m.span()

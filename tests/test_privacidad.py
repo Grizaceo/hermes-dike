@@ -2,8 +2,8 @@
 
 Todo sintético. El benchmark usa SOLO el goldset sintético (456 docs,
 synthetic + synthetic-augmented) con umbrales fijos medidos contra la línea
-base del detector original de dpp-ai-compliance-lab (F1=0.9425, recall
-rut/email/phone_cl=1.0000).
+base del detector de dpp (árbol de trabajo sin commit sobre 0d1e386;
+F1=0.9425, recall rut/email/phone_cl=1.0000).
 """
 import importlib.util
 import json
@@ -39,6 +39,16 @@ def goldset_pii():
     return m.GOLDSET
 
 
+@pytest.fixture(scope='module')
+def sondas_pv():
+    spec = importlib.util.spec_from_file_location(
+        'sondas_privacidad',
+        ROOT / 'tests' / 'fixtures' / 'privacidad' / 'sondas.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m.SONDAS
+
+
 @pytest.fixture
 def api(tmp_path, monkeypatch):
     """plugin_api con HERMES_HOME aislado (patrón de test_dashboard_plugin)."""
@@ -57,6 +67,31 @@ def _enmascaradas(pv, texto, **kw):
 
 def _valores(ents):
     return {e['valor'] for e in ents}
+
+
+def _cobertura_enmascarar(texto, entidades):
+    """Máscara de caracteres cubiertos por entidades con accion 'enmascarar'."""
+    m = [False] * len(texto)
+    for e in entidades:
+        if e['accion'] == 'enmascarar':
+            for k in range(e['inicio'], e['fin']):
+                m[k] = True
+    return m
+
+
+def _cobertura_frag(texto, mascara, frag, inicio=None):
+    """'enmascarado' si todos los alfanuméricos del fragmento están cubiertos,
+    'intacto' si ninguno, 'parcial' en otro caso."""
+    i = texto.find(frag) if inicio is None else inicio
+    assert i >= 0, frag
+    idx = [k for k in range(i, i + len(frag)) if texto[k].isalnum()]
+    assert idx, frag
+    n = sum(mascara[k] for k in idx)
+    if n == len(idx):
+        return 'enmascarado'
+    if n == 0:
+        return 'intacto'
+    return 'parcial'
 
 
 # --- DV módulo 11 y RUT ------------------------------------------------------
@@ -308,6 +343,60 @@ def test_piimask_goldset_candidatos_sin_contexto(pv, goldset_pii):
     assert encontrados >= esperados - 3, (encontrados, esperados)
 
 
+def test_piimask_goldset_nombre_sin_contexto_estricta(pv, goldset_pii, tmp_path):
+    """En estricta el gazetteer enmascara los 11 nombre_sin_contexto del goldset."""
+    faltan = []
+    for c in goldset_pii:
+        out = pv.seudonimizar(tmp_path, 'goldset-estricta', c['text'],
+                              estrategia='estricta')
+        for p in c['pii']:
+            if p['category'] != 'nombre_sin_contexto':
+                continue
+            if p['value'] in out['texto']:
+                faltan.append((p['value'], c['text']))
+    assert not faltan, f'{len(faltan)} nombres sin contexto sin enmascarar: {faltan[:5]}'
+
+
+# --- Gazetteer de nombres de pila (sondas sintéticas) -------------------------
+
+def test_nombres_pila_344(pv):
+    from dike_privacidad.nombres_pila import NOMBRES_PILA
+    assert len(NOMBRES_PILA) == 344
+
+
+def test_sondas_estricta(pv, sondas_pv):
+    """Cada fragmento de las 18 sondas: enmascarado o intacto en estricta."""
+    for s in sondas_pv:
+        ents = pv.detectar(s['texto'], estrategia='estricta')
+        mascara = _cobertura_enmascarar(s['texto'], ents)
+        for frag, esperado in s['frags']:
+            inicio = None
+            if esperado == 'enmascarar_cola':
+                # «Luego Mendoza Ruiz»: se evalúa solo la cola «Mendoza Ruiz»
+                cola = frag.split(' ', 1)[1]
+                inicio = s['texto'].find(frag) + len(frag) - len(cola)
+                frag, esperado = cola, 'enmascarar'
+            elif esperado == '?':
+                # política: todo RUT se enmascara aunque sea de empresa
+                esperado = 'enmascarar'
+            obtenido = _cobertura_frag(s['texto'], mascara, frag, inicio)
+            esperado_out = 'enmascarado' if esperado == 'enmascarar' else 'intacto'
+            assert obtenido == esperado_out, (s['id'], frag, esperado, obtenido)
+
+
+def test_sin_contexto_en_media_es_candidato(pv):
+    """En media el gazetteer no enmascara pero el nombre sigue en candidatos."""
+    t = 'Ayer llegó Joaquín Errázuriz Montt a la audiencia.'
+    ent = pv.detectar(t, estrategia='media')
+    gaz = [e for e in ent if e.get('regla') == 'nombre_gazetteer']
+    assert gaz and all(e['accion'] == 'conservar' and e['motivo'] == 'por_estrategia'
+                       for e in gaz)
+    mascara = _cobertura_enmascarar(t, ent)
+    assert _cobertura_frag(t, mascara, 'Joaquín Errázuriz Montt') == 'intacto'
+    cand = {c['valor'] for c in pv.candidatos_sin_contexto(t, ent)}
+    assert 'Joaquín Errázuriz Montt' in cand
+
+
 # --- Benchmark contra goldset sintético (umbrales fijos) -----------------------
 
 def _metrica(pv):
@@ -341,9 +430,9 @@ def _metrica(pv):
 
 
 def test_benchmark_goldset(pv):
-    """Umbrales fijos: línea base dpp = F1 0.9425, recalls 1.0000 (ver docstring)."""
+    """Umbrales fijos: línea base 0.979 tras gazetteer; dpp árbol de trabajo 0.9425."""
     f1, recalls = _metrica(pv)
-    assert f1 >= 0.93, f'F1 global {f1:.4f} < 0.93'
+    assert f1 >= 0.97, f'F1 global {f1:.4f} < 0.97'
     for t, r in recalls.items():
         assert r >= 1.0, f'recall {t} {r:.4f} < 1.0'
 

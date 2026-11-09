@@ -30,6 +30,7 @@ _PREFIJOS = {
     "phone_intl": "TELEFONO",
     "address": "DIRECCION",
     "patente_cl": "PATENTE",
+    "rol_avaluo": "ROL_AVALUO",
 }
 _PREFIX_SENSIBLE = "DATO_SENSIBLE"
 _PREFIX_DEFAULT = "DATO"

@@ -191,15 +191,45 @@ def _carpeta_de_datos() -> Path:
         return base
 
 
-def _paquetes_del_anfitrion() -> list:
-    """Las carpetas de paquetes instalados del proceso que carga el plugin.
+# Dependencias de terceros que el motor importa (las entradas no-motor de
+# aislamiento.MODULOS_MEDIDOS, sin ``docx`` que ya no hace falta). Se derivan
+# de importlib.util.find_spec, no del nombre de la carpeta: funciona igual si
+# Hermes se instaló por git, por pip/PM o en un venv con nombre arbitrario.
+_TERCEROS = (
+    "annotated_types", "attr", "markdown_it", "mdurl",
+    "pydantic", "pydantic_core", "pygments", "rich",
+    "typing_extensions", "typing_inspection", "yaml",
+)
 
-    Hermes no corre desde un entorno con lanzador propio: activa sus dependencias
-    agregándolas a `sys.path`. El subproceso usa el mismo intérprete y necesita
-    esas mismas carpetas para encontrar pydantic, yaml y las demás. Solo viajan
-    las carpetas de paquetes instalados, no el código de Hermes.
+
+def _paquetes_del_anfitrion() -> list:
+    """Carpetas que contienen los módulos de terceros del motor.
+
+    Para cada módulo se toma el padre de su ubicación real (find_spec →
+    submodule_search_locations para paquetes, origin para módulos sueltos),
+    deduplicado y en orden. El subproceso usa el mismo intérprete y necesita
+    esas mismas carpetas para encontrar pydantic, yaml y las demás.
     """
-    return [p for p in sys.path if p and ("site-packages" in p or "dist-packages" in p)]
+    carpetas, vistas = [], set()
+    for nombre in _TERCEROS:
+        try:
+            spec = importlib.util.find_spec(nombre)
+        except Exception:
+            spec = None
+        if spec is None:
+            continue
+        ubicacion = None
+        if spec.submodule_search_locations:
+            ubicacion = spec.submodule_search_locations[0]
+        elif spec.origin:
+            ubicacion = spec.origin
+        if not ubicacion:
+            continue
+        carpeta = str(Path(ubicacion).resolve().parent)
+        if carpeta not in vistas:
+            vistas.add(carpeta)
+            carpetas.append(carpeta)
+    return carpetas
 
 
 def _entorno(datos: Path) -> dict:
@@ -236,17 +266,16 @@ def _aislamiento():
     return mod
 
 
-def _politica_sandbox():
-    """Valor del setting ``sandbox``: del ctx del agente o de la config de Hermes.
+def _setting(key, default=None):
+    """Lee ``plugins.entries.dike.settings.<key>``: del ctx del agente o de la config.
 
-    En el proceso del plugin ``ctx.get_config`` lee
-    ``plugins.entries.dike.settings.sandbox``. En el dashboard no hay ctx:
-    se lee la misma configuración por ``hermes_cli``. Cualquier valor que no
-    sea ``auto`` se trata como ``requerido`` (fail-closed) en aislamiento.py.
+    En el proceso del plugin ``ctx.get_config`` lee esa ruta (y el subárbol
+    ``config`` legado). En el dashboard no hay ctx: se lee la misma
+    configuración por ``hermes_cli``. Cualquier fallo devuelve *default*.
     """
     try:
         if _CTX is not None:
-            return _CTX.get_config("sandbox", "auto")
+            return _CTX.get_config(key, default)
     except Exception:
         pass
     try:
@@ -255,14 +284,26 @@ def _politica_sandbox():
         entry = _plugin_settings_entry(load_config_readonly() or {}, "dike")
         if isinstance(entry, dict):
             settings = entry.get("settings")
-            if isinstance(settings, dict) and "sandbox" in settings:
-                return settings["sandbox"]
+            if isinstance(settings, dict) and key in settings:
+                return settings[key]
     except Exception:
         pass
-    return "auto"
+    return default
+
+
+def _politica_sandbox():
+    """Valor del setting ``sandbox``: ``auto`` por defecto, otro valor es fail-closed."""
+    valor = _setting("sandbox", "auto")
+    return valor if isinstance(valor, str) and valor else "auto"
 
 
 _aislamiento().establecer_politica(_politica_sandbox)
+
+
+def _perfil_chat() -> str:
+    """Perfil de Hermes donde corre el chat del escrito; '' = el perfil activo."""
+    valor = _setting("perfil_chat", "")
+    return valor.strip() if isinstance(valor, str) else ""
 
 
 def _dike(argumentos: list, datos: Path, timeout: int = 300, *,
@@ -379,6 +420,87 @@ def _reescribir_stat(datos: Path, generation: Path) -> dict:
         return record['stat']
 
 
+def _snapshots_fuera_de_generacion(generation: Path):
+    """STATE.json cuyo ``snapshot`` absoluto ya no cuelga de *generation*.
+
+    El puntero se escribió en la instalación con la ruta absoluta de esa
+    época; si todo el plugin-data se movió de sitio, el byte a byte sigue
+    igual pero el localizador quedó viejo. Devuelve [(archivo, estado, snapshot)].
+    """
+    raiz = str(generation) + os.sep
+    rotos = []
+    for sf in (generation / 'users').glob('*/starter/*/STATE.json'):
+        try:
+            state = json.loads(sf.read_text())
+        except (OSError, ValueError):
+            continue
+        snap = state.get('snapshot')
+        if isinstance(snap, str) and snap and not snap.startswith(raiz):
+            rotos.append((sf, state, snap))
+    return rotos
+
+
+def _relativo_en_generacion(snapshot: str, generation: Path):
+    """La parte de *snapshot* que vive dentro de la generación (``users/…``).
+
+    El localizador es ``<datos>/generations/<pack>/<rel>``; *rel* empieza por
+    ``users/``. Devuelve None si no se puede reconstruir.
+    """
+    partes = list(Path(snapshot).parts)
+    try:
+        gi = max(i for i, p in enumerate(partes) if p == 'generations')
+        if gi + 2 >= len(partes) or partes[gi + 1] != generation.name:
+            return None
+        return Path(*partes[gi + 2:])
+    except (ValueError, IndexError):
+        return None
+
+
+def _reparar_reubicacion(datos: Path, generation: Path, esperado: str) -> None:
+    """Reescribe los localizadores ``snapshot`` si el plugin-data se movió.
+
+    Solo actúa cuando hay punteros rotos. Bajo el candado de instalación:
+    primero rehashea TODOS los archivos contra ``installed.json`` (los bytes
+    no cambian al mover, así que esto prueba que nada más se tocó), luego
+    reescribe solo el localizador, actualiza su hash y el ``stat``, y anota la
+    reubicación. Cualquier discrepancia es el mismo error de integridad.
+    """
+    if not _snapshots_fuera_de_generacion(generation):
+        return
+    with (datos / 'install.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        rotos = _snapshots_fuera_de_generacion(generation)
+        if not rotos:
+            return
+        marker = generation / 'installed.json'
+        record = json.loads(marker.read_text())
+        if record.get('package_sha256') != esperado:
+            raise ValueError('installed generation mismatch')
+        if _hash_archivos_corpus(generation) != record.get('files'):
+            raise ValueError('installed corpus integrity mismatch')
+        files = dict(record.get('files') or {})
+        from datetime import datetime, timezone
+        for sf, state, snap in rotos:
+            rel = _relativo_en_generacion(snap, generation)
+            if rel is None:
+                raise ValueError('installed corpus integrity mismatch')
+            state['snapshot'] = str(generation / rel)
+            sf.write_text(json.dumps(state, indent=2))
+            files[str(sf.relative_to(generation))] = hashlib.sha256(
+                sf.read_bytes()).hexdigest()
+        record['files'] = files
+        record['stat'] = _stat_archivos_corpus(generation)
+        record.setdefault('reubicaciones', []).append({
+            'desde': rotos[0][2].rsplit('/generations/', 1)[0] if '/generations/' in rotos[0][2] else '',
+            'hacia': str(generation),
+            'fecha': datetime.now(timezone.utc).isoformat()})
+        tmp = generation / 'installed.json.tmp'
+        tmp.write_text(json.dumps(record))
+        os.replace(tmp, marker)
+        for key in [k for k in _PROC_VERIFIED if k[0] == str(generation)]:
+            _PROC_VERIFIED.discard(key)
+
+
 def _verificar_generacion(datos: Path, generation: Path, esperado: str) -> dict:
     """Per-call integrity: stat cache first, full SHA-256 once per process."""
     marker = generation / 'installed.json'
@@ -431,10 +553,12 @@ def _asegurar_corpus(datos: Path) -> dict:
     generation = datos / 'generations' / esperado
     generation.parent.mkdir(parents=True, exist_ok=True)
     if generation.exists():
+        _reparar_reubicacion(datos, generation, esperado)
         return _verificar_generacion(datos, generation, esperado)
     with (datos / 'install.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         if generation.exists():
+            _reparar_reubicacion(datos, generation, esperado)
             return _verificar_generacion(datos, generation, esperado)
         with tempfile.TemporaryDirectory(dir=generation.parent, prefix='staging-') as tmp:
             stage = Path(tmp) / 'generation'
@@ -1178,6 +1302,106 @@ def _comando(raw):
     return _formatear_salida(json.loads(verificar_citas({'texto': raw})))
 
 
+def _version_plugin() -> str:
+    try:
+        import yaml
+        data = yaml.safe_load((_RAIZ / "plugin.yaml").read_text(encoding="utf-8"))
+        return str(data.get("version")) if isinstance(data, dict) and data.get("version") else "?"
+    except Exception:
+        return "?"
+
+
+def _version_hermes() -> str:
+    try:
+        from hermes_cli.version_info import get_version_info
+        return str(get_version_info().base_version)
+    except Exception:
+        return "desconocida"
+
+
+def _sha256_archivo(ruta: Path):
+    try:
+        return hashlib.sha256(ruta.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
+def _estado_datos(datos: Path) -> dict:
+    """Datos de ``/dike-estado``; nunca incluye rutas absolutas."""
+    aislado = _aislamiento().estado()
+    sums = _CORPUS / "SHA256SUMS"
+    esperado = ""
+    if sums.is_file():
+        partes = sums.read_text(encoding="utf-8").split()
+        if len(partes) >= 2:
+            esperado = partes[0]
+    generation = datos / "generations" / esperado if esperado else None
+    instalado, reubicaciones = False, 0
+    if generation and generation.is_dir():
+        try:
+            registro = json.loads((generation / "installed.json").read_text(encoding="utf-8"))
+            instalado = (isinstance(registro, dict)
+                         and registro.get("package_sha256") == esperado
+                         and isinstance(registro.get("files"), dict) and bool(registro["files"]))
+            if isinstance(registro, dict) and isinstance(registro.get("reubicaciones"), list):
+                reubicaciones = len(registro["reubicaciones"])
+        except (OSError, ValueError):
+            instalado = False
+    bundle = _RAIZ / "desktop" / "BUNDLE.json"
+    plugin_js = _RAIZ / "desktop" / "plugin.js"
+    bundle_sha = None
+    try:
+        bundle_sha = json.loads(bundle.read_text(encoding="utf-8")).get("sha256")
+    except (OSError, ValueError):
+        bundle_sha = None
+    plugin_sha = _sha256_archivo(plugin_js) if plugin_js.is_file() else None
+    return {
+        "version": _version_plugin(),
+        "hermes": _version_hermes(),
+        "pack_hash": PACK_HASH,
+        "corpus_instalado": instalado,
+        "reubicaciones": reubicaciones,
+        "aislamiento": aislado,
+        "politica": _politica_sandbox(),
+        "perfil_chat": _perfil_chat() or "perfil activo",
+        "desktop_ok": bool(bundle_sha) and plugin_sha == bundle_sha,
+        "desktop_presente": plugin_js.is_file(),
+    }
+
+
+def _estado_texto(d: dict) -> str:
+    lineas = [
+        f"Diké {d['version']} · Hermes {d['hermes']}",
+        f"Corpus: {'instalado' if d['corpus_instalado'] else 'no instalado'} "
+        f"(pack {d['pack_hash']}).",
+    ]
+    if d["corpus_instalado"]:
+        lineas.append("Integridad: registrada en la instalación; el hash completo "
+                      "se comprueba en cada uso.")
+    lineas.append(f"Reubicaciones del plugin-data: {d['reubicaciones']}.")
+    lineas.append(".docx: lectura con la biblioteca estándar (python-docx no hace falta).")
+    aislado = d.get("aislamiento") or {}
+    if aislado.get("modo") == "bwrap":
+        lineas.append("Aislamiento: motor en bubblewrap, sin red.")
+    else:
+        lineas.append(f"Aislamiento: sin sandbox ({aislado.get('motivo', 'OTRO')}); "
+                      f"política {d['politica']}.")
+    lineas.append(f"Chat del escrito: perfil «{d['perfil_chat']}».")
+    if d["desktop_presente"] and d["desktop_ok"]:
+        lineas.append("Página Desktop: plugin.js presente y su sha256 coincide con "
+                      "BUNDLE.json. Actívala en Capabilities → Plugins.")
+    elif d["desktop_presente"]:
+        lineas.append("Página Desktop: plugin.js presente pero su sha256 NO coincide "
+                      "con BUNDLE.json; reconstruye el bundle.")
+    else:
+        lineas.append("Página Desktop: desktop/plugin.js no está en el paquete.")
+    return "\n".join(lineas)
+
+
+def _comando_estado(raw):
+    return _estado_texto(_estado_datos(_carpeta_de_datos().resolve()))
+
+
 def _escritor_hooks():
     """Carga escritor/hooks.py por ruta, con un nombre propio: así no depende de
     cómo Hermes importe el plugin ni puede tomar otro módulo `escritor` del path."""
@@ -1207,6 +1431,8 @@ def register(ctx):
     ctx.register_tool(name='dike_buscar_corpus', toolset='dike', schema=ESQUEMA_BUSCAR, handler=buscar_corpus)
     ctx.register_command('dike-verificar', _comando, 'Verifica citas contra el corpus local; no firma.',
                          args_hint='<texto o ruta .md/.txt/.docx>')
+    ctx.register_command('dike-estado', _comando_estado, 'Estado del plugin: corpus, aislamiento y página Desktop.',
+                         args_hint='')
     carpeta = _RAIZ / 'skills'
     if carpeta.is_dir():
         for hija in sorted(carpeta.iterdir()):

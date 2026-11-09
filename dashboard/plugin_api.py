@@ -95,6 +95,7 @@ def estado():
         "articulos": _ARTICULOS,
         "version": _version(),
         "aislamiento": mod._aislamiento().estado(),
+        "perfil_chat": mod._perfil_chat(),
     }
 
 

@@ -24,6 +24,23 @@ requires_hermes: ">=0.23.0"
 platforms: [linux]
 provides_tools: [dike_verificar_citas, dike_leer_articulo, dike_buscar_corpus]
 provides_hooks: [pre_llm_call, pre_tool_call]
+config_schema:
+  sandbox:
+    type: str
+    choices: [auto, requerido]
+    default: auto
+    label: Aislamiento del motor
+    description: >-
+      Cómo corre el motor y el panel. «auto» usa bubblewrap cuando está
+      disponible y declara el modo degradado si no; cualquier otro valor
+      exige el sandbox y falla cerrado si no se puede.
+  perfil_chat:
+    type: str
+    default: ""
+    label: Perfil del chat del escrito
+    description: >-
+      Perfil de Hermes donde corre el chat del escrito; vacío = el perfil
+      activo.
 python_dependencies:
   - "pydantic>=2.0,<3"
   - "pyyaml>=6.0,<7"

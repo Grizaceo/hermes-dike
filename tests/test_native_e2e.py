@@ -51,6 +51,28 @@ def test_installed_tamper_fails_closed(real):
         victim.write_bytes(original)
 
 
+def test_cuerpo_de_la_linea_anterior_no_certifica_otra_norma(real):
+    """El motor pegaba «Código del Trabajo» a la cita siguiente si la línea no
+    terminaba en punto: «artículo 161 del Código Civil» salía VERIFICADA como
+    cl.norma.ct:art:0161. Ninguna cita que nombre el Código Civil puede
+    certificarse con un gid de otra norma."""
+    texto = 'artículo 161 del Código del Trabajo\nartículo 161 del Código Civil'
+    result = json.loads(real[0].verificar_citas({'texto': texto}))
+    civil = [d for d in result['detalles'] if 'Código Civil' in d['cita_raw']]
+    assert civil, result
+    for detail in civil:
+        if detail['estado'] == 'VERIFICADA':
+            assert detail['gid'].startswith('cl.norma.cc:'), detail
+    assert result['todo_verificado'] is False
+
+
+def test_cuerpos_separados_por_punto_siguen_verificando(real):
+    texto = 'artículo 161 del Código del Trabajo.\nartículo 161 del Código Civil.'
+    result = json.loads(real[0].verificar_citas({'texto': texto}))
+    gids = sorted(d['gid'] for d in result['detalles'] if d['estado'] == 'VERIFICADA')
+    assert gids == ['cl.norma.cc:art:0161', 'cl.norma.ct:art:0161'], result
+
+
 def test_vendored_engine_matches_manifest():
     result = subprocess.run([sys.executable, str(ROOT / 'scripts/vendor_engine.py'), '--check'], capture_output=True, text=True)
     assert result.returncode == 0, result.stdout

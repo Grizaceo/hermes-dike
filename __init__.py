@@ -376,6 +376,96 @@ def _validar_constancia(c, code, *, as_of=None):
     return c
 
 
+# ── Guarda fail-closed: una cita con dos cuerpos legales no se certifica ──
+# El motor puede pegar a una cita el cuerpo de la línea anterior cuando esta
+# no termina en puntuación («…del Código del Trabajo\nartículo 161 del Código
+# Civil» salía VERIFICADA como Código del Trabajo). Esta guarda solo degrada:
+# si el texto de la cita nombra un cuerpo antes de su última mención de
+# artículo y otro distinto después del número, la cita queda sin certificar.
+
+_MARCA_ARTICULO = re.compile(r'\bart(?:[íi]culo)?s?\b\.?', re.IGNORECASE)
+_HASTA_NUMERO = re.compile(r'\D{0,12}?\d[\d.]*')
+_CUERPO_EN_TEXTO = re.compile(
+    r'c[oó]digo\s+(?:(?:de|del|la|las|los|el)\s+)*(?P<cod>[a-záéíóúñ]+)(?:\s+(?P<cod2>[a-záéíóúñ]+))?'
+    r'|(?P<const>constituci[oó]n)'
+    r'|\b(?P<tipo>ley|decreto|d\.?\s?f\.?\s?l\.?|d\.?\s?l\.?)\s*(?:n[°º.]*\s*)?(?P<num>\d[\d.]*\d|\d)',
+    re.IGNORECASE)
+_SIN_TILDE = str.maketrans('áéíóúÁÉÍÓÚ', 'aeiouAEIOU')
+
+
+def _cuerpo(m):
+    """(clave normalizada, texto tal como aparece) de un cuerpo legal nombrado."""
+    if m.group('cod'):
+        palabra = m.group('cod').lower().translate(_SIN_TILDE)
+        fin = m.end('cod')
+        if palabra in ('procedimiento', 'procesal') and m.group('cod2'):
+            palabra += ' ' + m.group('cod2').lower().translate(_SIN_TILDE)
+            fin = m.end('cod2')
+        return 'codigo ' + palabra, m.string[m.start():fin]
+    if m.group('const'):
+        return 'constitucion', m.group(0)
+    tipo = re.sub(r'[\s.]', '', m.group('tipo').lower())
+    return f"{tipo} {m.group('num').replace('.', '')}", m.group(0)
+
+
+def _cuerpos_en_conflicto(cita_raw: str):
+    """(antes, después) si la cita nombra dos cuerpos distintos; si no, None."""
+    marcas = list(_MARCA_ARTICULO.finditer(cita_raw or ''))
+    if not marcas:
+        return None
+    antes = cita_raw[:marcas[-1].start()]
+    despues = cita_raw[marcas[-1].end():]
+    numero = _HASTA_NUMERO.match(despues)
+    if numero:
+        despues = despues[numero.end():]
+    previos = [_cuerpo(m) for m in _CUERPO_EN_TEXTO.finditer(antes)]
+    siguientes = [_cuerpo(m) for m in _CUERPO_EN_TEXTO.finditer(despues)]
+    if previos and siguientes and previos[-1][0] != siguientes[0][0]:
+        return previos[-1][1], siguientes[0][1]
+    return None
+
+
+_MSG_CUERPOS = ('Hay citas cuyo texto nombra dos cuerpos legales distintos, por ejemplo porque la '
+                'línea anterior no termina en punto: Diké no las certifica. Separa cada cita con '
+                'un punto o en su propio párrafo y vuelve a verificar.')
+
+
+def _degradar_cuerpos_en_conflicto(c):
+    """Degrade VERIFICADA details whose text names two different legal bodies."""
+    if c['veredicto'] not in ('TODAS_VERIFICADAS', 'CON_PROBLEMAS'):
+        return c
+    degradadas = 0
+    for detail in c['detalles']:
+        if detail.get('estado') != 'VERIFICADA':
+            continue
+        conflicto = _cuerpos_en_conflicto(detail.get('cita_raw', ''))
+        if not conflicto:
+            continue
+        descartado = detail.get('gid')
+        detail.update({
+            'estado': 'FALLO', 'resolucion': 'AMBIGUOUS', 'gid': None, 'cuerpo': None,
+            'texto_hash': None, 'fuente_url': '', 'fecha_recuperacion': '',
+            'vigencia': 'DESCONOCIDO', 'vigencia_legible': 'vigencia desconocida',
+            'estado_texto_historico': 'EVIDENCE_UNAVAILABLE',
+            'motivo_adaptador': (f'La cita nombra «{conflicto[0]}» antes del artículo y '
+                                 f'«{conflicto[1]}» después; el motor la resolvió como '
+                                 f'{descartado}. No se certifica.'),
+        })
+        degradadas += 1
+    if not degradadas:
+        return c
+    meta = c['meta']
+    meta['citas_verificadas'] -= degradadas
+    meta['citas_fallidas'] += degradadas
+    c['veredicto'] = 'CON_PROBLEMAS'
+    c['problemas'] = [*c['problemas'], _MSG_CUERPOS]
+    vigentes = {str(d['gid']).rsplit(':', 1)[-1] for d in c['detalles'] if d.get('estado') == 'VERIFICADA'}
+    disclosure = c['citation_disclosure']
+    if isinstance(disclosure.get('verificadas'), list):
+        disclosure['verificadas'] = [t for t in disclosure['verificadas'] if t in vigentes]
+    return c
+
+
 _CTX = None
 
 
@@ -512,6 +602,7 @@ def verificar_citas(args: dict, **kwargs) -> str:
         except json.JSONDecodeError as exc:
             return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
                               _error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
+        c = _degradar_cuerpos_en_conflicto(c)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
         return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)

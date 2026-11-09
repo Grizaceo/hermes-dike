@@ -126,6 +126,32 @@ def test_mismo_cuerpo_en_dos_lineas_sigue_verificada(m):
     assert 'motivo_adaptador' not in out['detalles'][0]
 
 
+def _sin_citas(no_verificadas):
+    return {
+        'veredicto': 'SIN_CITAS', 'detalles': [], 'mensaje': 'sin citas',
+        'citation_disclosure': {'verificadas': [], 'no_verificadas': no_verificadas, 'advertencias': []},
+        'meta': {'as_of': '2026-11-09', 'fecha_constancia': '2026-11-09T15:00:00+00:00',
+                 'pack_hash': 'af1422d66d1e6eee'},
+    }
+
+
+def test_mencion_enorme_no_vuelve_entera(m):
+    """«Ley » + 399.996 dígitos volvía entera, dos veces: 801.650 bytes de JSON."""
+    out = m._salida_publica(_sin_citas(['Ley ' + '1' * 399996]))
+    crudo = json.dumps(out, ensure_ascii=False)
+    assert len(crudo.encode('utf-8')) < 5000
+    assert out['no_verificadas'][0].endswith('caracteres]')
+    assert out['citation_disclosure']['no_verificadas'] == out['no_verificadas']
+    assert out['todo_verificado'] is False
+
+
+def test_muchas_menciones_se_resumen(m):
+    out = m._salida_publica(_sin_citas([f'Ley {n}' for n in range(1000)]))
+    assert len(out['no_verificadas']) == 201
+    assert out['no_verificadas'][-1] == '… y 800 más'
+    assert out['todo_verificado'] is False
+
+
 def test_degradar_quita_el_articulo_de_la_lista_de_verificadas(m):
     c = _constancia([_verificada('Código del Trabajo\nartículo 161 del Código Civil', 'cl.norma.ct:art:0161')])
     out = m._salida_publica(m._degradar_cuerpos_en_conflicto(c))

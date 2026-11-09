@@ -543,6 +543,24 @@ def _texto_input(args):
     return value
 
 
+_LIMITE_MENCION = 300
+_LIMITE_PROBLEMA = 1000
+_LIMITE_MENCIONES = 200
+
+
+def _acotar(lista, largo):
+    """Recorta strings reflejados del escrito: una mención de 400 KB volvía entera,
+    dos veces, al contexto del modelo. Solo se recorta lo que se muestra, nunca
+    cita_raw, que la interfaz busca tal cual en el texto."""
+    if not isinstance(lista, list):
+        return lista
+    out = [v[:largo] + f'… [+{len(v) - largo} caracteres]' if isinstance(v, str) and len(v) > largo else v
+           for v in lista[:_LIMITE_MENCIONES]]
+    if len(lista) > _LIMITE_MENCIONES:
+        out.append(f'… y {len(lista) - _LIMITE_MENCIONES} más')
+    return out
+
+
 def _salida_publica(c):
     """Distinguish engine evidence, detected citations and unverified mentions."""
     no_verificadas = c['citation_disclosure']['no_verificadas']
@@ -570,7 +588,7 @@ def _salida_publica(c):
         'todo_verificado': detected_verified and not no_verificadas,
         'certificacion_sustantiva': False,
         'certificacion_vigencia_actual': False,
-        'no_verificadas': no_verificadas,
+        'no_verificadas': _acotar(no_verificadas, _LIMITE_MENCION),
         'evidencia_temporal': temporal,
         'efectos_de_ejecucion': ['archivos temporales', 'instalación y uso del corpus local', 'cachés del motor'],
         'meta': {k: c['meta'][k] for k in ('origen', 'as_of', 'fecha_constancia', 'pack_hash',
@@ -578,6 +596,10 @@ def _salida_publica(c):
     })
     out['meta']['documento'] = 'escrito'
     out['meta']['certificacion_vigencia_actual'] = False
+    out['citation_disclosure'] = {**out['citation_disclosure'],
+                                  'no_verificadas': _acotar(no_verificadas, _LIMITE_MENCION)}
+    if 'problemas' in out:
+        out['problemas'] = _acotar(out['problemas'], _LIMITE_PROBLEMA)
     # Redact local filesystem locators in messages, including missing-corpus reasons.
     def clean(value):
         if isinstance(value, dict): return {k: clean(v) for k, v in value.items()}

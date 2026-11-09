@@ -64,6 +64,11 @@ _MSG_INPUT_TOO_LARGE = "El texto o el archivo supera el límite: 400.000 bytes d
 _MSG_INPUT_ENCODING = "El archivo no está en UTF-8."
 _MSG_INPUT_RELATIVE = "Usa una ruta absoluta: esta sesión no informa su carpeta de trabajo."
 _MSG_INPUT_DOCX = "No se pudo leer el .docx: puede estar dañado o protegido."
+_MSG_INPUT_CONTROL = ("El texto trae caracteres de control invisibles (por ejemplo NUL), que pueden cambiar "
+                      "el número de una cita: quítalos y vuelve a intentarlo.")
+_MSG_INPUT_UNICODE = "El texto trae caracteres Unicode inválidos (sustitutos sueltos): cópialo de nuevo desde el original."
+# Controles C0 y DEL, salvo tabulador, saltos de línea, tabulador vertical y salto de página.
+_CONTROLES = re.compile(r'[\x00-\x08\x0e-\x1f\x7f]')
 _DOC_SUFFIXES = {'.pdf', '.doc', '.rtf', '.odt', '.html', '.htm'}
 
 ESQUEMA = {
@@ -526,8 +531,15 @@ def _texto_input(args):
             raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_ENCODING) from None
     if not value.strip():
         raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
-    if len(value.encode('utf-8')) > _LIMITE_TEXTO:
+    try:
+        tamano = len(value.encode('utf-8'))
+    except UnicodeEncodeError:
+        raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_UNICODE) from None
+    if tamano > _LIMITE_TEXTO:
         raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
+    # Un NUL dentro de «16\x001» hacía que el motor certificara el artículo 16.
+    if _CONTROLES.search(value):
+        raise EntradaInvalida('INPUT_CONTROL', _MSG_INPUT_CONTROL)
     return value
 
 

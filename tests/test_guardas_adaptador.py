@@ -13,11 +13,47 @@ ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope='module')
-def m():
+def m(tmp_path_factory):
     spec = importlib.util.spec_from_file_location('dike_guardas', ROOT / '__init__.py')
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    datos = tmp_path_factory.mktemp('guardas-data')
+    mod._carpeta_de_datos = lambda: datos  # nunca la carpeta de datos real
     return mod
+
+
+def _motivo(m, args):
+    with pytest.raises(m.EntradaInvalida) as info:
+        m._texto_input(args)
+    return info.value.codigo
+
+
+@pytest.mark.parametrize('texto', [
+    'artículo 16\x001 del Código del Trabajo',
+    'artículo 161\x01 del Código del Trabajo',
+    'artículo 161 del Código\x1b del Trabajo',
+    'artículo 161 del Código del Trabajo\x7f',
+])
+def test_controles_invisibles_se_rechazan(m, texto):
+    """«artículo 16\\x001» se veía como 161 y el motor certificaba el 16."""
+    assert _motivo(m, {'texto': texto}) == 'INPUT_CONTROL'
+
+
+def test_controles_en_archivo_se_rechazan(m, tmp_path):
+    archivo = tmp_path / 'escrito.md'
+    archivo.write_bytes('artículo 16\x001 del Código del Trabajo'.encode('utf-8'))
+    assert _motivo(m, {'ruta': str(archivo)}) == 'INPUT_CONTROL'
+
+
+def test_espacios_y_saltos_siguen_aceptados(m):
+    texto = 'artículo 161\tdel Código del Trabajo\r\n\x0bart. 162\x0cdel Código del Trabajo'
+    assert m._texto_input({'texto': texto}) == texto
+
+
+def test_sustituto_suelto_es_error_de_codificacion(m):
+    assert _motivo(m, {'texto': 'artículo \ud800 del Código del Trabajo'}) == 'INPUT_ENCODING'
+    salida = json.loads(m.verificar_citas({'texto': 'artículo \ud800 del Código del Trabajo'}))
+    assert salida['error_code'] == 'INPUT_ERROR' and salida['motivo'] == 'INPUT_ENCODING'
 
 
 def _verificada(cita_raw, gid):

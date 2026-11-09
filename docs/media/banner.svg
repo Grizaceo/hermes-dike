@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
+  <rect width="1200" height="600" fill="#0f1115"/>
+  <rect x="0" y="0" width="1200" height="6" fill="#c9a227"/>
+
+  <g font-family="DejaVu Sans, Liberation Sans, sans-serif" fill="#e8e6e1">
+    <text x="64" y="128" font-size="64" font-weight="bold">Diké <tspan fill="#8a8f98" font-weight="normal">for Hermes</tspan></text>
+    <text x="64" y="188" font-size="27" fill="#c7c4bd">Checks the article citations in a Chilean legal brief</text>
+    <text x="64" y="226" font-size="27" fill="#c7c4bd">against a sealed local copy of the law,</text>
+    <text x="64" y="264" font-size="27" fill="#c9a227">and refuses to certify what it cannot prove.</text>
+
+    <text x="64" y="488" font-size="20" fill="#8a8f98">25 Chilean statutes · offline after install</text>
+    <text x="64" y="520" font-size="20" fill="#8a8f98">One Hermes tool, one slash command</text>
+    <text x="64" y="552" font-size="20" fill="#8a8f98">github.com/Grizaceo/hermes-dike</text>
+  </g>
+
+  <g font-family="JetBrainsMono Nerd Font, DejaVu Sans Mono, monospace" font-size="21" xml:space="preserve">
+    <rect x="700" y="312" width="436" height="252" rx="10" fill="#171a21" stroke="#2a2f3a"/>
+    <text x="724" y="348" fill="#8a8f98">escrito_demo.md · 4/6 verified</text>
+    <text x="724" y="384" fill="#7fb77e">✓ art. 161  Código del Trabajo</text>
+    <text x="724" y="412" fill="#7fb77e">✓ art. 162  Código del Trabajo</text>
+    <text x="724" y="440" fill="#7fb77e">✓ art. 163  Código del Trabajo</text>
+    <text x="724" y="468" fill="#7fb77e">✓ art. 168  Código del Trabajo</text>
+    <text x="724" y="510" fill="#e5735f" font-weight="bold">✗ art. 60    AMBIGUOUS</text>
+    <text x="724" y="540" fill="#e5735f" font-weight="bold">✗ art. 9999  UNRESOLVABLE</text>
+  </g>
+</svg>

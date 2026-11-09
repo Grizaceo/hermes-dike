@@ -27,6 +27,7 @@ def hooks():
 def sesiones(hooks, monkeypatch, tmp_path):
     """Sesiones marcadas aisladas + auditoría en HERMES_HOME temporal."""
     hooks._sesiones_marcadas.clear()
+    getattr(hooks, '_sesiones_instruidas', set()).clear()
     hooks._cache_instrucciones[0] = None
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     return tmp_path
@@ -51,12 +52,48 @@ def test_primer_turno_inyecta_instrucciones(hooks, sesiones):
 
 
 def test_turno_posterior_recordatorio(hooks, sesiones):
-    # la sesión ya está marcada (turno previo) → recordatorio, no instrucciones
-    hooks._marcar('s9')
+    # el turno previo ya inyectó las instrucciones → recordatorio, no instrucciones
+    hooks.pre_llm_call(platform='dike-escritor', session_id='s9', is_first_turn=True)
     out = hooks.pre_llm_call(platform='dike-escritor', session_id='s9',
                              is_first_turn=False)
     assert out == {'context': hooks.RECORDATORIO}
     assert 'VERIFICADA' in out['context']
+
+
+def test_ruta_bloqueada_en_sesion_marcada(hooks, sesiones):
+    """Con ruta, la herramienta leería un archivo local y su contenido volvería
+    al modelo sin seudonimizar: en el chat del escrito solo se acepta texto."""
+    hooks.pre_llm_call(platform='dike-escritor', session_id='s3', is_first_turn=True)
+    out = hooks.pre_tool_call(session_id='s3', tool_name='dike_verificar_citas',
+                              args={'ruta': '/home/alguien/otra-causa.md'})
+    assert out['action'] == 'block'
+    assert 'texto' in out['message'] and 'seudonimización' in out['message']
+    assert hooks.pre_tool_call(session_id='s3', tool_name='dike_verificar_citas',
+                               args={'texto': 'artículo 161 del Código del Trabajo'}) is None
+    # Otras sesiones siguen pudiendo pasar una ruta.
+    assert hooks.pre_tool_call(session_id='otra', tool_name='dike_verificar_citas',
+                               args={'ruta': '/tmp/escrito.md'}) is None
+
+
+def test_sin_instrucciones_bloquea_tambien_el_reintento(hooks, sesiones, monkeypatch):
+    """El primer intento se bloqueaba, pero el segundo recibía solo el recordatorio
+    y el modelo trabajaba sin haber recibido nunca las instrucciones."""
+    monkeypatch.setattr(Path, 'read_text',
+                        lambda self, **kw: (_ for _ in ()).throw(OSError('no')))
+    primero = hooks.pre_llm_call(platform='dike-escritor', session_id='s4', is_first_turn=True)
+    segundo = hooks.pre_llm_call(platform='dike-escritor', session_id='s4', is_first_turn=False)
+    assert primero['action'] == 'block'
+    assert segundo['action'] == 'block', segundo
+
+
+def test_descubrimiento_permitido_y_lote_bloqueado(hooks, sesiones):
+    """Con herramientas diferidas, el modelo necesita tool_search y tool_describe
+    para encontrar dike_verificar_citas; el resto sigue bloqueado."""
+    hooks.pre_llm_call(platform='dike-escritor', session_id='s6', is_first_turn=True)
+    for permitida in ('tool_search', 'tool_describe'):
+        assert hooks.pre_tool_call(session_id='s6', tool_name=permitida) is None
+    for bloqueada in ('tool_call', 'terminal', 'delegate_task', 'execute_code', 'read_file'):
+        assert hooks.pre_tool_call(session_id='s6', tool_name=bloqueada)['action'] == 'block'
 
 
 def test_sesion_marcada_bloquea_tools_no_permitidas(hooks, sesiones):

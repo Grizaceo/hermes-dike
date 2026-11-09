@@ -41,9 +41,14 @@ const ESTILOS_ESTADO_RESP = {
 const _leerCache = new Map()
 function leerArticulo(nodoId) {
   if (!_leerCache.has(nodoId)) {
-    _leerCache.set(nodoId, rest('/grafo/leer', {
+    const p = rest('/grafo/leer', {
       method: 'POST', body: { nodo_id: nodoId }, timeoutMs: 120000,
-    }).catch((e) => ({ __error: e })))
+    }).catch((e) => {
+      // Un error no se cachea: la próxima renderización reintenta la lectura.
+      _leerCache.delete(nodoId)
+      return { __error: e }
+    })
+    _leerCache.set(nodoId, p)
   }
   return _leerCache.get(nodoId)
 }
@@ -64,22 +69,27 @@ function textoParaNota(data, unidadId) {
 function NotaItem({ nota, verif, onAbrirGrafo }) {
   const [nodoOk, setNodoOk] = useState(null)   // null | true | false
   const [frag, setFrag] = useState(null)      // null | {ok, motivo}
+  const [leerMal, setLeerMal] = useState(false)   // la lectura /grafo/leer falló
+  const [leerRes, setLeerRes] = useState(null)    // resolucion no RESOLVED
   const [citaDet, setCitaDet] = useState(undefined) // undefined | detalle
   const nodoId = nota.nodo_id
 
   useEffect(() => {
     let vivo = true
-    setNodoOk(null); setFrag(null)
+    setNodoOk(null); setFrag(null); setLeerMal(false); setLeerRes(null)
     rest('/grafo/nodo?id=' + encodeURIComponent(nodoId))
       .then(() => { if (vivo) setNodoOk(true) })
       .catch(() => { if (vivo) setNodoOk(false) })
     leerArticulo(nodoId).then((data) => {
       if (!vivo) return
-      if (data && data.__error) { setFrag(null); return }
+      if (data && data.__error) { setLeerMal(true); setFrag(null); return }
+      if (!data || data.resolucion !== 'RESOLVED') {
+        setLeerRes((data && data.resolucion) || 'UNRESOLVABLE'); setFrag(null); return
+      }
       const texto = textoParaNota(data, nota.unidad_id)
       setFrag(texto == null ? { ok: false, motivo: 'ausente' }
         : fragmentoEn(nota.fragmento, texto))
-    }).catch(() => { if (vivo) setFrag(null) })
+    }).catch(() => { if (vivo) { setLeerMal(true); setFrag(null) } })
     return () => { vivo = false }
   }, [nodoId, nota.unidad_id, nota.fragmento])
 
@@ -89,8 +99,10 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
     setCitaDet(c ? detalles.find((d) => (d.cita_raw || '').trim() === c) : undefined)
   }, [nota.cita, verif])
 
-  const nodoInexistente = nodoOk === false
-  const fragTexto = frag == null ? 'comprobando fragmento…'
+  const nodoInexistente = nodoOk === false || leerRes != null
+  const fragTexto = leerMal ? 'No se pudo leer el artículo'
+    : leerRes != null ? 'Nodo inexistente'
+    : frag == null ? 'comprobando fragmento…'
     : frag.ok ? 'Fragmento encontrado en el artículo'
     : 'El fragmento no está en ese artículo' +
       (frag.motivo === 'corto' ? ' (muy corto para comparar)'

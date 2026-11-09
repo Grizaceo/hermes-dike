@@ -12,7 +12,7 @@ import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import { neutralizar } from './chat-logica.js'
 import {
   componerInputNif, extraerJSON, formaValida, hashPropuesta,
-  rehidratarProfundo, validarLote,
+  rehidratarProfundo, validarLote, validarPropuesta,
 } from './nif-propuestas-logica.js'
 import PROMPT_NIF from '../../../escritor/nif_propuestas.md'
 

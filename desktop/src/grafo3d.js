@@ -574,7 +574,7 @@ function TextoArticulo({ foco }) {
     const rango = rangoFragmento(texto, foco.fragmento)
     if (rango) marcas.push({ ini: rango[0], fin: rango[1], cls: 'frag' })
   }
-  const segmentos = _segmentes(texto, marcas)
+  const segmentos = _segmentos(texto, marcas)
   const etiquetaUnidad = unidad ? unidad.etiqueta : null
 
   return jsxs('div', { className: 'flex flex-col gap-1.5', children: [

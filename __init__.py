@@ -1018,7 +1018,10 @@ def _mapa_nodos(datos: Path):
                     pass
         except Exception:
             mapa = None
-    _NODOS_MEM[PACK_HASH] = mapa
+    # Solo se memoiza un índice válido: un fallo transitorio no debe apagar
+    # nodo_id para el resto del proceso — el próximo intento reintenta.
+    if mapa is not None:
+        _NODOS_MEM[PACK_HASH] = mapa
     return mapa
 
 

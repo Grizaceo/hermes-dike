@@ -149,3 +149,23 @@ def test_enriquecimiento_no_cambia_veredicto_ni_conteos(real):
     # y el conteo/veredicto no se movió
     assert con['veredicto'] == sin['veredicto']
     assert con['meta']['citas_verificadas'] == sin['meta']['citas_verificadas']
+
+
+def test_mapa_nodos_reintenta_tras_fallo_transitorio(real, monkeypatch, tmp_path):
+    """Un primer build que falla NO memoiza None: el siguiente lo reintenta."""
+    datos = real._carpeta_de_datos().resolve()
+    cache = datos / 'cache' / f'nodos_v1_{real.PACK_HASH}.json'
+    real._NODOS_MEM.clear()
+    if cache.exists():
+        cache.unlink()
+    # primera llamada: el panel falla → None y NO queda cacheado en memoria
+    def falla(*a, **k):
+        raise RuntimeError('panel caído')
+    monkeypatch.setattr(real, '_panel_json', falla)
+    assert real._mapa_nodos(datos) is None
+    assert real.PACK_HASH not in real._NODOS_MEM
+    # segunda llamada: panel sano → índice y ahora sí memoizado
+    monkeypatch.undo()
+    mapa = real._mapa_nodos(datos)
+    assert isinstance(mapa, dict) and mapa
+    assert real._NODOS_MEM.get(real.PACK_HASH) == mapa

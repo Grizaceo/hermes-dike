@@ -23993,11 +23993,15 @@ var ESTILOS_ESTADO_RESP = {
 var _leerCache = /* @__PURE__ */ new Map();
 function leerArticulo(nodoId) {
   if (!_leerCache.has(nodoId)) {
-    _leerCache.set(nodoId, rest("/grafo/leer", {
+    const p2 = rest("/grafo/leer", {
       method: "POST",
       body: { nodo_id: nodoId },
       timeoutMs: 12e4
-    }).catch((e3) => ({ __error: e3 })));
+    }).catch((e3) => {
+      _leerCache.delete(nodoId);
+      return { __error: e3 };
+    });
+    _leerCache.set(nodoId, p2);
   }
   return _leerCache.get(nodoId);
 }
@@ -24012,12 +24016,16 @@ function textoParaNota(data, unidadId) {
 function NotaItem({ nota, verif, onAbrirGrafo }) {
   const [nodoOk, setNodoOk] = useState2(null);
   const [frag, setFrag] = useState2(null);
+  const [leerMal, setLeerMal] = useState2(false);
+  const [leerRes, setLeerRes] = useState2(null);
   const [citaDet, setCitaDet] = useState2(void 0);
   const nodoId = nota.nodo_id;
   useEffect2(() => {
     let vivo = true;
     setNodoOk(null);
     setFrag(null);
+    setLeerMal(false);
+    setLeerRes(null);
     rest("/grafo/nodo?id=" + encodeURIComponent(nodoId)).then(() => {
       if (vivo) setNodoOk(true);
     }).catch(() => {
@@ -24026,13 +24034,22 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
     leerArticulo(nodoId).then((data) => {
       if (!vivo) return;
       if (data && data.__error) {
+        setLeerMal(true);
+        setFrag(null);
+        return;
+      }
+      if (!data || data.resolucion !== "RESOLVED") {
+        setLeerRes(data && data.resolucion || "UNRESOLVABLE");
         setFrag(null);
         return;
       }
       const texto = textoParaNota(data, nota.unidad_id);
       setFrag(texto == null ? { ok: false, motivo: "ausente" } : fragmentoEn(nota.fragmento, texto));
     }).catch(() => {
-      if (vivo) setFrag(null);
+      if (vivo) {
+        setLeerMal(true);
+        setFrag(null);
+      }
     });
     return () => {
       vivo = false;
@@ -24043,8 +24060,8 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
     const c4 = (nota.cita || "").trim();
     setCitaDet(c4 ? detalles.find((d2) => (d2.cita_raw || "").trim() === c4) : void 0);
   }, [nota.cita, verif]);
-  const nodoInexistente = nodoOk === false;
-  const fragTexto = frag == null ? "comprobando fragmento\u2026" : frag.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (frag.motivo === "corto" ? " (muy corto para comparar)" : frag.motivo === "largo" ? " (demasiado largo)" : "");
+  const nodoInexistente = nodoOk === false || leerRes != null;
+  const fragTexto = leerMal ? "No se pudo leer el art\xEDculo" : leerRes != null ? "Nodo inexistente" : frag == null ? "comprobando fragmento\u2026" : frag.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (frag.motivo === "corto" ? " (muy corto para comparar)" : frag.motivo === "largo" ? " (demasiado largo)" : "");
   const abrir = () => onAbrirGrafo && onAbrirGrafo({
     nodo_id: nodoId,
     unidad_id: nota.unidad_id,
@@ -24619,7 +24636,7 @@ function textoExistente(fieldPath, item) {
 function hashPropuesta(p2) {
   return p2.field_path + "|" + normalizar(JSON.stringify(p2.value)) + "|" + normalizar(p2.cita_del_escrito);
 }
-function validarPropuesta2(p2, { textoEnviado, nifActual, rechazadas } = {}) {
+function validarPropuesta(p2, { textoEnviado, nifActual, rechazadas } = {}) {
   if (!p2 || typeof p2 !== "object") return { ok: false, motivo: "propuesta inv\xE1lida" };
   const fp = p2.field_path;
   if (!SECCIONES.includes(fp)) {
@@ -24658,7 +24675,7 @@ function validarLote(lista, ctx) {
   const aceptadas = [];
   const descartadas = [];
   for (const p2 of lista || []) {
-    const v2 = aceptadas.length >= MAX_PROPUESTAS ? { ok: false, motivo: "m\xE1ximo " + MAX_PROPUESTAS + " propuestas" } : validarPropuesta2(p2, ctx);
+    const v2 = aceptadas.length >= MAX_PROPUESTAS ? { ok: false, motivo: "m\xE1ximo " + MAX_PROPUESTAS + " propuestas" } : validarPropuesta(p2, ctx);
     (v2.ok ? aceptadas : descartadas).push({ ...p2, motivo: v2.motivo });
   }
   return { aceptadas, descartadas };
@@ -107986,6 +108003,24 @@ function ListaCorpus() {
   if (!pack) return jsx6("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
   return jsx6("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx6(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
+function _segmentos(texto, marcas) {
+  const puntos = /* @__PURE__ */ new Set([0, texto.length]);
+  for (const m3 of marcas) {
+    puntos.add(m3.ini);
+    puntos.add(m3.fin);
+  }
+  const orden = [...puntos].sort((a3, b2) => a3 - b2);
+  const out = [];
+  for (let i3 = 0; i3 < orden.length - 1; i3 += 1) {
+    const a3 = orden[i3];
+    const b2 = orden[i3 + 1];
+    if (a3 >= b2) continue;
+    const en = marcas.filter((m3) => m3.ini <= a3 && a3 < m3.fin);
+    const cls = en.some((m3) => m3.cls === "frag") ? "frag" : en.length ? "unit" : "";
+    out.push({ texto: texto.slice(a3, b2), cls });
+  }
+  return out;
+}
 function TextoArticulo({ foco: foco2 }) {
   const [data, setData] = useState6(null);
   const [error2, setError] = useState6(null);
@@ -108031,7 +108066,7 @@ function TextoArticulo({ foco: foco2 }) {
     const rango = rangoFragmento(texto, foco2.fragmento);
     if (rango) marcas.push({ ini: rango[0], fin: rango[1], cls: "frag" });
   }
-  const segmentos = _segmentes(texto, marcas);
+  const segmentos = _segmentos(texto, marcas);
   const etiquetaUnidad = unidad ? unidad.etiqueta : null;
   return jsxs6("div", { className: "flex flex-col gap-1.5", children: [
     jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [

@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of case-writer.md sha256=812515a6e0feba205f018ff135f94dcb0d6148f7a94d5e82f8627d67f92b509c -->
+<!-- vitrina:translation-of case-writer.md sha256=dfdc2c9b299e1bdb33bac8b0b2d7567156d95fbf8be210d9e6453bd9d622cda9 -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
@@ -44,3 +44,27 @@
   frases procesales deterministas, continuaciones literales desde el corpus
   y, solo con tu opt-in, una continuación del modelo que se seudonimiza si
   saldría del equipo.
+
+## Planeado: un solo contrato de recuperación para búsqueda y predicción
+
+No está implementado. Fija la forma para que un recuperador posterior se
+pueda enchufar sin tocar la interfaz ni el verificador.
+
+- **El contrato es la respuesta actual de `/grafo/buscar`.** Un recuperador
+  recibe una consulta y un límite, y devuelve `rotulo`, `metodo` (`motor`,
+  `determinista`, `modelo`) y `resultados` con `nodo_id`, `gid`, `score`,
+  `score_rel`, `canal`, `cita`, `vigencia` y `materias`. Todo recuperador
+  nuevo devuelve esa misma forma, con `metodo.modelo` nombrando su modelo, y
+  aparece como una fuente `local_only` aparte. Nunca reemplaza en silencio
+  al BM25.
+- **Regla de admisión.** Un recuperador con modelo, como el índice denso e5
+  de IndexO, entra solo si supera el recall@10 del BM25 en un goldset
+  aparte. `normas_qrels_v1` no cuenta: está dentro de la muestra del BM25.
+  Medido el 2026-11-08 con esa suite, el índice e5 solo llegó a 0,032
+  frente a 0,952 del BM25, y todas las fusiones probadas dieron menos. No
+  se admite.
+- **La predicción lo reutiliza.** Las capas de corpus del predictor (L3/L4)
+  pueden llamar al mismo contrato con el párrafo actual como consulta. Cada
+  sugerencia lleva `procedencia: {tipo: 'busqueda', gid, motor}` y nunca se
+  marca verificada. Una cita que inserte pasa por el verificador como una
+  traída desde la búsqueda. La consulta nunca sale del equipo.

@@ -42,3 +42,26 @@
   deterministic procedural phrases, literal continuations from the corpus,
   and, only with your opt-in, a model completion that is pseudonymized when
   it would leave the machine.
+
+## Planned: one retrieval contract for search and prediction
+
+Not implemented. This fixes the shape so a later retriever can plug in
+without touching the UI or the verifier.
+
+- **The contract is today's `/grafo/buscar` response.** A retriever takes a
+  query and a limit and returns `rotulo`, `metodo` (`motor`, `determinista`,
+  `modelo`), and `resultados` with `nodo_id`, `gid`, `score`, `score_rel`,
+  `canal`, `cita`, `vigencia` and `materias`. Any new retriever returns that
+  same shape, with `metodo.modelo` naming its model, and shows up as a
+  separate `local_only` source. It never replaces the BM25 one silently.
+- **Admission rule.** A model-based retriever, such as IndexO's e5 dense
+  index, enters only if it beats BM25 recall@10 on a held-out goldset.
+  `normas_qrels_v1` does not count: it is in-sample for BM25. Measured on
+  2026-11-08 against that suite, the e5 index alone reached 0.032 against
+  0.952 for BM25, and every fusion we tried scored lower. It is not
+  admitted.
+- **Prediction reuses it.** The predictor's corpus layers (L3/L4) may call
+  the same contract with the current paragraph as the query. Each
+  suggestion carries `procedencia: {tipo: 'busqueda', gid, motor}` and is
+  never marked verified. A citation it inserts goes through the verifier
+  like one carried over from search. The query never leaves the machine.

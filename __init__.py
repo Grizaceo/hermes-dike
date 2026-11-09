@@ -644,6 +644,8 @@ def verificar_citas(args: dict, **kwargs) -> str:
 
 def _error_docx(stderr: str):
     """Classify an engine-side .docx read failure by fixed markers; never forward stderr."""
+    # El motor imprime con rich, que corta las líneas a 80 columnas.
+    stderr = ' '.join((stderr or '').split())
     if 'ModuleNotFoundError' in stderr or 'falta la librería python-docx' in stderr:
         return {'error': 'ENGINE_EXIT_ERROR: Falta una dependencia del motor en el entorno de ejecución.',
                 'error_code': 'ENGINE_EXIT_ERROR', 'todo_verificado': False}

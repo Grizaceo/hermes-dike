@@ -104,10 +104,18 @@ def test_docx_too_large(native, tmp_path):
 
 
 def test_docx_corrupt(real, tmp_path):
+    """Un .docx dañado nunca certifica. Con python-docx, que Hermes instala desde
+    plugin.yaml, es INPUT_DOCX; en un entorno sin él, el motor dice que falta
+    la dependencia. Las dos salidas son correctas; el test no depende del venv."""
     p = tmp_path / 'roto.docx'
     p.write_bytes(b'no es un zip ni un docx')
     out = json.loads(real.verificar_citas({'ruta': str(p)}))
-    assert out['error_code'] == 'INPUT_ERROR' and out['motivo'] == 'INPUT_DOCX'
+    assert out['todo_verificado'] is False
+    if importlib.util.find_spec('docx') is not None:
+        assert out['error_code'] == 'INPUT_ERROR' and out['motivo'] == 'INPUT_DOCX'
+    else:
+        assert out['error_code'] == 'ENGINE_EXIT_ERROR', out
+        assert 'dependencia' in out['error']
 
 
 def _docx_error(native, tmp_path, stderr, returncode=2):
@@ -124,6 +132,16 @@ def test_docx_missing_dep_is_engine_error(native, tmp_path):
     assert out['error_code'] == 'ENGINE_EXIT_ERROR'
     assert 'Falta una dependencia del motor' in out['error']
     assert 'motivo' not in out
+
+
+def test_docx_missing_dep_with_wrapped_line(native, tmp_path):
+    """El motor imprime con rich, que corta a 80 columnas: «librería \\npython-docx».
+    La salida real (código 1, stdout vacío) caía en «no produjo JSON válido»."""
+    out = _docx_error(native, tmp_path,
+                      "ERROR: No puedo abrir documentos Word (.docx) en este equipo: falta la librería \n"
+                      "python-docx.\n  O instálala con: pip install python-docx\n", returncode=1)
+    assert out['error_code'] == 'ENGINE_EXIT_ERROR'
+    assert 'Falta una dependencia del motor' in out['error']
 
 
 def test_docx_package_not_found_is_input_docx(native, tmp_path):

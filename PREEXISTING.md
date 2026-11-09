@@ -115,6 +115,14 @@ Changes to the adapter's code during the hackathon:
   files through the tool, never runs a turn without its instructions, and
   can find the tool when it is deferred; plus the README, these documents
   and `claims.json`. The engine is unchanged.
+- On the `agent/devin/grafo-sandbox-terceros` branch, toward 0.9.0: the
+  engine and panel run inside bubblewrap with a declared degraded mode; the
+  chat picks its profile from `perfil_chat` or the active profile (no
+  hardcoded default); `.docx` is read with the standard library only; the
+  chat's article claims carry footnotes that open the exact graph node; two
+  read-only corpus tools (`dike_leer_articulo`, `dike_buscar_corpus`) were
+  added; and corpus relocation self-heals by re-hash. All engine code stays
+  vendored and hash-locked.
 
 ## Ported from earlier projects
 

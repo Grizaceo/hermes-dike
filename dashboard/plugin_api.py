@@ -75,7 +75,17 @@ def estado():
         if len(partes) >= 2:
             esperado = partes[0]
     generacion = datos / "generations" / esperado if esperado else None
-    instalado = bool(generacion and generacion.is_dir())
+    # Una carpeta con el nombre esperado no basta: la instalación se publica
+    # con installed.json, que registra el paquete y los archivos instalados.
+    # No recalcula hashes; eso lo hace cada verificación.
+    instalado = False
+    if generacion and generacion.is_dir():
+        try:
+            registro = json.loads((generacion / "installed.json").read_text(encoding="utf-8"))
+            instalado = (isinstance(registro, dict) and registro.get("package_sha256") == esperado
+                         and isinstance(registro.get("files"), dict) and bool(registro["files"]))
+        except (OSError, ValueError):
+            instalado = False
     return {
         "pack_hash": mod.PACK_HASH,
         "corpus_instalado": instalado,

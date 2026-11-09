@@ -369,6 +369,21 @@ def test_estado_sin_efectos_secundarios(api, monkeypatch, tmp_path):
     assert not (tmp_path / 'plugin-data' / 'dike' / 'generations').exists()
 
 
+def test_estado_no_da_por_instalada_una_carpeta_vacia(api, monkeypatch, tmp_path):
+    """Una carpeta con el hash esperado pero sin installed.json no es un corpus
+    instalado: /estado decía corpus_instalado=True y /verificar daba IO_ERROR."""
+    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    esperado = (ROOT / 'corpus' / 'SHA256SUMS').read_text().split()[0]
+    generacion = tmp_path / 'plugin-data' / 'dike' / 'generations' / esperado
+    generacion.mkdir(parents=True)
+    assert api.estado()['corpus_instalado'] is False
+    (generacion / 'installed.json').write_text(json.dumps({'package_sha256': 'otro', 'files': {'a': 'b'}}))
+    assert api.estado()['corpus_instalado'] is False
+    (generacion / 'installed.json').write_text(json.dumps({'package_sha256': esperado, 'files': {'a': 'b'}}))
+    out = api.estado()
+    assert out['corpus_instalado'] is True and out['generation'] == esperado
+
+
 def test_estado_campos(api, monkeypatch, tmp_path):
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     out = api.estado()

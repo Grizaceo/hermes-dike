@@ -66,9 +66,13 @@ careful. It cannot:
 
 ### The citation check
 
-1. The agent gets one tool, `dike_verificar_citas`. It takes `texto` (the
-   text) or `ruta` (a `.md`, `.txt` or `.docx` file). `/dike-verificar` runs
-   the same check on the text after the command, without a model.
+1. The agent gets three tools. `dike_verificar_citas` takes `texto` (the
+   text) or `ruta` (a `.md`, `.txt` or `.docx` file); `/dike-verificar` runs
+   the same check on the text after the command, without a model. Two
+   read-only companions serve the corpus: `dike_leer_articulo` returns one
+   article's text and normative units, and `dike_buscar_corpus` runs a
+   deterministic lexical search whose hits are leads, never verified
+   citations.
 2. The plugin runs the engine as a subprocess with a minimal environment, with
    no agent credentials and a home folder inside the plugin's data. The engine
    finds each article citation and resolves it against the corpus: identity,
@@ -102,8 +106,10 @@ Three tabs on the same engine, through the plugin's backend at
   see and control replaces personal data with stable tokens. A chat about the
   brief runs in your own Hermes gateway; two plugin hooks give it fixed
   instructions and block every tool except skills, tool discovery and the
-  citation check, which there accepts text only. See
-  [docs/case-writer.md](docs/case-writer.md).
+  citation check, which there accepts text only. Claims the chat makes about
+  articles carry footnotes that open the exact graph node so you can check the
+  text; whether an article is relevant is the model's reading and your call.
+  See [docs/case-writer.md](docs/case-writer.md).
 - **Corpus graph.** A read-only 3D map of the statutes, their articles and
   their minimal normative units, each with a candidate label (obligation,
   prohibition, permission…) from regex rules, plus a deterministic BM25

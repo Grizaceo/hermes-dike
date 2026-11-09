@@ -65,9 +65,14 @@ for the catalog review and for anyone deciding whether to install it.
 - The text you pass in `texto`, or the file you name in `ruta`. Regular
   `.md` and `.txt` files are accepted up to 400,000 UTF-8 bytes (the same
   limit applies to `texto`); `.docx` files are accepted up to 10 MB, copied
-  into the per-call temporary folder and read by the engine in the
-  subprocess through `agent_invoker.resolve_document` (python-docx). No file
-  is ever read through a symbolic link. A relative `ruta` resolves against
+  into the per-call temporary folder and read by the adapter in the plugin
+  process with the standard library (`zipfile` + `xml.etree.ElementTree` —
+  no `python-docx`). That reader accepts at most 2,000 zip entries, a
+  `word/document.xml` member declared under 20 MB with a compression ratio
+  under 100, rejects XML carrying `<!DOCTYPE` or `<!ENTITY`, and reads the
+  member with a bounded read; it mirrors the engine's `python-docx` output on
+  ordinary documents and refuses pathological ones with `INPUT_DOCX` instead
+  of crashing. No file is ever read through a symbolic link. A relative `ruta` resolves against
   the calling session's working directory when Hermes reports one; when it
   does not (gateway sessions), a relative path is refused, never resolved
   against the gateway's own directory. In a Case Writer chat session the
@@ -80,6 +85,13 @@ for the catalog review and for anyone deciding whether to install it.
 - Its own `corpus/`, `motor/` and `data/arbol/` folders. The matter tree
   and lexicon under `data/arbol/` are packaged JSON read by the search
   route — offline, no network.
+- **Two read-only corpus tools.** `dike_leer_articulo` returns one article's
+  text and normative units; `dike_buscar_corpus` runs the corpus's
+  deterministic lexical search. Both take identifiers and text, never file
+  paths, and run the engine in the same sandboxed subprocess as the
+  verifier. A `dike_buscar_corpus` query is used in memory and is never
+  written to disk or to any log. Its hits are leads to read, never verified
+  citations or relevance determinations.
 
 ## It writes
 
@@ -410,5 +422,13 @@ from a user-supplied anonymized database:
   only article terms and document statistics — never a query. It lives
   under the generation's `home/`, outside the `users/` subtree that the
   integrity check hashes (same place as the binding cache).
+- `<plugin-data>/dike/cache/nodos_v1_<pack>.json` — the node-id index the
+  footnote and article tools resolve against, keyed by corpus pack.
+- `<generation>/roots_cache/` — the engine's resolved-roots cache under the
+  generation's writable `home/`; rebuilt on demand and outside the hashed
+  `users/` subtree.
+- `reubicaciones` in `installed.json` — an append-only list noting each time
+  the plugin-data folder moved and the corpus locator was re-pointed after a
+  full re-hash; it records the move, never file content.
 - Engine caches and the engine's `HOME` stay under plugin-data (see
   "What it writes").

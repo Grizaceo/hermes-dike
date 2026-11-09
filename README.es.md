@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=9232a5cd4082fa182fadcb7c526da838be4cc543f69ee1f951bfc399ce2c505f -->
+<!-- vitrina:translation-of README.md sha256=5d0e0f98aadb4508994cb6510e24aa2fdc39a1ca1071bcb257024d9111074af2 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -69,10 +69,13 @@ pedirle a un modelo que tenga cuidado. No pueden:
 
 ### La verificación de citas
 
-1. El agente recibe una herramienta, `dike_verificar_citas`. Acepta `texto`
-   (el texto) o `ruta` (un archivo `.md`, `.txt` o `.docx`).
+1. El agente recibe tres herramientas. `dike_verificar_citas` acepta `texto`
+   (el texto) o `ruta` (un archivo `.md`, `.txt` o `.docx`);
    `/dike-verificar` corre la misma verificación sobre el texto que sigue al
-   comando, sin modelo.
+   comando, sin modelo. Dos compañeras de solo lectura sirven el corpus:
+   `dike_leer_articulo` devuelve el texto y las unidades de un artículo, y
+   `dike_buscar_corpus` corre una búsqueda léxica determinista cuyas pistas
+   nunca son citas verificadas.
 2. El plugin corre el motor como subproceso con un entorno mínimo, sin
    credenciales del agente y con su carpeta personal dentro de los datos del
    plugin. El motor encuentra cada cita de artículo y la resuelve contra el
@@ -107,8 +110,10 @@ Tres pestañas sobre el mismo motor, a través del backend del plugin en
   marcadores estables. Un chat sobre el escrito corre en tu propio gateway de
   Hermes; dos hooks del plugin le dan instrucciones fijas y bloquean toda
   herramienta salvo las skills, el descubrimiento de herramientas y la
-  verificación de citas, que ahí acepta solo texto. Ver
-  [docs/case-writer.es.md](docs/case-writer.es.md).
+  verificación de citas, que ahí acepta solo texto. Las afirmaciones del chat
+  sobre artículos llevan notas al pie que abren el nodo exacto del grafo para
+  que revises el texto; si un artículo es pertinente es lectura del modelo y
+  decisión tuya. Ver [docs/case-writer.es.md](docs/case-writer.es.md).
 - **Grafo del corpus.** Un mapa 3D de solo lectura de las normas, sus
   artículos y sus unidades normativas mínimas, cada una con una etiqueta
   candidata (obligación, prohibición, permiso…) que asignan reglas regex, más

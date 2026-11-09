@@ -37,6 +37,20 @@
   be read, every turn of that session is blocked. Other chats are untouched. The
   citations in each reply go through the engine before they can show as
   verified.
+- **Footnotes that open the node.** When the chat grounds a claim about an
+  article it writes a note in the canonical form
+  `[^n]: dike:a:<code>:<eid>#u<unit> «literal fragment» (optional citation)`.
+  The fragment is the article text the claim rests on, quoted literally and
+  20–400 characters long. The page checks three things before showing a
+  note: the node id resolves in the corpus graph, the fragment is a literal
+  substring of that node's text, and the optional citation parses. The note
+  then shows one of its states — pending, verified (a chip that opens the
+  exact node in the graph), mismatched, or unresolved — and a line reading
+  "La pertinencia de la cita la decide usted": whether the article is
+  relevant is the model's reading and your decision, never the plugin's.
+  "Verifícalo tú: abrir en el grafo" and the verified chips jump straight to
+  that node. "Insertar en el escrito" adds the notes to the brief as plain
+  text.
 - **Live case board (NIF).** On request, the model proposes updates to the
   case's theory, the NIF (facts known,
   alleged and missing, norms, subjects, hypotheses, gaps). Each proposal

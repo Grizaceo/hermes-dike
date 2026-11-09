@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of case-writer.md sha256=9621a47f6764187ccc8ce1adfded4a5930ca6919cb939d684fe43585c077546a -->
+<!-- vitrina:translation-of case-writer.md sha256=27a2e1329dd0a1a06e5bbaf4e94be6d0edf6dd2b3d88f64ef9ae7c4cb9d35c80 -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
@@ -39,6 +39,20 @@
   los archivos del perfil. Si las instrucciones no se pueden leer, se bloquea
   cada turno de esa sesión. Los demás chats no cambian. Las citas de cada respuesta pasan por el motor antes de poder
   mostrarse como verificadas.
+- **Notas al pie que abren el nodo.** Cuando el chat fundamenta una
+  afirmación sobre un artículo escribe una nota en la forma canónica
+  `[^n]: dike:a:<code>:<eid>#u<unit> «fragmento literal» (cita opcional)`.
+  El fragmento es el texto del artículo en que se apoya la afirmación,
+  citado literalmente y de 20 a 400 caracteres. La página verifica tres
+  cosas antes de mostrar una nota: que el id de nodo se resuelva en el grafo
+  del corpus, que el fragmento sea subcadena literal del texto de ese nodo y
+  que la cita opcional se parsee. La nota muestra luego uno de sus estados —
+  pendiente, verificada (una ficha que abre el nodo exacto en el grafo),
+  discrepante o sin resolver — y una línea que dice «La pertinencia de la
+  cita la decide usted»: si el artículo es pertinente es lectura del modelo
+  y decisión tuya, nunca del plugin. «Verifícalo tú: abrir en el grafo» y las
+  fichas verificadas saltan directo a ese nodo. «Insertar en el escrito»
+  agrega las notas al escrito como texto plano.
 - **Tablero del caso (NIF) vivo.** A pedido, el modelo propone
   actualizaciones de la teoría del caso, el NIF (hechos
   conocidos, alegados y faltantes, normas, sujetos, hipótesis, vacíos). Cada

@@ -108,55 +108,36 @@ def test_docx_too_large(native, tmp_path):
 
 
 def test_docx_corrupt(real, tmp_path):
-    """Un .docx dañado nunca certifica. Con python-docx, que Hermes instala desde
-    plugin.yaml, es INPUT_DOCX; en un entorno sin él, el motor dice que falta
-    la dependencia. Las dos salidas son correctas; el test no depende del venv."""
+    """Un .docx dañado nunca certifica: el adaptador lo rechaza con INPUT_DOCX
+    antes de llegar al motor (la extracción es con la biblioteca estándar)."""
     p = tmp_path / 'roto.docx'
     p.write_bytes(b'no es un zip ni un docx')
     out = json.loads(real.verificar_citas({'ruta': str(p)}))
-    assert out['todo_verificado'] is False
-    if importlib.util.find_spec('docx') is not None:
-        assert out['error_code'] == 'INPUT_ERROR' and out['motivo'] == 'INPUT_DOCX'
-    else:
-        assert out['error_code'] == 'ENGINE_EXIT_ERROR', out
-        assert 'dependencia' in out['error']
-
-
-def _docx_error(native, tmp_path, stderr, returncode=2):
-    escrito = tmp_path / 'e.docx'
-    escrito.write_bytes(b'PK fake docx bytes')
-    native._dike = lambda *a, **kw: subprocess.CompletedProcess([], returncode, '', stderr)
-    return json.loads(native.verificar_citas({'ruta': str(escrito)}))
-
-
-def test_docx_missing_dep_is_engine_error(native, tmp_path):
-    out = _docx_error(native, tmp_path,
-                      "DocumentoIlegible: No puedo abrir documentos Word (.docx) en este equipo: "
-                      "falta la librería python-docx.")
-    assert out['error_code'] == 'ENGINE_EXIT_ERROR'
-    assert 'Falta una dependencia del motor' in out['error']
-    assert 'motivo' not in out
-
-
-def test_docx_missing_dep_with_wrapped_line(native, tmp_path):
-    """El motor imprime con rich, que corta a 80 columnas: «librería \\npython-docx».
-    La salida real (código 1, stdout vacío) caía en «no produjo JSON válido»."""
-    out = _docx_error(native, tmp_path,
-                      "ERROR: No puedo abrir documentos Word (.docx) en este equipo: falta la librería \n"
-                      "python-docx.\n  O instálala con: pip install python-docx\n", returncode=1)
-    assert out['error_code'] == 'ENGINE_EXIT_ERROR'
-    assert 'Falta una dependencia del motor' in out['error']
-
-
-def test_docx_package_not_found_is_input_docx(native, tmp_path):
-    out = _docx_error(native, tmp_path,
-                      "docx.opc.exceptions.PackageNotFoundError: Package not found at 'escrito.docx'")
     assert out['error_code'] == 'INPUT_ERROR' and out['motivo'] == 'INPUT_DOCX'
+    assert out['todo_verificado'] is False
+
+
+def _docx_valido() -> bytes:
+    """Zip mínimo con word/document.xml válido (pasa la extracción del adaptador)."""
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        zf.writestr('word/document.xml',
+                    '<?xml version="1.0"?><w:document '
+                    'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+                    '<w:body><w:p><w:r><w:t>hola</w:t></w:r></w:p></w:body></w:document>')
+    return buf.getvalue()
 
 
 def test_docx_generic_engine_error_not_input_docx(native, tmp_path):
-    out = _docx_error(native, tmp_path,
-                      "Traceback (most recent call last):\n  File 'escrito.docx', line 1\nKeyError: 'x'")
+    """Un .docx válido llega al motor como texto; un error genérico del motor
+    sigue siendo ENGINE_EXIT_ERROR, no un error de entrada."""
+    escrito = tmp_path / 'e.docx'
+    escrito.write_bytes(_docx_valido())
+    native._dike = lambda *a, **kw: subprocess.CompletedProcess(
+        [], 2, '', "Traceback (most recent call last):\n  File 'escrito.docx', line 1\nKeyError: 'x'")
+    out = json.loads(native.verificar_citas({'ruta': str(escrito)}))
     assert out['error_code'] == 'ENGINE_EXIT_ERROR' and 'motivo' not in out
 
 

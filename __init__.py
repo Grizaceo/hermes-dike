@@ -31,6 +31,9 @@ from __future__ import annotations
 import hashlib
 import fcntl
 import importlib.util
+import io
+import zipfile
+import xml.etree.ElementTree as ET
 from datetime import date, datetime
 import json
 import stat
@@ -191,27 +194,25 @@ def _carpeta_de_datos() -> Path:
         return base
 
 
-# Dependencias de terceros que el motor importa (las entradas no-motor de
-# aislamiento.MODULOS_MEDIDOS, sin ``docx`` que ya no hace falta). Se derivan
-# de importlib.util.find_spec, no del nombre de la carpeta: funciona igual si
-# Hermes se instaló por git, por pip/PM o en un venv con nombre arbitrario.
-_TERCEROS = (
-    "annotated_types", "attr", "markdown_it", "mdurl",
-    "pydantic", "pydantic_core", "pygments", "rich",
-    "typing_extensions", "typing_inspection", "yaml",
-)
+# Módulos propios del plugin dentro de aislamiento.MODULOS_MEDIDOS: no son
+# dependencias de terceros y su carpeta ya viaja como ``motor/`` en PYTHONPATH.
+_MODULOS_PROPIOS = frozenset({"lexo_cli", "dike_id", "shared", "canal_arbol"})
 
 
 def _paquetes_del_anfitrion() -> list:
     """Carpetas que contienen los módulos de terceros del motor.
 
-    Para cada módulo se toma el padre de su ubicación real (find_spec →
-    submodule_search_locations para paquetes, origin para módulos sueltos),
-    deduplicado y en orden. El subproceso usa el mismo intérprete y necesita
-    esas mismas carpetas para encontrar pydantic, yaml y las demás.
+    La lista sale de ``aislamiento.MODULOS_MEDIDOS`` menos los módulos propios
+    (una sola fuente, sin duplicar nombres). Para cada módulo se toma el padre
+    de su ubicación real (find_spec → submodule_search_locations para paquetes,
+    origin para módulos sueltos), deduplicado y en orden. El subproceso usa el
+    mismo intérprete y necesita esas mismas carpetas para encontrar pydantic,
+    yaml y las demás, sea cual sea el nombre del directorio de instalación.
     """
     carpetas, vistas = [], set()
-    for nombre in _TERCEROS:
+    for nombre in _aislamiento().MODULOS_MEDIDOS:
+        if nombre in _MODULOS_PROPIOS:
+            continue
         try:
             spec = importlib.util.find_spec(nombre)
         except Exception:
@@ -269,32 +270,38 @@ def _aislamiento():
 def _setting(key, default=None):
     """Lee ``plugins.entries.dike.settings.<key>``: del ctx del agente o de la config.
 
-    En el proceso del plugin ``ctx.get_config`` lee esa ruta (y el subárbol
-    ``config`` legado). En el dashboard no hay ctx: se lee la misma
-    configuración por ``hermes_cli``. Cualquier fallo devuelve *default*.
+    Con ctx, ``get_config`` lee esa ruta (y el subárbol ``config`` legado) y
+    cualquier error suyo se propaga. Sin ctx (dashboard) se lee la misma
+    configuración por ``hermes_cli``: un ImportError (sin Hermes, p. ej. en
+    tests) devuelve *default*; cualquier otro fallo al leer la config también
+    se propaga — un setting de sandbox ilegible no puede degradar en silencio.
     """
-    try:
-        if _CTX is not None:
-            return _CTX.get_config(key, default)
-    except Exception:
-        pass
+    if _CTX is not None:
+        return _CTX.get_config(key, default)
     try:
         from hermes_cli.config import load_config_readonly
         from hermes_cli.plugins_state import _plugin_settings_entry
-        entry = _plugin_settings_entry(load_config_readonly() or {}, "dike")
-        if isinstance(entry, dict):
-            settings = entry.get("settings")
-            if isinstance(settings, dict) and key in settings:
-                return settings[key]
-    except Exception:
-        pass
+    except ImportError:
+        return default
+    entry = _plugin_settings_entry(load_config_readonly() or {}, "dike")
+    if isinstance(entry, dict):
+        settings = entry.get("settings")
+        if isinstance(settings, dict) and key in settings:
+            return settings[key]
     return default
 
 
 def _politica_sandbox():
-    """Valor del setting ``sandbox``: ``auto`` por defecto, otro valor es fail-closed."""
+    """Valor del setting ``sandbox``: ``auto`` solo si no está puesto.
+
+    None/'' (sin definir) → ``auto``. Cualquier otro valor —incluido uno no
+    string como True, 1 o una lista— se devuelve como texto para que
+    aislamiento lo trate como ``requerido`` (fail-closed), nunca como ``auto``.
+    Un fallo de lectura se propaga y el proveedor de política lo vuelve
+    ``requerido``.
+    """
     valor = _setting("sandbox", "auto")
-    return valor if isinstance(valor, str) and valor else "auto"
+    return "auto" if valor is None or valor == "" else str(valor)
 
 
 _aislamiento().establecer_politica(_politica_sandbox)
@@ -302,7 +309,10 @@ _aislamiento().establecer_politica(_politica_sandbox)
 
 def _perfil_chat() -> str:
     """Perfil de Hermes donde corre el chat del escrito; '' = el perfil activo."""
-    valor = _setting("perfil_chat", "")
+    try:
+        valor = _setting("perfil_chat", "")
+    except Exception:
+        return ""
     return valor.strip() if isinstance(valor, str) else ""
 
 
@@ -834,8 +844,209 @@ def _cwd_sesion():
     return Path(cwd) if cwd else None
 
 
+# ── .docx → texto con la biblioteca estándar ────────────────────────────
+# Réplica de ``motor/lexo_cli/documento.py::_read_docx`` tal como la ejecuta
+# python-docx 1.2, sin depender de él: ``Document.paragraphs``/``tables`` son
+# los ``w:p``/``w:tbl`` hijos directos de ``w:body``; ``Paragraph.text`` concatena
+# ``w:r`` y ``w:hyperlink`` directos; ``Run.text`` mapea w:t/w:tab/w:br/w:cr/
+# w:noBreakHyphen/w:ptab; ``_Cell.text`` une sus ``w:p`` por '\n'; ``_Row.cells``
+# repite la celda por gridSpan y resuelve vMerge="continue" a la celda raíz.
+_W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+_DOCX_MAX_ENTRADAS = 2000
+_DOCX_MAX_XML = 20 * 1024 * 1024
+_DOCX_MAX_RATIO = 100
+
+
+class _DocxInvalido(Exception):
+    pass
+
+
+def _w_run_text(r) -> str:
+    """Texto de un ``w:r``: equivalente a ``CT_R.text`` de python-docx."""
+    partes = []
+    for e in r:
+        tag = e.tag
+        if tag == _W + 't':
+            partes.append(e.text or '')
+        elif tag == _W + 'tab':
+            partes.append('\t')
+        elif tag == _W + 'cr':
+            partes.append('\n')
+        elif tag == _W + 'br':
+            # Solo el salto de línea (textWrapping, el defecto) da '\n';
+            # page/column producen ''.
+            partes.append('\n' if e.get(_W + 'type', 'textWrapping') == 'textWrapping' else '')
+        elif tag == _W + 'noBreakHyphen':
+            partes.append('-')
+        elif tag == _W + 'ptab':
+            partes.append('\t')
+    return ''.join(partes)
+
+
+def _w_p_text(p) -> str:
+    """Texto de un ``w:p``: concat de ``w:r`` y ``w:hyperlink`` directos, en orden."""
+    partes = []
+    for e in p:
+        if e.tag == _W + 'r':
+            partes.append(_w_run_text(e))
+        elif e.tag == _W + 'hyperlink':
+            partes.append(''.join(_w_run_text(r) for r in e if r.tag == _W + 'r'))
+    return ''.join(partes)
+
+
+def _w_tc_text(tc) -> str:
+    """Texto de un ``w:tc``: sus ``w:p`` directos unidos por '\\n' (``_Cell.text``)."""
+    return '\n'.join(_w_p_text(p) for p in tc if p.tag == _W + 'p')
+
+
+def _w_tc_pr(tc):
+    for c in tc:
+        if c.tag == _W + 'tcPr':
+            return c
+    return None
+
+
+def _w_tr_pr(tr):
+    for c in tr:
+        if c.tag == _W + 'trPr':
+            return c
+    return None
+
+
+def _w_hijo(pr, tag):
+    if pr is None:
+        return None
+    for c in pr:
+        if c.tag == tag:
+            return c
+    return None
+
+
+def _w_int(el, default):
+    if el is None:
+        return default
+    try:
+        return int(el.get(_W + 'val', default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _w_grid_span(tc) -> int:
+    return _w_int(_w_hijo(_w_tc_pr(tc), _W + 'gridSpan'), 1)
+
+
+def _w_vmerge(tc):
+    """``w:vMerge/@w:val``: None si no hay elemento; 'continue' si falta el val."""
+    vm = _w_hijo(_w_tc_pr(tc), _W + 'vMerge')
+    if vm is None:
+        return None
+    return vm.get(_W + 'val', 'continue')
+
+
+def _w_grid_before(tr) -> int:
+    return _w_int(_w_hijo(_w_tr_pr(tr), _W + 'gridBefore'), 0)
+
+
+def _w_tcs(tr):
+    return [c for c in tr if c.tag == _W + 'tc']
+
+
+def _w_grid_offset(tc, tr) -> int:
+    """Columna de inicio de *tc* en la tabla (grid_before + spans previos)."""
+    offset = _w_grid_before(tr)
+    for sib in tr:
+        if sib is tc:
+            break
+        if sib.tag == _W + 'tc':
+            offset += _w_grid_span(sib)
+    return offset
+
+
+def _w_tc_at_offset(tr, offset):
+    """El ``w:tc`` de *tr* que empieza en la columna *offset* (``tc_at_grid_offset``)."""
+    remaining = offset - _w_grid_before(tr)
+    for tc in _w_tcs(tr):
+        if remaining < 0:
+            break
+        if remaining == 0:
+            return tc
+        remaining -= _w_grid_span(tc)
+    raise _DocxInvalido
+
+
+def _w_resolve_tc(tc, trs, tr_index):
+    """Celdas ``w:tc`` que aporta *tc* a ``row.cells``: la raíz del span vertical
+    repetida ``grid_span`` veces (gridSpan horizontal y vMerge='continue')."""
+    if _w_vmerge(tc) == 'continue':
+        if tr_index == 0:
+            # vMerge="continue" en la primera fila: python-docx lanza ValueError.
+            raise _DocxInvalido
+        arriba = _w_tc_at_offset(trs[tr_index - 1],
+                                 _w_grid_offset(tc, trs[tr_index]))
+        return _w_resolve_tc(arriba, trs, tr_index - 1)
+    return [tc] * _w_grid_span(tc)
+
+
+def _texto_docx(data: bytes) -> str:
+    """Texto de un .docx con zipfile + ElementTree, equivalente a ``_read_docx``.
+
+    Límites anti zip-bomb: ≤ 2000 entradas, ``word/document.xml`` declarado
+    ≤ 20 MB y razón de compresión ≤ 100, lectura acotada (nunca se fía del
+    tamaño declarado), y rechazo de ``<!DOCTYPE``/``<!ENTITY``. Cualquier fallo
+    estructural o de lectura es INPUT_DOCX.
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            if len(zf.infolist()) > _DOCX_MAX_ENTRADAS:
+                raise _DocxInvalido
+            try:
+                info = zf.getinfo('word/document.xml')
+            except KeyError:
+                raise _DocxInvalido
+            if info.file_size > _DOCX_MAX_XML:
+                raise _DocxInvalido
+            if info.file_size and info.compress_size and \
+                    info.file_size / info.compress_size > _DOCX_MAX_RATIO:
+                raise _DocxInvalido
+            with zf.open(info) as stream:
+                crudo = stream.read(_DOCX_MAX_XML + 1)
+            if len(crudo) > _DOCX_MAX_XML:
+                raise _DocxInvalido
+        bajo = crudo.lower()
+        if b'<!doctype' in bajo or b'<!entity' in bajo:
+            raise _DocxInvalido
+        root = ET.fromstring(crudo)
+        body = next((el for el in root.iter() if el.tag == _W + 'body'), None)
+        if body is None:
+            raise _DocxInvalido
+        partes = []
+        for child in body:
+            if child.tag == _W + 'p':
+                t = _w_p_text(child)
+                if t.strip():
+                    partes.append(t)
+        for child in body:
+            if child.tag == _W + 'tbl':
+                trs = [c for c in child if c.tag == _W + 'tr']
+                for ti, tr in enumerate(trs):
+                    textos = []
+                    for tc in _w_tcs(tr):
+                        for resuelto in _w_resolve_tc(tc, trs, ti):
+                            textos.append(_w_tc_text(resuelto))
+                    celdas = [t.strip() for t in textos if t.strip()]
+                    if celdas:
+                        partes.append(' | '.join(celdas))
+        return '\n'.join(partes)
+    except _DocxInvalido:
+        raise EntradaInvalida('INPUT_DOCX', _MSG_INPUT_DOCX) from None
+    except EntradaInvalida:
+        raise
+    except Exception:
+        raise EntradaInvalida('INPUT_DOCX', _MSG_INPUT_DOCX) from None
+
+
 def _texto_input(args):
-    """Devuelve el texto del escrito; para una ruta .docx, sus bytes crudos."""
+    """Devuelve el texto del escrito; un .docx se extrae aquí, no en el motor."""
     if not isinstance(args, dict) or set(args) - {'texto', 'ruta'}:
         raise EntradaInvalida('INPUT_FIELDS', _MSG_INPUT_FIELDS)
     if ('texto' in args) == ('ruta' in args):
@@ -873,11 +1084,12 @@ def _texto_input(args):
         if len(data) > limite:
             raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
         if suffix == '.docx':
-            return data
-        try:
-            value = data.decode('utf-8')
-        except UnicodeDecodeError:
-            raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_ENCODING) from None
+            value = _texto_docx(data)
+        else:
+            try:
+                value = data.decode('utf-8')
+            except UnicodeDecodeError:
+                raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_ENCODING) from None
     if not value.strip():
         raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
     try:
@@ -1201,29 +1413,23 @@ def verificar_citas(args: dict, **kwargs) -> str:
     stdout, stderr, returncode = '', '', None
     try:
         contenido = _texto_input(args)
-        es_docx = isinstance(contenido, bytes)
         expected_day = date.today().isoformat()
         datos = _carpeta_de_datos().resolve()
         installed = _asegurar_corpus(datos)
         runtime = Path(installed.get('generation', datos))
         with tempfile.TemporaryDirectory(dir=datos) as tmp:
-            archivo = Path(tmp) / ('escrito.docx' if es_docx else 'escrito.md')
-            if es_docx:
-                archivo.write_bytes(contenido)
-            else:
-                archivo.write_text(contenido, encoding='utf-8')
+            archivo = Path(tmp) / 'escrito.md'
+            archivo.write_text(contenido, encoding='utf-8')
             result = _dike(['constancia', str(archivo), '--as-of', expected_day, '--json'], runtime,
                            lectura=[runtime, archivo.parent],
                            escritura=[runtime / 'home', runtime / 'roots_cache'])
         stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
         if returncode not in (0, 1):
-            return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
-                              _error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
+            return json.dumps(_error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
         try:
             c = _validar_constancia(json.loads(stdout), returncode, as_of=expected_day)
         except json.JSONDecodeError as exc:
-            return json.dumps(_error_docx(stderr) if es_docx and _error_docx(stderr) else
-                              _error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
+            return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
         if c['veredicto'] == 'SIN_CORPUS' and installed.get('generation'):
             # El motor no reconoció un corpus que el adaptador dio por bueno (por
             # ejemplo, un byte cambiado con tamaño y fecha intactos en un proceso que
@@ -1234,22 +1440,6 @@ def verificar_citas(args: dict, **kwargs) -> str:
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
         return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
-
-
-def _error_docx(stderr: str):
-    """Classify an engine-side .docx read failure by fixed markers; never forward stderr."""
-    # El motor imprime con rich, que corta las líneas a 80 columnas.
-    aislado = _aislamiento().estado()
-    stderr = ' '.join((stderr or '').split())
-    if 'ModuleNotFoundError' in stderr or 'falta la librería python-docx' in stderr:
-        return {'error': 'ENGINE_EXIT_ERROR: Falta una dependencia del motor en el entorno de ejecución.',
-                'error_code': 'ENGINE_EXIT_ERROR', 'todo_verificado': False,
-                'aislamiento': aislado}
-    if any(m in stderr for m in ('DocumentoIlegible', 'PackageNotFoundError', 'BadZipFile')):
-        return {'error': f'INPUT_ERROR: {_MSG_INPUT_DOCX}', 'error_code': 'INPUT_ERROR',
-                'motivo': 'INPUT_DOCX', 'todo_verificado': False,
-                'aislamiento': aislado}
-    return None
 
 
 def _linea_aislamiento(out: dict) -> str:

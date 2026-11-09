@@ -59,8 +59,8 @@ _RAIZ = Path(__file__).resolve().parent
 # starter install, nif *, grafo *). La Parte 3 reutiliza la lista para
 # PYTHONPATH; aquí sirve para montar en solo lectura el directorio que
 # contiene cada módulo (find_spec → padre de su ubicación, deduplicado).
-# ``docx`` solo se importa con entradas .docx (motor/lexo_cli/documento.py);
-# si no está instalado, find_spec devuelve None y no se monta nada.
+# Los .docx se leen en el adaptador con la biblioteca estándar (zipfile +
+# ElementTree); el motor ya no importa ``docx``.
 MODULOS_MEDIDOS = (
     # Carpetas del plugin (motor/ y scripts/, ya montadas aparte).
     "lexo_cli", "dike_id", "shared", "canal_arbol",
@@ -68,8 +68,6 @@ MODULOS_MEDIDOS = (
     "annotated_types", "attr", "markdown_it", "mdurl",
     "pydantic", "pydantic_core", "pygments", "rich",
     "typing_extensions", "typing_inspection", "yaml",
-    # Dependencia opcional del motor para entradas .docx.
-    "docx",
 )
 
 

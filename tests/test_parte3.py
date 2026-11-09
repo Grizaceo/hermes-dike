@@ -45,9 +45,67 @@ def test_paquetes_del_anfitrion_sin_spec_no_falla(mod, monkeypatch):
     assert mod._paquetes_del_anfitrion() == []
 
 
-def test_perfil_chat_vacio_si_no_hay_setting(mod, monkeypatch):
+def test_paquetes_del_anfitrion_ignora_modulos_propios(mod):
+    # lexo_cli/dike_id/shared/canal_arbol son del plugin: no deben consultarse.
+    carpetas = mod._paquetes_del_anfitrion()
+    assert isinstance(carpetas, list)
+
+
+class _Ctx:
+    def __init__(self, valor=None, error=None):
+        self.valor, self.error = valor, error
+
+    def get_config(self, key, default=None):
+        if self.error is not None:
+            raise self.error
+        return self.valor if self.valor is not None else default
+
+
+def test_setting_con_ctx_propaga_error(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(error=RuntimeError('config rota')))
+    with pytest.raises(RuntimeError):
+        mod._setting('sandbox', 'auto')
+
+
+def test_setting_con_ctx_devuelve_valor(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(valor='requerido'))
+    assert mod._setting('sandbox', 'auto') == 'requerido'
+
+
+def test_setting_sin_ctx_importerror_devuelve_default(mod, monkeypatch):
     monkeypatch.setattr(mod, '_CTX', None)
-    # sin hermes_cli config legible en el entorno de test → default ''
+    monkeypatch.setitem(__import__('sys').modules, 'hermes_cli.config', None)
+    monkeypatch.setitem(__import__('sys').modules, 'hermes_cli.plugins_state', None)
+    assert mod._setting('sandbox', 'auto') == 'auto'
+
+
+def test_politica_sandbox_solo_vacio_es_auto(mod, monkeypatch):
+    for valor, esperado in [
+        (None, 'auto'), ('', 'auto'), ('auto', 'auto'),
+        ('requerido', 'requerido'), (True, 'True'), (1, '1'), (['x'], "['x']"),
+    ]:
+        monkeypatch.setattr(mod, '_CTX', _Ctx(valor=valor))
+        assert mod._politica_sandbox() == esperado, valor
+
+
+def test_politica_sandbox_propaga_error_de_lectura(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(error=RuntimeError('ilegible')))
+    with pytest.raises(RuntimeError):
+        mod._politica_sandbox()
+
+
+def test_perfil_chat_vacio_si_no_hay_setting(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(valor=''))
+    assert mod._perfil_chat() == ''
+
+
+def test_perfil_chat_devuelve_setting(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(valor='  mi-perfil  '))
+    assert mod._perfil_chat() == 'mi-perfil'
+
+
+def test_perfil_chat_ante_error_devuelve_vacio(mod, monkeypatch):
+    monkeypatch.setattr(mod, '_CTX', _Ctx(error=RuntimeError('x')))
     assert mod._perfil_chat() == ''
 
 

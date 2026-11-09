@@ -597,8 +597,16 @@ def _privacidad():
 
 
 def _texto_privacidad(body: dict) -> str:
-    texto = body.get("texto") or ""
-    if len(texto.encode("utf-8")) > _adaptador()._LIMITE_TEXTO:
+    texto = body.get("texto") if isinstance(body, dict) else None
+    if texto is None:
+        texto = ""
+    if not isinstance(texto, str):
+        raise HTTPException(status_code=400, detail="El campo texto debe ser un string.")
+    try:
+        tamano = len(texto.encode("utf-8"))
+    except UnicodeEncodeError:
+        raise HTTPException(status_code=400, detail="El texto trae caracteres Unicode inválidos.") from None
+    if tamano > _adaptador()._LIMITE_TEXTO:
         raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
     return texto
 

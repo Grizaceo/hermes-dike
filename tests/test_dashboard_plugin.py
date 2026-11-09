@@ -384,6 +384,15 @@ def test_estado_no_da_por_instalada_una_carpeta_vacia(api, monkeypatch, tmp_path
     assert out['corpus_instalado'] is True and out['generation'] == esperado
 
 
+@pytest.mark.parametrize('texto', [42, ['x'], {'a': 1}, 'artículo \ud800'])
+def test_privacidad_rechaza_texto_invalido_con_400(api, texto):
+    """Un texto que no es string terminaba en AttributeError (500), no en 400."""
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc:
+        api._texto_privacidad({'texto': texto})
+    assert exc.value.status_code == 400
+
+
 def test_estado_campos(api, monkeypatch, tmp_path):
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     out = api.estado()

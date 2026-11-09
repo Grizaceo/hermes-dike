@@ -44,7 +44,8 @@ The same check also has a **Diké** tab in the web dashboard and a sidebar
 page in the Desktop app (the desktop half is opt-in: enable it under
 Capabilities → Plugins). The Desktop page has three tabs: the **Case
 Writer**, a read-only map of the sealed corpus graph (its 25 statutes,
-8,544 articles and edges), and a case board — the NIF — where each case's
+8,544 articles and edges) with content search over the articles, and a
+case board — the NIF — where each case's
 theory is versioned, patch-attributed and marked as human-validated. All of
 them call the same engine through the plugin's `/api/plugins/dike` backend.
 
@@ -67,7 +68,10 @@ installed generation.
 The Desktop page renders that corpus graph in 3D: an instrument →
 article → inciso hierarchy where each minimal normative unit carries a
 deontic-modality label computed by a table of regex rules (R-EXC …
-R-DEF) — deterministic candidates, not validated. Optionally, a user can
+R-DEF) — deterministic candidates, not validated. Its search box has two
+modes: by name, and by content — a deterministic BM25 search over the
+sealed corpus that returns article nodes as clues, never as verified
+citations. Optionally, a user can
 build a local graph from their own anonymized database with
 `scripts/construir_red_local.py`: the builder refuses to run unless an
 approval file records the database's sha256, writes only under the
@@ -185,6 +189,9 @@ chat, live NIF and the experimental predictor — is described in
   and `.docx`; for a `.pdf` or anything else, extract the text and pass it in
   `texto`. `/dike-verificar` treats a lone path token as `ruta`, everything
   else as text.
+- **Content search is lexical (BM25), not semantic; it does not cross the
+  concept→norm jump.** Results are clues to read, labeled as such — never
+  verified citations.
 - **Not instant.** Every call re-checks the installed corpus and starts the
   engine, so it takes several seconds.
 - **Disk.** The installed corpus takes about 300 MB in the plugin's data

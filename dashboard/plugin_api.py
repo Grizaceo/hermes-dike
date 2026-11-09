@@ -18,6 +18,7 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -235,13 +236,16 @@ def _asegurar_corpus_memo(mod, datos: Path) -> dict:
 
 
 def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
-           memo: bool = False) -> dict:
+           memo: bool = False, entrada: str | None = None) -> dict:
     """Corre ``scripts/panel.py`` en el subproceso aislado del motor.
 
     Sin ``corpus`` el workspace es el plugin-data (casos NIF y grafo personal
     persisten ahí, fuera de la generación sellada). Con ``corpus`` se asegura
     la generación instalada y el panel lee el corpus sellado — nunca escribe.
     ``memo`` reusa la generación 60 s (solo endpoints de lectura del grafo).
+    ``entrada`` va al stdin del subproceso (la búsqueda por contenido la usa
+    para que la consulta no aparezca en argv ni en ``ps``): nunca se escribe
+    a disco ni se loguea.
     """
     mod = _adaptador()
     datos = mod._carpeta_de_datos().resolve()
@@ -255,6 +259,7 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
         proc = subprocess.run(
             [sys.executable, str(_PANEL), *args],
             env=mod._entorno(runtime), cwd=str(runtime),
+            input=entrada,
             capture_output=True, text=True, encoding="utf-8",
             errors="replace", timeout=timeout,
         )
@@ -416,6 +421,37 @@ def grafo_red(fuente: str = "corpus"):
     except OSError:
         pass
     return respuesta
+
+
+@router.post("/grafo/buscar")
+def grafo_buscar(body: dict):
+    """Búsqueda por contenido del corpus sellado (BM25 determinista, sin modelo).
+
+    POST y no GET: un GET dejaría la consulta en los access logs del
+    dashboard. La consulta viaja por stdin al subproceso del panel — nunca
+    por argv (visible en ``ps``), ni se escribe a disco ni se loguea. Lee el
+    corpus sellado y escribe solo la caché del índice BM25 bajo
+    ``<generation>/home/.dike/bm25_cache/`` (fuera del subárbol ``users/``
+    que verifica la integridad).
+    """
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    q = body.get("q")
+    if not isinstance(q, str):
+        raise HTTPException(status_code=400, detail="Falta el campo q.")
+    q = q.strip()
+    if not q or len(q) > 300:
+        raise HTTPException(
+            status_code=400, detail="q debe tener entre 1 y 300 caracteres.")
+    if any(unicodedata.category(c).startswith("C") for c in q):
+        raise HTTPException(status_code=400, detail="q tiene caracteres de control.")
+    limite = body.get("limite", 20)
+    if isinstance(limite, bool) or not isinstance(limite, int):
+        raise HTTPException(status_code=400, detail="limite debe ser entero.")
+    limite = max(1, min(50, limite))
+    entrada = json.dumps({"q": q, "limite": limite}, ensure_ascii=False)
+    return _panel(["grafo", "buscar"], corpus=True, memo=True,
+                  timeout=120, entrada=entrada)
 
 
 def _ambiental_dir(mod) -> Path:

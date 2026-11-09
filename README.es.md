@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=89fd5f9d1cb047080d98f6ba40ebb3ed1e2fb1fee54bb2f0ca513613514f266b -->
+<!-- vitrina:translation-of README.md sha256=8f52ae5c35625fbc4cff15095fa60ca05cadbb3220561e8fcb3568757ee0ac60 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -45,7 +45,8 @@ La misma revisión tiene además una pestaña **Diké** en el dashboard web y un
 página en la barra lateral de la app Desktop (la mitad de escritorio es
 optativa: actívala en Capabilities → Plugins). La página Desktop tiene tres
 pestañas: el **Case Writer**, un mapa de solo lectura del grafo del corpus
-sellado (sus 25 normas, 8.544 artículos y aristas) y un tablero de caso — el
+sellado (sus 25 normas, 8.544 artículos y aristas) con búsqueda por
+contenido sobre los artículos, y un tablero de caso — el
 NIF — donde la teoría de cada caso es versionada, con parches atribuidos y
 marca de validación humana. Todas llaman al mismo motor por el backend
 `/api/plugins/dike` del plugin.
@@ -186,6 +187,9 @@ en [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
   y `.docx`; para un `.pdf` u otro formato, extrae el texto y pásalo en
   `texto`. `/dike-verificar` trata un token único de ruta como `ruta` y todo
   lo demás como texto.
+- **La búsqueda es léxica (BM25), no semántica; no cruza el salto
+  concepto→norma.** Los resultados son pistas de lectura, rotulados como
+  tales — nunca citas verificadas.
 - **No es instantáneo.** Cada llamada vuelve a revisar el corpus instalado y
   arranca el motor, así que tarda varios segundos.
 - **Disco.** El corpus instalado ocupa unos 300 MB en la carpeta de datos del

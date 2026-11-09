@@ -3,7 +3,7 @@
   "label": "Diké",
   "description": "Verifica citas de la ley chilena y edita el NIF del caso contra el corpus local",
   "icon": "Shield",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "tab": {
     "path": "/dike",
     "position": "after:skills"

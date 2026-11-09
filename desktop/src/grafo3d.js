@@ -358,7 +358,7 @@ function TarjetaArista({ arista, fuente }) {
   ] })
 }
 
-function TarjetaNodo({ nodo, conteos, fuente }) {
+function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
       'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un artículo expande sus unidades.' })
@@ -366,6 +366,13 @@ function TarjetaNodo({ nodo, conteos, fuente }) {
   const n = nodo
   const esUnidad = n.tipo === 'unidad'
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
+    busqueda ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+      jsx('span', { className: S.chip + ' ' + S.chipOff, children:
+        'Resultado de búsqueda: es una pista, no una fuente verificada' }),
+      (busqueda.terminos || []).length
+        ? jsx('div', { className: S.sub, children: 'términos: ' + busqueda.terminos.join(', ') })
+        : null,
+    ] }) : null,
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
       jsx('span', { className: S.chip + ' ' + S.chipOff, children: NOMBRE_TIPO[n.tipo] || n.tipo }),
       esUnidad ? jsx('span', {
@@ -491,6 +498,11 @@ export function SeccionGrafo() {
     try { storage && storage.set('grafo.fuente', f) } catch (e) { /* opcional */ }
   }, [])
   const [query, setQuery] = useState('')
+  const [modoBusqueda, setModoBusqueda] = useState('nombre')
+  // null | {estado:'cargando'} | {estado:'error', mensaje} | {estado:'lista', data}
+  const [busqueda, setBusqueda] = useState(null)
+  // nodo_id -> resultado de la búsqueda que lo trajo (para la ficha y las unidades).
+  const [busquedaPorNodo, setBusquedaPorNodo] = useState(() => new Map())
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
   const apiRef = useRef(null)
@@ -499,6 +511,8 @@ export function SeccionGrafo() {
     setRedErr(null)
     setPersonalErr(null)
     setRed(null)
+    setBusqueda(null)
+    setBusquedaPorNodo(new Map())
     rest('/grafo/red?fuente=' + fuente, { timeoutMs: 120000 }).then(setRed).catch(setRedErr)
     rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
   }, [fuente])
@@ -591,25 +605,51 @@ export function SeccionGrafo() {
   const alFondo = useCallback(() => { setSeleccion(null); setCaminoOn(false); setRotar(false) }, [])
   const alHover = useCallback((id) => setHover(id), [])
 
-  // Resalte del foco: camino demo > selección > hover. El nodo elegido, sus
-  // vecinos y las aristas entre ellos quedan a color pleno; el resto atenúa.
+  // Resalte del foco: camino demo > selección > hover > resultados de la
+  // búsqueda por contenido. Lo elegido, sus vecinos y las aristas entre ellos
+  // quedan a color pleno; el resto atenúa.
   const resalte = useMemo(() => {
     const cam = red && (red.caminos_demo || [])[caminoIdx]
     if (caminoOn && cam && (cam.ids || []).length) {
       return { ids: new Set(cam.ids), links: new Set(cam.links || []) }
     }
     const foco = seleccion || hover
-    if (!foco) return null
-    const ids = new Set([foco])
+    if (foco) {
+      const ids = new Set([foco])
+      // Si el nodo vino de la búsqueda por contenido, sus unidades con
+      // términos también quedan encendidas.
+      const res = busquedaPorNodo.get(foco)
+      if (res) {
+        for (const u of res.unidades || []) ids.add(u.id)
+      }
+      const links = new Set()
+      for (const l of proyeccion.links) {
+        const s = idDe(l.source)
+        const t = idDe(l.target)
+        if (s === foco) { ids.add(t); links.add(s + '|' + t + '|' + l.tipo) }
+        if (t === foco) { ids.add(s); links.add(s + '|' + t + '|' + l.tipo) }
+      }
+      return { ids, links }
+    }
+    // Sin camino ni selección ni hover: los resultados de la búsqueda
+    // por contenido iluminan sus artículos y los instrumentos que los contienen.
+    const data = busqueda && busqueda.estado === 'lista' ? busqueda.data : null
+    const lista = (data && data.resultados) || []
+    if (!lista.length) return null
+    const ids = new Set()
+    for (const r of lista) {
+      ids.add(r.nodo_id)
+      ids.add(r.instrumento)
+    }
     const links = new Set()
     for (const l of proyeccion.links) {
+      if (l.tipo !== 'contiene') continue
       const s = idDe(l.source)
       const t = idDe(l.target)
-      if (s === foco) { ids.add(t); links.add(s + '|' + t + '|' + l.tipo) }
-      if (t === foco) { ids.add(s); links.add(s + '|' + t + '|' + l.tipo) }
+      if (ids.has(s) && ids.has(t)) links.add(s + '|' + t + '|' + l.tipo)
     }
     return { ids, links }
-  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion])
+  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo])
 
   // Órbita lenta para el video; se apaga con cualquier interacción.
   useEffect(() => {
@@ -627,6 +667,51 @@ export function SeccionGrafo() {
     // enfocar reintenta hasta que el nodo tenga posición (reintento acotado).
     if (apiRef.current) apiRef.current.enfocar(id)
   }, [indice])
+
+  // Búsqueda por contenido: POST /grafo/buscar (BM25, solo corpus sellado).
+  // Se dispara con Enter o el botón — nunca por tecla — y el resultado es una
+  // pista, no una fuente verificada (el rótulo viaja en la respuesta).
+  const buscarContenido = useCallback(() => {
+    const q = query.trim()
+    if (!q || fuente !== 'corpus') return
+    setBusqueda({ estado: 'cargando' })
+    setBusquedaPorNodo(new Map())
+    rest('/grafo/buscar', {
+      method: 'POST',
+      body: { q, limite: 20 },
+      timeoutMs: 120000,
+    })
+      .then((data) => {
+        setBusqueda({ estado: 'lista', data })
+        const ids = []
+        for (const r of (data && data.resultados) || []) {
+          ids.push(r.nodo_id)
+          ids.push(r.instrumento)
+        }
+        if (apiRef.current && apiRef.current.encuadrar) apiRef.current.encuadrar(ids)
+      })
+      .catch((e) => {
+        setBusqueda({ estado: 'error', mensaje: mensajeError(e) })
+        setBusquedaPorNodo(new Map())
+      })
+  }, [query, fuente])
+
+  // Clic en un resultado: selecciona el artículo, lo deja SIEMPRE expandido
+  // (nunca pliega — a diferencia del clic directo sobre el nodo, que alterna)
+  // y enfoca la cámara.
+  const alElegirResultado = useCallback((r) => {
+    setBusquedaPorNodo((prev) => new Map(prev).set(r.nodo_id, r))
+    setSeleccion(r.nodo_id)
+    if (fuente === 'corpus' && !expandidos.has(r.nodo_id)) {
+      setExpandidos((prev) => new Set(prev).add(r.nodo_id))
+      if (!unidadesMap.has(r.nodo_id)) {
+        rest('/grafo/unidades?articulo=' + encodeURIComponent(r.nodo_id))
+          .then((d) => setUnidadesMap((prev) => new Map(prev).set(r.nodo_id, d)))
+          .catch(() => {})
+      }
+    }
+    if (apiRef.current) apiRef.current.enfocar(r.nodo_id)
+  }, [expandidos, unidadesMap, fuente])
 
   const q = query.trim().toLocaleLowerCase()
   const coincidencias = q
@@ -647,7 +732,15 @@ export function SeccionGrafo() {
           className: S.input,
           title: 'Fuente del grafo',
           value: fuente,
-          onChange: (e) => { setFuente(e.target.value); setExpandidos(new Set()); setAristaSel(null); setSeleccion(null) },
+          onChange: (e) => {
+            setFuente(e.target.value)
+            setExpandidos(new Set())
+            setAristaSel(null)
+            setSeleccion(null)
+            if (e.target.value !== 'corpus' && modoBusqueda === 'contenido') {
+              setModoBusqueda('nombre')
+            }
+          },
           children: [
             jsx('option', { value: 'corpus', children: 'Corpus Diké (25 leyes)' }),
             jsx('option', {
@@ -753,13 +846,47 @@ export function SeccionGrafo() {
                       alHover, alFondo, resalte, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
-                jsx('input', {
-                  className: S.input + ' w-full',
-                  placeholder: 'Buscar ley, código o artículo…',
-                  value: query,
-                  onChange: (e) => setQuery(e.target.value),
-                }),
-                q ? jsxs('div', { className: 'max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)', children: [
+                jsxs('div', { className: 'flex items-center gap-1', children: [
+                  jsx('select', {
+                    className: S.input,
+                    title: 'Modo de búsqueda',
+                    value: modoBusqueda,
+                    onChange: (e) => setModoBusqueda(e.target.value),
+                    children: [
+                      jsx('option', { value: 'nombre', children: 'por nombre' }),
+                      jsx('option', {
+                        value: 'contenido',
+                        disabled: fuente !== 'corpus',
+                        children: 'por contenido',
+                      }),
+                    ],
+                  }),
+                  jsx('input', {
+                    className: S.input + ' w-full',
+                    placeholder: modoBusqueda === 'contenido'
+                      ? 'Buscar por contenido en los artículos…'
+                      : 'Buscar ley, código o artículo…',
+                    value: query,
+                    onChange: (e) => setQuery(e.target.value),
+                    onKeyDown: (e) => {
+                      if (e.key === 'Enter' && modoBusqueda === 'contenido') {
+                        buscarContenido()
+                      }
+                    },
+                  }),
+                  modoBusqueda === 'contenido' ? jsx('button', {
+                    type: 'button',
+                    className: S.ghost,
+                    disabled: !query.trim() || busqueda?.estado === 'cargando',
+                    onClick: buscarContenido,
+                    children: busqueda?.estado === 'cargando' ? 'Buscando…' : 'Buscar',
+                  }) : null,
+                ] }),
+                modoBusqueda === 'contenido' && fuente !== 'corpus'
+                  ? jsx('div', { className: S.sub, children:
+                      'la búsqueda por contenido cubre solo el corpus Diké' })
+                  : null,
+                modoBusqueda === 'nombre' && q ? jsxs('div', { className: 'max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)', children: [
                   coincidencias.map((n) => jsxs('button', {
                     key: n.id, type: 'button',
                     className: 'block w-full px-2 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary) truncate',
@@ -771,8 +898,64 @@ export function SeccionGrafo() {
                   coincidencias.length === 0
                     ? jsx('div', { className: S.sub + ' p-2', children: 'Sin coincidencias.' }) : null,
                 ] }) : null,
+                modoBusqueda === 'contenido' && busqueda ? jsxs('div', {
+                  className: 'flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-(--ui-stroke-secondary) p-1.5',
+                  children: [
+                    busqueda.estado === 'cargando'
+                      ? jsx('div', { className: S.sub + ' p-1', children: 'Buscando en el corpus…' })
+                      : null,
+                    busqueda.estado === 'error'
+                      ? jsx('div', { className: 'text-xs text-(--ui-danger) p-1', children: busqueda.mensaje })
+                      : null,
+                    busqueda.estado === 'lista' ? jsxs('div', { className: 'flex flex-col gap-1', children: [
+                      jsx('span', { className: S.chip + ' ' + S.chipOff,
+                        children:
+                          (busqueda.data && busqueda.data.rotulo) ||
+                          'Resultado de búsqueda: es una pista, no una fuente verificada' }),
+                      ((busqueda.data && busqueda.data.resultados) || []).length === 0
+                        ? jsx('div', { className: S.sub + ' p-1', children: 'Sin resultados.' })
+                        : null,
+                      ((busqueda.data && busqueda.data.resultados) || []).map((r) => {
+                        const metodo = (busqueda.data && busqueda.data.metodo) || {}
+                        const rel = Math.max(0, Math.min(1, r.score_rel || 0))
+                        return jsxs('button', {
+                          key: r.nodo_id, type: 'button',
+                          className: 'flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)',
+                          onClick: () => alElegirResultado(r),
+                          children: [
+                            jsxs('div', { className: 'flex items-center gap-1.5', children: [
+                              jsx('span', { className: S.sub, children: '#' + r.rank }),
+                              jsx('span', { className: 'min-w-0 flex-1 truncate', children: r.label }),
+                              jsx('span', { className: S.chip + ' ' + S.chipOff, children: r.canal }),
+                            ] }),
+                            jsxs('div', { className: 'flex items-center gap-1.5', children: [
+                              jsx('span', {
+                                className: 'inline-block h-1.5 rounded-sm bg-(--ui-accent)',
+                                style: { width: Math.max(3, Math.round(rel * 64)) + 'px' },
+                              }),
+                              jsx('span', { className: S.sub, children: Math.round(rel * 100) + '%' }),
+                            ] }),
+                            (r.terminos || []).length
+                              ? jsx('div', { className: S.sub + ' truncate', children:
+                                  'términos: ' + r.terminos.join(', ') })
+                              : null,
+                            (r.unidades || []).length
+                              ? jsx('div', { className: S.sub + ' truncate', children:
+                                  'unidades: ' + r.unidades.map((u) => u.etiqueta).join(', ') })
+                              : null,
+                            jsx('div', { className: S.sub + ' truncate', children:
+                              (metodo.motor || 'bm25') + ' · canal ' + (r.canal || '') +
+                              (r.evidencia ? ' — ' + r.evidencia : '') }),
+                          ],
+                        })
+                      }),
+                    ] }) : null,
+                  ] }) : null,
                 jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
-                  jsx(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
+                  jsx(TarjetaNodo, {
+                    nodo: actual, conteos, fuente,
+                    busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null,
+                  }) }),
                 aristaSel ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
                 caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs('div', {

@@ -1,7 +1,7 @@
 {
   "name": "dike-desktop",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Build del plugin Desktop de Dik\u00e9 (bundle ESM autocontenido).",
   "scripts": {
     "build": "node build.mjs",

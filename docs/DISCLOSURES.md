@@ -191,7 +191,9 @@ turn on model prediction.
   downloads.
 - The NIF and graph routes run `scripts/panel.py` — plugin code, not motor
   code — in the same isolated subprocess shape as the verifier: list argv,
-  no shell, minimal environment, timeout (90 s; 300 s for corpus reads).
+  no shell, minimal environment, timeout (90 s; 120 s for content search,
+  300 s for corpus reads). `/grafo/buscar` additionally passes the query
+  on the subprocess's stdin instead of argv.
   Inputs are validated before they reach the driver: `case_id` must match a
   strict identifier pattern, `field_path` must be one of the editable NIF
   sections, `gap_index` an integer, `validated` a boolean, `confidence` a
@@ -267,10 +269,12 @@ Writer chat, NIF proposals and model prediction.
 
 The routes sit behind Hermes' own plugin routing and authentication; the
 plugin adds no authentication of its own. The `/grafo/*` and `/estado`
-routes are `GET` and read-only. `POST /verificar` writes only a temporary
-copy of the brief, removed after the call; `POST /nif/*` writes case
-files; `POST /escrito` and `POST /privacidad/*` write the files listed in
-"It writes"; no route writes outside plugin-data.
+routes are `GET` and read-only, with one exception: `POST /grafo/buscar`,
+which is `POST` precisely so the query never lands in access logs. It
+writes only the BM25 index cache described below; `POST /verificar` writes
+only a temporary copy of the brief, removed after the call; `POST /nif/*`
+writes case files; `POST /escrito` and `POST /privacidad/*` write the files
+listed in "It writes"; no route writes outside plugin-data.
 
 - `/escrito` (`GET`, `POST`) — load and save the Case Writer brief of a case.
 - `/privacidad/detectar`, `/privacidad/decision`, `/privacidad/seudonimizar`,
@@ -288,6 +292,18 @@ files; `POST /escrito` and `POST /privacidad/*` write the files listed in
   `/grafo/nodo`, `/grafo/unidades`, `/grafo/unidad` — read-only graph
   metadata (60 s memo, see below); the response cache lives at
   `<plugin-data>/dike/cache/grafo_red_v3_<pack_hash>.json`.
+- `/grafo/buscar` (`POST`) — content search over the sealed corpus. Body
+  `{"q", "limite"}`: the query is validated (1–300 characters, no control
+  characters, at least one searchable term) and sent to `scripts/panel.py`
+  **on stdin**, never in argv, so it cannot appear in `ps`; it is never
+  written to disk or logged. The panel runs the vendored deterministic
+  BM25 retriever (`StarterCorpusRetriever`, no model, no network) over the
+  sealed corpus and maps each hit to the graph article node
+  (`a:<leychileCode>:<eId>`). Results are labeled as clues, not verified
+  citations. Reads only the sealed corpus; the single write is the BM25
+  index cache at `<generation>/home/.dike/bm25_cache/<snapshot16>.pkl` —
+  outside the `users/` subtree the integrity check hashes, next to the
+  existing binding cache.
 - `/grafo/fuentes` — lists the corpus and the optional local layer.
 - `/grafo/evidencia` — evidence snippet for one local-layer link.
 - `/nif/*` — case-board CRUD via `scripts/panel.py` (writes under
@@ -318,5 +334,11 @@ from a user-supplied anonymized database:
 
 - `<plugin-data>/dike/cache/grafo_red_v3_<pack_hash>.json` — the slim
   corpus graph, rebuilt when missing or when the schema version changes.
+- `<generation>/home/.dike/bm25_cache/<snapshot16>.pkl` — the pickled BM25
+  index of the sealed corpus, keyed by the snapshot hash; written by the
+  engine's retriever on first search and reused afterwards. It contains
+  only article terms and document statistics — never a query. It lives
+  under the generation's `home/`, outside the `users/` subtree that the
+  integrity check hashes (same place as the binding cache).
 - Engine caches and the engine's `HOME` stay under plugin-data (see
   "What it writes").

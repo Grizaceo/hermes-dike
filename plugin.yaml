@@ -1,5 +1,5 @@
 name: dike
-version: "0.7.0"
+version: "0.8.0"
 manifest_version: 2
 description: >-
   Checks the article citations of Chilean law in a legal brief against a local,
@@ -13,8 +13,9 @@ description: >-
   default) with two hooks that inject fail-closed instructions and block every tool
   except skills and the verifier, only in those sessions. It also proposes NIF
   case-board updates that enter only when you accept them, plus a read-only map of
-  the sealed corpus graph. Case data stays in plugin-data, outside the sealed
-  corpus generation.
+  the sealed corpus graph whose content search is lexical, deterministic and
+  offline — one clue to read, never a verified citation. Case data stays in
+  plugin-data, outside the sealed corpus generation.
 author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike

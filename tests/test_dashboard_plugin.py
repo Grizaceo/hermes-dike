@@ -60,6 +60,7 @@ def test_api_expone_panel_nif_y_grafo(api):
         '/nif/edit', '/nif/gap', '/nif/validar', '/nif/confianza',
         '/grafo/personal', '/grafo/corpus', '/grafo/corpus/norma/{code}',
         '/grafo/red', '/grafo/unidad', '/grafo/nodo', '/grafo/unidades',
+        '/grafo/buscar',
     ):
         assert ruta in rutas, ruta
 

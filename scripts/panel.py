@@ -19,11 +19,15 @@ vendorizado queda intacto: este archivo es código del plugin, no del motor.
     python scripts/panel.py grafo corpus
     python scripts/panel.py grafo corpus-norma <leychileCode>
     python scripts/panel.py grafo red
+    python scripts/panel.py grafo buscar        # consulta por STDIN: {"q": str, "limite": int}
 
 Casos NIF y el grafo personal viven en ``DIKE_USERS_ROOT/<DIKE_USER>/`` — el
 plugin-data del perfil, FUERA de la generación sellada del corpus: escribir
 ahí no toca la integridad que ``constancia`` verifica en cada llamada. El
-corpus sellado solo se lee (``grafo corpus*``), nunca se escribe.
+corpus sellado solo se lee (``grafo corpus*``, ``grafo buscar``), nunca se
+escribe. La consulta de ``grafo buscar`` llega por la entrada estándar como
+JSON para que no aparezca en la lista de procesos (``ps``): no se escribe a
+disco ni se registra en ninguna parte.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 _MOTOR = Path(__file__).resolve().parent.parent / "motor"
@@ -226,6 +231,188 @@ def _candidatos_norma(current: Path, nid: str):
 
 
 # ---------------------------------------------------------------------------
+# Búsqueda por contenido: BM25 determinista sobre el corpus sellado
+# ---------------------------------------------------------------------------
+
+_ROTULO_BUSQUEDA = "Resultado de búsqueda: es una pista, no una fuente verificada"
+
+
+def _familias_texto(texto: str) -> set:
+    """Familias morfológicas de los términos de un texto (como el retriever)."""
+    from lexo_cli.starter.morfologia import familia
+    from lexo_cli.starter.retrieval import terminos
+    return {familia(t) for t in terminos(texto)}
+
+
+def _terminos_presentes(consulta_terminos: list, familias: set) -> list:
+    """Términos de la consulta con al menos un término de su familia en el texto.
+
+    La comparación es por ``familia()`` — la misma que usa el retriever para
+    acreditar variantes («resolución» calza con «resolutoria»). Se devuelve el
+    término tal como lo escribió quien consulta, sin duplicados y en orden.
+    """
+    from lexo_cli.starter.morfologia import familia
+    vistos: set = set()
+    out: list = []
+    for t in consulta_terminos:
+        if t in vistos:
+            continue
+        vistos.add(t)
+        if familia(t) in familias:
+            out.append(t)
+    return out
+
+
+def buscar(consulta: str, limite: int = 20, corpus_dirs=None) -> dict:
+    """Busca artículos del corpus sellado por contenido (BM25, sin modelo).
+
+    Cada acierto del retriever se traduce al nodo ``a:CODE:EID`` que ``grafo
+    red`` emite para el mismo archivo; un acierto sin nodo mapeable se
+    descarta y se cuenta en ``sin_nodo``. Los resultados son pistas de
+    lectura, no citas verificadas: el rótulo lo dice y la interfaz lo repite.
+
+    ``corpus_dirs`` permite apuntar a otro conjunto de ``*/current`` (tests);
+    por defecto usa ``_corpus_dirs()``. La consulta se valida aquí también:
+    este script es la última línea antes del motor.
+    """
+    from lexo_cli.starter.resolver import StarterCorpusResolver
+    from lexo_cli.starter.retrieval import StarterCorpusRetriever, terminos
+
+    if not isinstance(consulta, str):
+        raise ValueError("la consulta debe ser texto.")
+    q = consulta.strip()
+    if not q:
+        raise ValueError("la consulta está vacía.")
+    if len(q) > 300:
+        raise ValueError("la consulta supera los 300 caracteres.")
+    if any(unicodedata.category(c).startswith("C") for c in q):
+        raise ValueError("la consulta tiene caracteres de control.")
+    consulta_terminos = terminos(q)
+    if not consulta_terminos:
+        raise ValueError("la consulta no tiene términos buscables.")
+    if isinstance(limite, bool) or limite is None:
+        limite = 20
+    else:
+        try:
+            limite = int(limite)
+        except (TypeError, ValueError):
+            limite = 20
+    limite = max(1, min(50, limite))
+
+    dirs = [Path(d) for d in (corpus_dirs if corpus_dirs is not None else _corpus_dirs())]
+    resolver = StarterCorpusResolver(dirs)
+    retriever = StarterCorpusRetriever(resolver)
+    hits = retriever.search(q, limit=limite)
+
+    resultados: list[dict] = []
+    sin_nodo = 0
+    pack = ""
+    nombres_cortos: dict[str, str] = {}
+    for hit in hits:
+        ev = resolver._by_gid.get(hit.gid)
+        if ev is None:
+            sin_nodo += 1
+            continue
+        nodo_id = f"a:{ev.leychile_code}:{ev.eid}"
+        instrumento = f"n:{ev.leychile_code}"
+        # El nodo existe en `grafo red` si el archivo del artículo sigue ahí
+        # y describe ese mismo artículo: es la misma evidencia que el resolver
+        # verificó (hash de texto, completitud, ventana temporal).
+        ruta = Path(ev.source_path)
+        try:
+            articulo = json.loads(ruta.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            sin_nodo += 1
+            continue
+        if not _es_articulo(articulo, nodo_id):
+            sin_nodo += 1
+            continue
+        current = ruta.parent.parent
+        if not pack:
+            pack = current.parent.name
+        code = ev.leychile_code
+        if code not in nombres_cortos:
+            corto = ""
+            nf = current / "normas" / f"norma_{code}.json"
+            norma = _read_json(nf) if nf.is_file() else None
+            if norma is not None:
+                corto = _nombre_corto(norma.get("eli") or {})
+            nombres_cortos[code] = corto or code
+        rotulo = str(articulo.get("label") or articulo.get("eId") or ruta.stem)
+        texto = ev.text or ""
+        familias_art = _familias_texto(texto)
+        unidades = []
+        for u in _unidades(texto):
+            presentes = _terminos_presentes(
+                consulta_terminos, _familias_texto(u["texto"]))
+            if presentes:
+                unidades.append({
+                    "id": f"{nodo_id}#u{u['orden']:02d}",
+                    "etiqueta": u["etiqueta"],
+                    "terminos": presentes,
+                })
+            if len(unidades) >= 5:
+                break
+        resultados.append({
+            "gid": hit.gid,
+            "nodo_id": nodo_id,
+            "instrumento": instrumento,
+            "label": f"{nombres_cortos[code]}, art. {rotulo}",
+            "score": hit.score,
+            "canal": hit.channel,
+            "evidencia": hit.evidence,
+            "terminos": _terminos_presentes(consulta_terminos, familias_art),
+            "unidades": unidades,
+            "sha256": ev.text_sha256,
+            "url": (ev.provenance or {}).get("wasDerivedFrom")
+                   or ev.source_url or None,
+        })
+
+    max_score = max((r["score"] for r in resultados), default=0.0)
+    finales: list[dict] = []
+    for i, r in enumerate(resultados, 1):
+        score = r["score"]
+        if score == float("inf"):
+            rel = 1.0
+        elif max_score > 0 and score == score:
+            rel = round(score / max_score, 3)
+        else:
+            rel = 0.0
+        finales.append({
+            "rank": i,
+            "nodo_id": r["nodo_id"],
+            "gid": r["gid"],
+            "instrumento": r["instrumento"],
+            "label": r["label"],
+            "score": score,
+            "score_rel": rel,
+            "canal": r["canal"],
+            "evidencia": r["evidencia"],
+            "terminos": r["terminos"],
+            "unidades": r["unidades"],
+            "sha256": r["sha256"],
+            "url": r["url"],
+        })
+    resultados = finales
+    if not pack and dirs:
+        pack = dirs[0].parent.name
+    return {
+        "rotulo": _ROTULO_BUSQUEDA,
+        "metodo": {
+            "motor": "bm25-starter",
+            "determinista": True,
+            "modelo": None,
+            "canales": ["cita_explicita", "lexico", "referencia", "contiguidad"],
+            "pack": pack,
+            "descripcion": "BM25 por cláusula sobre el corpus sellado, sin modelo",
+        },
+        "total": len(resultados),
+        "sin_nodo": sin_nodo,
+        "resultados": resultados,
+    }
+
+
+# ---------------------------------------------------------------------------
 # NIF — tablero de la teoría del caso (lexo_cli.nif_studio.service)
 # ---------------------------------------------------------------------------
 
@@ -329,7 +516,8 @@ def _nif(args: list[str]) -> int:
 
 def _grafo(args: list[str]) -> int:
     if not args:
-        return _fail("grafo: falta el objetivo (personal|corpus|corpus-norma).")
+        return _fail("grafo: falta el objetivo (personal|corpus|corpus-norma|"
+                     "red|nodo|unidad|unidades|buscar).")
     op, rest = args[0], args[1:]
 
     if op == "personal":
@@ -615,6 +803,23 @@ def _grafo(args: list[str]) -> int:
             "conteos": {"nodes": len(nodos), "links": len(aristas)},
             "truncado": False,
         })
+        return 0
+
+    if op == "buscar":
+        # La consulta NO viaja por argv (quedaría visible en `ps` ni en logs):
+        # llega por STDIN como JSON {"q": str, "limite": int}.
+        if rest:
+            return _fail("grafo buscar no lleva argumentos: la consulta va por stdin.")
+        try:
+            payload = json.loads(sys.stdin.read() or "{}")
+        except json.JSONDecodeError:
+            return _fail("entrada inválida: se esperaba JSON {\"q\": ..., \"limite\": ...}.")
+        if not isinstance(payload, dict):
+            return _fail("entrada inválida: se esperaba un objeto JSON.")
+        try:
+            _out(buscar(payload.get("q"), payload.get("limite", 20)))
+        except ValueError as exc:
+            return _fail(str(exc))
         return 0
 
     return _fail(f"grafo: objetivo desconocido '{op}'.")

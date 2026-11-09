@@ -107573,13 +107573,17 @@ function TarjetaArista({ arista, fuente }) {
     ] }) : null
   ] });
 }
-function TarjetaNodo({ nodo, conteos, fuente }) {
+function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
   if (!nodo) {
     return jsx6("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
   }
   const n2 = nodo;
   const esUnidad = n2.tipo === "unidad";
   return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    busqueda ? jsxs6("div", { className: "flex flex-col gap-0.5", children: [
+      jsx6("span", { className: S.chip + " " + S.chipOff, children: "Resultado de b\xFAsqueda: es una pista, no una fuente verificada" }),
+      (busqueda.terminos || []).length ? jsx6("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null
+    ] }) : null,
     jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
       jsx6("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
       esUnidad ? jsx6("span", {
@@ -107682,6 +107686,9 @@ function SeccionGrafo() {
     }
   }, []);
   const [query, setQuery] = useState6("");
+  const [modoBusqueda, setModoBusqueda] = useState6("nombre");
+  const [busqueda, setBusqueda] = useState6(null);
+  const [busquedaPorNodo, setBusquedaPorNodo] = useState6(() => /* @__PURE__ */ new Map());
   const [fallo3d, setFallo3d] = useState6(null);
   const [listaAbierta, setListaAbierta] = useState6(false);
   const apiRef = useRef5(null);
@@ -107689,6 +107696,8 @@ function SeccionGrafo() {
     setRedErr(null);
     setPersonalErr(null);
     setRed(null);
+    setBusqueda(null);
+    setBusquedaPorNodo(/* @__PURE__ */ new Map());
     rest("/grafo/red?fuente=" + fuente, { timeoutMs: 12e4 }).then(setRed).catch(setRedErr);
     rest("/grafo/personal").then(setPersonal).catch(setPersonalErr);
   }, [fuente]);
@@ -107788,23 +107797,44 @@ function SeccionGrafo() {
       return { ids: new Set(cam.ids), links: new Set(cam.links || []) };
     }
     const foco = seleccion || hover;
-    if (!foco) return null;
-    const ids = /* @__PURE__ */ new Set([foco]);
+    if (foco) {
+      const ids2 = /* @__PURE__ */ new Set([foco]);
+      const res = busquedaPorNodo.get(foco);
+      if (res) {
+        for (const u2 of res.unidades || []) ids2.add(u2.id);
+      }
+      const links2 = /* @__PURE__ */ new Set();
+      for (const l2 of proyeccion.links) {
+        const s2 = idDe(l2.source);
+        const t4 = idDe(l2.target);
+        if (s2 === foco) {
+          ids2.add(t4);
+          links2.add(s2 + "|" + t4 + "|" + l2.tipo);
+        }
+        if (t4 === foco) {
+          ids2.add(s2);
+          links2.add(s2 + "|" + t4 + "|" + l2.tipo);
+        }
+      }
+      return { ids: ids2, links: links2 };
+    }
+    const data = busqueda && busqueda.estado === "lista" ? busqueda.data : null;
+    const lista = data && data.resultados || [];
+    if (!lista.length) return null;
+    const ids = /* @__PURE__ */ new Set();
+    for (const r2 of lista) {
+      ids.add(r2.nodo_id);
+      ids.add(r2.instrumento);
+    }
     const links = /* @__PURE__ */ new Set();
     for (const l2 of proyeccion.links) {
+      if (l2.tipo !== "contiene") continue;
       const s2 = idDe(l2.source);
       const t4 = idDe(l2.target);
-      if (s2 === foco) {
-        ids.add(t4);
-        links.add(s2 + "|" + t4 + "|" + l2.tipo);
-      }
-      if (t4 === foco) {
-        ids.add(s2);
-        links.add(s2 + "|" + t4 + "|" + l2.tipo);
-      }
+      if (ids.has(s2) && ids.has(t4)) links.add(s2 + "|" + t4 + "|" + l2.tipo);
     }
     return { ids, links };
-  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion]);
+  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo]);
   useEffect6(() => {
     if (!rotar) return void 0;
     const id = setInterval(() => {
@@ -107818,6 +107848,40 @@ function SeccionGrafo() {
     setSeleccion(id);
     if (apiRef.current) apiRef.current.enfocar(id);
   }, [indice]);
+  const buscarContenido = useCallback6(() => {
+    const q3 = query.trim();
+    if (!q3 || fuente !== "corpus") return;
+    setBusqueda({ estado: "cargando" });
+    setBusquedaPorNodo(/* @__PURE__ */ new Map());
+    rest("/grafo/buscar", {
+      method: "POST",
+      body: { q: q3, limite: 20 },
+      timeoutMs: 12e4
+    }).then((data) => {
+      setBusqueda({ estado: "lista", data });
+      const ids = [];
+      for (const r2 of data && data.resultados || []) {
+        ids.push(r2.nodo_id);
+        ids.push(r2.instrumento);
+      }
+      if (apiRef.current && apiRef.current.encuadrar) apiRef.current.encuadrar(ids);
+    }).catch((e3) => {
+      setBusqueda({ estado: "error", mensaje: mensajeError(e3) });
+      setBusquedaPorNodo(/* @__PURE__ */ new Map());
+    });
+  }, [query, fuente]);
+  const alElegirResultado = useCallback6((r2) => {
+    setBusquedaPorNodo((prev) => new Map(prev).set(r2.nodo_id, r2));
+    setSeleccion(r2.nodo_id);
+    if (fuente === "corpus" && !expandidos.has(r2.nodo_id)) {
+      setExpandidos((prev) => new Set(prev).add(r2.nodo_id));
+      if (!unidadesMap.has(r2.nodo_id)) {
+        rest("/grafo/unidades?articulo=" + encodeURIComponent(r2.nodo_id)).then((d2) => setUnidadesMap((prev) => new Map(prev).set(r2.nodo_id, d2))).catch(() => {
+        });
+      }
+    }
+    if (apiRef.current) apiRef.current.enfocar(r2.nodo_id);
+  }, [expandidos, unidadesMap, fuente]);
   const q2 = query.trim().toLocaleLowerCase();
   const coincidencias = q2 ? nodos.filter((n2) => n2.label.toLocaleLowerCase().includes(q2) || n2.id.toLocaleLowerCase().includes(q2)).slice(0, 40) : [];
   const actual = seleccion ? indice.get(seleccion) : null;
@@ -107837,6 +107901,9 @@ function SeccionGrafo() {
             setExpandidos(/* @__PURE__ */ new Set());
             setAristaSel(null);
             setSeleccion(null);
+            if (e3.target.value !== "corpus" && modoBusqueda === "contenido") {
+              setModoBusqueda("nombre");
+            }
           },
           children: [
             jsx6("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
@@ -107969,13 +108036,42 @@ function SeccionGrafo() {
           })
         ] }),
         jsxs6("div", { className: "flex min-w-0 flex-col gap-2", children: [
-          jsx6("input", {
-            className: S.input + " w-full",
-            placeholder: "Buscar ley, c\xF3digo o art\xEDculo\u2026",
-            value: query,
-            onChange: (e3) => setQuery(e3.target.value)
-          }),
-          q2 ? jsxs6("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
+          jsxs6("div", { className: "flex items-center gap-1", children: [
+            jsx6("select", {
+              className: S.input,
+              title: "Modo de b\xFAsqueda",
+              value: modoBusqueda,
+              onChange: (e3) => setModoBusqueda(e3.target.value),
+              children: [
+                jsx6("option", { value: "nombre", children: "por nombre" }),
+                jsx6("option", {
+                  value: "contenido",
+                  disabled: fuente !== "corpus",
+                  children: "por contenido"
+                })
+              ]
+            }),
+            jsx6("input", {
+              className: S.input + " w-full",
+              placeholder: modoBusqueda === "contenido" ? "Buscar por contenido en los art\xEDculos\u2026" : "Buscar ley, c\xF3digo o art\xEDculo\u2026",
+              value: query,
+              onChange: (e3) => setQuery(e3.target.value),
+              onKeyDown: (e3) => {
+                if (e3.key === "Enter" && modoBusqueda === "contenido") {
+                  buscarContenido();
+                }
+              }
+            }),
+            modoBusqueda === "contenido" ? jsx6("button", {
+              type: "button",
+              className: S.ghost,
+              disabled: !query.trim() || busqueda?.estado === "cargando",
+              onClick: buscarContenido,
+              children: busqueda?.estado === "cargando" ? "Buscando\u2026" : "Buscar"
+            }) : null
+          ] }),
+          modoBusqueda === "contenido" && fuente !== "corpus" ? jsx6("div", { className: S.sub, children: "la b\xFAsqueda por contenido cubre solo el corpus Dik\xE9" }) : null,
+          modoBusqueda === "nombre" && q2 ? jsxs6("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
             coincidencias.map((n2) => jsxs6("button", {
               key: n2.id,
               type: "button",
@@ -107988,7 +108084,53 @@ function SeccionGrafo() {
             })),
             coincidencias.length === 0 ? jsx6("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
           ] }) : null,
-          jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
+          modoBusqueda === "contenido" && busqueda ? jsxs6("div", {
+            className: "flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-(--ui-stroke-secondary) p-1.5",
+            children: [
+              busqueda.estado === "cargando" ? jsx6("div", { className: S.sub + " p-1", children: "Buscando en el corpus\u2026" }) : null,
+              busqueda.estado === "error" ? jsx6("div", { className: "text-xs text-(--ui-danger) p-1", children: busqueda.mensaje }) : null,
+              busqueda.estado === "lista" ? jsxs6("div", { className: "flex flex-col gap-1", children: [
+                jsx6("span", {
+                  className: S.chip + " " + S.chipOff,
+                  children: busqueda.data && busqueda.data.rotulo || "Resultado de b\xFAsqueda: es una pista, no una fuente verificada"
+                }),
+                (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx6("div", { className: S.sub + " p-1", children: "Sin resultados." }) : null,
+                (busqueda.data && busqueda.data.resultados || []).map((r2) => {
+                  const metodo = busqueda.data && busqueda.data.metodo || {};
+                  const rel = Math.max(0, Math.min(1, r2.score_rel || 0));
+                  return jsxs6("button", {
+                    key: r2.nodo_id,
+                    type: "button",
+                    className: "flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)",
+                    onClick: () => alElegirResultado(r2),
+                    children: [
+                      jsxs6("div", { className: "flex items-center gap-1.5", children: [
+                        jsx6("span", { className: S.sub, children: "#" + r2.rank }),
+                        jsx6("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
+                        jsx6("span", { className: S.chip + " " + S.chipOff, children: r2.canal })
+                      ] }),
+                      jsxs6("div", { className: "flex items-center gap-1.5", children: [
+                        jsx6("span", {
+                          className: "inline-block h-1.5 rounded-sm bg-(--ui-accent)",
+                          style: { width: Math.max(3, Math.round(rel * 64)) + "px" }
+                        }),
+                        jsx6("span", { className: S.sub, children: Math.round(rel * 100) + "%" })
+                      ] }),
+                      (r2.terminos || []).length ? jsx6("div", { className: S.sub + " truncate", children: "t\xE9rminos: " + r2.terminos.join(", ") }) : null,
+                      (r2.unidades || []).length ? jsx6("div", { className: S.sub + " truncate", children: "unidades: " + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
+                      jsx6("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") })
+                    ]
+                  });
+                })
+              ] }) : null
+            ]
+          }) : null,
+          jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaNodo, {
+            nodo: actual,
+            conteos,
+            fuente,
+            busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null
+          }) }),
           aristaSel ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
           caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs6("div", {
             className: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",

@@ -23783,6 +23783,9 @@ function bloqueCambios(parrafos, hashes, prevHashes) {
   }
   return lineas.join("\n");
 }
+function activoDe(seleccion, parrafoCursor) {
+  return seleccion && seleccion.trim() ? seleccion : parrafoCursor || "";
+}
 function bloqueConstancia(verificacion, hashActual) {
   if (!verificacion || !verificacion.resultado) return "";
   const res = verificacion.resultado;
@@ -23886,6 +23889,15 @@ function candidatosPerfil(rutas, perfilActivo, preferido = "lexo-lawyer") {
   }
   return out;
 }
+function nombrePerfilActivo(perfil) {
+  if (!perfil) return "";
+  if (typeof perfil === "string") return perfil;
+  if (typeof perfil.get === "function") {
+    const v2 = perfil.get();
+    return typeof v2 === "string" ? v2 : "";
+  }
+  return "";
+}
 
 // src/escritor/chat.js
 var PERFIL_DEFAULT = "lexo-lawyer";
@@ -23938,7 +23950,7 @@ function ChatEscritor({
       try {
         const rutas = await host.profileRoutes();
         const listaRutas = rutas && (rutas.routes || rutas) || [];
-        const activo = host.state && host.state.profile;
+        const activo = nombrePerfilActivo(host.state && host.state.profile);
         const candidatos = candidatosPerfil(listaRutas, activo);
         let ruta = null;
         let perfilObjetivo = null;

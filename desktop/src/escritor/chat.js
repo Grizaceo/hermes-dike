@@ -11,8 +11,8 @@ import { textoDelEditor } from './editor.js'
 import { estadoCita, etiquetaCita, sha256Hex } from './verificador.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import {
-  acumDeltas, candidatosPerfil, componerTurno, etiquetaDestino,
-  etiquetaModelo, filtroEvento, parsePregunta,
+  acumDeltas, activoDe, candidatosPerfil, componerTurno, etiquetaDestino,
+  etiquetaModelo, filtroEvento, nombrePerfilActivo, parsePregunta,
 } from './chat-logica.js'
 
 const PERFIL_DEFAULT = 'lexo-lawyer'
@@ -70,7 +70,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
         // habilitado es seguro — el primero con dike-verificar responde.
         const rutas = await host.profileRoutes()
         const listaRutas = (rutas && (rutas.routes || rutas)) || []
-        const activo = host.state && host.state.profile
+        const activo = nombrePerfilActivo(host.state && host.state.profile)
         const candidatos = candidatosPerfil(listaRutas, activo)
         let ruta = null
         let perfilObjetivo = null

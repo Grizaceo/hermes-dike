@@ -222,3 +222,16 @@ export function candidatosPerfil(rutas, perfilActivo, preferido = 'lexo-lawyer')
   }
   return out
 }
+
+// Nombre del perfil activo. host.state.profile es un átomo nanostores
+// (readonlyAtom): hay que llamar .get() para obtener el string. Tolera un
+// string plano, un átomo o la ausencia de valor; devuelve '' si no hay nombre.
+export function nombrePerfilActivo(perfil) {
+  if (!perfil) return ''
+  if (typeof perfil === 'string') return perfil
+  if (typeof perfil.get === 'function') {
+    const v = perfil.get()
+    return typeof v === 'string' ? v : ''
+  }
+  return ''
+}

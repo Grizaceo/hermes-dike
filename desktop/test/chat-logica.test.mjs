@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import {
   acumDeltas, activoDe, candidatosPerfil, bloqueCambios, bloqueConstancia, bloqueEscrito,
   componerTurno, diffParrafos, etiquetaDestino, etiquetaModelo, filtroEvento,
-  hashParrafo, neutralizar, parsePregunta,
+  hashParrafo, neutralizar, nombrePerfilActivo, parsePregunta,
 } from '../src/escritor/chat-logica.js'
 
 const VERIF = {
@@ -153,4 +153,38 @@ test('candidatosPerfil: lexo-lawyer primero, luego el perfil activo', () => {
     ['lexo-lawyer', 'lexo-alpha'])
   // sin rutas → vacío (el error lo da el llamador)
   assert.deepEqual(candidatosPerfil([], 'lexo-lawyer'), [])
+})
+
+test('nombrePerfilActivo: átomo, string plano y ausencia', () => {
+  // Átomo nanostores (readonlyAtom): .get() da el nombre.
+  assert.equal(nombrePerfilActivo({ get: () => 'lexo-alpha' }), 'lexo-alpha')
+  // String plano pasa tal cual.
+  assert.equal(nombrePerfilActivo('lexo-beta'), 'lexo-beta')
+  // Sin valor → ''.
+  assert.equal(nombrePerfilActivo(undefined), '')
+  assert.equal(nombrePerfilActivo(null), '')
+  assert.equal(nombrePerfilActivo(''), '')
+  // .get() que no devuelve string → ''.
+  assert.equal(nombrePerfilActivo({ get: () => 42 }), '')
+  assert.equal(nombrePerfilActivo({ get: () => null }), '')
+  // Objeto sin .get() → ''.
+  assert.equal(nombrePerfilActivo({ profile: 'x' }), '')
+})
+
+test('candidatosPerfil con el nombre que da nombrePerfilActivo', () => {
+  const rutas = [
+    { targetProfile: 'lexo-lawyer', profile: 'default' },
+    { targetProfile: 'lexo-alpha', profile: 'lexo-alpha' },
+  ]
+  // El perfil activo llega como átomo: nombrePerfilActivo lo resuelve al
+  // string y candidatosPerfil ya puede incluirlo como segundo candidato.
+  const activo = nombrePerfilActivo({ get: () => 'lexo-alpha' })
+  assert.deepEqual(candidatosPerfil(rutas, activo), ['lexo-lawyer', 'lexo-alpha'])
+  // Sin lexo-lawyer en las rutas, el activo del átomo es el único candidato.
+  assert.deepEqual(
+    candidatosPerfil([{ targetProfile: 'lexo-alpha' }], activo), ['lexo-alpha'])
+  // Un átomo sin perfil ('') no añade candidato.
+  assert.deepEqual(
+    candidatosPerfil([{ targetProfile: 'lexo-alpha' }],
+      nombrePerfilActivo(undefined)), [])
 })

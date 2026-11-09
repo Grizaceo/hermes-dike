@@ -169,8 +169,10 @@ It is the only part of the plugin that makes a model run, and it runs only
 when you act: you send a chat message, you ask for NIF proposals, or you
 turn on model prediction.
 
-- **Where it runs.** In the profile `lexo-lawyer` by default (the page checks
-  first that Diké is enabled there and refuses to open the chat otherwise).
+- **Where it runs.** In the profile named by the plugin's `perfil_chat`
+  setting, or the active Hermes profile when that setting is empty (the page
+  checks first that a candidate has Diké enabled and refuses to open the chat
+  otherwise).
   The page opens one hidden session per case, titled
   `Diké · Escrito · <case_id>`, through the Desktop SDK
   (`host.requestProfile`: `session.list`, `session.create`,

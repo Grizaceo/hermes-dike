@@ -3,7 +3,7 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir whose path contains site-packages, because the plugin only forwards such sys.path entries to the engine subprocess)",
       "command": "pip install --target /tmp/dike-scratch/site-packages 'python-docx>=1.1,<2' && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/dike-scratch/site-packages ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "299",
+      "value": "369",
       "date": "2026-11-09"
     },
     {
@@ -31,16 +31,16 @@
       "date": "2026-11-06"
     },
     {
-      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux)",
+      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux) (316M measured on tmpfs on 2026-11-09; 307M on 2026-11-06)",
       "command": "du -sh \"$HERMES_HOME/plugin-data/dike\"",
-      "value": "307M",
-      "date": "2026-11-06"
+      "value": "316M",
+      "date": "2026-11-09"
     },
     {
       "claim": "The panel driver round-trips a NIF case in an isolated workspace: seed → list → edit → validate → confidence → snapshot (version increments, patches recorded, human-validation flag set)",
-      "command": "HOME=<tmp> DIKE_USER=test DIKE_USERS_ROOT=<tmp>/users PYTHONPATH=motor python scripts/panel.py nif seed demo-1 && ... nif snapshot demo-1",
+      "command": "HOME=<tmp> DIKE_USER=test DIKE_USERS_ROOT=<tmp>/users PYTHONPATH=motor python scripts/panel.py nif seed demo-1 && ... nif list && ... nif edit demo-1 facts.known '\"Hecho añadido\"' && ... nif gap demo-1 0 abogado \"certificado\" && ... nif validate demo-1 1 && ... nif confidence demo-1 0.7 && ... nif snapshot demo-1",
       "value": "snapshot v21, validated_by_human=true, confidence=0.7",
-      "date": "2026-11-07"
+      "date": "2026-11-09"
     },
     {
       "claim": "The panel driver reads the sealed corpus graph read-only: 25 norms with titles/status/article counts, edge counts and vigencia records from the installed generation",
@@ -49,27 +49,21 @@
       "date": "2026-11-07"
     },
     {
-      "claim": "hermes plugins validate . --install-deps passes on the 0.5.0 tree",
-      "command": "hermes plugins validate . --install-deps",
+      "claim": "hermes plugins validate --install-deps passes on a clean copy of the 0.8.x tree (no .git, no desktop/node_modules): plugin.yaml parses, declared tools and hooks match the registrations, security scan safe, no core override, desktop surface inside the plugin SDK; hermes plugins doctor reports 1 tool and 2 hooks",
+      "command": "git archive HEAD | tar -x -C <clean> && HERMES_HOME=<tmp> hermes plugins validate <clean> --install-deps && HERMES_HOME=<tmp> hermes plugins doctor dike --ci",
       "value": "Validation passed",
-      "date": "2026-11-07"
-    },
-    {
-      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs produce the same sha256",
-      "command": "cd desktop && npm ci && node build.mjs && sha256sum plugin.js",
-      "value": "ee275dd0bfdc0ff6f017b873e35c640439bd0391f748755b0652269867963b0a",
       "date": "2026-11-09"
     },
     {
-      "claim": "hermes plugins validate passes on the 0.7.0 tree (clean copy without desktop/node_modules and .git): declared tools and hooks match registrations, security scan safe, desktop surface inside the SDK",
-      "command": "hermes plugins validate <clean-copy>",
-      "value": "Validation passed",
+      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs produce the same sha256",
+      "command": "cp -r desktop escritor <tmp>/ && cd <tmp>/desktop && npm ci && node build.mjs && sha256sum plugin.js  # build.mjs reads ../escritor/nif_propuestas.md",
+      "value": "c61b868af89b041e91dc9b7dbaf360877c55dca571112fc2ac6625adca65a31c",
       "date": "2026-11-09"
     },
     {
       "claim": "The Desktop pure-logic tests pass (verifier, privacy, chat, NIF proposals, predictor)",
       "command": "cd desktop && npm test",
-      "value": "52",
+      "value": "57",
       "date": "2026-11-09"
     },
     {
@@ -85,13 +79,13 @@
       "date": "2026-11-08"
     },
     {
-      "claim": "Content search over the sealed corpus (POST /grafo/buscar, scripts/panel.py grafo buscar) is a development measurement within the sample: recall@10 0.952, recall@5 0.823, mrr@10 0.636 over the 31 frozen queries of normas_qrels_v1, which cover 4 of the 25 statutes. The qrels were frozen with this same StarterCorpusRetriever and its constants were fixed while looking at the source goldset, so the numbers are not an independent holdout estimate.",
+      "claim": "Content search over the sealed corpus (POST /grafo/buscar, scripts/panel.py grafo buscar) is a development measurement within the sample: recall@10 0.952, recall@5 0.823, mrr@10 0.636 over the 31 frozen queries of normas_qrels_v1, which cover 4 of the 25 statutes. The qrels were frozen with this same StarterCorpusRetriever and its constants were fixed while looking at the source goldset, so the numbers are not an independent holdout estimate. The qrels file is not in this repository, so this measurement cannot be reproduced from it.",
       "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current",
       "value": "recall@10 0.952",
       "date": "2026-11-08"
     },
     {
-      "claim": "The packaged matter tree (data/arbol/, 85 nodes, 51 anchors) explains content-search queries without reordering them: over the same 31 normas_qrels_v1 queries the ranking metrics are unchanged (0.823 / 0.952 / 0.636), the classification is clear (top1/top2 ratio >= 1.6) in 8 of 31, and the top-1 matter's territory contains the statute of an expected article in 14 of 31. It is an explanation of the classification, not a quality improvement.",
+      "claim": "The packaged matter tree (data/arbol/, 85 nodes, 51 anchors) explains content-search queries without reordering them: over the same 31 normas_qrels_v1 queries the ranking metrics are unchanged (0.823 / 0.952 / 0.636), the classification is clear (top1/top2 ratio >= 1.6) in 8 of 31, and the top-1 matter's territory contains the statute of an expected article in 14 of 31. It is an explanation of the classification, not a quality improvement. The qrels file is not in this repository, so this measurement cannot be reproduced from it.",
       "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current  # fields clara, materia_top1_cubre_esperado",
       "value": "clara 8/31, materia_top1_cubre_esperado 14/31",
       "date": "2026-11-08"
@@ -100,6 +94,24 @@
       "claim": "The ordenamiento profile cl reproduces the sealed chile-base pack at compatibility level C1 (25 norms, 8544 articles, 8569 temporal windows, 17068 edges re-minted)",
       "command": "~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_ordenamiento.py::test_chile_base_c1 -q",
       "value": "C1; 34206/34206 ids re-minted (25/8544/8569/17068); 3 declared year exceptions",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Installed from a local clone into a fresh HERMES_HOME and called through the Hermes plugin registry (no model), the tool and /dike-verificar return 4 of 6 on the demo brief, also with networking off; the first call takes about a minute (corpus install) and later calls 15 to 20 seconds",
+      "command": "HERMES_HOME=<tmp> hermes plugins install file://<clone> --ref <sha> --yes-deps --enable; then load the registered handlers and call them, the second time inside unshare -rn (script and outputs: review evidence B/D)",
+      "value": "4/6; 70 s first call, 20.2 s new process, 16.8 s same process, offline",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "A citation whose text names one statute before the article and another after the number is not certified: \"artículo 161 del Código del Trabajo\\nartículo 161 del Código Civil\" used to return the second one VERIFICADA as cl.norma.ct:art:0161",
+      "command": "~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_native_e2e.py -k cuerpo -q",
+      "value": "FALLO / AMBIGUOUS with motivo_adaptador",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Input with invisible control characters is refused: \"artículo 16\\x001 del Código del Trabajo\" used to verify article 16",
+      "command": "~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_guardas_adaptador.py -k controles -q",
+      "value": "INPUT_CONTROL",
       "date": "2026-11-09"
     }
   ]

@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=b0e1b87719bc407208caf012d903154a9ef96a37612080e5049accd024a28c02 -->
+<!-- vitrina:translation-of README.md sha256=66c1a226997c8c6b83faa7ca6140576e3ea1cb5ca6b1feb5f364f6ebc0aeb06f -->
 # Diké para Hermes
 
 [English](README.md)
@@ -157,7 +157,7 @@ declarativo; sus citas todavía no se pueden verificar
   seguidas sin punto, coma ni viñeta, el motor puede pegarle la primera norma
   a la segunda cita. El plugin entonces no la certifica y explica por qué, en
   vez de adivinar.
-- **No es instantáneo.** El motor arranca en cada llamada: entre 15 y 20
+- **No es instantáneo.** El motor arranca en cada llamada: unos 15 a 20
   segundos cada una, y cerca de un minuto la primera
   ([claims.json](claims.json)).
 - **Qué significa «comprobado por integridad».** Cada llamada compara los

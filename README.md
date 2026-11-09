@@ -150,7 +150,7 @@ those packs cannot be citation-checked yet ([docs/legal-systems.md](docs/legal-s
   lines without a period, a comma or a list bullet, the engine can attach the
   first statute to the second citation. The plugin then refuses to certify it
   and says why, instead of guessing.
-- **Not instant.** The engine starts on every call: 15 to 20 seconds each, and
+- **Not instant.** The engine starts on every call: about 15 to 20 seconds, and
   about a minute for the first one ([claims.json](claims.json)).
 - **What "integrity-checked" means.** Every call compares the installed
   corpus' file names, sizes and modification times with the install record,

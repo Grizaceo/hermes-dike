@@ -3,110 +3,73 @@
 [Español](README.es.md)
 
 A Hermes Agent plugin that checks the article citations of Chilean law in a
-legal brief against a local, hash-identified copy of the statutes, and refuses
-to certify what it cannot prove.
+legal brief against a sealed, hash-identified local copy of the statutes, and
+refuses to certify what it cannot prove.
 
 ## Status
 
-- **Hackathon entry** for the Nous Research Hermes Agent Plugin Hackathon
-  (November 2026). Submitted to the Hermes plugin catalog in
-  [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
-  not listed yet.
-- **Linux only.** Tested with Hermes Agent v0.23.0 (requires_hermes
-  `>=0.23.0`). Version 0.7.0: the Desktop page opens on a **Case Writer**
-  — a brief editor with the citation check as a module, a pseudonymization
-  step you see and control, a chat about the brief that runs in your own
-  Hermes, and NIF proposals you accept one by one — next to the 3D graph
-  of the 25-law corpus and the case board.
+- **Hackathon entry** for the Nous Research Hermes Agent Plugin Hackathon.
+  **Listed in the Hermes plugin catalog**
+  ([pull request](https://github.com/NousResearch/hermes-agent/pull/150360))
+  at an earlier version that has the citation check alone. This version adds
+  the Desktop Case Writer; moving the catalog pin to it takes a new catalog
+  pull request.
+- **Linux only.** Requires Hermes Agent v0.23.0 or later.
 - **The engine is not new.** It is [Diké](https://github.com/Grizaceo/dike),
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
-  hackathon and what was done during it.
-- **Legal-system profiles (framework, additive).** `ordenamiento/` lets a
-  pack declare its jurisdiction profile and validates it level by level
-  (C0–C1 today, C2–C3 planned); Chile is the reference profile. See
-  [docs/legal-systems.md](docs/legal-systems.md). Non-`cl` packs are not
-  verifiable by `/dike-verificar` yet.
+  hackathon and what was built during it.
 
 ## Quickstart
 
 ```bash
-hermes plugins install Grizaceo/hermes-dike
+hermes plugins install dike      # the reviewed catalog pin
 hermes plugins enable dike
 ```
 
-Then ask Hermes to check the citations of a brief, or run the tool yourself
-with the text after the command:
+`hermes plugins install Grizaceo/hermes-dike` installs the latest `main`
+instead, as an unreviewed source. Then ask Hermes to check the citations of a
+brief, or run the check yourself with the text after the command:
 
 ```text
 /dike-verificar Conforme al artículo 161 del Código del Trabajo y al artículo 9999 del Código del Trabajo.
 ```
 
 The first call unpacks and checks the corpus in the plugin's data folder,
-which takes a while. Later calls run offline.
-
-The same check also has a **Diké** tab in the web dashboard and a sidebar
-page in the Desktop app (the desktop half is opt-in: enable it under
-Capabilities → Plugins). The Desktop page has three tabs: the **Case
-Writer**, a read-only map of the sealed corpus graph (its 25 statutes,
-8,544 articles and edges) with content search over the articles, and a
-case board — the NIF — where each case's
-theory is versioned, patch-attributed and marked as human-validated. All of
-them call the same engine through the plugin's `/api/plugins/dike` backend.
-
-The Case Writer's chat answers from the profile `lexo-lawyer` when it exists
-and has Diké enabled, otherwise from the active profile if it has Diké; it
-uses whatever model that profile is configured with.
+which takes about a minute; later calls work offline. In the Desktop app, turn
+on the plugin's page under **Capabilities → Plugins** to get the Case Writer.
 
 ## How it works
 
-The plugin gives the agent one tool, `dike_verificar_citas`. It takes either
-`texto` (the pasted text) or `ruta` (a `.md`, `.txt` or `.docx` file). A relative path resolves against the
-session's working directory when Hermes reports one; gateway sessions do not,
-so there it must be absolute. The Dashboard and Desktop pages reach the same
-adapter over HTTP — text only, never file reads. The panel's NIF and graph
-routes run `scripts/panel.py` in the same isolated subprocess: case boards
-are versioned SQLite stores under the plugin's data folder (outside the
-sealed corpus), and the corpus graph routes only read the verified
-installed generation.
+### Why a plugin and not a prompt
 
-Alongside verification, `scripts/ordenamiento.py` (stdlib only, offline)
-scaffolds, validates and builds statute packs for other legal systems:
-a profile declares the jurisdiction's official source, unit codes, IRI
-templates and year rule; `validar-pack` then grades the pack — today C0
-(manifest and hashes) and C1 (core vocabulary), with C2/C3 planned. The
-`cl` profile reproduces the sealed `chile-base` pack. Details in
-[docs/legal-systems.md](docs/legal-systems.md).
+Ask a model whether article 9999 of the Código del Trabajo exists, and it can
+answer either way with confidence. Diké answers from a sealed corpus, and when
+it has no evidence it says so. A prompt or a skill can ask a model to be
+careful. It cannot:
 
-The Desktop page renders that corpus graph in 3D: an instrument →
-article → inciso hierarchy where each minimal normative unit carries a
-deontic-modality label computed by a table of regex rules (R-EXC …
-R-DEF) — deterministic candidates, not validated. Its search box has two
-modes: by name, and by content — a deterministic BM25 search over the
-sealed corpus that returns article nodes as clues, never as verified
-citations. Matter chips then explain the query: they name the legal
-matters the tree classified it under, the terms that activated each one,
-and whether each result is an anchor of that matter or inside its
-territory — explanation only, never a reorder. Optionally, a user can
-build a local graph from their own anonymized database with
-`scripts/construir_red_local.py`: the builder refuses to run unless an
-approval file records the database's sha256, writes only under the
-profile's plugin-data (dir 700, files 600), and its output is never
-shipped with the plugin. The plugin contains no judgment data.
+- carry 8,544 articles of 25 statutes and check their hashes before answering;
+- give the same answer every time, with the network off;
+- refuse by contract, so an ambiguous or unknown citation never becomes a pass;
+- stop the model from using tools while it discusses a brief (that takes hooks);
+- pseudonymize a brief before it leaves the machine, and log a hash of what left.
 
-1. The plugin runs the Diké engine as a subprocess (`dike constancia --json`)
-   with a minimal environment: no agent credentials, and a home folder inside
-   the plugin's data. The engine is never imported into Hermes.
-2. The engine finds each article citation and resolves it against the corpus:
-   25 statutes and 8,544 articles from Ley Chile ([claims.json](claims.json)).
-   For each one it checks the text hash and whether the article was in force on
-   the reference date.
-3. The plugin validates the engine's answer against a fixed contract: counts,
-   verdict, and the evidence each verified citation must carry. A malformed
-   answer is reported as an error, never as a pass.
+### The citation check
+
+1. The agent gets one tool, `dike_verificar_citas`. It takes `texto` (the
+   text) or `ruta` (a `.md`, `.txt` or `.docx` file). `/dike-verificar` runs
+   the same check on the text after the command, without a model.
+2. The plugin runs the engine as a subprocess with a minimal environment, with
+   no agent credentials and a home folder inside the plugin's data. The engine
+   finds each article citation and resolves it against the corpus: identity,
+   text hash and in-force status on the reference date.
+3. The plugin validates the engine's answer against a fixed contract and fails
+   closed: a malformed answer is an error, never a pass. It also refuses input
+   with invisible control characters, and it does not certify a citation whose
+   text names two different statutes.
 
 On the synthetic brief in `tests/fixtures/escrito_demo.md`, with six
-citations, the tool returns:
+citations:
 
 | Citation | Result |
 |---|---|
@@ -114,131 +77,106 @@ citations, the tool returns:
 | artículo 60 | **refused**, `AMBIGUOUS`: no statute named, and article 60 exists in more than one code |
 | artículo 9999 del Código del Trabajo | **refused**, `UNRESOLVABLE`: not in the corpus |
 
-The answer also states what it does not cover. `certificacion_sustantiva` is
-always `false`: the tool does not check that an article supports the
-argument. `certificacion_vigencia_actual` is always `false`: the corpus is a
-dated copy taken from Ley Chile in August 2026, and each verified citation
-carries its retrieval date.
+`certificacion_sustantiva` is always `false`: the tool does not check that an
+article supports the argument. `certificacion_vigencia_actual` is always
+`false`: the corpus is a dated copy, and each verified citation carries its
+retrieval date.
 
-A model asked whether article 9999 of the Código del Trabajo exists can answer
-either way with confidence. This tool answers from a sealed corpus whose
-integrity it re-checks on every call ([docs/DISCLOSURES.md](docs/DISCLOSURES.md)),
-and when it has no evidence it says so. A prompt or a skill can ask the model to be careful; it cannot carry the
-corpus, check its hashes or refuse on the engine's behalf.
+### The Desktop page
 
-The Desktop page's **Case Writer** — editor, verifier module, privacy step,
-chat, live NIF and the experimental predictor — is described in
-[docs/case-writer.md](docs/case-writer.md); what it sends and writes is in
-[docs/DISCLOSURES.md](docs/DISCLOSURES.md).
+Three tabs on the same engine, through the plugin's backend at
+`/api/plugins/dike`:
+
+- **Case Writer.** A brief editor where only the engine can mark a citation
+  verified. Before any text leaves the machine, a pseudonymization step you
+  see and control replaces personal data with stable tokens. A chat about the
+  brief runs in your own Hermes gateway; two plugin hooks give it fixed
+  instructions and block every tool except skills, tool discovery and the
+  citation check, which there accepts text only. See
+  [docs/case-writer.md](docs/case-writer.md).
+- **Corpus graph.** A read-only 3D map of the statutes, their articles and
+  their minimal normative units, each with a candidate label (obligation,
+  prohibition, permission…) from regex rules, plus a deterministic BM25
+  search whose results are clues, never verified citations.
+- **Case board.** The case's theory (facts, norms, hypotheses and gaps),
+  versioned, with every change attributed. The chat can propose updates; they
+  enter only when you accept them.
+
+What the plugin reads, writes and runs: [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
+For other legal systems, `scripts/ordenamiento.py` and the
+`dike-ordenamiento` skill validate statute packs from a declarative profile;
+those packs cannot be citation-checked yet ([docs/legal-systems.md](docs/legal-systems.md)).
 
 ## How this was built
 
 - **Decided and reviewed by me (Cristóbal Muñoz):** _to be completed by the
   maintainer._
-- **Before the hackathon:** the Diké engine and the corpus, and the plugin
-  adapter with its 73 tests, in the `hermes-plugin/` folder of
+- **Before the hackathon:** the Diké engine and its corpus, and the first
+  version of this adapter with its 73 tests, in the `hermes-plugin/` folder of
   [Grizaceo/dike](https://github.com/Grizaceo/dike) (October 2026). See
   [PREEXISTING.md](PREEXISTING.md).
 - **Written by AI during the hackathon:** Claude Code (Claude Opus 5.5) moved
   the adapter into this repository, wrote `scripts/vendor_engine.py` and the
-  `VENDORED.json` check that replaces the old copy test, adapted the tests to
-  the new layout, updated the manifest and drafted this README.
-- **Verified by Claude Code in this session, not yet repeated by me:** the 73 tests ([claims.json](claims.json));
-  `hermes plugins validate . --install-deps` and `hermes plugins doctor . --ci`
-  on Hermes v0.22.7; the end-to-end tests with networking disabled
-  (`unshare -rn`).
-- **Written by AI after publishing:** Devin (Claude Opus 5.5) wrote the
-  catalog entry and its pull request, the catalog banner, these README
-  corrections, the 0.3.0 adapter changes, the 0.4.0 panel surfaces
-  (Dashboard tab, Desktop page and `/api/plugins/dike` backend) and the
-  0.5.0 NIF case board and graph views (`scripts/panel.py`, the `/nif/*`
-  and `/grafo/*` routes, and both UI halves), listed in
-  [PREEXISTING.md](PREEXISTING.md), with their tests, plus the 0.6.0 3D
-  corpus graph (`/grafo/red` and the esbuild-bundled Desktop page). Claude Code (Claude Opus
-  5.5) reviewed the entry independently, read-only, before those changes.
-- **Verified by Devin, not yet repeated by me:** on Hermes v0.23.0, installing
-  from GitHub with `hermes plugins install Grizaceo/hermes-dike` and running
-  `/dike-verificar` on the demo brief; `validate --install-deps` and
-  `doctor --ci` at the pinned commit; the tests and the offline end-to-end
-  tests again; for 0.3.0, the suite ([claims.json](claims.json)), `validate`
-  and `doctor` on the new tree, and a `.docx` checked through a plugin that
-  Hermes installed with its dependencies; for 0.4.0, the `estado` and
-  `verificar` routes called against the installed package (4 of 6 on the
-  demo brief). Also whether a real model picks the tool when asked to review
-  a brief's citations without being told its name: the runs and their results
-  are in the catalog pull request.
-- **Written by AI for 0.7.0:** Devin (Claude Opus 5.5) wrote the Case
-  Writer (editor, verifier module, privacy module, chat, live NIF and the
-  predictor's architecture), the two hooks, their tests and the
-  disclosures. The privacy detector is ported, not new: from the earlier
-  `dpp-ai-compliance-lab`, `graph-legal-ir`, `lexo-case-writer` and
-  `dike-desk` work, with provenance in `VENDORED.json`; the deterministic
-  predictor is ported from `lexo-case-writer`.
-- **Verified by Devin for 0.7.0, not yet repeated by me:** the tests and
-  the reproducible bundle ([claims.json](claims.json)); `hermes plugins
-  validate` on a clean copy; two real chat turns in the `lexo-lawyer`
-  profile carrying the envelope, where the instructions were injected and
-  the model's attempt to use the terminal was blocked by `pre_tool_call`
-  (audit log lines, no content). A full chat turn typed in the Desktop app
-  was not exercised by automation (synthetic keyboard input does not reach
-  the app).
-- **Not verified:** Hermes versions older than v0.22.7; macOS.
+  first README, and later reviewed the entry as a judge would and fixed what
+  it found (the two-statute and control-character guards, three gaps in the
+  chat hooks, these documents). Devin (Claude Opus 5.5) wrote the catalog
+  entry and banner, the Dashboard tab and Desktop page, the case board, the 3D
+  graph, the Case Writer with its hooks, privacy module and predictor, the
+  content search and the legal-system framework. The privacy detector and the
+  predictor's deterministic layer are ported from the maintainer's earlier
+  projects (provenance in `VENDORED.json`).
+- **Verified by AI, not yet repeated by me** (commands and values in
+  [claims.json](claims.json)): the test suite on Hermes v0.23.0;
+  `hermes plugins validate --install-deps` and `doctor` on this tree; an
+  install from a local clone, with the demo brief checked with networking
+  off; the corpus counts, the reproducible Desktop bundle and the privacy
+  benchmark; two real chat turns in a Case Writer session, where the
+  instructions were injected and the model's attempt to use the terminal was
+  blocked; for the catalog version, the install from GitHub and a real model
+  choosing the tool on its own.
+- **Not verified:** macOS, Hermes versions before v0.23.0, and a chat turn
+  typed by hand in the Desktop app.
 
 ## Limits
 
-- **Chilean law, 25 statutes.** Citations of other statutes come back
-  unverified. Output is in Spanish.
-- **Other legal systems are pack-validated, not citation-verified.** The
-  `ordenamiento/` framework checks packs of other jurisdictions up to level
-  C1 today (C2/C3 are not evaluated), but `/dike-verificar` cannot verify
-  their citations until the dike-id grammar accepts non-`cl` prefixes.
-- **Article citations only.** A mention such as "Ley 19.496" without an article
-  is listed in `no_verificadas`, not verified.
-- **Absence is not proof.** A citation the corpus cannot resolve may still
-  exist in law.
-- **A dated copy, not the official text of today.** Every answer names the
-  corpus by `pack_hash` and gives each source's retrieval date.
-- **Deontic and relation labels are candidates.** Modality rules and the
-  local layer's relation rules (cita, menciona, revisa, aplica) follow the
-  NIF posture `deontic_validated: false`. They fail closed: mentions that
-  resolve to nothing are counted, never guessed.
-- **Moving `plugin-data/dike` does not migrate the corpus.** A data folder
-  copied or moved to another path reports `SIN_CORPUS`; delete
-  `plugin-data/dike/generations` and the corpus reinstalls on the next call.
-- **`.pdf` and other formats: pass the text.** `ruta` accepts `.md`, `.txt`
-  and `.docx`; for a `.pdf` or anything else, extract the text and pass it in
-  `texto`. `/dike-verificar` treats a lone path token as `ruta`, everything
-  else as text.
-- **Content search is lexical (BM25), not semantic; it does not cross the
-  concept→norm jump.** Results are clues to read, labeled as such — never
-  verified citations.
-- **The matter tree has 51 anchors and does not change the ranking
-  (measured); it explains the classification, it does not improve it.**
-- **Not instant.** Every call re-checks the installed corpus and starts the
-  engine, so it takes several seconds.
-- **Disk.** The installed corpus takes about 300 MB in the plugin's data
-  folder ([claims.json](claims.json)).
-- **NIF cases are per-profile data.** Case boards live under the active
-  profile's plugin data; they are not synced, not signed, and a case marked
-  `validated_by_human` records who flipped the flag, not a legal opinion.
-- **Not a sandbox.** The subprocess keeps your operating-system permissions.
-  What the plugin reads, writes and runs is listed in
-  [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
-- **No signing.** Diké can sign commitments of verified citations; this plugin
-  never does, and never touches signing keys.
-- **Pseudonymization, not anonymization.** The detector is rule-based: it
-  does not find every name without context (it lists candidates for you),
-  and the token map stays on this machine. Read the preview before sending.
-- **The chat's model is your profile's model.** Where it runs (your machine
-  or a provider) depends on that profile's configuration; the page shows
-  it. The hooks keep the chat away from tools; they do not make a model
-  right. Citation states come only from the engine.
-- **Prediction is experimental and off by default.** Planned, not built:
-  a fine-tuned model that predicts legal text the way code assistants
-  predict code (limited by funding), the same model that will serve
-  IndexO's embeddings acting as the predictor to unify the architecture,
-  and a chat model distilled or fine-tuned to use Diké's architecture
-  well (needs a training server).
+- **Chilean law, 25 statutes, article citations only.** Citations of other
+  statutes come back unverified; a mention such as "Ley 19.496" without an
+  article is listed in `no_verificadas`. Output is in Spanish.
+- **A dated copy, not today's official text.** The corpus was taken from Ley
+  Chile in August 2026. Every answer names it by `pack_hash` and gives each
+  source's retrieval date. Absence is not proof: a citation the corpus cannot
+  resolve may still exist in law.
+- **One citation per sentence or line.** If two citations sit on consecutive
+  lines without a period, a comma or a list bullet, the engine can attach the
+  first statute to the second citation. The plugin then refuses to certify it
+  and says why, instead of guessing.
+- **Not instant.** The engine starts on every call: 15 to 20 seconds each, and
+  about a minute for the first one ([claims.json](claims.json)).
+- **What "integrity-checked" means.** Every call compares the installed
+  corpus' file names, sizes and modification times with the install record,
+  and re-hashes everything when they differ; a full SHA-256 also runs once
+  per process. A change that keeps both size and modification time is caught
+  at the next process start.
+- **Disk.** About 300 MB per Hermes profile.
+- **Pseudonymization, not anonymization.** The detector is rule-based and does
+  not find every name without context, so it lists candidates for you. The
+  token map stays on this machine. Read the preview before sending.
+- **The chat's model is your profile's model.** The chat runs in the profile
+  named `lexo-lawyer` when it exists and has Diké enabled, or else in the
+  active profile. The hooks keep the chat away from tools; they do not make a
+  model right. Citation states come only from the engine.
+- **Labels and search results are clues.** Deontic labels and graph relations
+  come from rules and stay unvalidated until a lawyer reviews them; content
+  search is lexical (BM25), not semantic. Prediction is experimental and off
+  by default.
+- **`.pdf` and other formats: pass the text.** `ruta` accepts `.md`, `.txt` and
+  `.docx`.
+- **Moving `plugin-data/dike` does not migrate the corpus.** A moved data
+  folder reports `SIN_CORPUS`; delete `plugin-data/dike/generations` and it
+  reinstalls on the next call.
+- **Not a sandbox, and no signing.** The subprocess keeps your
+  operating-system permissions. Diké can sign records of verified citations;
+  this plugin never does, and never touches signing keys.
 
 ## License
 

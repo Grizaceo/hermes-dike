@@ -1,5 +1,5 @@
 name: dike
-version: "0.8.0"
+version: "0.8.1"
 manifest_version: 2
 description: >-
   Checks the article citations of Chilean law in a legal brief against a local,

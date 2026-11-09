@@ -119,9 +119,11 @@ Changes to the adapter's code during the hackathon:
 ## Ported from earlier projects
 
 Some modules were not written during the hackathon but ported from earlier
-projects that are not published. `VENDORED.json` (`ported`) records, for
+projects that are not published. Those sources are private and are not
+reproducible by third parties; `VENDORED.json` (`ported`) records, for
 each one, the source, the commit or working-tree state, the license it
-declares and the files it came from.
+declares, the files it came from, and marks each private source with
+`acceso` = "fuente privada, no reproducible por terceros".
 
 | Module in this plugin | Ported from | Recorded state |
 |---|---|---|

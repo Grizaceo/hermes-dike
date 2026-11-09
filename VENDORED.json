@@ -103,6 +103,7 @@
       "fuentes": [
         {
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/dpp-ai-compliance-lab",
+          "acceso": "fuente privada, no reproducible por terceros",
           "commit": "working tree sin commit sobre 0d1e386 (el comportamiento portado es el del árbol de trabajo; 0d1e386 da F1 0.8078 en el mismo goldset)",
           "licencia": "MIT declarada en pyproject.toml (el repo no tiene archivo LICENSE)",
           "sha256_origen": {
@@ -126,6 +127,7 @@
         },
         {
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/graph-legal-ir/graph-legal-ir",
+          "acceso": "fuente privada, no reproducible por terceros",
           "commit": "working tree sin commit sobre fe283d6; sha256 de pii.py = bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc",
           "licencia": "sin archivo LICENSE en el repo origen (autor: Grizaceo)",
           "sha256_origen": {
@@ -140,6 +142,7 @@
         },
         {
           "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+          "acceso": "fuente privada, no reproducible por terceros",
           "commit": "7c13a89",
           "licencia": "MIT",
           "sha256_origen": {
@@ -161,6 +164,7 @@
         },
         {
           "repo": "~/dike-desk",
+          "acceso": "fuente privada, no reproducible por terceros",
           "commit": "e3348d2",
           "licencia": "MIT",
           "sha256_origen": {
@@ -177,6 +181,7 @@
     },
     "desktop/src/escritor/prediccion/l0.js": {
       "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+      "acceso": "fuente privada, no reproducible por terceros",
       "commit": "7c13a89",
       "archivos_origen": [
         "src/lib/legalCopilot.ts"
@@ -186,6 +191,7 @@
     },
     "scripts/canal_arbol.py": {
       "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/indexo-retriever-prod",
+      "acceso": "fuente privada, no reproducible por terceros",
       "commit": "32a0d86",
       "archivos_origen": [
         "canal_arbol.py"
@@ -205,6 +211,7 @@
       "fuentes": [
         {
           "origen": "~/.hermes/profiles/lexo-alpha/attachments/",
+          "acceso": "fuente privada, no reproducible por terceros",
           "archivos_origen": [
             "arbol_derecho_anclas.json",
             "arbol_lexicon.json"

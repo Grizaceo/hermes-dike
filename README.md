@@ -22,14 +22,24 @@ refuses to certify what it cannot prove.
 
 ## Quickstart
 
+`hermes plugins install dike` installs the **catalog pin, version 0.2.0** —
+an earlier release with the citation check alone (no Case Writer, hooks or
+Desktop page). For this version, install from GitHub pinned to a commit:
+
 ```bash
-hermes plugins install dike      # the reviewed catalog pin
+hermes plugins install Grizaceo/hermes-dike --ref <40-char-commit>
 hermes plugins enable dike
 ```
 
-`hermes plugins install Grizaceo/hermes-dike` installs the latest `main`
-instead, as an unreviewed source. Then ask Hermes to check the citations of a
-brief, or run the check yourself with the text after the command:
+A local clone works the same way — `hermes plugins install
+file:///path/to/clone --ref <40-char-commit> --yes-deps`, then
+`hermes plugins enable dike`. `--ref` pins the commit; omit it for `HEAD`.
+Prefix either with `-p <profile>` for a dedicated profile
+([docs/case-writer.md](docs/case-writer.md)). Run `/dike-estado` to confirm
+the install.
+
+Then ask Hermes to check the citations of a brief, or run the check yourself
+with the text after the command:
 
 ```text
 /dike-verificar Conforme al artículo 161 del Código del Trabajo y al artículo 9999 del Código del Trabajo.
@@ -161,22 +171,26 @@ those packs cannot be citation-checked yet ([docs/legal-systems.md](docs/legal-s
 - **Pseudonymization, not anonymization.** The detector is rule-based and does
   not find every name without context, so it lists candidates for you. The
   token map stays on this machine. Read the preview before sending.
-- **The chat's model is your profile's model.** The chat runs in the profile
-  named `lexo-lawyer` when it exists and has Diké enabled, or else in the
-  active profile. The hooks keep the chat away from tools; they do not make a
-  model right. Citation states come only from the engine.
+- **The chat's model is your profile's model.** The chat runs in the active
+  Hermes profile by default, or in the profile set in the plugin's
+  `perfil_chat` setting. The hooks keep the chat away from tools; they do not
+  make a model right. Citation states come only from the engine.
 - **Labels and search results are clues.** Deontic labels and graph relations
   come from rules and stay unvalidated until a lawyer reviews them; content
   search is lexical (BM25), not semantic. Prediction is experimental and off
   by default.
 - **`.pdf` and other formats: pass the text.** `ruta` accepts `.md`, `.txt` and
   `.docx`.
-- **Moving `plugin-data/dike` does not migrate the corpus.** A moved data
-  folder reports `SIN_CORPUS`; delete `plugin-data/dike/generations` and it
-  reinstalls on the next call.
-- **Not a sandbox, and no signing.** The subprocess keeps your
-  operating-system permissions. Diké can sign records of verified citations;
-  this plugin never does, and never touches signing keys.
+- **Moving `plugin-data/dike` is repaired, not trusted blindly.** After a
+  move the plugin re-hashes the whole generation against the install record;
+  a tampered file still fails closed. Delete `plugin-data/dike/generations`
+  to force a clean reinstall.
+- **Isolation, degraded mode, and no signing.** The engine and panel run
+  inside bubblewrap when available, else in a declared degraded mode (see
+  [docs/DISCLOSURES.md](docs/DISCLOSURES.md)). Diké can sign records of
+  verified citations; this plugin never does, and never touches signing keys.
+- **Node.js and npm are only needed to rebuild the Desktop bundle**; the
+  shipped `desktop/plugin.js` needs neither.
 
 ## License
 

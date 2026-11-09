@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=66c1a226997c8c6b83faa7ca6140576e3ea1cb5ca6b1feb5f364f6ebc0aeb06f -->
+<!-- vitrina:translation-of README.md sha256=9232a5cd4082fa182fadcb7c526da838be4cc543f69ee1f951bfc399ce2c505f -->
 # Diké para Hermes
 
 [English](README.md)
@@ -23,14 +23,25 @@ normas, y se niega a certificar lo que no puede probar.
 
 ## Inicio rápido
 
+`hermes plugins install dike` instala el **pin del catálogo, la versión
+0.2.0**: una release anterior que trae solo la verificación de citas (sin
+Case Writer, hooks ni página de Desktop). Para esta versión, instala desde
+GitHub fijada a un commit:
+
 ```bash
-hermes plugins install dike      # el pin revisado del catálogo
+hermes plugins install Grizaceo/hermes-dike --ref <commit-de-40-caracteres>
 hermes plugins enable dike
 ```
 
-`hermes plugins install Grizaceo/hermes-dike` instala en cambio el último
-`main`, como fuente no revisada. Después pídele a Hermes que revise las citas
-de un escrito, o corre tú la verificación con el texto tras el comando:
+Un clon local funciona igual — `hermes plugins install
+file:///ruta/al/clon --ref <commit-de-40-caracteres> --yes-deps`, luego
+`hermes plugins enable dike`. `--ref` fija el commit; omítelo para el
+`HEAD`. Antepon `-p <perfil>` a cualquiera para un perfil dedicado
+([docs/case-writer.es.md](docs/case-writer.es.md)). Ejecuta `/dike-estado`
+para confirmar la instalación.
+
+Después pídele a Hermes que revise las citas de un escrito, o corre tú la
+verificación con el texto tras el comando:
 
 ```text
 /dike-verificar Conforme al artículo 161 del Código del Trabajo y al artículo 9999 del Código del Trabajo.
@@ -172,21 +183,27 @@ declarativo; sus citas todavía no se pueden verificar
   mapa de marcadores se queda en esta máquina. Lee la vista previa antes de
   enviar.
 - **El modelo del chat es el de tu perfil.** El chat corre en el perfil
-  llamado `lexo-lawyer` si existe y tiene Diké habilitado, o si no en el
-  perfil activo. Los hooks mantienen al chat lejos de las herramientas; no
-  hacen que el modelo acierte. El estado de una cita lo fija solo el motor.
+  activo de Hermes por defecto, o en el perfil fijado en el setting
+  `perfil_chat` del plugin. Los hooks mantienen al chat lejos de las
+  herramientas; no hacen que el modelo acierte. El estado de una cita lo fija
+  solo el motor.
 - **Etiquetas y resultados de búsqueda son pistas.** Las etiquetas deónticas
   y las relaciones del grafo salen de reglas y quedan sin validar hasta que
   las revise un abogado; la búsqueda por contenido es léxica (BM25), no
   semántica. La predicción es experimental y viene apagada.
 - **`.pdf` y otros formatos: pasa el texto.** `ruta` acepta `.md`, `.txt` y
   `.docx`.
-- **Mover `plugin-data/dike` no migra el corpus.** Una carpeta de datos movida
-  informa `SIN_CORPUS`; borra `plugin-data/dike/generations` y se reinstala en
-  la siguiente llamada.
-- **No es un sandbox, y no firma.** El subproceso conserva los permisos de tu
-  sistema operativo. Diké puede firmar registros de citas verificadas; este
-  plugin nunca lo hace y nunca toca claves de firma.
+- **Mover `plugin-data/dike` se repara, no se confía a ciegas.** Tras un
+  movimiento el plugin vuelve a calcular el hash de toda la generación contra
+  el registro de instalación; un archivo alterado sigue fallando cerrado.
+  Borra `plugin-data/dike/generations` para forzar una reinstalación limpia.
+- **Aislamiento, modo degradado y no firma.** El motor y el panel corren
+  dentro de bubblewrap cuando está disponible, o en un modo degradado
+  declarado si no (ver [docs/DISCLOSURES.md](docs/DISCLOSURES.md)). Diké
+  puede firmar registros de citas verificadas; este plugin nunca lo hace y
+  nunca toca claves de firma.
+- **Node.js y npm solo hacen falta para recompilar el bundle de Desktop**; el
+  `desktop/plugin.js` incluido no necesita ninguno.
 
 ## Licencia
 

@@ -123,8 +123,8 @@ those packs cannot be citation-checked yet ([docs/legal-systems.md](docs/legal-s
   entry and banner, the Dashboard tab and Desktop page, the case board, the 3D
   graph, the Case Writer with its hooks, privacy module and predictor, the
   content search and the legal-system framework. The privacy detector and the
-  predictor's deterministic layer are ported from the maintainer's earlier
-  projects (provenance in `VENDORED.json`).
+  predictor's deterministic layer are ported from earlier projects (sources,
+  commits and licenses in `VENDORED.json`).
 - **Verified by AI, not yet repeated by me** (commands and values in
   [claims.json](claims.json)): the test suite on Hermes v0.23.0;
   `hermes plugins validate --install-deps` and `doctor` on this tree; an

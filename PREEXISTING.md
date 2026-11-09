@@ -90,3 +90,51 @@ Changes to the adapter's code during the hackathon:
   - a predictor architecture, off by default, whose deterministic layer is
     ported from `lexo-case-writer`, plus `/prediccion/corpus`;
   - the tool, the command and the vendored engine are unchanged.
+- After publishing, for version 0.6.0 (Devin, Claude Opus 5.5):
+  - the 3D graph of the sealed corpus on the Desktop page (`/grafo/red` and
+    related read-only routes), with minimal normative units and their
+    rule-based deontic labels;
+  - `scripts/construir_red_local.py`, an optional builder for a local graph
+    layer from the user's own anonymized database; nothing it produces
+    ships with the plugin.
+- After publishing, for version 0.8.0 (Devin, Claude Opus 5.5):
+  - content search over the sealed corpus (`/grafo/buscar`, the engine's
+    deterministic BM25 retriever) and "Llevar al escrito", which carries a
+    result into the brief only through the verifier;
+  - the matter tree in `data/arbol/` and `scripts/canal_arbol.py`, **ported,
+    not new** (the script from `indexo-retriever-prod`); it explains a
+    query, it does not reorder results;
+  - stricter privacy rules (names without context in the strict strategy);
+  - `ordenamiento/`, `scripts/ordenamiento.py` and the `dike-ordenamiento`
+    skill: legal-system profiles and pack validation, a generalized port of
+    `construir_paquete_normas.py` from Grizaceo/dike `885ca85`.
+- After publishing, for version 0.8.1 (Claude Code, Claude Opus 5.5), from a
+  review written as a judge would: the adapter no longer certifies a
+  citation whose text names two different statutes, and refuses input with
+  invisible control characters; the Case Writer chat can no longer read
+  files through the tool, never runs a turn without its instructions, and
+  can find the tool when it is deferred; plus the README, these documents
+  and `claims.json`. The engine is unchanged.
+
+## Ported from earlier projects
+
+Some modules were not written during the hackathon but ported from earlier
+projects that are not published. `VENDORED.json` (`ported`) records, for
+each one, the source, the commit or working-tree state, the license it
+declares and the files it came from.
+
+| Module in this plugin | Ported from | Recorded state |
+|---|---|---|
+| `privacidad/` (detector and stable pseudonyms) | `dpp-ai-compliance-lab`, `graph-legal-ir`, `lexo-case-writer`, `dike-desk` | working trees over `0d1e386` and `fe283d6`; commits `7c13a89` and `e3348d2` |
+| `desktop/src/escritor/prediccion/l0.js` | `lexo-case-writer` | commit `7c13a89` |
+| `scripts/canal_arbol.py` | `indexo-retriever-prod` | commit `32a0d86` |
+| `data/arbol/` (matter tree and lexicon, data) | not recorded | not recorded |
+| `ordenamiento/` | [Grizaceo/dike](https://github.com/Grizaceo/dike) `scripts/construir_paquete_normas.py` | commit `885ca85` (2026-11-07, during the hackathon) |
+
+Two of those sources carry no license file (`graph-legal-ir`, whose author
+is Grizaceo, and the matter-tree data), and two were ported from
+uncommitted working trees. The maintainer states their authorship and
+license below.
+
+- **Authorship and license of the ported sources:** _to be completed by the
+  maintainer._

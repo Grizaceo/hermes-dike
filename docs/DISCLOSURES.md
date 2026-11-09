@@ -13,10 +13,18 @@ for the catalog review and for anyone deciding whether to install it.
   data. Agent credentials and API keys are not passed.
 - `PYTHONPATH` carries `motor/` and the `site-packages` folders of the Hermes
   process, because the engine needs the same installed dependencies
-  (pydantic, pyyaml, rich, requests, cryptography). Hermes's own code is not
-  passed.
+  (pydantic, pyyaml, rich, requests, cryptography). Hermes's own source tree
+  is not added; since those `site-packages` may make Hermes importable in the
+  child anyway, this is a minimal environment, not isolation.
 - **This is not a sandbox.** The subprocess runs with your operating-system
   permissions.
+- **What the plugin does with the engine's answer.** It validates the
+  answer against a fixed contract (a malformed one is an error, never a
+  pass) and only ever removes certification: a citation whose text names one
+  statute before the article and a different one after the number is
+  returned as `FALLO`/`AMBIGUOUS` with a `motivo_adaptador`, and mentions
+  reflected from the brief are cut to 300 characters (problems to 1,000,
+  lists after 200 entries).
 
 ## It reads
 
@@ -28,7 +36,13 @@ for the catalog review and for anyone deciding whether to install it.
   is ever read through a symbolic link. A relative `ruta` resolves against
   the calling session's working directory when Hermes reports one; when it
   does not (gateway sessions), a relative path is refused, never resolved
-  against the gateway's own directory.
+  against the gateway's own directory. In a Case Writer chat session the
+  hook below refuses `ruta`: there the tool checks text only, so a file it
+  read could never reach the model without pseudonymization.
+- Input with invisible control characters (NUL and the other C0 controls
+  except tab, line breaks, vertical tab and form feed) is refused with
+  `INPUT_CONTROL`: a NUL inside a number made the engine check a shorter
+  article than the one shown.
 - Its own `corpus/`, `motor/` and `data/arbol/` folders. The matter tree
   and lexicon under `data/arbol/` are packaged JSON read by the search
   route — offline, no network.
@@ -47,10 +61,13 @@ All writes go under the current profile's plugin data folder,
   if they match and this process already hashed that exact stat, it trusts
   it; if they match but this process has not verified them yet, or if they
   differ, it re-hashes everything. Re-hashed content that still matches the
-  record (touched files) refreshes the stat; different content raises
-  `installed corpus integrity mismatch`. **Limit:** a change that preserves
-  size and mtime exactly is caught only at the next process start, not
-  mid-process. The 5 MB tarball digest is cached per process. The installed corpus takes about
+  record (touched files) refreshes the stat; different content is a
+  `CORPUS_INTEGRITY_ERROR` ("installed corpus integrity mismatch"), which
+  checks nothing and says how to reinstall. **Limit:** a change that
+  preserves size and mtime exactly passes this stat check mid-process; if the
+  engine then fails to recognize its snapshot (`SIN_CORPUS`), the plugin
+  re-hashes everything and reports the corruption, and otherwise it is caught
+  at the next process start. The 5 MB tarball digest is cached per process. The installed corpus takes about
   300 MB ([claims.json](../claims.json)). Read-only graph endpoints
   (`/grafo/*`) reuse the verified generation for up to 60 seconds instead
   of re-checking integrity on every call; `/verificar` always checks.
@@ -151,12 +168,14 @@ turn on model prediction.
   for every other session they return nothing, so no other chat changes.
   In a marked session, `pre_llm_call` adds the Case Writer's instructions
   (`escritor/instrucciones.md`) to the first turn's user message, and a
-  short reminder to later turns; the system prompt is never touched. If
-  the instructions cannot be read, the turn is blocked. `pre_tool_call`
-  blocks every tool except `skills_list`, `skill_view` and
-  `dike_verificar_citas`, so the chat cannot use the serving profile's
-  terminal, files, browser, memory or delegation. Forging the envelope only
-  restricts that session.
+  short reminder to later turns, only once the full instructions went in;
+  the system prompt is never touched. If the instructions cannot be read,
+  every turn of that session is blocked. `pre_tool_call` blocks every tool
+  except `skills_list`, `skill_view`, `tool_search` and `tool_describe`
+  (which only find deferred tools) and `dike_verificar_citas` with `texto`
+  (with `ruta` it is blocked too), so the chat cannot use the serving
+  profile's terminal, files, browser, memory or delegation. Forging the
+  envelope, from any platform, only restricts that session.
 - **Citation states stay with the engine.** After every reply the page runs
   `/verificar` on the reply; a citation is shown as verified only when the
   engine returned `VERIFICADA` for that exact text. The model's own words
@@ -193,8 +212,9 @@ turn on model prediction.
   adapter's local file read (`ruta`). It calls `verificar_citas` from the
   agent adapter, so everything above — the subprocess, its environment, the
   corpus check, the confined writes — applies unchanged. `/estado` only
-  reports whether the corpus generation is installed; it never installs or
-  downloads.
+  reports whether a complete corpus generation is installed (its install
+  record names the bundled package); it does not re-hash, and it never
+  installs or downloads.
 - The NIF and graph routes run `scripts/panel.py` — plugin code, not motor
   code — in the same isolated subprocess shape as the verifier: list argv,
   no shell, minimal environment, timeout (90 s; 120 s for content search,
@@ -324,8 +344,8 @@ listed in "It writes"; no route writes outside plugin-data.
   `<plugin-data>/dike/users`).
 
 The 60-second memo applies only to read-only graph metadata: the graph
-view shows corpus metadata and certifies nothing. `/verificar` and
-`/estado` re-check integrity on every call.
+view shows corpus metadata and certifies nothing. `/verificar` runs the
+per-call integrity check described under "It writes"; `/estado` does not.
 
 ## The optional local graph layer
 

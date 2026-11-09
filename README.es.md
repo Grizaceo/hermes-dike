@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=a2ed732c76ce0808eb4e71d1bd2d35a5d506a631fb83d8da461dedc4fcb6f660 -->
+<!-- vitrina:translation-of README.md sha256=b0e1b87719bc407208caf012d903154a9ef96a37612080e5049accd024a28c02 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -131,7 +131,7 @@ declarativo; sus citas todavía no se pueden verificar
   Case Writer con sus hooks, su módulo de privacidad y su predictor, la
   búsqueda por contenido y el framework de ordenamientos. El detector de
   privacidad y la capa determinista del predictor se portaron de proyectos
-  anteriores del mantenedor (procedencia en `VENDORED.json`).
+  anteriores (fuentes, commits y licencias en `VENDORED.json`).
 - **Verificado por IA (todavía no lo comprobé yo)** (comandos y valores en
   [claims.json](claims.json)): la suite de tests en Hermes v0.23.0;
   `hermes plugins validate --install-deps` y `doctor` sobre este árbol; una

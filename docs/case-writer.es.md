@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of case-writer.md sha256=dfdc2c9b299e1bdb33bac8b0b2d7567156d95fbf8be210d9e6453bd9d622cda9 -->
+<!-- vitrina:translation-of case-writer.md sha256=8a672d7c8fd76f101896defd44771354832f7b5e934d6e36c8bd329c7c5a7431 -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
@@ -8,8 +8,7 @@
   texto, y solo un `VERIFICADA` del motor sobre el texto actual exacto se
   muestra como verificada: cualquier edición la deja "desactualizada". Una
   cita fallida se puede reparar (el reemplazo debe pasar por el motor antes
-  de poder aplicarse), retirar con motivo o escalar, siguiendo el bucle de
-  Diké Shield.
+  de poder aplicarse), retirar con motivo o escalar.
 - **Desde la búsqueda.** En la búsqueda por contenido de la pestaña Grafo,
   «Llevar al escrito» agrega la cita canónica del artículo como un párrafo
   nuevo al final del escrito y la pasa por el verificador como cualquier
@@ -26,17 +25,22 @@
   roles de causa y los jueces, y reemplaza lo demás con tokens estables
   (`[PERSONA_1]`). Ves la lista, conservas o enmascaras cada valor,
   enmascaras una selección y revisas exactamente lo que sale. Sobre el
-  goldset sintético iguala al detector del que se portó (F1 0,94, recall
-  1,0 en RUT, correos y teléfonos; [claims.json](../claims.json)).
+  goldset sintético obtiene F1 0,979, sobre el detector del que se portó
+  (0,9425), con recall 1,0 en RUT, correos y teléfonos
+  ([claims.json](../claims.json)); el goldset tiene poca diversidad, así que
+  es un control de regresión, no una prueba de que generalice.
 - **Chat sobre el escrito.** Cada turno envía tu pregunta con el escrito (o
   solo los párrafos que cambiaron) dentro de un sobre `<dike-escritor v="1">`.
   Dos hooks del plugin reconocen ese sobre: `pre_llm_call` agrega
   instrucciones fail-closed al mensaje del usuario (nunca al system prompt) y
-  `pre_tool_call` bloquea toda herramienta salvo las skills y el verificador,
-  así que el chat no puede usar la terminal del perfil. Los demás chats no
-  cambian. Las citas de cada respuesta pasan por el motor antes de poder
+  `pre_tool_call` bloquea toda herramienta salvo las skills, el
+  descubrimiento de herramientas y el verificador, que ahí acepta solo texto
+  (nunca una ruta de archivo), así que el chat no puede usar la terminal ni
+  los archivos del perfil. Si las instrucciones no se pueden leer, se bloquea
+  cada turno de esa sesión. Los demás chats no cambian. Las citas de cada respuesta pasan por el motor antes de poder
   mostrarse como verificadas.
-- **NIF vivo.** A pedido, el modelo propone actualizaciones del NIF (hechos
+- **Tablero del caso (NIF) vivo.** A pedido, el modelo propone
+  actualizaciones de la teoría del caso, el NIF (hechos
   conocidos, alegados y faltantes, normas, sujetos, hipótesis, vacíos). Cada
   propuesta debe citar literalmente el escrito y respetar el esquema del
   NIF; nada entra al tablero hasta que la aceptas.

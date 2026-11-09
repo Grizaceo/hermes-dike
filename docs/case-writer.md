@@ -7,8 +7,7 @@
   text, and only an engine `VERIFICADA` on the exact current text shows as
   verified — any edit turns it back to "out of date". A failed citation can
   be repaired (the replacement must pass the engine before it can be
-  applied), withdrawn with a reason, or escalated, following the loop of
-  Diké Shield.
+  applied), withdrawn with a reason, or escalated.
 - **From search.** In the graph tab's content search, "Llevar al escrito"
   appends the article's canonical citation as a new paragraph at the end of
   the brief and runs the verifier on it like any other citation — it never
@@ -24,17 +23,22 @@
   and sensitive data, keeps case numbers and judges, and replaces the rest
   with stable tokens (`[PERSONA_1]`). You see the list, keep or mask each
   value, mask a selection, and preview exactly what goes out. On the
-  synthetic goldset it matches the detector it was ported from (F1 0.94,
-  recall 1.0 on IDs, emails and phones; [claims.json](../claims.json)).
+  synthetic goldset it scores F1 0.979, above the detector it was ported
+  from (0.9425), with recall 1.0 on IDs, emails and phones
+  ([claims.json](../claims.json)); the goldset has little diversity, so this
+  is a regression check, not proof that it generalizes.
 - **Chat about the brief.** Each turn sends your question with the brief (or
   only the changed paragraphs) inside a `<dike-escritor v="1">` envelope.
   Two plugin hooks recognize that envelope: `pre_llm_call` adds fail-closed
   instructions to the user message (never to the system prompt) and
-  `pre_tool_call` blocks every tool except skills and the verifier, so the
-  chat cannot reach the profile's terminal. Other chats are untouched. The
+  `pre_tool_call` blocks every tool except skills, tool discovery and the
+  verifier, which there accepts text only (never a file path), so the chat
+  cannot reach the profile's terminal or files. If the instructions cannot
+  be read, every turn of that session is blocked. Other chats are untouched. The
   citations in each reply go through the engine before they can show as
   verified.
-- **Live NIF.** On request, the model proposes NIF updates (facts known,
+- **Live case board (NIF).** On request, the model proposes updates to the
+  case's theory, the NIF (facts known,
   alleged and missing, norms, subjects, hypotheses, gaps). Each proposal
   must quote the brief literally and respect the NIF schema; nothing enters
   the case board until you accept it.

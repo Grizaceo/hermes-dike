@@ -10,9 +10,9 @@ var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 
 // src/plugin.src.js
-import { host as host3, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from "@hermes/plugin-sdk";
-import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
-import { useCallback as useCallback6, useEffect as useEffect6, useState as useState6 } from "react";
+import { host as host4, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from "@hermes/plugin-sdk";
+import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
+import { useCallback as useCallback7, useEffect as useEffect7, useState as useState7 } from "react";
 
 // src/common.js
 var rest = null;
@@ -55,8 +55,8 @@ function mensajeError(e3) {
 }
 
 // src/escritor/escritor.js
-import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
-import { useCallback as useCallback4, useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
+import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
+import { useCallback as useCallback5, useEffect as useEffect5, useRef as useRef4, useState as useState5 } from "react";
 
 // node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
 var __defProp2 = Object.defineProperty;
@@ -23130,8 +23130,77 @@ function pluginPlaceholderVacio(texto) {
     }
   });
 }
-function montarEditor({ element: element2, content, placeholder, onUpdate }) {
+var claveGhost = new PluginKey("dike-prediccion-ghost");
+function pluginGhostTexto({ onAceptar }) {
+  return new Plugin({
+    key: claveGhost,
+    state: {
+      init: () => null,
+      apply: (tr2, valor) => {
+        const meta = tr2.getMeta(claveGhost);
+        if (meta !== void 0) return meta;
+        if (tr2.docChanged || tr2.selectionSet) return null;
+        return valor;
+      }
+    },
+    props: {
+      decorations(state) {
+        const s2 = claveGhost.getState(state);
+        if (!s2 || !state.selection.empty) return null;
+        const pos = state.selection.to;
+        const span = document.createElement("span");
+        span.className = "dike-ghost";
+        span.textContent = s2.texto;
+        span.setAttribute(
+          "style",
+          "color:var(--ui-text-tertiary,#9ca3af);pointer-events:none;user-select:none;font-style:italic"
+        );
+        const rotulo = document.createElement("span");
+        rotulo.textContent = "  [Tab] " + s2.rotulo;
+        rotulo.setAttribute(
+          "style",
+          "color:var(--ui-text-tertiary,#9ca3af);font-size:0.75em;font-style:normal;pointer-events:none;user-select:none"
+        );
+        const envoltura = document.createElement("span");
+        envoltura.appendChild(span);
+        envoltura.appendChild(rotulo);
+        return DecorationSet.create(state.doc, [
+          Decoration.widget(pos, envoltura, { side: 1 })
+        ]);
+      },
+      handleKeyDown(view, event) {
+        const s2 = claveGhost.getState(view.state);
+        if (!s2) return false;
+        if (event.key === "Tab") {
+          const pos = view.state.selection.to;
+          view.dispatch(view.state.tr.insertText(s2.texto, pos).setMeta(claveGhost, null));
+          if (onAceptar) onAceptar(s2);
+          event.preventDefault();
+          return true;
+        }
+        if (event.key === "Escape") {
+          view.dispatch(view.state.tr.setMeta(claveGhost, null));
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      }
+    }
+  });
+}
+function fijarGhost(editor, sugerencia) {
+  if (!editor || !editor.view) return;
+  editor.view.dispatch(editor.view.state.tr.setMeta(claveGhost, sugerencia));
+}
+function montarEditor({
+  element: element2,
+  content,
+  placeholder,
+  onUpdate,
+  onAceptarPrediccion
+}) {
   const pluginPh = pluginPlaceholderVacio(placeholder);
+  const pluginGhost = pluginGhostTexto({ onAceptar: onAceptarPrediccion });
   return new Editor({
     element: element2,
     extensions: [
@@ -23142,6 +23211,10 @@ function montarEditor({ element: element2, content, placeholder, onUpdate }) {
       Extension.create({
         name: "dikePlaceholderWidget",
         addProseMirrorPlugins: () => [pluginPh]
+      }),
+      Extension.create({
+        name: "dikeGhostTexto",
+        addProseMirrorPlugins: () => [pluginGhost]
       })
     ],
     content: content || "",
@@ -23319,10 +23392,10 @@ function claseDecoracion(e3) {
   return e3.severidad || "low";
 }
 function aplicarDecisionVista(entidades, valor, accion) {
-  const norm = (v2) => (v2 || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(/\s+/).join(" ").trim();
-  const clave = norm(valor);
+  const norm2 = (v2) => (v2 || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(/\s+/).join(" ").trim();
+  const clave = norm2(valor);
   return (entidades || []).map((e3) => {
-    if (norm(e3.valor) !== clave) return e3;
+    if (norm2(e3.valor) !== clave) return e3;
     if (accion === "olvidar") return { ...e3 };
     if (accion === "conservar") return { ...e3, accion: "conservar", motivo: "decision_abogado" };
     if (accion === "enmascarar") {
@@ -23566,9 +23639,9 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
         })),
         candidatos.length ? jsx("span", { className: S.chip + " " + S.chipBad, children: candidatos.length + " posibles personas" }) : null
       ] }),
-      grupos.map((g2) => jsxs("div", { key: g2.tipo, className: "flex flex-col gap-1", children: [
-        jsx("div", { className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)", children: g2.tipo }),
-        ...g2.items.map((e3, i3) => jsxs("div", { key: i3, className: "flex flex-wrap items-center gap-2 text-sm", children: [
+      grupos.map((g3) => jsxs("div", { key: g3.tipo, className: "flex flex-col gap-1", children: [
+        jsx("div", { className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)", children: g3.tipo }),
+        ...g3.items.map((e3, i3) => jsxs("div", { key: i3, className: "flex flex-wrap items-center gap-2 text-sm", children: [
           jsx("span", { className: "font-mono text-xs", children: e3.valor }),
           jsx("button", {
             type: "button",
@@ -23795,15 +23868,18 @@ function etiquetaDestino(info) {
   if (/localhost|127\.0\.0\.1|\[?::1\]?/.test(base2)) return "local";
   return "nube";
 }
+function candidatosPerfil(rutas, perfilActivo, preferido = "lexo-lawyer") {
+  const nombres = (rutas || []).map((r2) => r2 && (r2.targetProfile || r2.profile)).filter(Boolean);
+  const out = [];
+  for (const p2 of [preferido, perfilActivo]) {
+    if (p2 && nombres.includes(p2) && !out.includes(p2)) out.push(p2);
+  }
+  return out;
+}
 
 // src/escritor/chat.js
 var PERFIL_DEFAULT = "lexo-lawyer";
 var TIMEOUT_RPC = 6e4;
-async function resolverRuta(perfil) {
-  const rutas = await host.profileRoutes();
-  const lista = rutas && (rutas.routes || rutas) || [];
-  return lista.find((r2) => r2.targetProfile === perfil || r2.profile === perfil) || null;
-}
 function tituloSesion(caseId) {
   return "Dik\xE9 \xB7 Escrito \xB7 " + caseId;
 }
@@ -23826,6 +23902,7 @@ function ChatEscritor({
   onSesion
 }) {
   const [perfilOk, setPerfilOk] = useState2(null);
+  const [perfilElegido, setPerfilElegido] = useState2(null);
   const [sesion, setSesion] = useState2(null);
   const rutaRef = useRef2(null);
   const [modelo, setModelo] = useState2(null);
@@ -23847,15 +23924,14 @@ function ChatEscritor({
     setPerfilOk(null);
     setSesion(null);
     setMensajes([]);
-    const perfil = PERFIL_DEFAULT;
     (async () => {
       try {
-        const ruta = await resolverRuta(perfil);
-        if (!ruta) {
-          throw new Error("El chat del escrito necesita el perfil " + perfil + " con Dik\xE9 habilitado: sin sus hooks no se puede garantizar que el modelo no use herramientas.");
-        }
-        rutaRef.current = ruta;
-        const perfilObjetivo = ruta.targetProfile || ruta.profile || perfil;
+        const rutas = await host.profileRoutes();
+        const listaRutas = rutas && (rutas.routes || rutas) || [];
+        const activo = host.state && host.state.profile;
+        const candidatos = candidatosPerfil(listaRutas, activo);
+        let ruta = null;
+        let perfilObjetivo = null;
         const paso = async (nombre, fn) => {
           try {
             return await fn();
@@ -23863,10 +23939,10 @@ function ChatEscritor({
             throw new Error(nombre + ": " + mensajeError(e3));
           }
         };
-        const dikePresente = await paso("plugins.list|catalog", async () => {
+        const tieneDike = async (r2, objetivo) => {
           try {
             const plugins = await host.requestProfile(
-              ruta,
+              r2,
               "plugins.list",
               {},
               TIMEOUT_RPC
@@ -23875,19 +23951,35 @@ function ChatEscritor({
             const d2 = lista.find((p2) => (p2.name || p2.plugin) === "dike");
             return Boolean(d2 && d2.enabled !== false && d2.status !== "disabled");
           } catch (e1) {
-            const cat = await host.requestProfile(
-              ruta,
-              "commands.catalog",
-              { profile: perfilObjetivo },
-              TIMEOUT_RPC
-            );
-            const plano = JSON.stringify(cat);
-            return /["'\s\/-]dike-verificar["'\s\/]/i.test(plano) || /"name"\s*:\s*"dike-verificar"/i.test(plano);
+            try {
+              const cat = await host.requestProfile(
+                r2,
+                "commands.catalog",
+                { profile: objetivo },
+                TIMEOUT_RPC
+              );
+              const plano = JSON.stringify(cat);
+              return /["'\s\/-]dike-verificar["'\s\/]/i.test(plano) || /"name"\s*:\s*"dike-verificar"/i.test(plano);
+            } catch {
+              return false;
+            }
           }
-        });
-        if (!dikePresente) {
-          throw new Error("El chat del escrito necesita el perfil " + perfil + " con Dik\xE9 habilitado: sin sus hooks no se puede garantizar que el modelo no use herramientas.");
+        };
+        for (const candidato of candidatos) {
+          const r2 = listaRutas.find((x3) => (x3.targetProfile || x3.profile) === candidato);
+          if (!r2) continue;
+          if (await tieneDike(r2, candidato)) {
+            ruta = r2;
+            perfilObjetivo = candidato;
+            break;
+          }
         }
+        if (!ruta) {
+          throw new Error("El chat del escrito necesita un perfil con Dik\xE9 habilitado (lexo-lawyer o el perfil activo): sin sus hooks no se puede garantizar que el modelo no use herramientas.");
+        }
+        const perfil = perfilObjetivo;
+        setPerfilElegido(perfil);
+        rutaRef.current = ruta;
         releaseRef.current = await host.retainProfile(ruta);
         const titulo = tituloSesion(caseId);
         const previas = await paso("session.list", () => host.requestProfile(
@@ -24113,6 +24205,10 @@ function ChatEscritor({
   return jsxs2("div", { className: S.card, children: [
     jsxs2("div", { className: "flex items-center gap-2", children: [
       jsx2("div", { className: S.cardTitle, children: "Chat del escrito" }),
+      perfilElegido ? jsx2("span", {
+        className: "text-xs text-(--ui-text-secondary)",
+        children: "\xB7 " + perfilElegido
+      }) : null,
       modelo ? jsx2("span", { className: S.sub, children: etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino }) : null
     ] }),
     jsx2("div", { className: S.sub, children: "El estado de las citas lo fija Dik\xE9, no el modelo." }),
@@ -24734,6 +24830,1199 @@ function NifPropuestas({
   ] });
 }
 
+// src/escritor/prediccion.js
+import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
+import { useCallback as useCallback4, useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
+import { host as host3 } from "@hermes/plugin-sdk";
+
+// src/escritor/prediccion/mesa.js
+var TOPE_SUGERENCIA = 200;
+var DEBOUNCE_MS = 400;
+function procedenciaValida(p2) {
+  return Boolean(p2 && p2.procedencia && p2.procedencia.tipo && p2.procedencia.fuente);
+}
+function elegir(candidatas) {
+  const validas = (candidatas || []).filter(procedenciaValida).map((p2) => ({ ...p2, texto: String(p2.texto || "").slice(0, TOPE_SUGERENCIA) })).filter((p2) => p2.texto.trim().length > 0);
+  validas.sort((a3, b2) => a3.capa.localeCompare(b2.capa) || (b2.procedencia.anclaLen || 0) - (a3.procedencia.anclaLen || 0));
+  return validas[0] || null;
+}
+function crearMesa({ predictores = [], debounceMs = DEBOUNCE_MS } = {}) {
+  let timer2 = null;
+  let abort = null;
+  function cancelar() {
+    if (timer2) {
+      clearTimeout(timer2);
+      timer2 = null;
+    }
+    if (abort) {
+      abort.abort();
+      abort = null;
+    }
+  }
+  function sugerir({ segmento, contexto, signal }, onPrediccion) {
+    cancelar();
+    if (signal && (signal.haySeleccion || signal.enCita)) {
+      onPrediccion(null);
+      return () => {
+      };
+    }
+    const vivos = predictores.filter((p2) => {
+      try {
+        return p2.disponible(contexto);
+      } catch {
+        return false;
+      }
+    });
+    for (const p2 of vivos.filter((x3) => x3.capa === "L0")) {
+      try {
+        const t02 = Date.now();
+        const r2 = p2.predecir({ segmento, contexto, signal });
+        const usar = (pred) => {
+          if (pred) {
+            onPrediccion({
+              ...pred,
+              capa: "L0",
+              latencia_ms: Date.now() - t02
+            });
+            return true;
+          }
+          return false;
+        };
+        if (r2 && typeof r2.then === "function") {
+          abort = new AbortController();
+          r2.then((pred) => {
+            if (!abort.signal.aborted) usar(pred);
+          }).catch(() => {
+          });
+        } else if (usar(r2)) {
+          return cancelar;
+        }
+      } catch {
+      }
+    }
+    const async_ = vivos.filter((x3) => x3.capa !== "L0");
+    if (async_.length) {
+      timer2 = setTimeout(() => {
+        abort = new AbortController();
+        const sig = abort.signal;
+        for (const p2 of async_) {
+          Promise.resolve().then(() => p2.predecir({
+            segmento,
+            contexto,
+            signal: { ...signal || {}, abort: sig }
+          })).then((pred) => {
+            if (!sig.aborted && pred) {
+              onPrediccion({ ...pred, capa: p2.capa });
+            }
+          }).catch(() => {
+          });
+        }
+      }, debounceMs);
+    }
+    return cancelar;
+  }
+  return { sugerir, cancelar };
+}
+
+// src/escritor/prediccion/l0.js
+var UMBRAL_DOMINANCIA = 0.4;
+var BONO_INICIO_DOC = 0.5;
+var SCORE_MINIMO = 1.5;
+var LARGO_PREFIJO_NOMBRE = 10;
+var PALABRAS_ENUNCIADO = 4;
+var VENTANA_DISPARADOR = 4;
+var CODE_SHORT = {
+  codigo_civil: "C\xF3digo Civil",
+  cpc: "CPC",
+  codigo_trabajo: "C\xF3digo del Trabajo",
+  constitucion: "Constituci\xF3n",
+  codigo_penal: "C\xF3digo Penal",
+  cpp: "CPP",
+  cot: "COT",
+  ley_19880: "Ley N\xB0 19.880"
+};
+var CODE_NOMBRE = {
+  codigo_civil: "C\xF3digo Civil",
+  cpc: "C\xF3digo de Procedimiento Civil",
+  codigo_trabajo: "C\xF3digo del Trabajo",
+  constitucion: "Constituci\xF3n Pol\xEDtica de la Rep\xFAblica",
+  codigo_penal: "C\xF3digo Penal",
+  cpp: "C\xF3digo Procesal Penal",
+  cot: "C\xF3digo Org\xE1nico de Tribunales",
+  ley_19880: "Ley N\xB0 19.880"
+};
+var CODE_FEMENINO = /* @__PURE__ */ new Set(["constitucion", "ley_19880"]);
+function conPreposicion(code2) {
+  const nombre = CODE_NOMBRE[code2] || CODE_SHORT[code2] || code2;
+  return CODE_FEMENINO.has(code2) ? "de la " + nombre : "del " + nombre;
+}
+var norm = (s2) => s2.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+var normClave = norm;
+var SEPARADORES_SEGMENTO = /[:;]/g;
+function segmentoActual(texto) {
+  SEPARADORES_SEGMENTO.lastIndex = 0;
+  let corte = 0;
+  for (let m3 = SEPARADORES_SEGMENTO.exec(texto); m3; m3 = SEPARADORES_SEGMENTO.exec(texto)) {
+    corte = m3.index + m3[0].length;
+  }
+  return texto.slice(corte);
+}
+var DISPARADORES_PROCESALES = [
+  "demanda",
+  "demando",
+  "demandar",
+  "deduzco",
+  "deducir",
+  "interpongo",
+  "interponer",
+  "recurso",
+  "recurro",
+  "excepcion",
+  "opongo",
+  "oponer",
+  "accion",
+  "denuncia",
+  "denuncio",
+  "querella",
+  "querello",
+  "solicito",
+  "tutela",
+  "vengo en",
+  "en lo principal",
+  "otrosi",
+  "tipo penal"
+];
+function contieneClave(texto, clave) {
+  let desde = 0;
+  for (; ; ) {
+    const i3 = texto.indexOf(clave, desde);
+    if (i3 < 0) return false;
+    const antes = i3 === 0 ? " " : texto[i3 - 1];
+    const despues = i3 + clave.length >= texto.length ? " " : texto[i3 + clave.length];
+    if (!/[a-z0-9]/.test(antes) && !/[a-z0-9]/.test(despues)) return true;
+    desde = i3 + 1;
+  }
+}
+var palabrasDe = (t4) => t4.split(/[^a-z0-9]+/).filter(Boolean);
+var frasesCache = /* @__PURE__ */ new Map();
+function fraseFija(bruto) {
+  let v2 = frasesCache.get(bruto);
+  if (!v2) {
+    const texto = normClave(bruto);
+    v2 = { texto, palabras: palabrasDe(texto) };
+    frasesCache.set(bruto, v2);
+  }
+  return v2;
+}
+function indicesDeFrase(palabras, frase) {
+  const out = [];
+  for (let i3 = 0; i3 + frase.length <= palabras.length; i3++) {
+    let ok = true;
+    for (let k = 0; k < frase.length; k++) {
+      if (palabras[i3 + k] !== frase[k]) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) out.push(i3);
+  }
+  return out;
+}
+function distanciaPalabras(a3, la, b2, lb) {
+  if (a3 >= b2 + lb) return a3 - (b2 + lb);
+  if (b2 >= a3 + la) return b2 - (a3 + la);
+  return 0;
+}
+function sufijoPendiente(completo, tecleado) {
+  const c4 = completo.normalize("NFC");
+  const t4 = tecleado.normalize("NFC");
+  let i3 = 0;
+  let j2 = 0;
+  while (j2 < t4.length) {
+    if (/\s/.test(t4[j2])) {
+      if (i3 < c4.length && /\s/.test(c4[i3])) i3++;
+      j2++;
+      continue;
+    }
+    if (i3 >= c4.length) return "";
+    if (/\s/.test(c4[i3])) {
+      i3++;
+      continue;
+    }
+    i3++;
+    j2++;
+  }
+  return c4.slice(i3);
+}
+var g = (texto) => ({ texto, generica: true });
+var textoClave = (c4) => typeof c4 === "string" ? c4 : c4.texto;
+var esGenerica = (c4) => typeof c4 !== "string";
+var FORMALISMO = [
+  {
+    id: "formal-en-lo-principal",
+    label: "En lo principal",
+    cierre: ": ",
+    description: "Encabezado de la petici\xF3n principal"
+  },
+  {
+    id: "formal-en-lo-subsidiario",
+    label: "En lo subsidiario",
+    cierre: ": ",
+    description: "Petici\xF3n subsidiaria a la principal"
+  },
+  {
+    id: "formal-primer-otrosi",
+    label: "Primer otros\xED",
+    cierre: ": ",
+    description: "Primera petici\xF3n accesoria"
+  },
+  {
+    id: "formal-segundo-otrosi",
+    label: "Segundo otros\xED",
+    cierre: ": ",
+    description: "Segunda petici\xF3n accesoria"
+  },
+  {
+    id: "formal-tercer-otrosi",
+    label: "Tercer otros\xED",
+    cierre: ": ",
+    description: "Tercera petici\xF3n accesoria"
+  },
+  {
+    id: "formal-otrosi",
+    label: "Otros\xED",
+    cierre: ": ",
+    description: "Petici\xF3n accesoria gen\xE9rica"
+  },
+  {
+    id: "formal-por-tanto",
+    label: "Por tanto",
+    cierre: ": ",
+    description: "Cierre de la petici\xF3n"
+  },
+  {
+    id: "formal-sirvase",
+    label: "S\xEDrvase S.S.",
+    cierre: " ",
+    description: "F\xF3rmula de petici\xF3n al tribunal"
+  },
+  {
+    id: "formal-pido-a-ss",
+    label: "Pido a S.S.",
+    cierre: " ",
+    description: "F\xF3rmula de petici\xF3n al tribunal"
+  },
+  {
+    id: "formal-que-tenga-a-bien",
+    label: "Que tenga a bien",
+    cierre: " ",
+    description: "F\xF3rmula de petici\xF3n al tribunal"
+  },
+  {
+    id: "formal-por-tanto-ruego",
+    label: "Por tanto, ruego a S.S.",
+    cierre: " ",
+    description: "Cierre de petici\xF3n formal"
+  },
+  {
+    id: "formal-individualizacion",
+    label: "Individualizaci\xF3n de las partes",
+    cierre: "",
+    description: "Preludio que individualiza a las partes",
+    plantilla: "Que vengo en deducir la presente acci\xF3n en contra de [NOMBRE], [RUT], [DOMICILIO], [PROFESI\xD3N U OFICIO], todos de mi representaci\xF3n, en virtud de los antecedentes de hecho y de derecho que paso a exponer:"
+  },
+  {
+    id: "formal-comparecencia",
+    label: "Comparecencia",
+    cierre: "",
+    description: "F\xF3rmula de comparecencia",
+    plantilla: "Que, en mi calidad de [ROL], vengo en comparecer ante S.S. y exponer:"
+  }
+];
+var ACCIONES = [
+  {
+    id: "accion-indemnizacion-perjuicios",
+    nombre: "Demanda de indemnizaci\xF3n de perjuicios",
+    claves: [g("indemnizacion"), g("perjuicio"), g("perjuicios"), g("da\xF1o"), g("da\xF1os")],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "2314", institucion: "Responsabilidad extracontractual" },
+      { codigo: "codigo_civil", articulo: "2329", institucion: "Responsabilidad por da\xF1o causado" },
+      { codigo: "codigo_civil", articulo: "1556", institucion: "Indemnizaci\xF3n contractual: da\xF1o emergente y lucro cesante" },
+      { codigo: "codigo_civil", articulo: "1557", institucion: "Mora como requisito de la indemnizaci\xF3n" },
+      { codigo: "codigo_civil", articulo: "1558", institucion: "Extensi\xF3n del da\xF1o seg\xFAn haya dolo o culpa" }
+    ]
+  },
+  {
+    id: "accion-restitucion",
+    nombre: "Demanda de restituci\xF3n",
+    claves: [g("restitucion"), g("restituir"), g("devolucion"), g("entrega")],
+    area: "civil",
+    fundamentos: [
+      { codigo: "constitucion", articulo: "19 N\xB024", institucion: "Derecho de propiedad" },
+      { codigo: "codigo_civil", articulo: "889", institucion: "Acci\xF3n reivindicatoria" },
+      { codigo: "codigo_civil", articulo: "582", institucion: "Dominio" },
+      { codigo: "codigo_civil", articulo: "700", institucion: "Posesi\xF3n" },
+      { codigo: "codigo_civil", articulo: "2195", institucion: "Precario" }
+    ]
+  },
+  {
+    id: "accion-reivindicatoria",
+    nombre: "Demanda reivindicatoria",
+    claves: ["reivindicatoria", g("reivindicacion"), g("reivindicar")],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "889", institucion: "Acci\xF3n reivindicatoria" },
+      { codigo: "codigo_civil", articulo: "582", institucion: "Dominio" },
+      { codigo: "codigo_civil", articulo: "700", institucion: "Posesi\xF3n" },
+      { codigo: "codigo_civil", articulo: "893", institucion: "Legitimaci\xF3n activa del due\xF1o" }
+    ]
+  },
+  {
+    id: "accion-peticion-herencia",
+    nombre: "Demanda de petici\xF3n de herencia",
+    claves: [g("herencia"), "peticion de herencia", g("sucesion")],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1264", institucion: "Acci\xF3n de petici\xF3n de herencia" },
+      { codigo: "codigo_civil", articulo: "1265", institucion: "Extensi\xF3n a los aumentos de la herencia" },
+      { codigo: "codigo_civil", articulo: "1269", institucion: "Prescripci\xF3n de la acci\xF3n" }
+    ]
+  },
+  {
+    id: "accion-resolucion-contrato",
+    nombre: "Demanda de resoluci\xF3n de contrato",
+    claves: [g("resolucion"), g("resolver"), g("incumplimiento"), "termino de contrato"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1489", institucion: "Condici\xF3n resolutoria t\xE1cita" },
+      { codigo: "codigo_civil", articulo: "1545", institucion: "Ley del contrato" },
+      { codigo: "codigo_civil", articulo: "1546", institucion: "Buena fe contractual" },
+      { codigo: "codigo_civil", articulo: "1552", institucion: "Excepci\xF3n de contrato no cumplido" }
+    ]
+  },
+  {
+    id: "accion-nulidad",
+    nombre: "Demanda de nulidad absoluta",
+    claves: [g("nulidad"), g("nulo"), g("anulacion"), "objeto ilicito"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1681", institucion: "Nulidad: concepto y bipartici\xF3n" },
+      { codigo: "codigo_civil", articulo: "1682", institucion: "Causales de nulidad absoluta" },
+      { codigo: "codigo_civil", articulo: "1683", institucion: "Qui\xE9nes pueden alegar la nulidad absoluta" },
+      { codigo: "codigo_civil", articulo: "1687", institucion: "Efectos de la nulidad judicialmente declarada" }
+    ]
+  },
+  {
+    id: "accion-despido-injustificado",
+    nombre: "Demanda por despido injustificado, indebido o improcedente",
+    claves: [g("despido"), "despido injustificado", "despido arbitrario", "termino de relacion laboral"],
+    area: "laboral",
+    fundamentos: [
+      { codigo: "codigo_trabajo", articulo: "168", institucion: "Acci\xF3n por despido injustificado, indebido o improcedente" },
+      { codigo: "codigo_trabajo", articulo: "160", institucion: "Causales de caducidad sin derecho a indemnizaci\xF3n" },
+      { codigo: "codigo_trabajo", articulo: "162", institucion: "Aviso de t\xE9rmino y cotizaciones previsionales" },
+      { codigo: "codigo_trabajo", articulo: "163", institucion: "Indemnizaci\xF3n por a\xF1os de servicio" }
+    ]
+  },
+  {
+    id: "accion-tutela-laboral",
+    nombre: "Denuncia de tutela laboral",
+    claves: [g("tutela"), "tutela laboral", "garantias fundamentales", "acoso laboral"],
+    area: "laboral",
+    fundamentos: [
+      { codigo: "codigo_trabajo", articulo: "485", institucion: "Procedimiento de tutela de derechos fundamentales" },
+      { codigo: "codigo_trabajo", articulo: "493", institucion: "Prueba indiciaria: carga del denunciado" },
+      { codigo: "codigo_trabajo", articulo: "489", institucion: "Tutela por despido vulneratorio" },
+      { codigo: "constitucion", articulo: "19 N\xB01", institucion: "Integridad f\xEDsica y ps\xEDquica" }
+    ]
+  },
+  {
+    id: "recurso-proteccion",
+    nombre: "Recurso de protecci\xF3n",
+    claves: [g("proteccion"), "recurso de proteccion", "garantias constitucionales"],
+    area: "constitucional",
+    fundamentos: [
+      { codigo: "constitucion", articulo: "20", institucion: "Recurso de protecci\xF3n" },
+      { codigo: "constitucion", articulo: "19 N\xB024", institucion: "Derecho de propiedad" }
+    ]
+  },
+  {
+    id: "recurso-apelacion",
+    nombre: "Recurso de apelaci\xF3n",
+    claves: [g("apelacion"), g("apelar")],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "186", institucion: "Recurso de apelaci\xF3n: objeto" },
+      { codigo: "cpc", articulo: "187", institucion: "Resoluciones apelables" },
+      { codigo: "cpc", articulo: "189", institucion: "Plazo y forma de interposici\xF3n" }
+    ]
+  },
+  {
+    id: "recurso-reposicion",
+    nombre: "Recurso de reposici\xF3n",
+    claves: [g("reposicion"), g("reponer")],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "181", institucion: "Reposici\xF3n contra autos y decretos" }
+    ]
+  },
+  {
+    id: "recurso-queja",
+    nombre: "Recurso de queja",
+    claves: [g("queja"), "recurso de queja", "falta o abuso"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cot", articulo: "545", institucion: "Recurso de queja: faltas o abusos graves" }
+    ]
+  },
+  {
+    id: "recurso-nulidad-penal",
+    nombre: "Recurso de nulidad (penal)",
+    claves: ["nulidad penal", "recurso de nulidad", "anular el juicio", "vicio del juicio"],
+    area: "penal",
+    fundamentos: [
+      { codigo: "cpp", articulo: "372", institucion: "Recurso de nulidad: objeto" },
+      { codigo: "cpp", articulo: "373", institucion: "Causales del recurso de nulidad" },
+      { codigo: "cpp", articulo: "374", institucion: "Motivos absolutos de nulidad" }
+    ]
+  },
+  {
+    id: "accion-pauliana",
+    nombre: "Acci\xF3n pauliana (revocatoria)",
+    claves: ["pauliana", "revocatoria", g("fraude"), "fraudatoria", "accion pauliana"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "2468", institucion: "Acci\xF3n pauliana o revocatoria" }
+    ]
+  },
+  {
+    id: "accion-interdicto",
+    nombre: "Interdicto (posesorio)",
+    claves: ["interdicto", "interdictos", "posesorio", "perturbacion de la posesion"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "916", institucion: "Objeto de las acciones posesorias" },
+      { codigo: "codigo_civil", articulo: "918", institucion: "Posesi\xF3n \xFAtil para accionar" },
+      { codigo: "codigo_civil", articulo: "920", institucion: "Prescripci\xF3n de las acciones posesorias" }
+    ]
+  },
+  {
+    id: "accion-particion",
+    nombre: "Demanda de partici\xF3n",
+    claves: [g("particion"), g("dividir"), "liquidacion de comunidad"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1317", institucion: "Acci\xF3n de partici\xF3n: imprescriptible e irrenunciable" },
+      { codigo: "cot", articulo: "227", institucion: "Arbitraje forzoso en la partici\xF3n de bienes" }
+    ]
+  },
+  {
+    id: "accion-nulidad-despido",
+    nombre: "Demanda de nulidad de despido",
+    claves: ["nulidad de despido", "nulidad del despido", "despido nulo"],
+    area: "laboral",
+    fundamentos: [
+      { codigo: "codigo_trabajo", articulo: "162", institucion: "Nulidad del despido por cotizaciones impagas (Ley Bustos)" },
+      { codigo: "codigo_trabajo", articulo: "177", institucion: "Convalidaci\xF3n del despido" }
+    ]
+  },
+  {
+    id: "excepcion-incompetencia",
+    nombre: "Excepci\xF3n de incompetencia",
+    claves: [g("incompetencia"), g("incompetente"), "excepcion de incompetencia"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "303", institucion: "Excepciones dilatorias admisibles" },
+      { codigo: "cpc", articulo: "305", institucion: "Oportunidad para oponerlas" }
+    ]
+  },
+  {
+    id: "excepcion-litispendencia",
+    nombre: "Excepci\xF3n de litispendencia",
+    claves: ["litispendencia", "litis pendencia", "misma causa", "mismo asunto"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "303", institucion: "Excepciones dilatorias admisibles" },
+      { codigo: "cpc", articulo: "305", institucion: "Oportunidad para oponerlas" }
+    ]
+  },
+  {
+    id: "excepcion-cosa-juzgada",
+    nombre: "Excepci\xF3n de cosa juzgada",
+    claves: ["cosa juzgada", "autoridad de cosa juzgada", "excepcion de cosa juzgada"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "175", institucion: "Cosa juzgada: acci\xF3n y excepci\xF3n" },
+      { codigo: "cpc", articulo: "177", institucion: "Triple identidad y legitimaci\xF3n" }
+    ]
+  },
+  {
+    id: "excepcion-prescripcion",
+    nombre: "Excepci\xF3n de prescripci\xF3n",
+    claves: [g("prescripcion"), g("prescribir"), "excepcion de prescripcion"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "2492", institucion: "Prescripci\xF3n: concepto" },
+      { codigo: "codigo_civil", articulo: "2493", institucion: "La prescripci\xF3n debe ser alegada" },
+      { codigo: "codigo_civil", articulo: "2514", institucion: "Prescripci\xF3n extintiva: c\xF3mputo" },
+      { codigo: "codigo_civil", articulo: "2515", institucion: "Plazos de la prescripci\xF3n extintiva" }
+    ]
+  },
+  {
+    id: "excepcion-pago",
+    nombre: "Excepci\xF3n de pago",
+    claves: [g("pago"), "excepcion de pago", "pago efectivo", "pago de la obligacion"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1568", institucion: "Pago efectivo" },
+      { codigo: "codigo_civil", articulo: "1698", institucion: "Carga de la prueba de la extinci\xF3n" }
+    ]
+  },
+  {
+    id: "excepcion-nulidad-contrato",
+    nombre: "Excepci\xF3n de nulidad del contrato",
+    claves: ["nulidad del contrato", "nulidad contractual", "excepcion de nulidad"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1681", institucion: "Nulidad: concepto y bipartici\xF3n" },
+      { codigo: "codigo_civil", articulo: "1682", institucion: "Causales de nulidad absoluta" },
+      { codigo: "codigo_civil", articulo: "1683", institucion: "Qui\xE9nes pueden alegar la nulidad absoluta" }
+    ]
+  },
+  {
+    id: "accion-nulidad-relativa",
+    nombre: "Demanda de nulidad relativa",
+    claves: ["nulidad relativa", "anulabilidad", "vicio del consentimiento", g("error"), g("fuerza"), g("dolo")],
+    area: "civil",
+    fundamentos: [
+      { codigo: "codigo_civil", articulo: "1682", institucion: "Nulidad absoluta y, residualmente, relativa" },
+      { codigo: "codigo_civil", articulo: "1684", institucion: "Nulidad relativa: legitimaci\xF3n y saneamiento" },
+      { codigo: "codigo_civil", articulo: "1451", institucion: "Vicios del consentimiento" },
+      { codigo: "codigo_civil", articulo: "1691", institucion: "Cuadrienio para pedir la rescisi\xF3n" }
+    ]
+  },
+  {
+    id: "accion-jactancia",
+    nombre: "Acci\xF3n de jactancia",
+    claves: ["jactancia", g("jactarse"), "accion de jactancia"],
+    area: "civil",
+    fundamentos: [
+      { codigo: "cpc", articulo: "269", institucion: "Acci\xF3n de jactancia" },
+      { codigo: "cpc", articulo: "270", institucion: "Qu\xE9 se entiende por jactancia" }
+    ]
+  },
+  {
+    id: "recurso-rectificacion",
+    nombre: "Recurso de aclaraci\xF3n, rectificaci\xF3n o enmienda",
+    claves: [g("rectificacion"), g("aclaracion"), g("enmienda"), "aclarar la sentencia"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "182", institucion: "Desasimiento del tribunal; aclaraci\xF3n, rectificaci\xF3n y enmienda" }
+    ]
+  },
+  {
+    id: "recurso-casacion-forma",
+    nombre: "Recurso de casaci\xF3n en la forma",
+    claves: ["casacion en la forma", "vicio de forma"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "766", institucion: "Casaci\xF3n en la forma: procedencia" },
+      { codigo: "cpc", articulo: "768", institucion: "Causales taxativas de casaci\xF3n en la forma" }
+    ]
+  },
+  {
+    id: "recurso-casacion-fondo",
+    nombre: "Recurso de casaci\xF3n en el fondo",
+    claves: ["casacion en el fondo", "infraccion de ley"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "767", institucion: "Casaci\xF3n en el fondo: infracci\xF3n de ley" }
+    ]
+  },
+  {
+    id: "recurso-hecho",
+    nombre: "Recurso de hecho",
+    claves: ["recurso de hecho", "denegada la apelacion"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "203", institucion: "Recurso de hecho por apelaci\xF3n denegada" },
+      { codigo: "cpc", articulo: "196", institucion: "Apelaci\xF3n concedida en un efecto que no corresponde" }
+    ]
+  },
+  {
+    id: "recurso-reposicion-apelacion-subsidiaria",
+    nombre: "Recurso de reposici\xF3n con apelaci\xF3n en subsidio",
+    claves: ["reposicion con apelacion subsidiaria", "apelacion subsidiaria"],
+    area: "procesal",
+    fundamentos: [
+      { codigo: "cpc", articulo: "181", institucion: "Reposici\xF3n contra autos y decretos" },
+      { codigo: "cpc", articulo: "189", institucion: "Apelaci\xF3n deducida en subsidio de la reposici\xF3n" }
+    ]
+  },
+  {
+    id: "recurso-unificacion-jurisprudencia",
+    nombre: "Recurso de unificaci\xF3n de jurisprudencia",
+    claves: ["unificacion de jurisprudencia", "unificar jurisprudencia"],
+    area: "laboral",
+    fundamentos: [
+      { codigo: "codigo_trabajo", articulo: "483", institucion: "Unificaci\xF3n de jurisprudencia: procedencia" }
+    ]
+  },
+  {
+    id: "recurso-administrativo-reposicion",
+    nombre: "Recurso administrativo de reposici\xF3n",
+    claves: ["reposicion administrativa", "recurso de reposicion administrativo"],
+    area: "administrativo",
+    fundamentos: [
+      { codigo: "ley_19880", articulo: "59", institucion: "Reposici\xF3n y jer\xE1rquico: procedencia y plazo" }
+    ]
+  },
+  {
+    id: "recurso-administrativo-jerarquico",
+    nombre: "Recurso administrativo jer\xE1rquico",
+    claves: ["recurso jerarquico", g("jerarquico")],
+    area: "administrativo",
+    fundamentos: [
+      { codigo: "ley_19880", articulo: "59", institucion: "Reposici\xF3n y jer\xE1rquico: procedencia y plazo" }
+    ]
+  },
+  {
+    id: "recurso-administrativo-revision",
+    nombre: "Recurso administrativo de revisi\xF3n",
+    claves: ["revision administrativa", "recurso de revision"],
+    area: "administrativo",
+    fundamentos: [
+      { codigo: "ley_19880", articulo: "60", institucion: "Recurso extraordinario de revisi\xF3n" }
+    ]
+  },
+  {
+    id: "tipo-penal-homicidio",
+    nombre: "Tipo penal: homicidio",
+    claves: ["homicidio", g("matar"), "muerte de una persona", "dar muerte"],
+    area: "penal",
+    fundamentos: [
+      { codigo: "codigo_penal", articulo: "391", institucion: "Homicidio simple y calificado" }
+    ]
+  },
+  {
+    id: "tipo-penal-hurto",
+    nombre: "Tipo penal: hurto",
+    claves: [g("hurto"), "apoderarse", "cosa mueble ajena", "sin violencia"],
+    area: "penal",
+    fundamentos: [
+      { codigo: "codigo_penal", articulo: "432", institucion: "Definici\xF3n de hurto y robo" },
+      { codigo: "codigo_penal", articulo: "446", institucion: "Penalidad del hurto seg\xFAn el valor" }
+    ]
+  },
+  {
+    id: "tipo-penal-robo",
+    nombre: "Tipo penal: robo",
+    claves: [g("robo"), "con violencia", "con intimidacion", "con fuerza en las cosas"],
+    area: "penal",
+    fundamentos: [
+      { codigo: "codigo_penal", articulo: "432", institucion: "Definici\xF3n de hurto y robo" },
+      { codigo: "codigo_penal", articulo: "436", institucion: "Robo con violencia o intimidaci\xF3n" }
+    ]
+  },
+  {
+    id: "tipo-penal-estafa",
+    nombre: "Tipo penal: estafa",
+    claves: [g("estafa"), "defraudar", "enga\xF1o", "perjuicio patrimonial"],
+    area: "penal",
+    fundamentos: [
+      { codigo: "codigo_penal", articulo: "468", institucion: "Estafa por enga\xF1o" },
+      { codigo: "codigo_penal", articulo: "473", institucion: "Defraudaci\xF3n residual" }
+    ]
+  }
+];
+var SIN_PREDICCION = { ghost: null, ghostTexto: "", opciones: [], ambiguo: false };
+function predictFormalismo(prefijo, { alInicioDoc = false } = {}) {
+  const tramo = segmentoActual(prefijo);
+  const q2 = norm(tramo);
+  if (!q2) return SIN_PREDICCION;
+  const scored = [];
+  for (const f2 of FORMALISMO) {
+    if (f2.plantilla) continue;
+    if (!norm(f2.label).startsWith(q2)) continue;
+    let score = 1;
+    if (alInicioDoc && f2.id === "formal-en-lo-principal") score += BONO_INICIO_DOC;
+    scored.push({ f: f2, score });
+  }
+  if (!scored.length) return SIN_PREDICCION;
+  scored.sort((a3, b2) => b2.score - a3.score || a3.f.id.localeCompare(b2.f.id));
+  const top = scored[0];
+  const gap = top.score - (scored[1] && scored[1].score || 0);
+  if (gap >= UMBRAL_DOMINANCIA) {
+    const item = {
+      id: top.f.id,
+      label: top.f.label,
+      insert: { texto: top.f.label + top.f.cierre },
+      description: top.f.description
+    };
+    const ghostTexto = sufijoPendiente(item.insert.texto, tramo);
+    if (!ghostTexto) return SIN_PREDICCION;
+    return { ghost: item, ghostTexto, opciones: [], ambiguo: false };
+  }
+  return {
+    ghost: null,
+    ghostTexto: "",
+    ambiguo: true,
+    opciones: scored.slice(0, 8).map((s2) => ({
+      id: s2.f.id,
+      label: s2.f.label,
+      insert: { texto: s2.f.label + s2.f.cierre },
+      description: s2.f.description
+    }))
+  };
+}
+function puntuarAcciones(texto) {
+  const t4 = normClave(segmentoActual(texto));
+  if (!t4) return [];
+  const palabras = palabrasDe(t4);
+  const enunciado = palabras.length <= PALABRAS_ENUNCIADO;
+  const disparadores = [];
+  if (!enunciado) {
+    for (const d2 of DISPARADORES_PROCESALES) {
+      const { palabras: frase } = fraseFija(d2);
+      if (!frase.length) continue;
+      for (const i3 of indicesDeFrase(palabras, frase)) {
+        disparadores.push([i3, frase.length]);
+      }
+    }
+    if (!disparadores.length) return [];
+  }
+  const habilitada = (inicio, largo) => enunciado || disparadores.some(([d2, m3]) => distanciaPalabras(inicio, largo, d2, m3) <= VENTANA_DISPARADOR);
+  const out = [];
+  for (const accion of ACCIONES) {
+    const { texto: nombre, palabras: nombrePalabras } = fraseFija(accion.nombre);
+    let score = 0;
+    if (t4.length >= LARGO_PREFIJO_NOMBRE && nombre.startsWith(t4)) score += 3;
+    if (contieneClave(t4, nombre)) score += nombrePalabras.length * 2;
+    for (const clave of accion.claves) {
+      const { texto: c4, palabras: frase } = fraseFija(textoClave(clave));
+      if (!contieneClave(t4, c4)) continue;
+      const apariciones = indicesDeFrase(palabras, frase);
+      if (!apariciones.some((i3) => habilitada(i3, frase.length))) continue;
+      score += esGenerica(clave) ? 0.5 : frase.length * 2;
+    }
+    if (score > 0) out.push({ accion, score });
+  }
+  out.sort((a3, b2) => b2.score - a3.score || a3.accion.id.localeCompare(b2.accion.id));
+  return out;
+}
+var SIN_CONTENIDO = {
+  accion: null,
+  accionGhostTexto: "",
+  fundamentos: [],
+  ambiguo: false,
+  opciones: []
+};
+function predictContenidoJuridico(texto) {
+  const candidatas = puntuarAcciones(texto);
+  const top = candidatas[0];
+  if (!top || top.score < SCORE_MINIMO) return SIN_CONTENIDO;
+  const segunda = candidatas[1];
+  if (segunda && top.score - segunda.score < UMBRAL_DOMINANCIA) {
+    return {
+      ...SIN_CONTENIDO,
+      ambiguo: true,
+      opciones: candidatas.filter((c4) => top.score - c4.score < UMBRAL_DOMINANCIA).slice(0, 6).map((c4) => ({ id: c4.accion.id, label: c4.accion.nombre }))
+    };
+  }
+  const accion = top.accion;
+  const segmento = segmentoActual(texto);
+  const accionGhostTexto = normClave(accion.nombre).startsWith(normClave(segmento)) ? sufijoPendiente(accion.nombre, segmento) : "";
+  return {
+    accion: {
+      id: accion.id,
+      label: accion.nombre,
+      insert: { texto: accion.nombre }
+    },
+    accionGhostTexto,
+    fundamentos: accion.fundamentos.map((f2) => ({
+      id: accion.id + "-" + f2.codigo + "-" + f2.articulo,
+      label: "art\xEDculo " + f2.articulo + " " + conPreposicion(f2.codigo),
+      institucion: f2.institucion,
+      // ubicación normativa como sugerencia de fundamento — sin vigencia
+      procedencia: {
+        tipo: "norma",
+        fuente: "cat\xE1logo numerus clausus",
+        ref: f2.codigo + ":" + f2.articulo
+      }
+    })),
+    ambiguo: false,
+    opciones: []
+  };
+}
+
+// src/escritor/prediccion/l1.js
+function crearPredictorCorpus() {
+  return {
+    id: "corpus-dike",
+    capa: "L1",
+    etiqueta: "texto del corpus, sin verificar como cita",
+    disponible: () => true,
+    async predecir({ segmento, signal }) {
+      const cola = String(segmento || "").trim().split(/\s+/).slice(-4).join(" ");
+      if (cola.length < 8) return null;
+      const t02 = Date.now();
+      const r2 = await rest("/prediccion/corpus?cola=" + encodeURIComponent(cola), {
+        signal: signal && signal.abort,
+        timeoutMs: 5e3
+      }).catch(() => null);
+      if (!r2 || !r2.continuacion) return null;
+      return {
+        texto: r2.continuacion,
+        capa: "L1",
+        procedencia: {
+          tipo: "corpus",
+          fuente: r2.fuente_url || r2.gid || "corpus Dik\xE9",
+          gid: r2.gid,
+          sha256: r2.sha256,
+          anclaLen: (r2.ancla || cola).length
+        },
+        latencia_ms: Date.now() - t02
+      };
+    }
+  };
+}
+
+// src/escritor/prediccion/l2.js
+var INSTRUCCIONES_L2 = "Contin\xFAa el texto jur\xEDdico del abogado con a lo m\xE1s una frase corta, en el mismo idioma y registro. No inventes hechos, nombres, fechas ni citas: si la continuaci\xF3n requiere una cita, escribe [VERIFICAR CITA]. Responde solo con la continuaci\xF3n, sin comillas ni explicaci\xF3n.";
+var PROVIDERS_LOCALES = /* @__PURE__ */ new Set(["llamacpp", "ollama", "lmstudio"]);
+function esLoopback(url) {
+  return /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\]|::1)(:|\/|$)/i.test(String(url || "").trim());
+}
+function clasificarDestino(config) {
+  const aux = config && (config.auxiliary || config.aux);
+  const tarea = aux && (aux.dike_prediccion || aux["dike-prediccion"]);
+  if (!tarea || typeof tarea !== "object") return "nube";
+  if (tarea.fallback_chain || tarea.fallback || tarea.fallbacks) return "nube";
+  if (esLoopback(tarea.base_url)) return "local";
+  const provider = String(tarea.provider || "").toLowerCase();
+  if (PROVIDERS_LOCALES.has(provider)) return "local";
+  return "nube";
+}
+async function leerDestino(requestProfile, ruta) {
+  const intentos = [
+    { key: "full" },
+    { key: "auxiliary" },
+    {}
+  ];
+  for (const params of intentos) {
+    try {
+      const cfg = await requestProfile(ruta, "config.get", params, 1e4);
+      if (cfg) return clasificarDestino(cfg.full || cfg);
+    } catch {
+    }
+  }
+  return "nube";
+}
+function componerInputL2({ segmento, contexto }) {
+  const normas = contexto && contexto.normas || [];
+  const secciones = contexto && contexto.seccionesNif || [];
+  return "<dike-prediccion>\n<contexto>" + (normas.length ? "normas verificadas del caso: " + normas.join("; ") + "\n" : "") + (secciones.length ? "secciones del NIF: " + secciones.join("; ") + "\n" : "") + "</contexto>\n<segmento>" + String(segmento || "") + "</segmento>\n</dike-prediccion>";
+}
+function crearPredictorModelo(deps) {
+  return {
+    id: "modelo",
+    capa: "L2",
+    etiqueta: "modelo \xB7 " + (deps.destino === "local" ? "local" : "nube"),
+    disponible: () => Boolean(deps.ruta),
+    async predecir({ segmento, contexto, signal }) {
+      const input = componerInputL2({ segmento, contexto });
+      const t02 = Date.now();
+      let texto = input;
+      if (deps.destino === "nube") {
+        const envio = await deps.prepararEnvio({ texto: input });
+        texto = envio.texto;
+      } else if (deps.registrarLocal) {
+        await deps.registrarLocal(input);
+      }
+      const r2 = await deps.requestProfile(deps.ruta, "llm.oneshot", {
+        task: "dike_prediccion",
+        instructions: INSTRUCCIONES_L2,
+        input: texto,
+        max_tokens: 48,
+        temperature: 0.2
+      }, 2e4);
+      const cont = r2 && String(r2.text || "").trim();
+      if (!cont) return null;
+      return {
+        texto: cont.slice(0, 200),
+        capa: "L2",
+        procedencia: {
+          tipo: "modelo",
+          fuente: "auxiliary.dike_prediccion \xB7 " + (deps.destino === "local" ? "local" : "nube")
+        },
+        latencia_ms: Date.now() - t02
+      };
+    }
+  };
+}
+
+// src/escritor/prediccion.js
+function cfgDe(registro) {
+  return registro && registro.prediccion || {};
+}
+var ETIQUETA_CAPA = {
+  L0: "formalismo procesal (determinista)",
+  L1: "texto del corpus, sin verificar como cita",
+  L2: "modelo"
+};
+function predictorL0() {
+  return {
+    id: "formalismo",
+    capa: "L0",
+    etiqueta: ETIQUETA_CAPA.L0,
+    disponible: () => true,
+    predecir({ segmento, signal }) {
+      const alInicio = !(signal && signal.noInicioDoc);
+      const r1 = predictFormalismo(segmento, { alInicioDoc: alInicio });
+      if (r1.ghostTexto) {
+        return Promise.resolve({
+          texto: r1.ghostTexto,
+          capa: "L0",
+          procedencia: {
+            tipo: "formalismo",
+            fuente: "cat\xE1logo de formalismos procesales",
+            ref: r1.ghost.id,
+            anclaLen: segmento.length
+          },
+          latencia_ms: 0
+        });
+      }
+      const r2 = predictContenidoJuridico(segmento);
+      if (r2.accionGhostTexto) {
+        return Promise.resolve({
+          texto: r2.accionGhostTexto,
+          capa: "L0",
+          procedencia: {
+            tipo: "formalismo",
+            fuente: "cat\xE1logo de acciones procesales",
+            ref: r2.accion.id,
+            anclaLen: segmento.length
+          },
+          latencia_ms: 0
+        });
+      }
+      return Promise.resolve(null);
+    }
+  };
+}
+function PrediccionPanel({
+  editorRef,
+  caseId,
+  docInfo,
+  verificacion,
+  registro,
+  setRegistro,
+  sesion
+}) {
+  const cfg = cfgDe(registro);
+  const [destinoL2, setDestinoL2] = useState4(null);
+  const mesaRef = useRef3(null);
+  const cancelarRef = useRef3(null);
+  const activo = cfg.activo === true;
+  const l0on = activo && cfg.l0 !== false;
+  const l1on = activo && cfg.l1 !== false;
+  const l2on = activo && cfg.l2 === true && (destinoL2 === "local" || cfg.l2_optin === true);
+  const telemetria = activo && cfg.telemetria === true;
+  useEffect4(() => {
+    setDestinoL2(null);
+    if (!l2on || !sesion || !sesion.ruta) return;
+    let muerto = false;
+    leerDestino(host3.requestProfile.bind(host3), sesion.ruta).then((d2) => {
+      if (!muerto) setDestinoL2(d2);
+    });
+    return () => {
+      muerto = true;
+    };
+  }, [l2on, sesion]);
+  const fijarCfg = useCallback4((cambio) => {
+    setRegistro((r2) => ({
+      ...r2 || {},
+      prediccion: { ...cfgDe(r2), ...cambio }
+    }));
+  }, [setRegistro]);
+  const registrarEvento = useCallback4((capa, aceptada, largo, tipo) => {
+    if (!telemetria) return;
+    rest("/prediccion/evento", { method: "POST", body: {
+      capa,
+      aceptada,
+      largo,
+      procedencia: { tipo }
+    } }).catch(() => {
+    });
+  }, [telemetria]);
+  useEffect4(() => {
+    const predictores = [];
+    if (l0on) predictores.push(predictorL0());
+    if (l1on) predictores.push(crearPredictorCorpus());
+    if (l2on && destinoL2) {
+      predictores.push(crearPredictorModelo({
+        requestProfile: host3.requestProfile.bind(host3),
+        ruta: sesion && sesion.ruta,
+        destino: destinoL2,
+        prepararEnvio: ({ texto }) => {
+          const cfgPriv = (registro || {}).privacidad || {};
+          return prepararEnvio({
+            caseId,
+            texto,
+            destino: (sesion && sesion.perfil || "lexo-lawyer") + " \xB7 predicci\xF3n \xB7 nube",
+            seudonimizar: cfgPriv.seudonimizar !== false,
+            estrategia: cfgPriv.estrategia || "media"
+          });
+        },
+        registrarLocal: (texto) => rest("/prediccion/evento", {
+          method: "POST",
+          body: {
+            capa: "L2",
+            aceptada: false,
+            largo: texto.length,
+            procedencia: { tipo: "modelo" }
+          }
+        }).catch(() => {
+        })
+      }));
+    }
+    mesaRef.current = crearMesa({ predictores });
+    return () => {
+      if (mesaRef.current) mesaRef.current.cancelar();
+    };
+  }, [l0on, l1on, l2on, destinoL2, sesion, caseId, registro]);
+  const pedir = useCallback4((editor) => {
+    if (!activo || !editor) return;
+    const sel = editor.view.state.selection;
+    const $from = sel.$from;
+    const textoParrafo = $from.parent.textContent || "";
+    const offset = editor.view.state.doc.textBetween(
+      $from.start(),
+      sel.from,
+      "\n",
+      "\n"
+    );
+    const marcas = [];
+    editor.view.state.doc.descendants((node, pos) => {
+      node.marks.forEach((m3) => {
+        if (m3.type.name === "cita") {
+          marcas.push({ from: pos, to: pos + node.nodeSize });
+        }
+      });
+    });
+    const ctx = {
+      normas: (((verificacion || {}).resultado || {}).detalles || []).filter((d2) => d2.estado === "VERIFICADA").map((d2) => d2.cita_raw),
+      seccionesNif: [],
+      caseId
+    };
+    if (cancelarRef.current) cancelarRef.current();
+    cancelarRef.current = mesaRef.current.sugerir({
+      segmento: offset,
+      contexto: ctx,
+      signal: {
+        haySeleccion: !sel.empty,
+        enCita: marcas.some((m3) => sel.from >= m3.from && sel.from <= m3.to)
+      }
+    }, (pred) => {
+      const mejor = elegir(pred ? [pred] : []);
+      fijarGhost(editor, mejor ? {
+        texto: mejor.texto,
+        rotulo: ETIQUETA_CAPA[mejor.capa] + " \xB7 " + (mejor.procedencia.fuente || ""),
+        capa: mejor.capa,
+        procedencia: mejor.procedencia
+      } : null);
+    });
+  }, [activo, mesaRef, caseId, verificacion]);
+  useEffect4(() => {
+    editorRef.prediccionPedir = pedir;
+    editorRef.prediccionAceptada = (s2) => registrarEvento(
+      s2.capa || "L0",
+      true,
+      (s2.texto || "").length,
+      (s2.procedencia || {}).tipo || ""
+    );
+    return () => {
+      editorRef.prediccionPedir = null;
+      editorRef.prediccionAceptada = null;
+    };
+  }, [editorRef, pedir, registrarEvento]);
+  return jsxs4("div", { className: S.card, children: [
+    jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx4("div", { className: S.cardTitle, children: "Predicci\xF3n (experimental)" }),
+      jsxs4("label", { className: "flex items-center gap-1 text-sm", children: [
+        jsx4("input", {
+          type: "checkbox",
+          checked: activo,
+          onChange: (e3) => fijarCfg({ activo: e3.target.checked })
+        }),
+        "Activar sugerencias"
+      ] }),
+      activo ? jsxs4("label", {
+        className: "flex items-center gap-1 text-xs",
+        children: [
+          jsx4("input", {
+            type: "checkbox",
+            checked: cfg.l0 !== false,
+            onChange: (e3) => fijarCfg({ l0: e3.target.checked })
+          }),
+          "L0 formalismos"
+        ]
+      }) : null,
+      activo ? jsxs4("label", {
+        className: "flex items-center gap-1 text-xs",
+        children: [
+          jsx4("input", {
+            type: "checkbox",
+            checked: cfg.l1 !== false,
+            onChange: (e3) => fijarCfg({ l1: e3.target.checked })
+          }),
+          "L1 corpus local"
+        ]
+      }) : null,
+      activo ? jsxs4("label", {
+        className: "flex items-center gap-1 text-xs",
+        children: [
+          jsx4("input", {
+            type: "checkbox",
+            checked: cfg.l2 === true,
+            onChange: (e3) => {
+              if (e3.target.checked && destinoL2 === "nube" && cfg.l2_optin !== true) {
+                fijarCfg({ l2: true });
+                return;
+              }
+              fijarCfg({ l2: e3.target.checked });
+            }
+          }),
+          "L2 modelo ",
+          destinoL2 ? "(" + (destinoL2 === "local" ? "local" : "nube") + ")" : "(sin sesi\xF3n de chat)"
+        ]
+      }) : null,
+      activo ? jsxs4("label", {
+        className: "flex items-center gap-1 text-xs",
+        children: [
+          jsx4("input", {
+            type: "checkbox",
+            checked: cfg.telemetria === true,
+            onChange: (e3) => fijarCfg({ telemetria: e3.target.checked })
+          }),
+          "Registrar aceptaciones (sin contenido)"
+        ]
+      }) : null
+    ] }),
+    cfg.l2 && destinoL2 === "nube" && cfg.l2_optin !== true ? jsxs4("div", { className: "flex items-center gap-2 text-xs", children: [
+      "La predicci\xF3n con modelo enviar\xEDa el p\xE1rrafo a la nube.",
+      jsx4("button", {
+        type: "button",
+        className: S.button,
+        onClick: () => fijarCfg({ l2_optin: true }),
+        children: "Acepto enviar el p\xE1rrafo a la nube"
+      })
+    ] }) : null,
+    jsx4("div", { className: "text-xs text-(--ui-text-secondary)", children: "Las sugerencias son propuestas: el modelo y el corpus no verifican citas. Ajuste fino de un modelo propio: planeado, limitado por fondos." })
+  ] });
+}
+
 // src/escritor/escritor.js
 var BORRADOR = "borrador";
 var DEBOUNCE_GUARDADO = 800;
@@ -24761,29 +26050,29 @@ function esConflicto(e3) {
 }
 function AccionesFallo({ detalle, acciones, onAccion }) {
   const a3 = acciones || {};
-  const [reparar, setReparar] = useState4(detalle.cita_raw || "");
-  const [motivo, setMotivo] = useState4("");
-  const [nota, setNota] = useState4("");
+  const [reparar, setReparar] = useState5(detalle.cita_raw || "");
+  const [motivo, setMotivo] = useState5("");
+  const [nota, setNota] = useState5("");
   const agotados = (a3.intentos || 0) >= MAX_INTENTOS_REPARAR;
-  return jsxs4("div", { className: "flex flex-col gap-1.5 mt-1", children: [
+  return jsxs5("div", { className: "flex flex-col gap-1.5 mt-1", children: [
     // Reparar: probar el reemplazo solo contra el motor; si lo da VERIFICADA
     // se habilita Aplicar (el texto cambia → todo queda desactualizada).
-    jsxs4("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx4("input", {
+    jsxs5("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx5("input", {
         className: S.input + " flex-1 min-w-40",
         value: reparar,
         placeholder: "texto de reemplazo",
         disabled: agotados,
         onChange: (e3) => setReparar(e3.target.value)
       }),
-      jsx4("button", {
+      jsx5("button", {
         type: "button",
         className: S.ghost,
         disabled: agotados || a3.ocupado || !reparar.trim(),
         onClick: () => onAccion("probar", reparar.trim()),
         children: a3.ocupado ? "probando\u2026" : "Probar reemplazo"
       }),
-      jsx4("button", {
+      jsx5("button", {
         type: "button",
         className: S.button,
         // Solo se aplica el texto exacto que el motor verificó: si el input
@@ -24793,17 +26082,17 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         children: "Aplicar"
       })
     ] }),
-    a3.resumenPrueba ? jsx4("div", { className: S.sub, children: a3.resumenPrueba }) : null,
-    agotados ? jsx4("div", { className: "text-xs text-(--ui-danger)", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
+    a3.resumenPrueba ? jsx5("div", { className: S.sub, children: a3.resumenPrueba }) : null,
+    agotados ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
     // Retirar con motivo + escalar con nota.
-    jsxs4("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx4("input", {
+    jsxs5("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx5("input", {
         className: S.input + " flex-1 min-w-32",
         value: motivo,
         placeholder: "motivo para retirarla",
         onChange: (e3) => setMotivo(e3.target.value)
       }),
-      jsx4("button", {
+      jsx5("button", {
         type: "button",
         className: S.ghost,
         disabled: !motivo.trim(),
@@ -24813,13 +26102,13 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         },
         children: "Retirar"
       }),
-      jsx4("input", {
+      jsx5("input", {
         className: S.input + " flex-1 min-w-32",
         value: nota,
         placeholder: "nota para revisi\xF3n humana",
         onChange: (e3) => setNota(e3.target.value)
       }),
-      jsx4("button", {
+      jsx5("button", {
         type: "button",
         className: S.ghost,
         disabled: !nota.trim(),
@@ -24833,29 +26122,29 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
   ] });
 }
 function SeccionEscritor() {
-  const hostRef = useRef3(null);
-  const editorRef = useRef3(null);
-  const revRef = useRef3(0);
-  const [chatSesion, setChatSesion] = useState4(null);
-  const registroRef = useRef3({});
-  const casoRef = useRef3(BORRADOR);
-  const textoGuardadoRef = useRef3("");
-  const timerGuardado = useRef3(null);
-  const timerInfo = useRef3(null);
-  const infoDocRef = useRef3({ texto: "", hash: null });
-  const verificacionRef = useRef3(null);
-  const [casos, setCasos] = useState4(null);
-  const [caseId, setCaseId] = useState4(BORRADOR);
-  const [estadoDoc, setEstadoDoc] = useState4("cargando");
-  const [error2, setError] = useState4(null);
-  const [aviso, setAviso] = useState4(null);
-  const [verificacion, setVerificacion] = useState4(null);
-  const [docInfo, setDocInfo] = useState4({ texto: "", hash: null });
-  const [verificando, setVerificando] = useState4(false);
-  const [acciones, setAcciones] = useState4({});
-  const [conflictoRev, setConflictoRev] = useState4(null);
-  const [registro, setRegistro] = useState4({});
-  const actualizarInfoDoc = useCallback4((ed) => {
+  const hostRef = useRef4(null);
+  const editorRef = useRef4(null);
+  const revRef = useRef4(0);
+  const [chatSesion, setChatSesion] = useState5(null);
+  const registroRef = useRef4({});
+  const casoRef = useRef4(BORRADOR);
+  const textoGuardadoRef = useRef4("");
+  const timerGuardado = useRef4(null);
+  const timerInfo = useRef4(null);
+  const infoDocRef = useRef4({ texto: "", hash: null });
+  const verificacionRef = useRef4(null);
+  const [casos, setCasos] = useState5(null);
+  const [caseId, setCaseId] = useState5(BORRADOR);
+  const [estadoDoc, setEstadoDoc] = useState5("cargando");
+  const [error2, setError] = useState5(null);
+  const [aviso, setAviso] = useState5(null);
+  const [verificacion, setVerificacion] = useState5(null);
+  const [docInfo, setDocInfo] = useState5({ texto: "", hash: null });
+  const [verificando, setVerificando] = useState5(false);
+  const [acciones, setAcciones] = useState5({});
+  const [conflictoRev, setConflictoRev] = useState5(null);
+  const [registro, setRegistro] = useState5({});
+  const actualizarInfoDoc = useCallback5((ed) => {
     const texto = textoDelEditor(ed);
     sha256Hex(texto).then((hash) => {
       const info = { texto, hash };
@@ -24864,13 +26153,13 @@ function SeccionEscritor() {
     }).catch(() => {
     });
   }, []);
-  const programarInfoDoc = useCallback4((ed) => {
+  const programarInfoDoc = useCallback5((ed) => {
     clearTimeout(timerInfo.current);
     timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO);
   }, [actualizarInfoDoc]);
-  const estadoRef = useRef3("cargando");
+  const estadoRef = useRef4("cargando");
   estadoRef.current = estadoDoc;
-  const guardar = useCallback4(() => {
+  const guardar = useCallback5(() => {
     const ed = editorRef.current;
     clearTimeout(timerGuardado.current);
     if (!ed || estadoRef.current === "conflicto") return Promise.resolve();
@@ -24900,13 +26189,13 @@ function SeccionEscritor() {
       }
     });
   }, []);
-  const programarGuardado = useCallback4(() => {
+  const programarGuardado = useCallback5(() => {
     clearTimeout(timerGuardado.current);
     timerGuardado.current = setTimeout(() => {
       guardar();
     }, DEBOUNCE_GUARDADO);
   }, [guardar]);
-  const cargarEscrito = useCallback4((cid) => {
+  const cargarEscrito = useCallback5((cid) => {
     const ed = editorRef.current;
     if (!ed) return;
     setEstadoDoc("cargando");
@@ -24935,7 +26224,7 @@ function SeccionEscritor() {
       setError(e3);
     });
   }, [actualizarInfoDoc]);
-  useEffect4(() => {
+  useEffect5(() => {
     const ed = montarEditor({
       element: hostRef.current,
       content: "",
@@ -24953,6 +26242,10 @@ function SeccionEscritor() {
           setDocInfo(infoDocRef.current);
         }
         programarInfoDoc(editor);
+        if (editorRef.prediccionPedir) editorRef.prediccionPedir(editor);
+      },
+      onAceptarPrediccion: (s2) => {
+        if (editorRef.prediccionAceptada) editorRef.prediccionAceptada(s2);
       }
     });
     editorRef.current = ed;
@@ -24977,7 +26270,7 @@ function SeccionEscritor() {
       editorRef.current = null;
     };
   }, [cargarEscrito, programarGuardado, programarInfoDoc]);
-  useEffect4(() => {
+  useEffect5(() => {
     const ed = editorRef.current;
     if (!ed) return;
     const v3 = verificacionRef.current;
@@ -24998,7 +26291,7 @@ function SeccionEscritor() {
     fijarMarcas(ed, marcas);
   }, [verificacion, docInfo, registro]);
   verificacionRef.current = verificacion;
-  const verificar = useCallback4(() => {
+  const verificar = useCallback5(() => {
     const ed = editorRef.current;
     if (!ed || verificando) return;
     setVerificando(true);
@@ -25010,7 +26303,7 @@ function SeccionEscritor() {
       actualizarInfoDoc(ed);
     })).catch(setError).finally(() => setVerificando(false));
   }, [verificando, actualizarInfoDoc]);
-  const cambiarCaso = useCallback4((cid) => {
+  const cambiarCaso = useCallback5((cid) => {
     clearTimeout(timerGuardado.current);
     const continuar = () => {
       setCaseId(cid);
@@ -25024,15 +26317,15 @@ function SeccionEscritor() {
       continuar();
     }
   }, [cargarEscrito, guardar]);
-  const recargarTrasConflicto = useCallback4(() => {
+  const recargarTrasConflicto = useCallback5(() => {
     cargarEscrito(casoRef.current);
   }, [cargarEscrito]);
-  const fijarRegistro = useCallback4((nuevo) => {
+  const fijarRegistro = useCallback5((nuevo) => {
     registroRef.current = nuevo;
     setRegistro(nuevo);
     return guardar();
   }, [guardar]);
-  const accionCita = useCallback4((indice, tipo, valor) => {
+  const accionCita = useCallback5((indice, tipo, valor) => {
     const ed = editorRef.current;
     const v3 = verificacionRef.current;
     if (!ed || !v3) return;
@@ -25105,51 +26398,51 @@ function SeccionEscritor() {
   const detalles = res && res.detalles || [];
   const msgVeredicto = res && mensajeVeredicto(res.veredicto);
   const opciones = [{ case_id: BORRADOR, legal_question: "borrador (sin caso)" }].concat(casos || []);
-  return jsxs4("div", { className: "flex flex-col gap-3", children: [
-    jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx4("select", {
+  return jsxs5("div", { className: "flex flex-col gap-3", children: [
+    jsxs5("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx5("select", {
         className: S.input,
         value: caseId,
         onChange: (e3) => cambiarCaso(e3.target.value),
-        children: casos === null ? jsx4("option", { value: caseId, children: "Cargando casos\u2026" }) : opciones.map((c4) => jsx4("option", {
+        children: casos === null ? jsx5("option", { value: caseId, children: "Cargando casos\u2026" }) : opciones.map((c4) => jsx5("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id === BORRADOR ? "borrador (sin caso)" : c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx4("span", { className: S.sub, children: TEXTO_GUARDADO[estadoDoc] || estadoDoc }),
-      estadoDoc === "conflicto" ? jsxs4("span", { className: "flex items-center gap-1", children: [
-        jsx4("span", { className: "text-xs text-(--ui-danger)", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
-        jsx4("button", {
+      jsx5("span", { className: S.sub, children: TEXTO_GUARDADO[estadoDoc] || estadoDoc }),
+      estadoDoc === "conflicto" ? jsxs5("span", { className: "flex items-center gap-1", children: [
+        jsx5("span", { className: "text-xs text-(--ui-danger)", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
+        jsx5("button", {
           type: "button",
           className: S.link,
           onClick: recargarTrasConflicto,
           children: "descargar y perder mis cambios"
         })
       ] }) : null,
-      jsx4("button", {
+      jsx5("button", {
         type: "button",
         className: S.button,
         onClick: verificar,
         disabled: verificando || estadoDoc === "cargando",
         children: verificando ? "Verificando\u2026" : "Verificar citas"
       }),
-      verificando ? jsx4("span", { className: S.sub, children: "La primera llamada instala el corpus (~1 min)." }) : null
+      verificando ? jsx5("span", { className: S.sub, children: "La primera llamada instala el corpus (~1 min)." }) : null
     ] }),
-    error2 ? jsx4("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    aviso ? jsx4("div", { className: S.sub, children: aviso }) : null,
-    jsxs4("div", { className: S.card, children: [
-      jsx4("div", { className: S.cardTitle, children: "Escrito" }),
-      jsx4("div", { ref: hostRef })
+    error2 ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
+    aviso ? jsx5("div", { className: S.sub, children: aviso }) : null,
+    jsxs5("div", { className: S.card, children: [
+      jsx5("div", { className: S.cardTitle, children: "Escrito" }),
+      jsx5("div", { ref: hostRef })
     ] }),
-    jsx4(ModuloPrivacidad, {
+    jsx5(ModuloPrivacidad, {
       editorRef,
       caseId,
       docInfo,
       registro,
       setRegistro
     }),
-    jsx4(ChatEscritor, {
+    jsx5(ChatEscritor, {
       editorRef,
       caseId,
       docInfo,
@@ -25160,7 +26453,7 @@ function SeccionEscritor() {
       rev: revRef.current,
       onSesion: setChatSesion
     }),
-    jsx4(NifPropuestas, {
+    jsx5(NifPropuestas, {
       editorRef,
       caseId,
       registro,
@@ -25168,51 +26461,60 @@ function SeccionEscritor() {
       sesion: chatSesion,
       tieneNif: caseId !== "borrador"
     }),
-    res && res.error ? jsxs4("div", { className: S.card, children: [
-      jsx4("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
-      jsx4("div", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
+    jsx5(PrediccionPanel, {
+      editorRef,
+      caseId,
+      docInfo,
+      verificacion,
+      registro,
+      setRegistro,
+      sesion: chatSesion
+    }),
+    res && res.error ? jsxs5("div", { className: S.card, children: [
+      jsx5("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
+      jsx5("div", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
     ] }) : null,
-    res && !res.error ? jsxs4("div", { className: "flex flex-col gap-2", children: [
-      jsxs4("div", { className: "font-medium", children: [
+    res && !res.error ? jsxs5("div", { className: "flex flex-col gap-2", children: [
+      jsxs5("div", { className: "font-medium", children: [
         "Dik\xE9: " + (meta.citas_verificadas || 0) + " de " + (meta.total_citas || 0) + " citas verificadas" + (res.veredicto ? " (" + res.veredicto + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? " \xB7 al " + meta.as_of : "")
       ] }),
-      msgVeredicto ? jsx4("div", { className: S.sub, children: msgVeredicto }) : null,
+      msgVeredicto ? jsx5("div", { className: S.sub, children: msgVeredicto }) : null,
       detalles.map((d2, i3) => {
         const estado = estadoCita(d2, v2.hash, docInfo.hash, registro);
         const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo;
-        return jsxs4("div", { key: i3, className: S.row, children: [
-          jsx4("span", {
+        return jsxs5("div", { key: i3, className: S.row, children: [
+          jsx5("span", {
             className: S.mark + " " + (estado === "verificada" ? S.ok : estado === "fallo" ? S.bad : ""),
             children: estado === "verificada" ? "\u2713" : estado === "fallo" ? "\u2717" : "\xB7"
           }),
-          jsxs4("div", { className: "min-w-0", children: [
-            jsxs4("div", { className: "flex items-center gap-2", children: [
-              jsx4("div", { children: d2.cita_raw }),
-              jsx4("span", { className: S.chip + " " + S[es.chip], children: es.texto })
+          jsxs5("div", { className: "min-w-0", children: [
+            jsxs5("div", { className: "flex items-center gap-2", children: [
+              jsx5("div", { children: d2.cita_raw }),
+              jsx5("span", { className: S.chip + " " + S[es.chip], children: es.texto })
             ] }),
-            jsx4("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
-            estado === "fallo" ? jsx4(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
+            jsx5("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
+            estado === "fallo" ? jsx5(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
           ] })
         ] });
       }),
-      res.problemas && res.problemas.length ? jsxs4("div", { className: S.section, children: [
-        jsx4("div", { className: S.sectionTitle, children: "Problemas del motor" }),
-        ...res.problemas.map((p2, i3) => jsx4("div", { key: i3, className: "text-xs", children: String(p2) }))
+      res.problemas && res.problemas.length ? jsxs5("div", { className: S.section, children: [
+        jsx5("div", { className: S.sectionTitle, children: "Problemas del motor" }),
+        ...res.problemas.map((p2, i3) => jsx5("div", { key: i3, className: "text-xs", children: String(p2) }))
       ] }) : null,
-      res.no_verificadas && res.no_verificadas.length ? jsx4("div", { className: S.sub, children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ") }) : null,
-      registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs4("details", { className: "text-xs", children: [
-        jsx4("summary", { className: "cursor-pointer " + S.sub, children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
-        ...(registro.retiros || []).map((r2, i3) => jsxs4("div", { key: "r" + i3, className: "py-0.5", children: [
-          jsx4("span", { className: S.sub, children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx4("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
+      res.no_verificadas && res.no_verificadas.length ? jsx5("div", { className: S.sub, children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ") }) : null,
+      registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs5("details", { className: "text-xs", children: [
+        jsx5("summary", { className: "cursor-pointer " + S.sub, children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
+        ...(registro.retiros || []).map((r2, i3) => jsxs5("div", { key: "r" + i3, className: "py-0.5", children: [
+          jsx5("span", { className: S.sub, children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx5("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
         ] })),
-        ...(registro.escaladas || []).map((e3, i3) => jsxs4("div", { key: "e" + i3, className: "py-0.5", children: [
-          jsx4("span", { className: S.sub, children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx4("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
+        ...(registro.escaladas || []).map((e3, i3) => jsxs5("div", { key: "e" + i3, className: "py-0.5", children: [
+          jsx5("span", { className: S.sub, children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx5("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
         ] }))
       ] }) : null,
-      jsx4("div", { className: S.sub, children: AVISO_JUICIO }),
-      res.alcance ? jsx4("div", { className: S.sub, children: res.alcance }) : null
+      jsx5("div", { className: S.sub, children: AVISO_JUICIO }),
+      res.alcance ? jsx5("div", { className: S.sub, children: res.alcance }) : null
     ] }) : null
   ] });
 }
@@ -28308,8 +29610,8 @@ var Matrix3 = class _Matrix3 {
    */
   determinant() {
     const te = this.elements;
-    const a3 = te[0], b2 = te[1], c4 = te[2], d2 = te[3], e3 = te[4], f2 = te[5], g2 = te[6], h3 = te[7], i3 = te[8];
-    return a3 * e3 * i3 - a3 * f2 * h3 - b2 * d2 * i3 + b2 * f2 * g2 + c4 * d2 * h3 - c4 * e3 * g2;
+    const a3 = te[0], b2 = te[1], c4 = te[2], d2 = te[3], e3 = te[4], f2 = te[5], g3 = te[6], h3 = te[7], i3 = te[8];
+    return a3 * e3 * i3 - a3 * f2 * h3 - b2 * d2 * i3 + b2 * f2 * g3 + c4 * d2 * h3 - c4 * e3 * g3;
   }
   /**
    * Inverts this matrix, using the [analytic method](https://en.wikipedia.org/wiki/Invertible_matrix#Analytic_solution).
@@ -33049,12 +34351,12 @@ var Color = class {
    * @param {number} [g] - The green component.
    * @param {number} [b] - The blue component.
    */
-  constructor(r2, g2, b2) {
+  constructor(r2, g3, b2) {
     this.isColor = true;
     this.r = 1;
     this.g = 1;
     this.b = 1;
-    return this.set(r2, g2, b2);
+    return this.set(r2, g3, b2);
   }
   /**
    * Sets the colors's components from the given values.
@@ -33065,8 +34367,8 @@ var Color = class {
    * @param {number} [b] - The blue component.
    * @return {Color} A reference to this color.
    */
-  set(r2, g2, b2) {
-    if (g2 === void 0 && b2 === void 0) {
+  set(r2, g3, b2) {
+    if (g3 === void 0 && b2 === void 0) {
       const value = r2;
       if (value && value.isColor) {
         this.copy(value);
@@ -33076,7 +34378,7 @@ var Color = class {
         this.setStyle(value);
       }
     } else {
-      this.setRGB(r2, g2, b2);
+      this.setRGB(r2, g3, b2);
     }
     return this;
   }
@@ -33116,9 +34418,9 @@ var Color = class {
    * @param {string} [colorSpace=ColorManagement.workingColorSpace] - The color space.
    * @return {Color} A reference to this color.
    */
-  setRGB(r2, g2, b2, colorSpace = ColorManagement.workingColorSpace) {
+  setRGB(r2, g3, b2, colorSpace = ColorManagement.workingColorSpace) {
     this.r = r2;
-    this.g = g2;
+    this.g = g3;
     this.b = b2;
     ColorManagement.colorSpaceToWorking(this, colorSpace);
     return this;
@@ -33342,9 +34644,9 @@ var Color = class {
    */
   getHSL(target, colorSpace = ColorManagement.workingColorSpace) {
     ColorManagement.workingToColorSpace(_color.copy(this), colorSpace);
-    const r2 = _color.r, g2 = _color.g, b2 = _color.b;
-    const max2 = Math.max(r2, g2, b2);
-    const min2 = Math.min(r2, g2, b2);
+    const r2 = _color.r, g3 = _color.g, b2 = _color.b;
+    const max2 = Math.max(r2, g3, b2);
+    const min2 = Math.min(r2, g3, b2);
     let hue, saturation;
     const lightness = (min2 + max2) / 2;
     if (min2 === max2) {
@@ -33355,13 +34657,13 @@ var Color = class {
       saturation = lightness <= 0.5 ? delta / (max2 + min2) : delta / (2 - max2 - min2);
       switch (max2) {
         case r2:
-          hue = (g2 - b2) / delta + (g2 < b2 ? 6 : 0);
+          hue = (g3 - b2) / delta + (g3 < b2 ? 6 : 0);
           break;
-        case g2:
+        case g3:
           hue = (b2 - r2) / delta + 2;
           break;
         case b2:
-          hue = (r2 - g2) / delta + 4;
+          hue = (r2 - g3) / delta + 4;
           break;
       }
       hue /= 6;
@@ -33393,11 +34695,11 @@ var Color = class {
    */
   getStyle(colorSpace = SRGBColorSpace) {
     ColorManagement.workingToColorSpace(_color.copy(this), colorSpace);
-    const r2 = _color.r, g2 = _color.g, b2 = _color.b;
+    const r2 = _color.r, g3 = _color.g, b2 = _color.b;
     if (colorSpace !== SRGBColorSpace) {
-      return `color(${colorSpace} ${r2.toFixed(3)} ${g2.toFixed(3)} ${b2.toFixed(3)})`;
+      return `color(${colorSpace} ${r2.toFixed(3)} ${g3.toFixed(3)} ${b2.toFixed(3)})`;
     }
-    return `rgb(${Math.round(r2 * 255)},${Math.round(g2 * 255)},${Math.round(b2 * 255)})`;
+    return `rgb(${Math.round(r2 * 255)},${Math.round(g3 * 255)},${Math.round(b2 * 255)})`;
   }
   /**
    * Adds the given HSL values to this color's values.
@@ -33556,11 +34858,11 @@ var Color = class {
    * @return {Color} A reference to this color.
    */
   applyMatrix3(m3) {
-    const r2 = this.r, g2 = this.g, b2 = this.b;
+    const r2 = this.r, g3 = this.g, b2 = this.b;
     const e3 = m3.elements;
-    this.r = e3[0] * r2 + e3[3] * g2 + e3[6] * b2;
-    this.g = e3[1] * r2 + e3[4] * g2 + e3[7] * b2;
-    this.b = e3[2] * r2 + e3[5] * g2 + e3[8] * b2;
+    this.r = e3[0] * r2 + e3[3] * g3 + e3[6] * b2;
+    this.g = e3[1] * r2 + e3[4] * g3 + e3[7] * b2;
+    this.b = e3[2] * r2 + e3[5] * g3 + e3[8] * b2;
     return this;
   }
   /**
@@ -48885,11 +50187,11 @@ var _v0 = /* @__PURE__ */ new Vector3();
 function getLuminanceFunction() {
   ColorManagement.getLuminanceCoefficients(_v0);
   const r2 = _v0.x.toFixed(4);
-  const g2 = _v0.y.toFixed(4);
+  const g3 = _v0.y.toFixed(4);
   const b2 = _v0.z.toFixed(4);
   return [
     "float luminance( const in vec3 rgb ) {",
-    `	const vec3 weights = vec3( ${r2}, ${g2}, ${b2} );`,
+    `	const vec3 weights = vec3( ${r2}, ${g3}, ${b2} );`,
     "	return dot( weights, rgb );",
     "}"
   ].join("\n");
@@ -50260,7 +51562,7 @@ function WebGLLights(extensions) {
   const matrix4 = new Matrix4();
   const matrix42 = new Matrix4();
   function setup(lights) {
-    let r2 = 0, g2 = 0, b2 = 0;
+    let r2 = 0, g3 = 0, b2 = 0;
     for (let i3 = 0; i3 < 9; i3++) state.probe[i3].set(0, 0, 0);
     let directionalLength = 0;
     let pointLength = 0;
@@ -50289,7 +51591,7 @@ function WebGLLights(extensions) {
       }
       if (light.isAmbientLight) {
         r2 += color3.r * intensity;
-        g2 += color3.g * intensity;
+        g3 += color3.g * intensity;
         b2 += color3.b * intensity;
       } else if (light.isLightProbe) {
         for (let j2 = 0; j2 < 9; j2++) {
@@ -50390,7 +51692,7 @@ function WebGLLights(extensions) {
       }
     }
     state.ambient[0] = r2;
-    state.ambient[1] = g2;
+    state.ambient[1] = g3;
     state.ambient[2] = b2;
     const hash = state.hash;
     if (hash.directionalLength !== directionalLength || hash.pointLength !== pointLength || hash.spotLength !== spotLength || hash.rectAreaLength !== rectAreaLength || hash.hemiLength !== hemiLength || hash.numDirectionalShadows !== numDirectionalShadows || hash.numPointShadows !== numPointShadows || hash.numSpotShadows !== numSpotShadows || hash.numSpotMaps !== numSpotMaps || hash.numLightProbes !== numLightProbes) {
@@ -50894,15 +52196,15 @@ function WebGLState(gl, extensions) {
       setLocked: function(lock) {
         locked = lock;
       },
-      setClear: function(r2, g2, b2, a3, premultipliedAlpha) {
+      setClear: function(r2, g3, b2, a3, premultipliedAlpha) {
         if (premultipliedAlpha === true) {
           r2 *= a3;
-          g2 *= a3;
+          g3 *= a3;
           b2 *= a3;
         }
-        color3.set(r2, g2, b2, a3);
+        color3.set(r2, g3, b2, a3);
         if (currentColorClear.equals(color3) === false) {
-          gl.clearColor(r2, g2, b2, a3);
+          gl.clearColor(r2, g3, b2, a3);
           currentColorClear.copy(color3);
         }
       },
@@ -54941,17 +56243,17 @@ var WebGLRenderer = class {
           const clearColor = background.getClearColor();
           const a3 = background.getClearAlpha();
           const r2 = clearColor.r;
-          const g2 = clearColor.g;
+          const g3 = clearColor.g;
           const b2 = clearColor.b;
           if (isUnsignedType) {
             uintClearColor[0] = r2;
-            uintClearColor[1] = g2;
+            uintClearColor[1] = g3;
             uintClearColor[2] = b2;
             uintClearColor[3] = a3;
             _gl.clearBufferuiv(_gl.COLOR, 0, uintClearColor);
           } else {
             intClearColor[0] = r2;
-            intClearColor[1] = g2;
+            intClearColor[1] = g3;
             intClearColor[2] = b2;
             intClearColor[3] = a3;
             _gl.clearBufferiv(_gl.COLOR, 0, intClearColor);
@@ -58948,9 +60250,9 @@ function color(format2) {
 function rgbn(n2) {
   return new Rgb(n2 >> 16 & 255, n2 >> 8 & 255, n2 & 255, 1);
 }
-function rgba(r2, g2, b2, a3) {
-  if (a3 <= 0) r2 = g2 = b2 = NaN;
-  return new Rgb(r2, g2, b2, a3);
+function rgba(r2, g3, b2, a3) {
+  if (a3 <= 0) r2 = g3 = b2 = NaN;
+  return new Rgb(r2, g3, b2, a3);
 }
 function rgbConvert(o2) {
   if (!(o2 instanceof Color2)) o2 = color(o2);
@@ -58958,12 +60260,12 @@ function rgbConvert(o2) {
   o2 = o2.rgb();
   return new Rgb(o2.r, o2.g, o2.b, o2.opacity);
 }
-function rgb(r2, g2, b2, opacity) {
-  return arguments.length === 1 ? rgbConvert(r2) : new Rgb(r2, g2, b2, opacity == null ? 1 : opacity);
+function rgb(r2, g3, b2, opacity) {
+  return arguments.length === 1 ? rgbConvert(r2) : new Rgb(r2, g3, b2, opacity == null ? 1 : opacity);
 }
-function Rgb(r2, g2, b2, opacity) {
+function Rgb(r2, g3, b2, opacity) {
   this.r = +r2;
-  this.g = +g2;
+  this.g = +g3;
   this.b = +b2;
   this.opacity = +opacity;
 }
@@ -59024,11 +60326,11 @@ function hslConvert(o2) {
   if (!o2) return new Hsl();
   if (o2 instanceof Hsl) return o2;
   o2 = o2.rgb();
-  var r2 = o2.r / 255, g2 = o2.g / 255, b2 = o2.b / 255, min2 = Math.min(r2, g2, b2), max2 = Math.max(r2, g2, b2), h3 = NaN, s2 = max2 - min2, l2 = (max2 + min2) / 2;
+  var r2 = o2.r / 255, g3 = o2.g / 255, b2 = o2.b / 255, min2 = Math.min(r2, g3, b2), max2 = Math.max(r2, g3, b2), h3 = NaN, s2 = max2 - min2, l2 = (max2 + min2) / 2;
   if (s2) {
-    if (r2 === max2) h3 = (g2 - b2) / s2 + (g2 < b2) * 6;
-    else if (g2 === max2) h3 = (b2 - r2) / s2 + 2;
-    else h3 = (r2 - g2) / s2 + 4;
+    if (r2 === max2) h3 = (g3 - b2) / s2 + (g3 < b2) * 6;
+    else if (g3 === max2) h3 = (b2 - r2) / s2 + 2;
+    else h3 = (r2 - g3) / s2 + 4;
     s2 /= l2 < 0.5 ? max2 + min2 : 2 - max2 - min2;
     h3 *= 60;
   } else {
@@ -59098,11 +60400,11 @@ function labConvert(o2) {
   if (o2 instanceof Lab) return new Lab(o2.l, o2.a, o2.b, o2.opacity);
   if (o2 instanceof Hcl) return hcl2lab(o2);
   if (!(o2 instanceof Rgb)) o2 = rgbConvert(o2);
-  var r2 = rgb2lrgb(o2.r), g2 = rgb2lrgb(o2.g), b2 = rgb2lrgb(o2.b), y3 = xyz2lab((0.2225045 * r2 + 0.7168786 * g2 + 0.0606169 * b2) / Yn), x3, z3;
-  if (r2 === g2 && g2 === b2) x3 = z3 = y3;
+  var r2 = rgb2lrgb(o2.r), g3 = rgb2lrgb(o2.g), b2 = rgb2lrgb(o2.b), y3 = xyz2lab((0.2225045 * r2 + 0.7168786 * g3 + 0.0606169 * b2) / Yn), x3, z3;
+  if (r2 === g3 && g3 === b2) x3 = z3 = y3;
   else {
-    x3 = xyz2lab((0.4360747 * r2 + 0.3850649 * g2 + 0.1430804 * b2) / Xn);
-    z3 = xyz2lab((0.0139322 * r2 + 0.0971045 * g2 + 0.7141733 * b2) / Zn);
+    x3 = xyz2lab((0.4360747 * r2 + 0.3850649 * g3 + 0.1430804 * b2) / Xn);
+    z3 = xyz2lab((0.0139322 * r2 + 0.0971045 * g3 + 0.7141733 * b2) / Zn);
   }
   return new Lab(116 * y3 - 16, 500 * (x3 - y3), 200 * (y3 - z3), o2.opacity);
 }
@@ -59190,7 +60492,7 @@ var BC_DA = B * C - D * A;
 function cubehelixConvert(o2) {
   if (o2 instanceof Cubehelix) return new Cubehelix(o2.h, o2.s, o2.l, o2.opacity);
   if (!(o2 instanceof Rgb)) o2 = rgbConvert(o2);
-  var r2 = o2.r / 255, g2 = o2.g / 255, b2 = o2.b / 255, l2 = (BC_DA * b2 + ED * r2 - EB * g2) / (BC_DA + ED - EB), bl = b2 - l2, k = (E * (g2 - l2) - C * bl) / D, s2 = Math.sqrt(k * k + bl * bl) / (E * l2 * (1 - l2)), h3 = s2 ? Math.atan2(k, bl) * degrees - 120 : NaN;
+  var r2 = o2.r / 255, g3 = o2.g / 255, b2 = o2.b / 255, l2 = (BC_DA * b2 + ED * r2 - EB * g3) / (BC_DA + ED - EB), bl = b2 - l2, k = (E * (g3 - l2) - C * bl) / D, s2 = Math.sqrt(k * k + bl * bl) / (E * l2 * (1 - l2)), h3 = s2 ? Math.atan2(k, bl) * degrees - 120 : NaN;
   return new Cubehelix(h3 < 0 ? h3 + 360 : h3, s2, l2, o2.opacity);
 }
 function cubehelix(h3, s2, l2, opacity) {
@@ -59268,10 +60570,10 @@ function nogamma(a3, b2) {
 var rgb2 = (function rgbGamma(y3) {
   var color3 = gamma(y3);
   function rgb4(start, end) {
-    var r2 = color3((start = rgb(start)).r, (end = rgb(end)).r), g2 = color3(start.g, end.g), b2 = color3(start.b, end.b), opacity = nogamma(start.opacity, end.opacity);
+    var r2 = color3((start = rgb(start)).r, (end = rgb(end)).r), g3 = color3(start.g, end.g), b2 = color3(start.b, end.b), opacity = nogamma(start.opacity, end.opacity);
     return function(t4) {
       start.r = r2(t4);
-      start.g = g2(t4);
+      start.g = g3(t4);
       start.b = b2(t4);
       start.opacity = opacity(t4);
       return start + "";
@@ -59282,20 +60584,20 @@ var rgb2 = (function rgbGamma(y3) {
 })(1);
 function rgbSpline(spline) {
   return function(colors2) {
-    var n2 = colors2.length, r2 = new Array(n2), g2 = new Array(n2), b2 = new Array(n2), i3, color3;
+    var n2 = colors2.length, r2 = new Array(n2), g3 = new Array(n2), b2 = new Array(n2), i3, color3;
     for (i3 = 0; i3 < n2; ++i3) {
       color3 = rgb(colors2[i3]);
       r2[i3] = color3.r || 0;
-      g2[i3] = color3.g || 0;
+      g3[i3] = color3.g || 0;
       b2[i3] = color3.b || 0;
     }
     r2 = spline(r2);
-    g2 = spline(g2);
+    g3 = spline(g3);
     b2 = spline(b2);
     color3.opacity = 1;
     return function(t4) {
       color3.r = r2(t4);
-      color3.g = g2(t4);
+      color3.g = g3(t4);
       color3.b = b2(t4);
       return color3 + "";
     };
@@ -60175,18 +61477,18 @@ function inputToRGB(color3) {
     a: a3
   };
 }
-function rgbToRgb(r2, g2, b2) {
+function rgbToRgb(r2, g3, b2) {
   return {
     r: bound01(r2, 255) * 255,
-    g: bound01(g2, 255) * 255,
+    g: bound01(g3, 255) * 255,
     b: bound01(b2, 255) * 255
   };
 }
-function rgbToHsl(r2, g2, b2) {
+function rgbToHsl(r2, g3, b2) {
   r2 = bound01(r2, 255);
-  g2 = bound01(g2, 255);
+  g3 = bound01(g3, 255);
   b2 = bound01(b2, 255);
-  var max2 = Math.max(r2, g2, b2), min2 = Math.min(r2, g2, b2);
+  var max2 = Math.max(r2, g3, b2), min2 = Math.min(r2, g3, b2);
   var h3, s2, l2 = (max2 + min2) / 2;
   if (max2 == min2) {
     h3 = s2 = 0;
@@ -60195,13 +61497,13 @@ function rgbToHsl(r2, g2, b2) {
     s2 = l2 > 0.5 ? d2 / (2 - max2 - min2) : d2 / (max2 + min2);
     switch (max2) {
       case r2:
-        h3 = (g2 - b2) / d2 + (g2 < b2 ? 6 : 0);
+        h3 = (g3 - b2) / d2 + (g3 < b2 ? 6 : 0);
         break;
-      case g2:
+      case g3:
         h3 = (b2 - r2) / d2 + 2;
         break;
       case b2:
-        h3 = (r2 - g2) / d2 + 4;
+        h3 = (r2 - g3) / d2 + 4;
         break;
     }
     h3 /= 6;
@@ -60213,7 +61515,7 @@ function rgbToHsl(r2, g2, b2) {
   };
 }
 function hslToRgb(h3, s2, l2) {
-  var r2, g2, b2;
+  var r2, g3, b2;
   h3 = bound01(h3, 360);
   s2 = bound01(s2, 100);
   l2 = bound01(l2, 100);
@@ -60226,25 +61528,25 @@ function hslToRgb(h3, s2, l2) {
     return p3;
   }
   if (s2 === 0) {
-    r2 = g2 = b2 = l2;
+    r2 = g3 = b2 = l2;
   } else {
     var q2 = l2 < 0.5 ? l2 * (1 + s2) : l2 + s2 - l2 * s2;
     var p2 = 2 * l2 - q2;
     r2 = hue2rgb2(p2, q2, h3 + 1 / 3);
-    g2 = hue2rgb2(p2, q2, h3);
+    g3 = hue2rgb2(p2, q2, h3);
     b2 = hue2rgb2(p2, q2, h3 - 1 / 3);
   }
   return {
     r: r2 * 255,
-    g: g2 * 255,
+    g: g3 * 255,
     b: b2 * 255
   };
 }
-function rgbToHsv(r2, g2, b2) {
+function rgbToHsv(r2, g3, b2) {
   r2 = bound01(r2, 255);
-  g2 = bound01(g2, 255);
+  g3 = bound01(g3, 255);
   b2 = bound01(b2, 255);
-  var max2 = Math.max(r2, g2, b2), min2 = Math.min(r2, g2, b2);
+  var max2 = Math.max(r2, g3, b2), min2 = Math.min(r2, g3, b2);
   var h3, s2, v2 = max2;
   var d2 = max2 - min2;
   s2 = max2 === 0 ? 0 : d2 / max2;
@@ -60253,13 +61555,13 @@ function rgbToHsv(r2, g2, b2) {
   } else {
     switch (max2) {
       case r2:
-        h3 = (g2 - b2) / d2 + (g2 < b2 ? 6 : 0);
+        h3 = (g3 - b2) / d2 + (g3 < b2 ? 6 : 0);
         break;
-      case g2:
+      case g3:
         h3 = (b2 - r2) / d2 + 2;
         break;
       case b2:
-        h3 = (r2 - g2) / d2 + 4;
+        h3 = (r2 - g3) / d2 + 4;
         break;
     }
     h3 /= 6;
@@ -60274,29 +61576,29 @@ function hsvToRgb(h3, s2, v2) {
   h3 = bound01(h3, 360) * 6;
   s2 = bound01(s2, 100);
   v2 = bound01(v2, 100);
-  var i3 = Math.floor(h3), f2 = h3 - i3, p2 = v2 * (1 - s2), q2 = v2 * (1 - f2 * s2), t4 = v2 * (1 - (1 - f2) * s2), mod2 = i3 % 6, r2 = [v2, q2, p2, p2, t4, v2][mod2], g2 = [t4, v2, v2, q2, p2, p2][mod2], b2 = [p2, p2, t4, v2, v2, q2][mod2];
+  var i3 = Math.floor(h3), f2 = h3 - i3, p2 = v2 * (1 - s2), q2 = v2 * (1 - f2 * s2), t4 = v2 * (1 - (1 - f2) * s2), mod2 = i3 % 6, r2 = [v2, q2, p2, p2, t4, v2][mod2], g3 = [t4, v2, v2, q2, p2, p2][mod2], b2 = [p2, p2, t4, v2, v2, q2][mod2];
   return {
     r: r2 * 255,
-    g: g2 * 255,
+    g: g3 * 255,
     b: b2 * 255
   };
 }
-function rgbToHex(r2, g2, b2, allow3Char) {
-  var hex2 = [pad2(Math.round(r2).toString(16)), pad2(Math.round(g2).toString(16)), pad2(Math.round(b2).toString(16))];
+function rgbToHex(r2, g3, b2, allow3Char) {
+  var hex2 = [pad2(Math.round(r2).toString(16)), pad2(Math.round(g3).toString(16)), pad2(Math.round(b2).toString(16))];
   if (allow3Char && hex2[0].charAt(0) == hex2[0].charAt(1) && hex2[1].charAt(0) == hex2[1].charAt(1) && hex2[2].charAt(0) == hex2[2].charAt(1)) {
     return hex2[0].charAt(0) + hex2[1].charAt(0) + hex2[2].charAt(0);
   }
   return hex2.join("");
 }
-function rgbaToHex(r2, g2, b2, a3, allow4Char) {
-  var hex2 = [pad2(Math.round(r2).toString(16)), pad2(Math.round(g2).toString(16)), pad2(Math.round(b2).toString(16)), pad2(convertDecimalToHex(a3))];
+function rgbaToHex(r2, g3, b2, a3, allow4Char) {
+  var hex2 = [pad2(Math.round(r2).toString(16)), pad2(Math.round(g3).toString(16)), pad2(Math.round(b2).toString(16)), pad2(convertDecimalToHex(a3))];
   if (allow4Char && hex2[0].charAt(0) == hex2[0].charAt(1) && hex2[1].charAt(0) == hex2[1].charAt(1) && hex2[2].charAt(0) == hex2[2].charAt(1) && hex2[3].charAt(0) == hex2[3].charAt(1)) {
     return hex2[0].charAt(0) + hex2[1].charAt(0) + hex2[2].charAt(0) + hex2[3].charAt(0);
   }
   return hex2.join("");
 }
-function rgbaToArgbHex(r2, g2, b2, a3) {
-  var hex2 = [pad2(convertDecimalToHex(a3)), pad2(Math.round(r2).toString(16)), pad2(Math.round(g2).toString(16)), pad2(Math.round(b2).toString(16))];
+function rgbaToArgbHex(r2, g3, b2, a3) {
+  var hex2 = [pad2(convertDecimalToHex(a3)), pad2(Math.round(r2).toString(16)), pad2(Math.round(g3).toString(16)), pad2(Math.round(b2).toString(16))];
   return hex2.join("");
 }
 tinycolor.equals = function(color1, color22) {
@@ -76996,8 +78298,8 @@ var Color4 = class extends Color {
    * @param {number} [b=1] - The blue value.
    * @param {number} [a=1] - The alpha value.
    */
-  constructor(r2, g2, b2, a3 = 1) {
-    super(r2, g2, b2);
+  constructor(r2, g3, b2, a3 = 1) {
+    super(r2, g3, b2);
     this.a = a3;
   }
   /**
@@ -77011,9 +78313,9 @@ var Color4 = class extends Color {
    * @param {number} [a=1] - The alpha value.
    * @return {Color4} A reference to this object.
    */
-  set(r2, g2, b2, a3 = 1) {
+  set(r2, g3, b2, a3 = 1) {
     this.a = a3;
-    return super.set(r2, g2, b2);
+    return super.set(r2, g3, b2);
   }
   /**
    * Overwrites the default to honor alpha.
@@ -78393,8 +79695,8 @@ var neutralToneMapping = /* @__PURE__ */ Fn(([color3, exposure]) => {
   const d2 = sub(1, StartCompression);
   const newPeak = sub(1, d2.mul(d2).div(peak.add(d2.sub(StartCompression))));
   color3.mulAssign(newPeak.div(peak));
-  const g2 = sub(1, div(1, Desaturation.mul(peak.sub(newPeak)).add(1)));
-  return mix(color3, vec3(newPeak), g2);
+  const g3 = sub(1, div(1, Desaturation.mul(peak.sub(newPeak)).add(1)));
+  return mix(color3, vec3(newPeak), g3);
 }).setLayout({
   name: "neutralToneMapping",
   type: "vec3",
@@ -104588,7 +105890,7 @@ var v = /^m(i|n|o|s|text|space)$/;
 var w = Array.isArray;
 var d = y2.slice;
 var _ = Object.assign;
-function g(n2) {
+function g2(n2) {
   n2 && n2.parentNode && n2.remove();
 }
 function b(n2, t4, r2) {
@@ -104631,14 +105933,14 @@ function H() {
   }
 }
 function I(n2, t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
-  var s2, h3, v2, w4, d2, _2, g2 = u2.__k || y2, k = t4.length;
-  for (l2 = q(r2, t4, g2, l2, k), s2 = 0; s2 < k; s2++) null != (v2 = r2.__k[s2]) && (h3 = ~v2.__i && g2[v2.__i] || p, v2.__i = s2, _2 = z2(n2, v2, h3, i3, f2, o2, e3, l2, c4, a3), w4 = v2.__e, (h3.ref != v2.ref || 8 & h3.__u) && (h3.ref && G(h3.ref, null, v2, h3), v2.ref && a3.push(v2.ref, v2.__c || w4, v2)), d2 = d2 || w4, 4 & v2.__u ? (l2 = A2(v2, l2, n2, !h3.__v), h3.__e && (h3.__e = null)) : "function" == typeof v2.type && void 0 !== _2 ? l2 = _2 : w4 && (l2 = w4.nextSibling), v2.__u &= -21);
+  var s2, h3, v2, w4, d2, _2, g3 = u2.__k || y2, k = t4.length;
+  for (l2 = q(r2, t4, g3, l2, k), s2 = 0; s2 < k; s2++) null != (v2 = r2.__k[s2]) && (h3 = ~v2.__i && g3[v2.__i] || p, v2.__i = s2, _2 = z2(n2, v2, h3, i3, f2, o2, e3, l2, c4, a3), w4 = v2.__e, (h3.ref != v2.ref || 8 & h3.__u) && (h3.ref && G(h3.ref, null, v2, h3), v2.ref && a3.push(v2.ref, v2.__c || w4, v2)), d2 = d2 || w4, 4 & v2.__u ? (l2 = A2(v2, l2, n2, !h3.__v), h3.__e && (h3.__e = null)) : "function" == typeof v2.type && void 0 !== _2 ? l2 = _2 : w4 && (l2 = w4.nextSibling), v2.__u &= -21);
   return r2.__e = d2, l2;
 }
 function q(n2, t4, r2, u2, i3) {
-  var f2, o2, e3, l2, c4, a3, s2, p2, y3, v2 = r2.length, d2 = v2, _2 = 0, g2 = 0, k = n2.__k = Array(i3);
-  for (f2 = 0; f2 < i3; f2++) null != (o2 = t4[f2]) && "boolean" != typeof o2 && "function" != typeof o2 ? ("object" != typeof o2 || o2.constructor === String ? o2 = k[f2] = m2(null, o2) : w(o2) ? o2 = k[f2] = m2($, { children: o2 }) : o2.constructor === h2 && o2.__b ? o2 = k[f2] = m2(o2.type, o2.props, o2.key, o2.ref, o2.__v) : k[f2] = o2, l2 = f2 + _2, o2.__ = n2, o2.__b = n2.__b + 1, e3 = null, ~(c4 = o2.__i = P(o2, r2, l2, d2)) && (d2--, (e3 = r2[c4]) && (e3.__u |= 2)), e3 && e3.__v ? (o2.__u |= 16, c4 == l2 - 1 ? _2-- : c4 == l2 + 1 ? _2++ : c4 != l2 && (c4 > l2 ? _2-- : _2++, g2 = 1)) : (~c4 || (i3 > v2 ? _2-- : i3 < v2 && _2++), "function" != typeof o2.type && (o2.__u |= 4))) : k[f2] = null;
-  if (g2) {
+  var f2, o2, e3, l2, c4, a3, s2, p2, y3, v2 = r2.length, d2 = v2, _2 = 0, g3 = 0, k = n2.__k = Array(i3);
+  for (f2 = 0; f2 < i3; f2++) null != (o2 = t4[f2]) && "boolean" != typeof o2 && "function" != typeof o2 ? ("object" != typeof o2 || o2.constructor === String ? o2 = k[f2] = m2(null, o2) : w(o2) ? o2 = k[f2] = m2($, { children: o2 }) : o2.constructor === h2 && o2.__b ? o2 = k[f2] = m2(o2.type, o2.props, o2.key, o2.ref, o2.__v) : k[f2] = o2, l2 = f2 + _2, o2.__ = n2, o2.__b = n2.__b + 1, e3 = null, ~(c4 = o2.__i = P(o2, r2, l2, d2)) && (d2--, (e3 = r2[c4]) && (e3.__u |= 2)), e3 && e3.__v ? (o2.__u |= 16, c4 == l2 - 1 ? _2-- : c4 == l2 + 1 ? _2++ : c4 != l2 && (c4 > l2 ? _2-- : _2++, g3 = 1)) : (~c4 || (i3 > v2 ? _2-- : i3 < v2 && _2++), "function" != typeof o2.type && (o2.__u |= 4))) : k[f2] = null;
+  if (g3) {
     for (a3 = [], s2 = [], f2 = 0; f2 < i3; f2++) if ((o2 = k[f2]) && 16 & o2.__u) {
       for (_2 = 0, p2 = a3.length; _2 < p2; ) a3[y3 = _2 + p2 >> 1] < o2.__i ? _2 = y3 + 1 : p2 = y3;
       a3[_2] = o2.__i, s2[f2] = _2 + 1;
@@ -104723,7 +106025,7 @@ function z2(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
       } while (8 & d2.__g && ++q2 < 25);
       C3 && (y2.push.apply(d2.__h, d2.__k), d2.__k = []), d2.state = d2.__s, d2.getChildContext && (i3 = _({}, i3, d2.getChildContext())), C3 && u2.__c && d2.getSnapshotBeforeUpdate && (m3 = d2.getSnapshotBeforeUpdate(k, b2)), A3 = s2 && s2.type === $ && null == s2.key ? s2.props.children : s2, M.__P && (s2 = l2, f2 = (t4 = M.__P).namespaceURI, c4 = o2 = null, u2.props && u2.props.__P != t4 && (u2.__k.some(function(n2) {
         n2 && J(n2, n2);
-      }), u2.__k = null), l2 = u2.__k ? S2(u2, 0) : null), l2 = I(t4, w(A3) ? A3 : [A3], r2, u2, i3, f2, o2, e3, l2, c4, a3), M.__P && (r2.__e = null, l2 = s2), r2.__u &= -161, p2 && p2.some(g), d2.__h.length && e3.push(d2), 1 & d2.__g && (d2.__g &= -4);
+      }), u2.__k = null), l2 = u2.__k ? S2(u2, 0) : null), l2 = I(t4, w(A3) ? A3 : [A3], r2, u2, i3, f2, o2, e3, l2, c4, a3), M.__P && (r2.__e = null, l2 = s2), r2.__u &= -161, p2 && p2.some(g2), d2.__h.length && e3.push(d2), 1 & d2.__g && (d2.__g &= -4);
     } catch (t5) {
       if (e3.length = v2, r2.__v = null, c4 || o2) if (t5 && t5.then) {
         if (r2.__u |= 128 | c4, o2) {
@@ -104740,7 +106042,7 @@ function z2(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
           O = l2;
         }
         (s2 = B3(O = r2.__c.__z || (r2.__c.__z = O))) ? (r2.__e = O, l2 = s2) : r2.__e = l2, l2 = l2 && l2.nextSibling;
-      } else o2 && o2.some(g);
+      } else o2 && o2.some(g2);
       else r2.__e = u2.__e;
       r2.__k || (r2.__k = u2.__k || []), t5 && t5.then || D2(r2), n.__e(t5, r2, u2);
     }
@@ -104787,7 +106089,7 @@ function F(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
     if (a3 = "template" == C3 && t4.content || t4, o2 = "textarea" == C3 && null != x3.defaultValue ? null : o2 && d.call(a3.childNodes), !l2 && o2) for ($2 = {}, s2 = 0; s2 < t4.attributes.length; s2++) $2[(k = t4.attributes[s2]).name] = k.value;
     for (s2 in $2) k = $2[s2], "dangerouslySetInnerHTML" == s2 ? y3 = k : "children" == s2 || s2 in x3 || "value" == s2 && "defaultValue" in x3 || "checked" == s2 && "defaultChecked" in x3 || N2(t4, s2, null, k, f2);
     for (s2 in x3) k = x3[s2], "children" == s2 ? _2 = k : "dangerouslySetInnerHTML" == s2 ? h3 = k : "value" == s2 ? b2 = k : "checked" == s2 ? m3 = k : l2 && "function" != typeof k || $2[s2] === k || N2(t4, s2, k, $2[s2], f2);
-    h3 ? (l2 || y3 && (h3.__html == y3.__html || h3.__html == t4.innerHTML) || (t4.innerHTML = h3.__html), r2.__k = []) : (y3 && (t4.textContent = ""), ("foreignObject" == C3 || "http://www.w3.org/1998/Math/MathML" == f2 && v.test(C3)) && (f2 = "http://www.w3.org/1999/xhtml"), I(a3, w(_2) ? _2 : [_2], r2, u2, i3, f2, o2, e3, o2 ? o2[0] : u2.__k && S2(u2, 0), l2, c4), o2 && o2.some(g)), l2 && "textarea" != C3 || (s2 = "value", "progress" == C3 && null == b2 ? t4.removeAttribute(s2) : null == b2 || b2 === t4[s2] && ("progress" != C3 || b2) || N2(t4, s2, b2, $2[s2], f2), s2 = "checked", null != m3 && m3 != t4[s2] && N2(t4, s2, m3, $2[s2], f2));
+    h3 ? (l2 || y3 && (h3.__html == y3.__html || h3.__html == t4.innerHTML) || (t4.innerHTML = h3.__html), r2.__k = []) : (y3 && (t4.textContent = ""), ("foreignObject" == C3 || "http://www.w3.org/1998/Math/MathML" == f2 && v.test(C3)) && (f2 = "http://www.w3.org/1999/xhtml"), I(a3, w(_2) ? _2 : [_2], r2, u2, i3, f2, o2, e3, o2 ? o2[0] : u2.__k && S2(u2, 0), l2, c4), o2 && o2.some(g2)), l2 && "textarea" != C3 || (s2 = "value", "progress" == C3 && null == b2 ? t4.removeAttribute(s2) : null == b2 || b2 === t4[s2] && ("progress" != C3 || b2) || N2(t4, s2, b2, $2[s2], f2), s2 = "checked", null != m3 && m3 != t4[s2] && N2(t4, s2, m3, $2[s2], f2));
   } else $2 === x3 || l2 && t4.data == x3 || (t4.data = x3);
   return t4;
 }
@@ -104809,7 +106111,7 @@ function J(t4, r2, u2) {
     i3.__P = i3.__n = null;
   }
   if (i3 = t4.__k) for (e3 = 0; e3 < i3.length; e3++) i3[e3] && J(i3[e3], r2, "function" != typeof t4.type || u2 && !t4.props.__P);
-  !u2 && (i3 = t4.__c) && (i3 = i3.__z) && (f2 = B3(i3, o2 = [])) && (i3 == t4.__e && o2.some(g), g(f2), g(i3)), u2 || g(t4.__e), t4.__e = t4.__c = t4.__ = null;
+  !u2 && (i3 = t4.__c) && (i3 = i3.__z) && (f2 = B3(i3, o2 = [])) && (i3 == t4.__e && o2.some(g2), g2(f2), g2(i3)), u2 || g2(t4.__e), t4.__e = t4.__c = t4.__ = null;
 }
 function K2(n2, t4, r2) {
   return this.constructor(n2, r2);
@@ -104854,9 +106156,9 @@ var reactElement2VNode = (el) => {
   return res;
 };
 var isReactRenderable = (o2) => r(b(o2));
-var render2 = (jsx7, domEl) => {
+var render2 = (jsx8, domEl) => {
   delete domEl.__k;
-  Q(reactElement2VNode(jsx7), domEl);
+  Q(reactElement2VNode(jsx8), domEl);
 };
 function styleInject(css, ref) {
   if (ref === void 0) ref = {};
@@ -105950,8 +107252,8 @@ function getGraphObj(object) {
 }
 
 // src/grafo3d.js
-import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
-import { useCallback as useCallback5, useEffect as useEffect5, useMemo, useRef as useRef4, useState as useState5 } from "react";
+import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
+import { useCallback as useCallback6, useEffect as useEffect6, useMemo, useRef as useRef5, useState as useState6 } from "react";
 var COLORES_NODO = {
   instrumento: "#60a5fa",
   articulo: "#a78bfa",
@@ -106035,26 +107337,26 @@ function LienzoGrafo({
   onFallo,
   apiRef
 }) {
-  const hostEl = useRef4(null);
-  const engine = useRef4(null);
-  const [listo, setListo] = useState5(false);
-  const clickRef = useRef4(alClickNodo);
+  const hostEl = useRef5(null);
+  const engine = useRef5(null);
+  const [listo, setListo] = useState6(false);
+  const clickRef = useRef5(alClickNodo);
   clickRef.current = alClickNodo;
-  const conteosRef = useRef4(conteos);
+  const conteosRef = useRef5(conteos);
   conteosRef.current = conteos;
-  const padresRef = useRef4(padres);
+  const padresRef = useRef5(padres);
   padresRef.current = padres;
-  const clickAristaRef = useRef4(alClickArista);
+  const clickAristaRef = useRef5(alClickArista);
   clickAristaRef.current = alClickArista;
-  const hoverRef = useRef4(alHover);
+  const hoverRef = useRef5(alHover);
   hoverRef.current = alHover;
-  const fondoRef = useRef4(alFondo);
+  const fondoRef = useRef5(alFondo);
   fondoRef.current = alFondo;
-  const resalteRef = useRef4(resalte);
+  const resalteRef = useRef5(resalte);
   resalteRef.current = resalte;
-  const pool = useRef4(/* @__PURE__ */ new Map());
-  const primerAjuste = useRef4(false);
-  useEffect5(() => {
+  const pool = useRef5(/* @__PURE__ */ new Map());
+  const primerAjuste = useRef5(false);
+  useEffect6(() => {
     if (!hostEl.current) return void 0;
     if (!hayWebGL()) {
       onFallo("WebGL no est\xE1 disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.");
@@ -106091,13 +107393,13 @@ function LienzoGrafo({
     engine.current = graph;
     apiRef.current = {
       enfocar: (id) => {
-        const g2 = engine.current;
-        if (!g2) return;
+        const g3 = engine.current;
+        if (!g3) return;
         let intentos = 0;
         const intentar = () => {
-          const n2 = g2.graphData().nodes.find((x3) => x3.id === id);
+          const n2 = g3.graphData().nodes.find((x3) => x3.id === id);
           if (n2 && Number.isFinite(n2.x)) {
-            g2.cameraPosition(
+            g3.cameraPosition(
               { x: n2.x + 60, y: (n2.y || 0) + 40, z: (n2.z || 0) + 150 },
               { x: n2.x, y: n2.y || 0, z: n2.z || 0 },
               600
@@ -106113,23 +107415,23 @@ function LienzoGrafo({
         if (engine.current) engine.current.zoomToFit(400, 40);
       },
       orbita: () => {
-        const g2 = engine.current;
-        if (!g2) return;
-        const p2 = g2.cameraPosition();
+        const g3 = engine.current;
+        if (!g3) return;
+        const p2 = g3.cameraPosition();
         const a3 = Math.atan2(p2.z || 0, p2.x || 0) + 8e-3;
         const r2 = Math.hypot(p2.x || 0, p2.z || 0) || 300;
-        g2.cameraPosition({ x: r2 * Math.cos(a3), y: p2.y || 0, z: r2 * Math.sin(a3) });
+        g3.cameraPosition({ x: r2 * Math.cos(a3), y: p2.y || 0, z: r2 * Math.sin(a3) });
       },
       encuadrar: (ids) => {
-        const g2 = engine.current;
-        if (!g2) return;
+        const g3 = engine.current;
+        if (!g3) return;
         const set2 = new Set(ids);
-        const pts = g2.graphData().nodes.filter((n2) => set2.has(n2.id) && Number.isFinite(n2.x));
+        const pts = g3.graphData().nodes.filter((n2) => set2.has(n2.id) && Number.isFinite(n2.x));
         if (!pts.length) return;
         const cx = pts.reduce((a3, n2) => a3 + n2.x, 0) / pts.length;
         const cy = pts.reduce((a3, n2) => a3 + (n2.y || 0), 0) / pts.length;
         const cz = pts.reduce((a3, n2) => a3 + (n2.z || 0), 0) / pts.length;
-        g2.cameraPosition(
+        g3.cameraPosition(
           { x: cx + 80, y: cy + 60, z: cz + 220 },
           { x: cx, y: cy, z: cz },
           900
@@ -106145,9 +107447,9 @@ function LienzoGrafo({
       apiRef.current = null;
     };
   }, []);
-  useEffect5(() => {
-    const g2 = engine.current;
-    if (!listo || !g2) return;
+  useEffect6(() => {
+    const g3 = engine.current;
+    if (!listo || !g3) return;
     const visibles = /* @__PURE__ */ new Set();
     let agregados = false;
     const nodes = proyeccion.nodes.map((n2) => {
@@ -106171,83 +107473,83 @@ function LienzoGrafo({
     for (const id of [...pool.current.keys()]) {
       if (!visibles.has(id)) pool.current.delete(id);
     }
-    g2.graphData({
+    g3.graphData({
       nodes,
       links: proyeccion.links.map((l2) => ({ ...l2 }))
     });
-    if (agregados && g2.d3ReheatSimulation) g2.d3ReheatSimulation();
+    if (agregados && g3.d3ReheatSimulation) g3.d3ReheatSimulation();
   }, [proyeccion, listo]);
-  useEffect5(() => {
-    const g2 = engine.current;
-    if (g2 && g2.refresh) g2.refresh();
+  useEffect6(() => {
+    const g3 = engine.current;
+    if (g3 && g3.refresh) g3.refresh();
   }, [resalte, listo]);
-  return jsxs5("div", { className: "relative min-w-0", children: [
-    jsx5("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
-    !listo ? jsx5("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
+  return jsxs6("div", { className: "relative min-w-0", children: [
+    jsx6("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
+    !listo ? jsx6("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
   ] });
 }
 function UnidadDetalle({ nodo, fuente }) {
-  const [data, setData] = useState5(null);
-  const [error2, setError] = useState5(null);
-  useEffect5(() => {
+  const [data, setData] = useState6(null);
+  const [error2, setError] = useState6(null);
+  useEffect6(() => {
     setData(null);
     setError(null);
     rest("/grafo/unidad?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(setError);
   }, [nodo.id, fuente]);
-  if (error2) return jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx5("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
-  return jsxs5("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx5("div", {
+  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx6("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
+  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx6("div", {
       className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs",
       children: data.texto
     }),
-    jsx5("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
-    data.articulo_url ? jsx5("a", {
+    jsx6("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
+    data.articulo_url ? jsx6("a", {
       className: S.link,
       href: data.articulo_url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Art\xEDculo fuente \u2197"
     }) : null,
-    data.sha256 ? jsx5("div", {
+    data.sha256 ? jsx6("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 unidad " + data.sha256
     }) : null,
-    data.articulo_sha256 ? jsx5("div", {
+    data.articulo_sha256 ? jsx6("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 art\xEDculo " + data.articulo_sha256
     }) : null
   ] });
 }
 function NodoDetalle({ nodo, fuente }) {
-  const [data, setData] = useState5(null);
-  useEffect5(() => {
+  const [data, setData] = useState6(null);
+  useEffect6(() => {
     setData(null);
     rest("/grafo/nodo?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(() => {
     });
   }, [nodo.id, fuente]);
   if (!data) return null;
-  return jsxs5("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    data.titulo ? jsx5("div", { className: S.sub, children: data.titulo }) : null,
-    data.vigencia && data.vigencia.estado ? jsx5("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
-    data.url ? jsx5("a", {
+  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    data.titulo ? jsx6("div", { className: S.sub, children: data.titulo }) : null,
+    data.vigencia && data.vigencia.estado ? jsx6("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
+    data.url ? jsx6("a", {
       className: S.link,
       href: data.url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Fuente original \u2197"
     }) : null,
-    data.sha256 ? jsx5("div", {
+    data.sha256 ? jsx6("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 " + data.sha256
     }) : null
   ] });
 }
 function TarjetaArista({ arista, fuente }) {
-  const [ev, setEv] = useState5(null);
-  const [err, setErr] = useState5(null);
+  const [ev, setEv] = useState6(null);
+  const [err, setErr] = useState6(null);
   const clave = arista ? arista.source + "|" + arista.target + "|" + arista.tipo : "";
-  useEffect5(() => {
+  useEffect6(() => {
     setEv(null);
     setErr(null);
     if (!arista) return void 0;
@@ -106257,15 +107559,15 @@ function TarjetaArista({ arista, fuente }) {
   }, [clave, fuente, arista]);
   if (!arista) return null;
   const e3 = arista.evidencia || {};
-  return jsxs5("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx5("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
-    jsx5("div", {
+  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx6("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
+    jsx6("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) + " \u2192 " + (arista.target && arista.target.id ? arista.target.id : arista.target)
     }),
-    e3.regla ? jsx5("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
-    err ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
-    ev ? jsxs5("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
+    e3.regla ? jsx6("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
+    err ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
+    ev ? jsxs6("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
       ev.snippet || "",
       ev.n_evidencias ? " (" + ev.n_evidencias + " evidencias)" : ""
     ] }) : null
@@ -106273,39 +107575,39 @@ function TarjetaArista({ arista, fuente }) {
 }
 function TarjetaNodo({ nodo, conteos, fuente }) {
   if (!nodo) {
-    return jsx5("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
+    return jsx6("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
   }
   const n2 = nodo;
   const esUnidad = n2.tipo === "unidad";
-  return jsxs5("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsxs5("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx5("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
-      esUnidad ? jsx5("span", {
+  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx6("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
+      esUnidad ? jsx6("span", {
         className: S.chip + " " + S.chipOff,
         style: { borderLeft: "3px solid " + (COLORES_MODALIDAD[n2.modalidad] || "#64748b") },
         children: (n2.modalidad || "otra") + (n2.modalidad_regla ? " \xB7 " + n2.modalidad_regla : "")
       }) : null,
-      esUnidad ? jsx5("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
+      esUnidad ? jsx6("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
     ] }),
-    jsx5("div", { className: "font-medium", children: n2.label }),
-    n2.tipo === "instrumento" ? jsx5("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
-    n2.tipo === "articulo" ? jsx5("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx5("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx5("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
-    esUnidad && n2.articulo ? jsx5("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
-    jsx5("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
-    esUnidad ? jsx5(UnidadDetalle, { nodo: n2, fuente }) : jsx5(NodoDetalle, { nodo: n2, fuente })
+    jsx6("div", { className: "font-medium", children: n2.label }),
+    n2.tipo === "instrumento" ? jsx6("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
+    n2.tipo === "articulo" ? jsx6("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx6("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx6("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
+    esUnidad && n2.articulo ? jsx6("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
+    jsx6("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
+    esUnidad ? jsx6(UnidadDetalle, { nodo: n2, fuente }) : jsx6(NodoDetalle, { nodo: n2, fuente })
   ] });
 }
 function NormaDetalle({ data, error: error2 }) {
-  if (error2) return jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx5("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
+  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx6("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
   const arts = data.articulos || [];
-  return jsxs5("div", { className: "flex flex-col gap-1 pl-4", children: [
-    jsx5("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
-    ...arts.map((a3, i3) => jsxs5("details", { key: i3, className: "text-xs", children: [
-      jsx5("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
-      jsx5("div", {
+  return jsxs6("div", { className: "flex flex-col gap-1 pl-4", children: [
+    jsx6("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
+    ...arts.map((a3, i3) => jsxs6("details", { key: i3, className: "text-xs", children: [
+      jsx6("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
+      jsx6("div", {
         className: S.sub + " pl-3 pb-1 whitespace-pre-wrap",
         children: String(a3.texto || "").slice(0, 1200)
       })
@@ -106313,11 +107615,11 @@ function NormaDetalle({ data, error: error2 }) {
   ] });
 }
 function NormaRow({ norma }) {
-  const [abierta, setAbierta] = useState5(false);
-  const [detalle, setDetalle] = useState5(null);
-  const [error2, setError] = useState5(null);
-  const [cargando, setCargando] = useState5(false);
-  const abrir = useCallback5(() => {
+  const [abierta, setAbierta] = useState6(false);
+  const [detalle, setDetalle] = useState6(null);
+  const [error2, setError] = useState6(null);
+  const [cargando, setCargando] = useState6(false);
+  const abrir = useCallback6(() => {
     if (abierta) {
       setAbierta(false);
       return;
@@ -106329,69 +107631,69 @@ function NormaRow({ norma }) {
     rest("/grafo/corpus/norma/" + norma.leychileCode).then(setDetalle).catch(setError).finally(() => setCargando(false));
   }, [abierta, detalle, cargando, norma.leychileCode]);
   const rotulo = (norma.tipo && norma.numero ? norma.tipo + " " + norma.numero : norma.tipo) + (norma.anio ? "/" + norma.anio : "") + " \xB7 " + norma.articulos + " art.";
-  return jsxs5("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
-    jsxs5("button", {
+  return jsxs6("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
+    jsxs6("button", {
       type: "button",
       className: "flex w-full items-start gap-2 text-left hover:opacity-80",
       onClick: abrir,
       children: [
-        jsx5("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
-        jsxs5("div", { className: "min-w-0", children: [
-          jsx5("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
-          jsx5("div", { className: S.sub + " truncate", children: norma.titulo })
+        jsx6("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
+        jsxs6("div", { className: "min-w-0", children: [
+          jsx6("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
+          jsx6("div", { className: S.sub + " truncate", children: norma.titulo })
         ] })
       ]
     }),
-    abierta ? jsx5(NormaDetalle, { data: detalle, error: error2 }) : null
+    abierta ? jsx6(NormaDetalle, { data: detalle, error: error2 }) : null
   ] });
 }
 function ListaCorpus() {
-  const [corpus, setCorpus] = useState5(null);
-  const [error2, setError] = useState5(null);
-  useEffect5(() => {
+  const [corpus, setCorpus] = useState6(null);
+  const [error2, setError] = useState6(null);
+  useEffect6(() => {
     rest("/grafo/corpus").then(setCorpus).catch(setError);
   }, []);
-  if (error2) return jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   const pack = corpus && corpus.packs && corpus.packs[0];
-  if (!pack) return jsx5("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
-  return jsx5("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx5(NormaRow, { key: n2.leychileCode, norma: n2 })) });
+  if (!pack) return jsx6("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
+  return jsx6("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx6(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
 function SeccionGrafo() {
-  const [red, setRed] = useState5(null);
-  const [redErr, setRedErr] = useState5(null);
-  const [personal, setPersonal] = useState5(null);
-  const [personalErr, setPersonalErr] = useState5(null);
-  const [seleccion, setSeleccion] = useState5(null);
-  const [expandidos, setExpandidos] = useState5(() => /* @__PURE__ */ new Set());
-  const [unidadesMap, setUnidadesMap] = useState5(() => /* @__PURE__ */ new Map());
-  const [ocultarArts, setOcultarArts] = useState5(false);
-  const [fuente, setFuenteState] = useState5("corpus");
-  const [fuentes, setFuentes] = useState5(null);
-  const [aristaSel, setAristaSel] = useState5(null);
-  const [hover, setHover] = useState5(null);
-  const [caminoOn, setCaminoOn] = useState5(false);
-  const [caminoIdx, setCaminoIdx] = useState5(0);
-  const [rotar, setRotar] = useState5(false);
-  const setFuente = useCallback5((f2) => {
+  const [red, setRed] = useState6(null);
+  const [redErr, setRedErr] = useState6(null);
+  const [personal, setPersonal] = useState6(null);
+  const [personalErr, setPersonalErr] = useState6(null);
+  const [seleccion, setSeleccion] = useState6(null);
+  const [expandidos, setExpandidos] = useState6(() => /* @__PURE__ */ new Set());
+  const [unidadesMap, setUnidadesMap] = useState6(() => /* @__PURE__ */ new Map());
+  const [ocultarArts, setOcultarArts] = useState6(false);
+  const [fuente, setFuenteState] = useState6("corpus");
+  const [fuentes, setFuentes] = useState6(null);
+  const [aristaSel, setAristaSel] = useState6(null);
+  const [hover, setHover] = useState6(null);
+  const [caminoOn, setCaminoOn] = useState6(false);
+  const [caminoIdx, setCaminoIdx] = useState6(0);
+  const [rotar, setRotar] = useState6(false);
+  const setFuente = useCallback6((f2) => {
     setFuenteState(f2);
     try {
       storage && storage.set("grafo.fuente", f2);
     } catch (e3) {
     }
   }, []);
-  const [query, setQuery] = useState5("");
-  const [fallo3d, setFallo3d] = useState5(null);
-  const [listaAbierta, setListaAbierta] = useState5(false);
-  const apiRef = useRef4(null);
-  const cargar = useCallback5(() => {
+  const [query, setQuery] = useState6("");
+  const [fallo3d, setFallo3d] = useState6(null);
+  const [listaAbierta, setListaAbierta] = useState6(false);
+  const apiRef = useRef5(null);
+  const cargar = useCallback6(() => {
     setRedErr(null);
     setPersonalErr(null);
     setRed(null);
     rest("/grafo/red?fuente=" + fuente, { timeoutMs: 12e4 }).then(setRed).catch(setRedErr);
     rest("/grafo/personal").then(setPersonal).catch(setPersonalErr);
   }, [fuente]);
-  useEffect5(cargar, [cargar]);
-  useEffect5(() => {
+  useEffect6(cargar, [cargar]);
+  useEffect6(() => {
     rest("/grafo/fuentes").then((fs) => {
       setFuentes(fs);
       const amb = fs && fs.find((f2) => f2.id === "ambiental" && f2.disponible);
@@ -106407,7 +107709,7 @@ function SeccionGrafo() {
     }).catch(() => {
     });
   }, []);
-  const alFallo3d = useCallback5((msg) => {
+  const alFallo3d = useCallback6((msg) => {
     setFallo3d(msg);
     setListaAbierta(true);
   }, []);
@@ -106453,7 +107755,7 @@ function SeccionGrafo() {
       links: links.filter((l2) => ids.has(l2.source) && ids.has(l2.target))
     };
   }, [nodos, aristas, ocultarArts, expandidos, unidadesMap]);
-  const alClickNodo = useCallback5((n2) => {
+  const alClickNodo = useCallback6((n2) => {
     setSeleccion(n2.id);
     if (n2.tipo === "articulo" && fuente === "corpus") {
       if (expandidos.has(n2.id)) {
@@ -106471,15 +107773,15 @@ function SeccionGrafo() {
       }
     }
   }, [expandidos, unidadesMap, fuente]);
-  const alClickArista = useCallback5((l2) => {
+  const alClickArista = useCallback6((l2) => {
     setAristaSel(l2);
   }, []);
-  const alFondo = useCallback5(() => {
+  const alFondo = useCallback6(() => {
     setSeleccion(null);
     setCaminoOn(false);
     setRotar(false);
   }, []);
-  const alHover = useCallback5((id) => setHover(id), []);
+  const alHover = useCallback6((id) => setHover(id), []);
   const resalte = useMemo(() => {
     const cam = red && (red.caminos_demo || [])[caminoIdx];
     if (caminoOn && cam && (cam.ids || []).length) {
@@ -106503,14 +107805,14 @@ function SeccionGrafo() {
     }
     return { ids, links };
   }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion]);
-  useEffect5(() => {
+  useEffect6(() => {
     if (!rotar) return void 0;
     const id = setInterval(() => {
       if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita();
     }, 40);
     return () => clearInterval(id);
   }, [rotar]);
-  const alBuscar = useCallback5((id) => {
+  const alBuscar = useCallback6((id) => {
     const n2 = indice.get(id);
     if (!n2) return;
     setSeleccion(id);
@@ -106522,11 +107824,11 @@ function SeccionGrafo() {
   const candidatos = personal && personal.candidates || [];
   const aristasP = personal && personal.edges || [];
   const totales = red && red.conteos || {};
-  return jsxs5("div", { className: "flex flex-col gap-3", children: [
-    jsxs5("div", { className: S.card, children: [
-      jsxs5("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
-        jsx5("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
-        jsxs5("select", {
+  return jsxs6("div", { className: "flex flex-col gap-3", children: [
+    jsxs6("div", { className: S.card, children: [
+      jsxs6("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
+        jsx6("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
+        jsxs6("select", {
           className: S.input,
           title: "Fuente del grafo",
           value: fuente,
@@ -106537,8 +107839,8 @@ function SeccionGrafo() {
             setSeleccion(null);
           },
           children: [
-            jsx5("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
-            jsx5("option", {
+            jsx6("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
+            jsx6("option", {
               value: "ambiental",
               disabled: !(fuentes && fuentes.find((f2) => f2.id === "ambiental" && f2.disponible)),
               title: "solo en este equipo \u2014 no publicada",
@@ -106546,56 +107848,56 @@ function SeccionGrafo() {
             })
           ]
         }),
-        fuente === "ambiental" ? jsx5("span", {
+        fuente === "ambiental" ? jsx6("span", {
           className: S.chip + " " + S.chipOff,
           children: "local \u2014 no publicado \xB7 sentencias anonimizadas \xB7 relaciones candidatas, sin validar"
         }) : null,
-        red ? jsx5("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
+        red ? jsx6("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
       ] }),
-      redErr ? jsxs5("div", { className: "flex flex-col items-start gap-1.5", children: [
-        jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
-        jsx5("button", {
+      redErr ? jsxs6("div", { className: "flex flex-col items-start gap-1.5", children: [
+        jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
+        jsx6("button", {
           type: "button",
           className: S.ghost,
           onClick: cargar,
           children: "Reintentar"
         })
-      ] }) : !red ? jsx5("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs5("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
-        jsxs5("div", { className: "min-w-0", children: [
-          jsxs5("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
-            Object.keys(COLORES_NODO).map((tipo) => jsxs5("span", {
+      ] }) : !red ? jsx6("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs6("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
+        jsxs6("div", { className: "min-w-0", children: [
+          jsxs6("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
+            Object.keys(COLORES_NODO).map((tipo) => jsxs6("span", {
               key: tipo,
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx5("span", {
+                jsx6("span", {
                   className: "inline-block h-2.5 w-2.5 rounded-full",
                   style: { background: COLORES_NODO[tipo] }
                 }),
                 NOMBRE_TIPO[tipo]
               ]
             })),
-            jsxs5("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
-              jsx5("input", {
+            jsxs6("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
+              jsx6("input", {
                 type: "checkbox",
                 checked: ocultarArts,
                 onChange: (e3) => setOcultarArts(e3.target.checked)
               }),
               "ocultar art\xEDculos"
             ] }),
-            jsx5("span", { className: S.sub, children: "|" }),
-            jsx5("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
-            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs5("span", {
+            jsx6("span", { className: S.sub, children: "|" }),
+            jsx6("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
+            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs6("span", {
               key: mod2,
               className: "flex items-center gap-1 " + S.sub,
               children: [
-                jsx5("span", {
+                jsx6("span", {
                   className: "inline-block h-2 w-2 rounded-full",
                   style: { background: COLORES_MODALIDAD[mod2] }
                 }),
                 mod2
               ]
             })),
-            jsx5("button", {
+            jsx6("button", {
               type: "button",
               className: S.link,
               onClick: () => {
@@ -106603,8 +107905,8 @@ function SeccionGrafo() {
               },
               children: "encajar"
             }),
-            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs5("span", { className: "flex items-center gap-1", children: [
-              jsxs5("select", {
+            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs6("span", { className: "flex items-center gap-1", children: [
+              jsxs6("select", {
                 className: S.input,
                 title: "Camino destacado",
                 value: caminoIdx,
@@ -106616,13 +107918,13 @@ function SeccionGrafo() {
                     apiRef.current.encuadrar(cm.ids);
                   }
                 },
-                children: (red.caminos_demo || []).map((cm, i3) => jsx5("option", {
+                children: (red.caminos_demo || []).map((cm, i3) => jsx6("option", {
                   key: i3,
                   value: i3,
                   children: cm.titulo + " \xB7 " + cm.relajacion
                 }))
               }),
-              jsx5("button", {
+              jsx6("button", {
                 type: "button",
                 className: caminoOn ? S.chip + " " + S.chipOk : S.link,
                 onClick: () => {
@@ -106637,10 +107939,10 @@ function SeccionGrafo() {
                 children: "camino destacado"
               })
             ] }) : null,
-            fuente === "ambiental" ? jsxs5("label", {
+            fuente === "ambiental" ? jsxs6("label", {
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx5("input", {
+                jsx6("input", {
                   type: "checkbox",
                   checked: rotar,
                   onChange: (e3) => setRotar(e3.target.checked)
@@ -106648,12 +107950,12 @@ function SeccionGrafo() {
                 "rotar"
               ]
             }) : null,
-            jsx5("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
+            jsx6("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
           ] }),
-          fallo3d ? jsxs5("div", { className: S.card, children: [
-            jsx5("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
-            jsx5("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
-          ] }) : jsx5(LienzoGrafo, {
+          fallo3d ? jsxs6("div", { className: S.card, children: [
+            jsx6("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
+            jsx6("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
+          ] }) : jsx6(LienzoGrafo, {
             proyeccion,
             padres,
             conteos,
@@ -106666,36 +107968,36 @@ function SeccionGrafo() {
             apiRef
           })
         ] }),
-        jsxs5("div", { className: "flex min-w-0 flex-col gap-2", children: [
-          jsx5("input", {
+        jsxs6("div", { className: "flex min-w-0 flex-col gap-2", children: [
+          jsx6("input", {
             className: S.input + " w-full",
             placeholder: "Buscar ley, c\xF3digo o art\xEDculo\u2026",
             value: query,
             onChange: (e3) => setQuery(e3.target.value)
           }),
-          q2 ? jsxs5("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
-            coincidencias.map((n2) => jsxs5("button", {
+          q2 ? jsxs6("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
+            coincidencias.map((n2) => jsxs6("button", {
               key: n2.id,
               type: "button",
               className: "block w-full px-2 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary) truncate",
               onClick: () => alBuscar(n2.id),
               children: [
-                jsx5("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
+                jsx6("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
                 n2.label
               ]
             })),
-            coincidencias.length === 0 ? jsx5("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
+            coincidencias.length === 0 ? jsx6("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
           ] }) : null,
-          jsx5("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx5(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
-          aristaSel ? jsx5("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx5(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
-          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs5("div", {
+          jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaNodo, { nodo: actual, conteos, fuente }) }),
+          aristaSel ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
+          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs6("div", {
             className: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",
             children: [
-              jsx5("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
+              jsx6("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
               ...(red.caminos_demo[caminoIdx].ids || []).map((id, i3) => {
                 const n2 = indice.get(id);
                 const paso = i3 > 0 ? " " + ((red.caminos_demo[caminoIdx].links[i3 - 1] || "").split("|")[2] || "\u2192") + " " : "";
-                return jsxs5("button", {
+                return jsxs6("button", {
                   key: id,
                   type: "button",
                   className: "text-left text-xs hover:bg-(--ui-bg-quaternary) truncate " + S.link,
@@ -106704,7 +108006,7 @@ function SeccionGrafo() {
                   },
                   children: [
                     i3 + 1 + ". " + (n2 ? n2.label : id),
-                    paso ? jsx5("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
+                    paso ? jsx6("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
                   ]
                 });
               })
@@ -106713,26 +108015,26 @@ function SeccionGrafo() {
         ] })
       ] })
     ] }),
-    fuente === "corpus" ? jsxs5("details", {
+    fuente === "corpus" ? jsxs6("details", {
       className: S.card,
       open: listaAbierta,
       onToggle: (e3) => setListaAbierta(e3.currentTarget.open),
       children: [
-        jsx5("summary", {
+        jsx6("summary", {
           className: "cursor-pointer " + S.cardTitle + " normal-case",
           children: "Lista del corpus (texto)"
         }),
-        listaAbierta ? jsx5("div", { className: "mt-2", children: jsx5(ListaCorpus, {}) }) : null
+        listaAbierta ? jsx6("div", { className: "mt-2", children: jsx6(ListaCorpus, {}) }) : null
       ]
     }) : null,
-    fuente === "corpus" ? jsxs5("div", { className: S.card, children: [
-      jsx5("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
-      personalErr ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx5("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs5("div", { className: "flex flex-col gap-1", children: [
-        jsx5("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
-        candidatos.length === 0 ? jsx5("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx5("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs5("div", { key: i3, className: S.row, children: [
-          jsxs5("div", { className: "min-w-0", children: [
-            jsx5("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
-            jsx5("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
+    fuente === "corpus" ? jsxs6("div", { className: S.card, children: [
+      jsx6("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
+      personalErr ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx6("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs6("div", { className: "flex flex-col gap-1", children: [
+        jsx6("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
+        candidatos.length === 0 ? jsx6("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx6("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs6("div", { key: i3, className: S.row, children: [
+          jsxs6("div", { className: "min-w-0", children: [
+            jsx6("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
+            jsx6("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
           ] })
         ] })) })
       ] })
@@ -106743,28 +108045,28 @@ function SeccionGrafo() {
 // src/plugin.src.js
 var ID = "dike";
 function Estado() {
-  const [estado, setEstado] = useState6(null);
-  const [err, setErr] = useState6(null);
-  const cargar = useCallback6(() => {
+  const [estado, setEstado] = useState7(null);
+  const [err, setErr] = useState7(null);
+  const cargar = useCallback7(() => {
     setErr(null);
     rest("/estado").then(setEstado).catch(setErr);
   }, []);
-  useEffect6(cargar, [cargar]);
+  useEffect7(cargar, [cargar]);
   if (err) {
-    const perfil = host3.state && host3.state.profile && host3.state.profile.get() || "";
-    return jsxs6("div", { className: "flex flex-col gap-2", children: [
-      jsx6("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
-      jsx6("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
-      jsx6("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
+    const perfil = host4.state && host4.state.profile && host4.state.profile.get() || "";
+    return jsxs7("div", { className: "flex flex-col gap-2", children: [
+      jsx7("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
+      jsx7("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
+      jsx7("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
     ] });
   }
-  if (!estado) return jsx6("div", { className: S.sub, children: "Consultando el corpus\u2026" });
-  return jsxs6("div", { className: "flex flex-wrap items-center gap-2", children: [
-    jsx6("span", {
+  if (!estado) return jsx7("div", { className: S.sub, children: "Consultando el corpus\u2026" });
+  return jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
+    jsx7("span", {
       className: S.chip + " " + (estado.corpus_instalado ? S.chipOk : S.chipOff),
       children: estado.corpus_instalado ? "corpus instalado" : "corpus sin instalar"
     }),
-    jsx6("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
+    jsx7("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
   ] });
 }
 var SECCIONES_NIF = [
@@ -106790,32 +108092,32 @@ function ItemNif({ valor }) {
   else if (v2 && typeof v2 === "object" && !Array.isArray(v2)) {
     texto = [v2.label || v2.id || v2.name || "", v2.description || v2.text || v2.filled_with || ""].filter(Boolean).join(" \u2014 ") || JSON.stringify(v2);
   } else texto = JSON.stringify(v2);
-  return jsx6("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx6("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
+  return jsx7("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx7("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
 }
 function SeccionNif({ titulo, valores, campo, onAgregar }) {
-  const [nuevo, setNuevo] = useState6("");
-  const [editando, setEditando] = useState6(false);
+  const [nuevo, setNuevo] = useState7("");
+  const [editando, setEditando] = useState7(false);
   const lista = Array.isArray(valores) ? valores : [];
-  return jsxs6("div", { className: S.section, children: [
-    jsxs6("div", { className: "flex items-center justify-between", children: [
-      jsx6("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
-      jsx6("button", {
+  return jsxs7("div", { className: S.section, children: [
+    jsxs7("div", { className: "flex items-center justify-between", children: [
+      jsx7("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
+      jsx7("button", {
         type: "button",
         className: S.link + " normal-case",
         onClick: () => setEditando(!editando),
         children: editando ? "cerrar" : "+ agregar"
       })
     ] }),
-    ...lista.map((v2, i3) => jsx6(ItemNif, { key: i3, valor: v2 })),
-    lista.length === 0 ? jsx6("div", { className: S.sub, children: "\u2014" }) : null,
-    editando ? jsxs6("div", { className: "flex flex-col gap-1 mt-1", children: [
-      jsx6("textarea", {
+    ...lista.map((v2, i3) => jsx7(ItemNif, { key: i3, valor: v2 })),
+    lista.length === 0 ? jsx7("div", { className: S.sub, children: "\u2014" }) : null,
+    editando ? jsxs7("div", { className: "flex flex-col gap-1 mt-1", children: [
+      jsx7("textarea", {
         className: "min-h-16 w-full rounded border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-1.5 font-mono text-xs",
         placeholder: SECCIONES_OBJETO.has(campo) ? 'JSON del \xEDtem, ej. {"label": "Trabajador"}' : "Texto del \xEDtem",
         value: nuevo,
         onChange: (ev) => setNuevo(ev.target.value)
       }),
-      jsx6("button", {
+      jsx7("button", {
         type: "button",
         className: S.ghost,
         onClick: () => {
@@ -106837,25 +108139,25 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
   ] });
 }
 function GapRow({ gap, index: index5, ocupado, onResolver }) {
-  const [by, setBy] = useState6("");
-  const [with_, setWith] = useState6("");
-  return jsxs6("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
-    jsx6("div", { children: gap.description || JSON.stringify(gap) }),
-    jsx6("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
-    jsxs6("div", { className: "flex gap-1", children: [
-      jsx6("input", {
+  const [by, setBy] = useState7("");
+  const [with_, setWith] = useState7("");
+  return jsxs7("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
+    jsx7("div", { children: gap.description || JSON.stringify(gap) }),
+    jsx7("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
+    jsxs7("div", { className: "flex gap-1", children: [
+      jsx7("input", {
         className: S.input + " w-28",
         placeholder: "qui\xE9n",
         value: by,
         onChange: (e3) => setBy(e3.target.value)
       }),
-      jsx6("input", {
+      jsx7("input", {
         className: S.input + " flex-1",
         placeholder: "con qu\xE9 se llena",
         value: with_,
         onChange: (e3) => setWith(e3.target.value)
       }),
-      jsx6("button", {
+      jsx7("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado || !by.trim() || !with_.trim(),
@@ -106866,16 +108168,16 @@ function GapRow({ gap, index: index5, ocupado, onResolver }) {
   ] });
 }
 function NifBoard({ caso, onCambio }) {
-  const [data, setData] = useState6(null);
-  const [error2, setError] = useState6(null);
-  const [conf, setConf] = useState6("");
-  const [ocupado, setOcupado] = useState6(false);
-  const cargar = useCallback6(() => {
+  const [data, setData] = useState7(null);
+  const [error2, setError] = useState7(null);
+  const [conf, setConf] = useState7("");
+  const [ocupado, setOcupado] = useState7(false);
+  const cargar = useCallback7(() => {
     setError(null);
     rest("/nif/snapshot?case_id=" + encodeURIComponent(caso.case_id)).then(setData).catch(setError);
   }, [caso.case_id]);
-  useEffect6(cargar, [cargar]);
-  const accion = useCallback6((fn) => (...args) => {
+  useEffect7(cargar, [cargar]);
+  const accion = useCallback7((fn) => (...args) => {
     if (ocupado) return;
     setOcupado(true);
     setError(null);
@@ -106886,31 +108188,31 @@ function NifBoard({ caso, onCambio }) {
   }, [ocupado, cargar, onCambio]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   if (error2 && !data) {
-    return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+    return jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   }
-  if (!data) return jsx6("div", { className: S.sub, children: "Cargando NIF\u2026" });
+  if (!data) return jsx7("div", { className: S.sub, children: "Cargando NIF\u2026" });
   const snap = data.snapshot || {};
   const nif = snap.nif;
   if (!snap.exists || !nif) {
-    return jsx6("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
+    return jsx7("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
   }
   const patches = data.patches && data.patches.patches || [];
   const gaps = nif.gaps || [];
-  return jsxs6("div", { className: "flex flex-col gap-3", children: [
-    jsxs6("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx6("span", {
+  return jsxs7("div", { className: "flex flex-col gap-3", children: [
+    jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx7("span", {
         className: S.chip + " " + (nif.validated_by_human ? S.chipOk : S.chipOff),
         children: nif.validated_by_human ? "validado por humano" : "sin validaci\xF3n humana"
       }),
-      jsx6("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
-      jsx6("button", {
+      jsx7("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
+      jsx7("button", {
         type: "button",
         className: S.link,
         onClick: accion(() => post("/nif/validar", { case_id: caso.case_id, validated: !nif.validated_by_human })),
         children: nif.validated_by_human ? "retirar validaci\xF3n" : "marcar validado"
       }),
-      jsxs6("span", { className: "flex items-center gap-1", children: [
-        jsx6("input", {
+      jsxs7("span", { className: "flex items-center gap-1", children: [
+        jsx7("input", {
           type: "number",
           min: "0",
           max: "1",
@@ -106920,7 +108222,7 @@ function NifBoard({ caso, onCambio }) {
           value: conf,
           onChange: (e3) => setConf(e3.target.value)
         }),
-        jsx6("button", {
+        jsx7("button", {
           type: "button",
           className: S.link,
           onClick: accion(() => post("/nif/confianza", { case_id: caso.case_id, confidence: parseFloat(conf) })),
@@ -106928,10 +108230,10 @@ function NifBoard({ caso, onCambio }) {
         })
       ] })
     ] }),
-    jsx6("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
-    jsx6("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
+    jsx7("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
+    jsx7("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
       const valores = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
-      return jsx6(SeccionNif, {
+      return jsx7(SeccionNif, {
         key: campo,
         titulo,
         valores,
@@ -106943,11 +108245,11 @@ function NifBoard({ caso, onCambio }) {
         }))()
       });
     }) }),
-    gaps.length ? jsxs6("div", { className: S.section, children: [
-      jsx6("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
-      ...gaps.map((g2, i3) => g2.status === "filled" ? null : jsx6(GapRow, {
+    gaps.length ? jsxs7("div", { className: S.section, children: [
+      jsx7("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
+      ...gaps.map((g3, i3) => g3.status === "filled" ? null : jsx7(GapRow, {
         key: i3,
-        gap: g2,
+        gap: g3,
         index: i3,
         ocupado,
         onResolver: accion((idx, by, with_) => post("/nif/gap", {
@@ -106958,32 +108260,32 @@ function NifBoard({ caso, onCambio }) {
         }))
       }))
     ] }) : null,
-    patches.length ? jsxs6("details", { className: "text-xs", children: [
-      jsx6("summary", {
+    patches.length ? jsxs7("details", { className: "text-xs", children: [
+      jsx7("summary", {
         className: "cursor-pointer " + S.sub,
         children: "Historial de parches (" + patches.length + ")"
       }),
-      ...patches.slice(-12).reverse().map((p2, i3) => jsxs6("div", {
+      ...patches.slice(-12).reverse().map((p2, i3) => jsxs7("div", {
         key: i3,
         className: "border-b border-(--ui-stroke-tertiary) py-1",
         children: [
-          jsx6("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx6("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
-          p2.reason ? jsx6("div", { className: S.sub, children: p2.reason }) : null
+          jsx7("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx7("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
+          p2.reason ? jsx7("div", { className: S.sub, children: p2.reason }) : null
         ]
       }))
     ] }) : null,
-    error2 ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
+    error2 ? jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
   ] });
 }
 function SeccionNifPanel() {
-  const [lista, setLista] = useState6({ cases: [] });
-  const [error2, setError] = useState6(null);
-  const [casoSel, setCasoSel] = useState6(null);
-  const [nuevoId, setNuevoId] = useState6("");
-  const [nuevaPregunta, setNuevaPregunta] = useState6("");
-  const [ocupado, setOcupado] = useState6(false);
-  const cargar = useCallback6(() => {
+  const [lista, setLista] = useState7({ cases: [] });
+  const [error2, setError] = useState7(null);
+  const [casoSel, setCasoSel] = useState7(null);
+  const [nuevoId, setNuevoId] = useState7("");
+  const [nuevaPregunta, setNuevaPregunta] = useState7("");
+  const [ocupado, setOcupado] = useState7(false);
+  const cargar = useCallback7(() => {
     setError(null);
     rest("/nif/casos").then((d2) => {
       setLista(d2);
@@ -106994,25 +108296,25 @@ function SeccionNifPanel() {
       });
     }).catch(setError);
   }, []);
-  useEffect6(cargar, [cargar]);
+  useEffect7(cargar, [cargar]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   const casos = lista.cases || [];
-  return jsxs6("div", { className: "flex flex-col gap-3", children: [
-    jsxs6("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx6("select", {
+  return jsxs7("div", { className: "flex flex-col gap-3", children: [
+    jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx7("select", {
         className: S.input,
         value: casoSel ? casoSel.case_id : "",
         onChange: (ev) => {
           const c4 = casos.filter((x3) => x3.case_id === ev.target.value)[0];
           setCasoSel(c4 || null);
         },
-        children: casos.length === 0 ? jsx6("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx6("option", {
+        children: casos.length === 0 ? jsx7("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx7("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx6("button", {
+      jsx7("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado,
@@ -107022,19 +108324,19 @@ function SeccionNifPanel() {
         },
         children: ocupado ? "\u2026" : "Cargar caso demo"
       }),
-      jsx6("input", {
+      jsx7("input", {
         className: S.input + " w-32",
         placeholder: "id del caso",
         value: nuevoId,
         onChange: (e3) => setNuevoId(e3.target.value)
       }),
-      jsx6("input", {
+      jsx7("input", {
         className: S.input + " w-64",
         placeholder: "pregunta jur\xEDdica",
         value: nuevaPregunta,
         onChange: (e3) => setNuevaPregunta(e3.target.value)
       }),
-      jsx6("button", {
+      jsx7("button", {
         type: "button",
         className: S.button,
         disabled: ocupado || !nuevoId.trim() || !nuevaPregunta.trim(),
@@ -107049,9 +108351,9 @@ function SeccionNifPanel() {
         children: "Nuevo caso"
       })
     ] }),
-    error2 ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    casos.length === 0 && !error2 ? jsx6("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
-    casoSel ? jsx6(NifBoard, { caso: casoSel, onCambio: cargar }) : null
+    error2 ? jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
+    casos.length === 0 && !error2 ? jsx7("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
+    casoSel ? jsx7(NifBoard, { caso: casoSel, onCambio: cargar }) : null
   ] });
 }
 var plugin_src_default = {
@@ -107063,24 +108365,24 @@ var plugin_src_default = {
     setRest(ctx.rest);
     setStorage(ctx.storage || null);
     function DikePage() {
-      const [pestana, setPestana] = useState6("escritor");
+      const [pestana, setPestana] = useState7("escritor");
       const pestanas = [
         ["escritor", "Case Writer"],
         ["grafo", "Grafo"],
         ["nif", "NIF"]
       ];
-      return jsxs6("div", { className: S.page, children: [
-        jsxs6("div", { children: [
-          jsx6("div", { className: S.title, children: "Dik\xE9" }),
-          jsx6("div", { className: S.sub, children: "Verificaci\xF3n local de citas, mapa del corpus y tablero NIF. No es consejo legal." })
+      return jsxs7("div", { className: S.page, children: [
+        jsxs7("div", { children: [
+          jsx7("div", { className: S.title, children: "Dik\xE9" }),
+          jsx7("div", { className: S.sub, children: "Verificaci\xF3n local de citas, mapa del corpus y tablero NIF. No es consejo legal." })
         ] }),
-        jsxs6("div", { className: S.card, children: [
-          jsx6("div", { className: S.cardTitle, children: "Corpus" }),
-          jsx6(Estado, {})
+        jsxs7("div", { className: S.card, children: [
+          jsx7("div", { className: S.cardTitle, children: "Corpus" }),
+          jsx7(Estado, {})
         ] }),
-        jsxs6("div", {
+        jsxs7("div", {
           className: S.tabs,
-          children: pestanas.map(([id, label2]) => jsx6("button", {
+          children: pestanas.map(([id, label2]) => jsx7("button", {
             key: id,
             type: "button",
             className: S.tab + " " + (pestana === id ? S.tabOn : S.tabOff),
@@ -107088,9 +108390,9 @@ var plugin_src_default = {
             children: label2
           }))
         }),
-        pestana === "escritor" ? jsx6(SeccionEscritor, {}) : null,
-        pestana === "grafo" ? jsx6(SeccionGrafo, {}) : null,
-        pestana === "nif" ? jsx6(SeccionNifPanel, {}) : null
+        pestana === "escritor" ? jsx7(SeccionEscritor, {}) : null,
+        pestana === "grafo" ? jsx7(SeccionGrafo, {}) : null,
+        pestana === "nif" ? jsx7(SeccionNifPanel, {}) : null
       ] });
     }
     ctx.registerMany([
@@ -107098,7 +108400,7 @@ var plugin_src_default = {
         id: "page",
         area: ROUTES_AREA,
         data: { path: "/dike" },
-        render: () => jsx6(DikePage, {})
+        render: () => jsx7(DikePage, {})
       },
       {
         id: "nav",
@@ -107113,7 +108415,7 @@ var plugin_src_default = {
           id: "dike.open",
           label: "Dik\xE9: verificar citas",
           keywords: ["dike", "citas", "legal", "verificar", "nif", "grafo"],
-          run: () => host3.navigate("/dike")
+          run: () => host4.navigate("/dike")
         }
       }
     ]);

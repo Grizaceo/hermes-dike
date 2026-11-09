@@ -13,10 +13,11 @@ to certify what it cannot prove.
   [NousResearch/hermes-agent#150360](https://github.com/NousResearch/hermes-agent/pull/150360);
   not listed yet.
 - **Linux only.** Tested with Hermes Agent v0.23.0 (requires_hermes
-  `>=0.23.0`). Version 0.6.0: the plugin adds a Desktop page with a 3D
-  graph of the 25-law corpus — instrument, article and minimal normative
-  unit nodes, each unit tagged with a candidate deontic modality — plus
-  the Dashboard tab.
+  `>=0.23.0`). Version 0.7.0: the Desktop page opens on a **Case Writer**
+  — a brief editor with the citation check as a module, a pseudonymization
+  step you see and control, a chat about the brief that runs in your own
+  Hermes, and NIF proposals you accept one by one — next to the 3D graph
+  of the 25-law corpus and the case board.
 - **The engine is not new.** It is [Diké](https://github.com/Grizaceo/dike),
   vendored unchanged; `VENDORED.json` names the commit and the hash of every
   file. [PREEXISTING.md](PREEXISTING.md) says what existed before the
@@ -41,11 +42,15 @@ which takes a while. Later calls run offline.
 
 The same check also has a **Diké** tab in the web dashboard and a sidebar
 page in the Desktop app (the desktop half is opt-in: enable it under
-Capabilities → Plugins). The panel has three views: the citation check, a
-read-only map of the sealed corpus graph (its 25 statutes, 8,544 articles
-and edges), and a case board — the NIF — where each case's theory is
-versioned, patch-attributed and marked as human-validated. All of them call
-the same engine through the plugin's `/api/plugins/dike` backend.
+Capabilities → Plugins). The Desktop page has three tabs: the **Case
+Writer**, a read-only map of the sealed corpus graph (its 25 statutes,
+8,544 articles and edges), and a case board — the NIF — where each case's
+theory is versioned, patch-attributed and marked as human-validated. All of
+them call the same engine through the plugin's `/api/plugins/dike` backend.
+
+The Case Writer's chat answers from the profile `lexo-lawyer` when it exists
+and has Diké enabled, otherwise from the active profile if it has Diké; it
+uses whatever model that profile is configured with.
 
 ## How it works
 
@@ -101,6 +106,11 @@ integrity it re-checks on every call ([docs/DISCLOSURES.md](docs/DISCLOSURES.md)
 and when it has no evidence it says so. A prompt or a skill can ask the model to be careful; it cannot carry the
 corpus, check its hashes or refuse on the engine's behalf.
 
+The Desktop page's **Case Writer** — editor, verifier module, privacy step,
+chat, live NIF and the experimental predictor — is described in
+[docs/case-writer.md](docs/case-writer.md); what it sends and writes is in
+[docs/DISCLOSURES.md](docs/DISCLOSURES.md).
+
 ## How this was built
 
 - **Decided and reviewed by me (Cristóbal Muñoz):** _to be completed by the
@@ -137,6 +147,21 @@ corpus, check its hashes or refuse on the engine's behalf.
   demo brief). Also whether a real model picks the tool when asked to review
   a brief's citations without being told its name: the runs and their results
   are in the catalog pull request.
+- **Written by AI for 0.7.0:** Devin (Claude Opus 5.5) wrote the Case
+  Writer (editor, verifier module, privacy module, chat, live NIF and the
+  predictor's architecture), the two hooks, their tests and the
+  disclosures. The privacy detector is ported, not new: from the earlier
+  `dpp-ai-compliance-lab`, `graph-legal-ir`, `lexo-case-writer` and
+  `dike-desk` work, with provenance in `VENDORED.json`; the deterministic
+  predictor is ported from `lexo-case-writer`.
+- **Verified by Devin for 0.7.0, not yet repeated by me:** the tests and
+  the reproducible bundle ([claims.json](claims.json)); `hermes plugins
+  validate` on a clean copy; two real chat turns in the `lexo-lawyer`
+  profile carrying the envelope, where the instructions were injected and
+  the model's attempt to use the terminal was blocked by `pre_tool_call`
+  (audit log lines, no content). A full chat turn typed in the Desktop app
+  was not exercised by automation (synthetic keyboard input does not reach
+  the app).
 - **Not verified:** Hermes versions older than v0.22.7; macOS.
 
 ## Limits
@@ -172,6 +197,19 @@ corpus, check its hashes or refuse on the engine's behalf.
   [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
 - **No signing.** Diké can sign commitments of verified citations; this plugin
   never does, and never touches signing keys.
+- **Pseudonymization, not anonymization.** The detector is rule-based: it
+  does not find every name without context (it lists candidates for you),
+  and the token map stays on this machine. Read the preview before sending.
+- **The chat's model is your profile's model.** Where it runs (your machine
+  or a provider) depends on that profile's configuration; the page shows
+  it. The hooks keep the chat away from tools; they do not make a model
+  right. Citation states come only from the engine.
+- **Prediction is experimental and off by default.** Planned, not built:
+  a fine-tuned model that predicts legal text the way code assistants
+  predict code (limited by funding), the same model that will serve
+  IndexO's embeddings acting as the predictor to unify the architecture,
+  and a chat model distilled or fine-tuned to use Diké's architecture
+  well (needs a training server).
 
 ## License
 

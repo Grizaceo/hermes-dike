@@ -639,3 +639,200 @@ def privacidad_envio(body: dict):
         raise HTTPException(status_code=500,
                             detail="No se pudo registrar el envío; no envíes el texto.")
     return {"ok": True}
+
+# ---------------------------------------------------------------------------
+# Predicción de texto (F4): L1 = continuación literal desde el corpus sellado.
+# Índice en memoria construido al primer uso sobre la generación instalada,
+# en SOLO LECTURA (nunca se escribe en la generación).
+# ---------------------------------------------------------------------------
+
+import unicodedata as _unicodedata_pred
+
+
+def _normalizar_con_mapa(texto: str):
+    """(texto_normalizado, mapa) — misma regla que la cola: NFD, sin marcas
+    combinantes, minúsculas, espacios colapsados a uno y bordes recortados.
+    ``mapa[i]`` = índice en el ORIGINAL del carácter del que sale ``norm[i]``
+    (para 'ó' apunta a su base 'o'; un espacio colapsado apunta al primero
+    del grupo). Exacto, nunca una proporción."""
+    norm_chars: list = []
+    mapa: list = []
+    prev_espacio = True          # el inicio cuenta como "tras espacio"
+    for i, ch in enumerate(texto):
+        for d in _unicodedata_pred.normalize("NFD", ch):
+            if _unicodedata_pred.category(d) == "Mn":
+                continue         # marca combinante: sale con su base
+            if d.isspace():
+                if not prev_espacio:
+                    norm_chars.append(" ")
+                    mapa.append(i)
+                    prev_espacio = True
+                continue
+            norm_chars.append(d.lower())
+            mapa.append(i)       # origen: el carácter ORIGINAL i
+            prev_espacio = False
+    # bordes: un espacio colapsado puede quedar al final
+    while norm_chars and norm_chars[0] == " ":
+        norm_chars.pop(0)
+        mapa.pop(0)
+    while norm_chars and norm_chars[-1] == " ":
+        norm_chars.pop()
+        mapa.pop()
+    return "".join(norm_chars), mapa
+
+
+def _norm_cola(s: str) -> str:
+    """La cola con la MISMA normalización que el índice (solo el texto,
+    sin mapa: la cola nunca se re-proyecta al original)."""
+    return _normalizar_con_mapa(s)[0]
+
+
+class _IndiceCorpus:
+    """Índice ligero: solo texto NORMALIZADO + procedencia + ruta del JSON.
+    El texto original no vive en memoria: se relee del disco al acertar."""
+
+    __slots__ = ("arts", "norm_textos")
+
+    def __init__(self) -> None:
+        self.arts = []            # [{gid, sha256, fuente_url, ruta}]
+        self.norm_textos = []     # texto normalizado alineado con arts
+
+
+_indice_cache: dict = {}
+_indice_lock = threading.Lock()
+
+
+def _fuente_url(art: dict) -> str:
+    prov = art.get("provenance")
+    if isinstance(prov, dict):
+        for k in ("sourceUrl", "url", "fuente", "wasDerivedFrom"):
+            if isinstance(prov.get(k), str) and prov[k]:
+                return prov[k]
+    return str(art.get("@id") or "")
+
+
+def _cargar_indice(generacion: Path) -> _IndiceCorpus:
+    clave = str(generacion)
+    with _indice_lock:
+        hit = _indice_cache.get(clave)
+        if hit is not None:
+            return hit
+        idx = _IndiceCorpus()
+        dir_art = next(generacion.glob("**/articulos"), None)
+        if dir_art and dir_art.is_dir():
+            for ruta in sorted(dir_art.glob("articulo_*.json")):
+                try:
+                    art = json.loads(ruta.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    continue
+                texto = str(art.get("text") or "")
+                if not texto.strip():
+                    continue
+                idx.arts.append({
+                    "gid": str(art.get("@id") or ruta.stem),
+                    "sha256": str(art.get("textSha256") or ""),
+                    "fuente_url": _fuente_url(art),
+                    "ruta": ruta,
+                })
+                idx.norm_textos.append(_normalizar_con_mapa(texto)[0])
+        _indice_cache[clave] = idx
+        return idx
+
+
+def _cortar_palabra(s: str, tope: int) -> str:
+    if len(s) <= tope:
+        return s
+    corte = s.rfind(" ", 0, tope + 1)
+    return s[:corte if corte > 0 else tope]
+
+
+@router.get("/prediccion/corpus")
+def prediccion_corpus(cola: str):
+    """Continuación literal tras el ancla más larga encontrada en el corpus.
+
+    La respuesta es texto del corpus, no una cita verificada — la UI lo
+    rotula siempre "sin verificar como cita".
+    """
+    cola_n = _norm_cola(cola or "")
+    if not cola_n:
+        raise HTTPException(status_code=400, detail="cola vacía.")
+    if len(cola_n) > 300:
+        raise HTTPException(status_code=400, detail="cola demasiado larga.")
+    mod = _adaptador()
+    datos = mod._carpeta_de_datos().resolve()
+    instalado = _asegurar_corpus_memo(mod, datos)
+    generacion = Path(instalado["generation"])
+    idx = _cargar_indice(generacion)
+    # ancla más larga: toda la cola primero, acortando por palabras
+    palabras = cola_n.split()
+    mejor = None
+    for largo in range(len(palabras), 0, -1):
+        ancla = " ".join(palabras[-largo:])
+        if len(ancla) < 6:
+            break
+        for i, nt in enumerate(idx.norm_textos):
+            pos = nt.find(ancla)
+            if pos < 0:
+                continue
+            # el ancla debe empezar en límite de palabra del normalizado:
+            # dentro de una palabra no es coincidencia válida.
+            if pos > 0 and nt[pos - 1] != " ":
+                continue
+            fin_norm = pos + len(ancla)
+            # mapa EXACTO norm→original, recalculado solo para el artículo
+            # que acertó (solo el normalizado vive en memoria).
+            try:
+                original = json.loads(
+                    idx.arts[i]["ruta"].read_text(encoding="utf-8")
+                ).get("text") or ""
+            except (OSError, json.JSONDecodeError):
+                continue
+            norm_art, mapa_art = _normalizar_con_mapa(original)
+            if norm_art != nt:      # el texto en disco difiere del índice
+                continue
+            if fin_norm - 1 >= len(mapa_art):
+                continue
+            fin_original = mapa_art[fin_norm - 1] + 1
+            # el índice mapeado es el de la base NFD: si el ancla termina en
+            # una letra con tilde, la marca combinante queda tras ella — se
+            # absorbe para no empezar la continuación en un char suelto.
+            while (fin_original < len(original)
+                   and _unicodedata_pred.category(
+                       original[fin_original]) == "Mn"):
+                fin_original += 1
+            continuacion = _cortar_palabra(original[fin_original:].lstrip(), 200)
+            if continuacion:
+                mejor = {
+                    "continuacion": continuacion,
+                    "ancla": ancla,
+                    "gid": idx.arts[i]["gid"],
+                    "sha256": idx.arts[i]["sha256"],
+                    "fuente_url": idx.arts[i]["fuente_url"],
+                }
+                break
+        if mejor:
+            break
+    return mejor or {"continuacion": ""}
+
+
+@router.post("/prediccion/evento")
+def prediccion_evento(body: dict):
+    """Telemetría opt-in de aceptación: solo metadatos, nunca texto."""
+    capa = str(body.get("capa") or "")
+    tipo = str((body.get("procedencia") or {}).get("tipo") or "")
+    evento = {
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "capa": capa,
+        "aceptada": bool(body.get("aceptada")),
+        "largo": int(body.get("largo") or 0),
+        "tipo": tipo,
+    }
+    mod = _adaptador()
+    directorio = mod._carpeta_de_datos() / "prediccion"
+    directorio.mkdir(parents=True, exist_ok=True)
+    os.chmod(directorio, 0o700)
+    ruta = directorio / "eventos.jsonl"
+    with open(ruta, "a", encoding="utf-8") as f:
+        f.write(json.dumps(evento, ensure_ascii=False) + "\n")
+    os.chmod(ruta, 0o600)
+    return {"ok": True}

@@ -165,10 +165,85 @@ function pluginPlaceholderVacio(texto) {
   })
 }
 
+// --- Ghost text de predicción (tercera PluginKey) -----------------------------
+// El widget muestra la sugerencia al final de la selección vacía, con el
+// rótulo capa+procedencia. Tab acepta (inserción literal), Esc descarta, y
+// cualquier otra tecla la borra. La sugerencia la fija el módulo de
+// predicción con fijarGhost(); la aceptación delega en onAceptar.
+
+const claveGhost = new PluginKey('dike-prediccion-ghost')
+
+export function pluginGhostTexto({ onAceptar }) {
+  return new Plugin({
+    key: claveGhost,
+    state: {
+      init: () => null,
+      apply: (tr, valor) => {
+        const meta = tr.getMeta(claveGhost)
+        if (meta !== undefined) return meta
+        if (tr.docChanged || tr.selectionSet) return null
+        return valor
+      },
+    },
+    props: {
+      decorations(state) {
+        const s = claveGhost.getState(state)
+        if (!s || !state.selection.empty) return null
+        const pos = state.selection.to
+        const span = document.createElement('span')
+        span.className = 'dike-ghost'
+        span.textContent = s.texto
+        span.setAttribute('style',
+          'color:var(--ui-text-tertiary,#9ca3af);pointer-events:none;' +
+          'user-select:none;font-style:italic')
+        const rotulo = document.createElement('span')
+        rotulo.textContent = '  [Tab] ' + s.rotulo
+        rotulo.setAttribute('style',
+          'color:var(--ui-text-tertiary,#9ca3af);font-size:0.75em;' +
+          'font-style:normal;pointer-events:none;user-select:none')
+        const envoltura = document.createElement('span')
+        envoltura.appendChild(span)
+        envoltura.appendChild(rotulo)
+        return DecorationSet.create(state.doc, [
+          Decoration.widget(pos, envoltura, { side: 1 }),
+        ])
+      },
+      handleKeyDown(view, event) {
+        const s = claveGhost.getState(view.state)
+        if (!s) return false   // sin sugerencia, Tab/Esc quedan libres
+        if (event.key === 'Tab') {
+          const pos = view.state.selection.to
+          view.dispatch(view.state.tr
+            .insertText(s.texto, pos)
+            .setMeta(claveGhost, null))
+          if (onAceptar) onAceptar(s)
+          event.preventDefault()
+          return true
+        }
+        if (event.key === 'Escape') {
+          view.dispatch(view.state.tr.setMeta(claveGhost, null))
+          event.preventDefault()
+          return true
+        }
+        return false
+      },
+    },
+  })
+}
+
+// Fija (o borra con null) la sugerencia visible.
+//   {texto, rotulo, procedencia} — rotulo = capa + fuente legible.
+export function fijarGhost(editor, sugerencia) {
+  if (!editor || !editor.view) return
+  editor.view.dispatch(editor.view.state.tr.setMeta(claveGhost, sugerencia))
+}
+
 // --- Montaje ------------------------------------------------------------------
 
-export function montarEditor({ element, content, placeholder, onUpdate }) {
+export function montarEditor({ element, content, placeholder, onUpdate,
+  onAceptarPrediccion }) {
   const pluginPh = pluginPlaceholderVacio(placeholder)
+  const pluginGhost = pluginGhostTexto({ onAceptar: onAceptarPrediccion })
   return new Editor({
     element,
     extensions: [
@@ -179,6 +254,10 @@ export function montarEditor({ element, content, placeholder, onUpdate }) {
       Extension.create({
         name: 'dikePlaceholderWidget',
         addProseMirrorPlugins: () => [pluginPh],
+      }),
+      Extension.create({
+        name: 'dikeGhostTexto',
+        addProseMirrorPlugins: () => [pluginGhost],
       }),
     ],
     content: content || '',

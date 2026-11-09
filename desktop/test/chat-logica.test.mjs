@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  acumDeltas, activoDe, bloqueCambios, bloqueConstancia, bloqueEscrito,
+  acumDeltas, activoDe, candidatosPerfil, bloqueCambios, bloqueConstancia, bloqueEscrito,
   componerTurno, diffParrafos, etiquetaDestino, etiquetaModelo, filtroEvento,
   hashParrafo, neutralizar, parsePregunta,
 } from '../src/escritor/chat-logica.js'
@@ -136,4 +136,21 @@ test('activoDe: selección gana sobre párrafo del cursor', () => {
   assert.equal(activoDe('', 'párrafo del cursor'), 'párrafo del cursor')
   assert.equal(activoDe('   ', 'párrafo del cursor'), 'párrafo del cursor')
   assert.equal(activoDe(null, 'párrafo'), 'párrafo')
+})
+
+test('candidatosPerfil: lexo-lawyer primero, luego el perfil activo', () => {
+  const rutas = [
+    { targetProfile: 'lexo-lawyer', profile: 'default' },
+    { targetProfile: 'lexo-alpha', profile: 'lexo-alpha' },
+  ]
+  // lexo-lawyer presente → es el candidato único si el activo no tiene ruta
+  assert.deepEqual(candidatosPerfil(rutas, 'default'), ['lexo-lawyer'])
+  // sin lexo-lawyer cae al perfil activo si tiene ruta
+  assert.deepEqual(candidatosPerfil(
+    [{ targetProfile: 'lexo-alpha' }], 'lexo-alpha'), ['lexo-alpha'])
+  // ambos disponibles → orden lexo-lawyer primero
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha'),
+    ['lexo-lawyer', 'lexo-alpha'])
+  // sin rutas → vacío (el error lo da el llamador)
+  assert.deepEqual(candidatosPerfil([], 'lexo-lawyer'), [])
 })

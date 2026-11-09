@@ -3,8 +3,8 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
       "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "143",
-      "date": "2026-11-07"
+      "value": "269",
+      "date": "2026-11-09"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
@@ -57,7 +57,31 @@
     {
       "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs produce the same sha256",
       "command": "cd desktop && npm ci && node build.mjs && sha256sum plugin.js",
-      "value": "49ff02b259c6d12ed228c6e6d40bc669ab65fc847b4b872e33fef3bd9a810498",
+      "value": "ee275dd0bfdc0ff6f017b873e35c640439bd0391f748755b0652269867963b0a",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "hermes plugins validate passes on the 0.7.0 tree (clean copy without desktop/node_modules and .git): declared tools and hooks match registrations, security scan safe, desktop surface inside the SDK",
+      "command": "hermes plugins validate <clean-copy>",
+      "value": "Validation passed",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "The Desktop pure-logic tests pass (verifier, privacy, chat, NIF proposals, predictor)",
+      "command": "cd desktop && npm test",
+      "value": "52",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "On the 456 synthetic documents of the dpp-ai-compliance-lab goldset v0.3.0 (sources synthetic and synthetic-augmented; the 44 semi-synthetic excluded), the ported privacy detector matches the original detector: precision 0.9559, recall 0.9295, F1 0.9425, recall 1.0 for RUT, email and phone",
+      "command": "PYTHONDONTWRITEBYTECODE=1 ~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_privacidad.py -k test_benchmark_goldset -q -p no:cacheprovider",
+      "value": "F1 0.9425",
+      "date": "2026-11-08"
+    },
+    {
+      "claim": "Two real model turns in the lexo-lawyer profile carrying the <dike-escritor v=\"1\"> envelope (synthetic demo brief; model overridden to an OpenRouter-hosted model for the CLI run): the hook injected the instructions in both, and pre_tool_call blocked the model's attempt to use the terminal; no tool outside the allowlist ran",
+      "command": "hermes -p lexo-lawyer chat -q \"$(cat turno.txt)\" -Q  # then read plugin-data/dike/escritor/auditoria.jsonl",
+      "value": "instrucciones x2, bloqueo terminal x1",
       "date": "2026-11-08"
     }
   ]

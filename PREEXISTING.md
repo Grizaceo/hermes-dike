@@ -72,3 +72,21 @@ Changes to the adapter's code during the hackathon:
     sealed corpus generation, so board writes never affect the integrity
     check the citation verifier runs;
   - none of this changes the adapter, the tool or the command.
+- After publishing, for version 0.7.0 (Devin, Claude Opus 5.5; reviewed by
+  the maintainer before merge):
+  - the Desktop page opens on a **Case Writer** (`desktop/src/escritor/`):
+    a Tiptap editor saved per case through `/escrito`, the citation check
+    as a module (prove, repair, withdraw with a reason, escalate);
+  - a privacy module (`privacidad/` and `/privacidad/*`) **ported, not
+    new**: patterns and strategies from `dpp-ai-compliance-lab`, name and
+    judge rules from `graph-legal-ir`, the RIT/RUC/ROL whitelist and
+    check-digit validation from `lexo-case-writer`, the title pass from
+    `dike-desk`; provenance in `VENDORED.json`;
+  - a chat about the brief served by a Hermes profile with two hooks
+    (`escritor/hooks.py`: `pre_llm_call`, `pre_tool_call`) that act only on
+    sessions carrying the `<dike-escritor v="1">` envelope;
+  - NIF proposals through `llm.oneshot` that enter the case board only
+    through `/nif/edit` after the lawyer accepts them;
+  - a predictor architecture, off by default, whose deterministic layer is
+    ported from `lexo-case-writer`, plus `/prediccion/corpus`;
+  - the tool, the command and the vendored engine are unchanged.

@@ -11,8 +11,8 @@ import { textoDelEditor } from './editor.js'
 import { estadoCita, etiquetaCita, sha256Hex } from './verificador.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import {
-  acumDeltas, componerTurno, etiquetaDestino, etiquetaModelo, filtroEvento,
-  parsePregunta,
+  acumDeltas, candidatosPerfil, componerTurno, etiquetaDestino,
+  etiquetaModelo, filtroEvento, parsePregunta,
 } from './chat-logica.js'
 
 const PERFIL_DEFAULT = 'lexo-lawyer'
@@ -39,6 +39,7 @@ const ESTILOS_ESTADO_RESP = {
 export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, estrategiaPriv, rev, onSesion }) {
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
+  const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
   const [sesion, setSesion] = useState(null)     // {session_id, stored_id, info}
   const rutaRef = useRef(null)                   // PluginProfileRoute
   const [modelo, setModelo] = useState(null)     // {id, destino}
@@ -62,45 +63,57 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     setPerfilOk(null)
     setSesion(null)
     setMensajes([])
-    const perfil = PERFIL_DEFAULT
     ;(async () => {
       try {
-        const ruta = await resolverRuta(perfil)
-        if (!ruta) {
-          throw new Error('El chat del escrito necesita el perfil ' + perfil +
-            ' con Diké habilitado: sin sus hooks no se puede garantizar que ' +
-            'el modelo no use herramientas.')
-        }
-        rutaRef.current = ruta
-        const perfilObjetivo = ruta.targetProfile || ruta.profile || perfil
-        // plugins.list rechaza CUALQUIER param; en rutas secondary/shared el
-        // cliente inyecta `profile` y siempre da invalid_params. Fallback:
-        // commands.catalog {profile} — el catálogo incluye comandos del plugin.
+        // candidatos: lexo-lawyer primero, luego el perfil activo de la app;
+        // los hooks viajan con el plugin, así que cualquier perfil con Diké
+        // habilitado es seguro — el primero con dike-verificar responde.
+        const rutas = await host.profileRoutes()
+        const listaRutas = (rutas && (rutas.routes || rutas)) || []
+        const activo = host.state && host.state.profile
+        const candidatos = candidatosPerfil(listaRutas, activo)
+        let ruta = null
+        let perfilObjetivo = null
         const paso = async (nombre, fn) => {
           try { return await fn() }
           catch (e) { throw new Error(nombre + ': ' + mensajeError(e)) }
         }
-        const dikePresente = await paso('plugins.list|catalog', async () => {
+        const tieneDike = async (r, objetivo) => {
           try {
-            const plugins = await host.requestProfile(ruta, 'plugins.list',
+            const plugins = await host.requestProfile(r, 'plugins.list',
               {}, TIMEOUT_RPC)
             const lista = (plugins && (plugins.plugins
               || plugins.items || plugins)) || []
             const d = lista.find((p) => (p.name || p.plugin) === 'dike')
             return Boolean(d && d.enabled !== false && d.status !== 'disabled')
           } catch (e1) {
-            const cat = await host.requestProfile(ruta, 'commands.catalog',
-              { profile: perfilObjetivo }, TIMEOUT_RPC)
-            const plano = JSON.stringify(cat)
-            return /["'\s\/-]dike-verificar["'\s\/]/i.test(plano)
-              || /"name"\s*:\s*"dike-verificar"/i.test(plano)
+            try {
+              const cat = await host.requestProfile(r, 'commands.catalog',
+                { profile: objetivo }, TIMEOUT_RPC)
+              const plano = JSON.stringify(cat)
+              return /["'\s\/-]dike-verificar["'\s\/]/i.test(plano)
+                || /"name"\s*:\s*"dike-verificar"/i.test(plano)
+            } catch { return false }
           }
-        })
-        if (!dikePresente) {
-          throw new Error('El chat del escrito necesita el perfil ' + perfil +
-            ' con Diké habilitado: sin sus hooks no se puede garantizar que ' +
-            'el modelo no use herramientas.')
         }
+        for (const candidato of candidatos) {
+          const r = listaRutas.find((x) =>
+            (x.targetProfile || x.profile) === candidato)
+          if (!r) continue
+          if (await tieneDike(r, candidato)) {
+            ruta = r
+            perfilObjetivo = candidato
+            break
+          }
+        }
+        if (!ruta) {
+          throw new Error('El chat del escrito necesita un perfil con Diké ' +
+            'habilitado (lexo-lawyer o el perfil activo): sin sus hooks no ' +
+            'se puede garantizar que el modelo no use herramientas.')
+        }
+        const perfil = perfilObjetivo
+        setPerfilElegido(perfil)
+        rutaRef.current = ruta
         releaseRef.current = await host.retainProfile(ruta)
         const titulo = tituloSesion(caseId)
         // Patrón Bot Mode: profile va dentro de params; el create canónico
@@ -304,6 +317,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   return jsxs('div', { className: S.card, children: [
     jsxs('div', { className: 'flex items-center gap-2', children: [
       jsx('div', { className: S.cardTitle, children: 'Chat del escrito' }),
+      perfilElegido ? jsx('span', { className: 'text-xs '
+        + 'text-(--ui-text-secondary)',
+        children: '· ' + perfilElegido }) : null,
       modelo ? jsx('span', { className: S.sub, children:
         etiquetaModelo(modelo.id) + ' · ' + modelo.destino }) : null,
     ] }),

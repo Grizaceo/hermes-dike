@@ -207,3 +207,18 @@ export function etiquetaDestino(info) {
   if (/localhost|127\.0\.0\.1|\[?::1\]?/.test(base)) return 'local'
   return 'nube'
 }
+
+// Candidatos de perfil para el chat, en orden: lexo-lawyer si existe, luego
+// el perfil activo de la app (host.state.profile). Devuelve los nombres de
+// perfil de las rutas disponibles, sin duplicados. El chequeo de Diké va
+// después por red (commands.catalog → dike-verificar).
+export function candidatosPerfil(rutas, perfilActivo, preferido = 'lexo-lawyer') {
+  const nombres = (rutas || [])
+    .map((r) => r && (r.targetProfile || r.profile))
+    .filter(Boolean)
+  const out = []
+  for (const p of [preferido, perfilActivo]) {
+    if (p && nombres.includes(p) && !out.includes(p)) out.push(p)
+  }
+  return out
+}

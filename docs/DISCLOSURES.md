@@ -65,6 +65,30 @@ All writes go under the current profile's plugin data folder,
   live under the same workspace. This data sits **outside** the sealed
   corpus generation, so writing cases never trips the integrity check that
   `constancia` runs on every citation call.
+- **Case Writer briefs.** `POST /escrito` saves the brief you are writing,
+  per case, to `escritos/<case_id>.json` (folder `0700`, file `0600`,
+  atomic write, revision check that refuses a stale save with 409). The
+  file holds the brief's HTML and plain text and a small log of the
+  citations you withdrew or escalated, with your reason.
+- **Pseudonym maps and your privacy decisions.** `privacidad/<case_id>.json`
+  (`0700`/`0600`) maps each personal value found in that case's text to its
+  stable token (`[PERSONA_1]`, `[RUT_1]`…) and stores which values you chose
+  to keep or to mask. It contains the real values: it is what lets the page
+  show model replies with the real names, and it never leaves the machine.
+- **Send log, without content.** Every time the Case Writer sends text to a
+  model, `privacidad/envios.jsonl` (`0600`, rotated at 1 MB) records the
+  time, the case, the destination (profile and model as shown on screen),
+  the SHA-256 of the exact text sent, the counts per type of masked data,
+  the strategy and whether pseudonymization was on. Never the text. If
+  that line cannot be written, nothing is sent.
+- **Chat hook audit, without content.** In the profile that serves the
+  Case Writer chat, `escritor/auditoria.jsonl` (`0600`, rotated at 1 MB)
+  records, per marked session, when the instructions or the reminder were
+  injected and the name of every tool the hook blocked. Never the user's or
+  the model's text.
+- **Prediction events (off by default).** Only if you turn on its telemetry,
+  `prediccion/eventos.jsonl` (`0600`) records per suggestion the layer,
+  whether you accepted it, its length and its provenance type. Never text.
 
 If you do not allow these writes, do not enable the plugin; the tool's
 description tells the agent the same.
@@ -75,6 +99,72 @@ description tells the agent the same.
   disabled (`unshare -rn`, see [claims.json](../claims.json)).
 - Installing the Python dependencies may contact the package registry. That
   is done by Hermes's installer, not by the plugin.
+- The plugin itself opens no network connection. The Case Writer's chat,
+  NIF proposals and optional model prediction go through **your own Hermes
+  gateway**, to the model that the serving profile is configured to use:
+  where that model runs (your machine or a provider) is your Hermes
+  configuration, and the page shows it before you send.
+
+## The Case Writer chat: what reaches a model, and how it is kept in its lane
+
+The Desktop page's Case Writer has a chat about the brief you are writing.
+It is the only part of the plugin that makes a model run, and it runs only
+when you act: you send a chat message, you ask for NIF proposals, or you
+turn on model prediction.
+
+- **Where it runs.** In the profile `lexo-lawyer` by default (the page checks
+  first that Diké is enabled there and refuses to open the chat otherwise).
+  The page opens one hidden session per case, titled
+  `Diké · Escrito · <case_id>`, through the Desktop SDK
+  (`host.requestProfile`: `session.list`, `session.create`,
+  `session.resume`, `prompt.submit`, `session.interrupt`), so it does not
+  appear in the Sessions sidebar.
+- **What is sent per turn.** Your question, wrapped in a
+  `<dike-escritor v="1">` envelope with the brief (in full on the first
+  turn or when more than 40 % of its paragraphs changed, otherwise only
+  the changed paragraphs, capped at 12,000 characters), the paragraph at
+  your cursor or your selection, and the current citation results. The
+  whole envelope is pseudonymized first (see below). NIF proposals send
+  the same pseudonymized brief plus the case's NIF sections through
+  `llm.oneshot` with the chat session's model.
+- **Pseudonymization, on by default.** Before anything is sent, the page
+  calls `/privacidad/seudonimizar`, which replaces personal data with stable
+  tokens. Detection is rule-based (ported, with provenance in
+  `VENDORED.json`, from earlier Diké work): national IDs with check-digit
+  validation, email, phones, addresses, plates, names after a title, a
+  procedural role or before an ID, sensitive data categories; case numbers
+  (RIT, RUC, ROL) and judges are kept. **It is pseudonymization, not
+  anonymization:** the map stays on this machine, and a rule-based detector
+  does not find every name without context, so the page lists possible
+  names for you to mask. You can turn it off per case only after
+  confirming that the text will leave with personal data; the send log
+  records that choice.
+- **Hooks.** The plugin registers `pre_llm_call` and `pre_tool_call`. They
+  act only on sessions whose user message starts with the
+  `<dike-escritor v="1"` envelope (or whose platform is `dike-escritor`);
+  for every other session they return nothing, so no other chat changes.
+  In a marked session, `pre_llm_call` adds the Case Writer's instructions
+  (`escritor/instrucciones.md`) to the first turn's user message, and a
+  short reminder to later turns; the system prompt is never touched. If
+  the instructions cannot be read, the turn is blocked. `pre_tool_call`
+  blocks every tool except `skills_list`, `skill_view` and
+  `dike_verificar_citas`, so the chat cannot use the serving profile's
+  terminal, files, browser, memory or delegation. Forging the envelope only
+  restricts that session.
+- **Citation states stay with the engine.** After every reply the page runs
+  `/verificar` on the reply; a citation is shown as verified only when the
+  engine returned `VERIFICADA` for that exact text. The model's own words
+  never set a state.
+- **Nothing enters the brief or the NIF on its own.** Inserting a reply
+  into the brief, and accepting a NIF proposal, are your clicks. Accepted
+  proposals are written through `/nif/edit`, so the patch is attributed to
+  `user`. The flow never calls `/nif/validar` or `/nif/confianza`.
+- **Prediction (experimental, off by default).** The deterministic layer and
+  the corpus layer run on this machine. The model layer is off until you
+  enable it; if the profile's `auxiliary.dike_prediccion` is not a local
+  endpoint without fallbacks, the page says where the paragraph would go
+  and asks for an explicit opt-in per case, and the text is pseudonymized
+  first.
 
 ## The panel surfaces (Dashboard tab, Desktop sidebar)
 
@@ -111,17 +201,24 @@ description tells the agent the same.
 - `grafo corpus` and `grafo corpus-norma` first re-run the sealed-corpus
   assurance (`_asegurar_corpus`) and then only **read** the installed
   generation: they never write inside it.
-- Both UI files are plain readable JavaScript with no build step and no
-  bundled dependencies (the dashboard supplies React and its components;
-  the Desktop plugin imports only `@hermes/plugin-sdk` and `react`).
+- The dashboard file is plain readable JavaScript with no build step (the
+  dashboard supplies React and its components). The Desktop plugin imports
+  only `@hermes/plugin-sdk` and `react`; its bundled libraries are listed
+  under "The Desktop bundle". The Desktop page adds the Case Writer routes
+  (`/escrito`, `/privacidad/*`, `/prediccion/corpus`) listed under
+  "HTTP surface".
 
 ## What it never does
 
 - It never signs, and never reads or writes signing keys.
-- It never calls a model, and never calls Hermes.
-- It registers no hooks, no middleware, no background processes and no
-  scheduled jobs.
-- It sends no telemetry and stores no credentials.
+- The agent half never calls a model. Model turns happen only when you use
+  the Case Writer's chat, NIF proposals or model prediction, and they run in
+  your own Hermes gateway (see above).
+- Its only hooks are the two described above, and they change nothing
+  outside Case Writer sessions. No middleware, no background processes and
+  no scheduled jobs.
+- It sends no telemetry and stores no credentials. It never reads `.env`,
+  `auth.json` or any credential store: model access goes through Hermes.
 - It never updates its own files.
 
 ## Code it carries but does not run
@@ -148,8 +245,12 @@ graph and SHACL shape files. No binaries or bytecode. Its SHA-256 is in
 
 `desktop/plugin.js` is built by `desktop/build.mjs` (esbuild) from
 `desktop/src/`: `@hermes/plugin-sdk`, `react` and `react/jsx-runtime` stay
-external (provided by the app). It bundles `three@0.183.2` and
-`3d-force-graph@1.79.0` (pinned in `desktop/package.json`); the optional
+external (provided by the app). It bundles `three@0.183.2`,
+`3d-force-graph@1.79.0` and the Tiptap 3.32.2 editor (`@tiptap/core`,
+`@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/extension-placeholder`, all
+MIT, mounted without `@tiptap/react` so `react-dom` is never imported;
+pinned in `desktop/package.json`). The build escapes invisible Unicode
+characters from third-party code (`\u200B`…) before hashing; the optional
 `ngraph.*` imports inside 3d-force-graph are aliased to
 `desktop/src/ngraph-stub.js`, so the bundle contains **no `eval`, no
 `new Function` and no dynamic `import()`**. The build is unminified for
@@ -157,15 +258,29 @@ review (license comments in `plugin.js.LEGAL.txt`) and deterministic:
 two clean `npm ci && node build.mjs` runs produce the same sha256 —
 reproduce with `cd desktop && npm ci && node build.mjs && sha256sum plugin.js`
 (expected hash and sizes in `desktop/BUNDLE.json`). The bundle makes no
-network calls: it only reaches the plugin's own REST routes via `ctx.rest`.
+network calls of its own: it reaches the plugin's REST routes via
+`ctx.rest`, and the Hermes gateway only through the Desktop SDK
+(`host.requestProfile`, `host.retainProfile`, `host.onEvent`) for the Case
+Writer chat, NIF proposals and model prediction.
 
 ## HTTP surface (dashboard/plugin_api.py)
 
 The routes sit behind Hermes' own plugin routing and authentication; the
 plugin adds no authentication of its own. The `/grafo/*` and `/estado`
 routes are `GET` and read-only. `POST /verificar` writes only a temporary
-copy of the brief, removed after the call, and `POST /nif/*` writes case
-files; no route writes outside plugin-data.
+copy of the brief, removed after the call; `POST /nif/*` writes case
+files; `POST /escrito` and `POST /privacidad/*` write the files listed in
+"It writes"; no route writes outside plugin-data.
+
+- `/escrito` (`GET`, `POST`) — load and save the Case Writer brief of a case.
+- `/privacidad/detectar`, `/privacidad/decision`, `/privacidad/seudonimizar`,
+  `/privacidad/envio` (`POST`) — detect personal data, store your
+  keep/mask decisions, pseudonymize a text with the case's stable tokens,
+  and log a send without its content. Pure Python in the plugin host, no
+  subprocess; text limited to 400,000 bytes.
+- `/prediccion/corpus` (`GET`) — literal continuation of your last words
+  from the installed corpus' article texts, read-only from the sealed
+  generation, indexed in memory on first use.
 
 - `/estado`, `/verificar` — engine + integrity status; `/verificar` runs
   the citation check (read-only, always re-verifies corpus integrity).

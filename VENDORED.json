@@ -154,6 +154,15 @@
           ]
         }
       ]
+    },
+    "desktop/src/escritor/prediccion/l0.js": {
+      "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+      "commit": "7c13a89",
+      "archivos_origen": [
+        "src/lib/legalCopilot.ts"
+      ],
+      "licencia": "MIT",
+      "que": "FORMALISMO (13 encabezados) + ACCIONES (38 acciones del numerus clausus) verbatim; predictFormalismo, predictContenidoJuridico, segmentoActual, sufijoPendiente, textoAInsertar, contieneClave, puntuarAcciones con disparadores/ventana. Sin CopilotConfig ni aprendizaje de frecuencia."
     }
   }
 }

@@ -16,6 +16,7 @@ import {
 import { ModuloPrivacidad } from './privacidad.js'
 import { ChatEscritor } from './chat.js'
 import { NifPropuestas } from './nif-propuestas.js'
+import { PrediccionPanel } from './prediccion.js'
 
 const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
@@ -243,6 +244,12 @@ export function SeccionEscritor() {
           setDocInfo(infoDocRef.current)
         }
         programarInfoDoc(editor)
+        // predicción: el panel decide si pide sugerencia (apagada por
+        // defecto — sin efecto salvo opt-in)
+        if (editorRef.prediccionPedir) editorRef.prediccionPedir(editor)
+      },
+      onAceptarPrediccion: (s) => {
+        if (editorRef.prediccionAceptada) editorRef.prediccionAceptada(s)
       },
     })
     editorRef.current = ed
@@ -482,6 +489,11 @@ export function SeccionEscritor() {
       editorRef, caseId, registro, setRegistro,
       sesion: chatSesion,
       tieneNif: caseId !== 'borrador',
+    }),
+
+    jsx(PrediccionPanel, {
+      editorRef, caseId, docInfo, verificacion, registro, setRegistro,
+      sesion: chatSesion,
     }),
 
     res && res.error

@@ -169,6 +169,70 @@ def test_politica_desconocida_es_requerido(motor, aisla, monkeypatch, tmp_path):
     assert out.get('error_code') == 'SANDBOX_UNAVAILABLE'
 
 
+def test_proveedor_que_falla_es_requerido(aisla):
+    """Si el proveedor del setting lanza, la política cierra (fail-closed)."""
+    def revienta():
+        raise RuntimeError('config ilegible')
+    aisla.establecer_politica(revienta)
+    assert aisla._politica() == 'requerido'
+
+
+def test_proveedor_que_falla_cierra_sin_bwrap(motor, aisla, monkeypatch, tmp_path):
+    """Proveedor que lanza + sin bubblewrap → SANDBOX_UNAVAILABLE, no degrada."""
+    m, _ = motor
+    _sin_bwrap(aisla, monkeypatch, tmp_path)
+
+    def revienta():
+        raise RuntimeError('config ilegible')
+    aisla.establecer_politica(revienta)
+    out = json.loads(m.verificar_citas({'texto': DEMO}))
+    assert out.get('error_code') == 'SANDBOX_UNAVAILABLE'
+
+
+def test_user_site_respeta_ENABLE_USER_SITE(aisla, monkeypatch, tmp_path):
+    """``_directorios_paquetes`` solo añade user-site si el intérprete lo habilita."""
+    import site
+    user_site = tmp_path / 'user-site'
+    user_site.mkdir()
+    monkeypatch.setattr(site, 'getusersitepackages', lambda: str(user_site))
+    monkeypatch.setattr(site, 'ENABLE_USER_SITE', False)
+    assert str(user_site) not in aisla._directorios_paquetes({})
+    monkeypatch.setattr(site, 'ENABLE_USER_SITE', True)
+    assert str(user_site) in aisla._directorios_paquetes({})
+
+
+def test_panel_json_clasifica(aisla, motor, monkeypatch):
+    """``_panel_json`` devuelve el dict o lanza ``PanelError`` tipado."""
+    m, data = motor
+
+    def proc(codigo, salida='', stderr=''):
+        return subprocess.CompletedProcess(['panel'], codigo, salida, stderr)
+
+    monkeypatch.setattr(aisla, 'ejecutar',
+                        lambda *a, **k: proc(0, '{"ok": 1}'))
+    assert m._panel_json(['nif', 'list'], runtime=data) == {'ok': 1}
+
+    monkeypatch.setattr(aisla, 'ejecutar',
+                        lambda *a, **k: proc(2, '', 'fallo en /home/u/x.py'))
+    with pytest.raises(m.PanelError) as exc:
+        m._panel_json(['nif', 'list'], runtime=data)
+    assert exc.value.kind == 'engine'
+    assert '/home/u' not in exc.value.detalle and '<ruta-local>' in exc.value.detalle
+
+    monkeypatch.setattr(aisla, 'ejecutar',
+                        lambda *a, **k: proc(0, '{"error": "caso no existe"}'))
+    with pytest.raises(m.PanelError) as exc:
+        m._panel_json(['nif', 'list'], runtime=data)
+    assert exc.value.kind == 'data' and exc.value.detalle == 'caso no existe'
+
+    def timeout(*a, **k):
+        raise subprocess.TimeoutExpired(cmd='x', timeout=1)
+    monkeypatch.setattr(aisla, 'ejecutar', timeout)
+    with pytest.raises(m.PanelError) as exc:
+        m._panel_json(['nif', 'list'], runtime=data)
+    assert exc.value.kind == 'timeout'
+
+
 def test_auto_sin_bwrap_degrada(motor, aisla, monkeypatch, tmp_path):
     """Con ``auto`` (defecto) y sin bubblewrap el plugin sigue funcionando y
     lo declara como modo degradado."""
@@ -257,3 +321,47 @@ def test_demo_sigue_4_de_6_en_bwrap(motor, sandbox):
     assert out['meta']['citas_verificadas'] == 4
     assert out['meta']['citas_fallidas'] == 2
     assert any('bubblewrap' in e for e in out['efectos_de_ejecucion'])
+
+
+def test_nif_no_monta_datos_sensibles(motor, sandbox, tmp_path):
+    """Con los binds de un op ``nif`` el plugin-data sensible no se monta.
+
+    ``escritos/`` (casos del Case Writer), ``privacidad/`` (mapas seudónimos)
+    y ``escritor/`` (auditoría) quedan fuera: un canario ahí no se lee, aunque
+    ``users/``/``home/``/``roots_cache/`` sí son escribibles.
+    """
+    m, data = motor
+    for sensible in ('escritos', 'privacidad', 'escritor', 'generations'):
+        d = data / sensible
+        d.mkdir(parents=True, exist_ok=True)
+        (d / 'canario.json').write_text('{"secreto": true}', encoding='utf-8')
+    canario = data / 'escritos' / 'canario.json'
+    lectura, escritura = m._panel_lectura_escritura(['nif', 'list'], data)
+    codigo = (
+        'import sys\n'
+        f'p = r"{canario}"\n'
+        'try:\n    open(p).read(); print("LEYO"); sys.exit(0)\n'
+        'except OSError:\n    sys.exit(4)\n')
+    proc = _python(sandbox, codigo, cwd=data, lectura=lectura,
+                  escritura=escritura, env=m._entorno(data))
+    assert proc.returncode == 4, proc.stdout + proc.stderr
+    assert 'LEYO' not in proc.stdout
+
+
+def test_nif_list_y_seed_en_bwrap(motor, sandbox):
+    """``nif list``/``seed`` siguen funcionando con el montaje mínimo."""
+    m, data = motor
+    out = m._panel_json(['nif', 'list'], runtime=data)
+    assert isinstance(out, dict) and 'cases' in out
+    creado = m._panel_json(['nif', 'init', 'caso-bwrap', '¿Despido?',
+                            'mixto'], runtime=data)
+    assert creado.get('success') is True, creado
+    seed = m._panel_json(['nif', 'seed', 'caso-bwrap'], runtime=data)
+    assert seed.get('success') is True, seed
+
+
+def test_grafo_personal_en_bwrap(motor, sandbox):
+    """``grafo personal`` (GRE del usuario) corre con el mismo montaje mínimo."""
+    m, data = motor
+    out = m._panel_json(['grafo', 'personal'], runtime=data)
+    assert 'candidates' in out and 'edges' in out

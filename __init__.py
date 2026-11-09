@@ -62,6 +62,29 @@ class EntradaInvalida(ValueError):
         self.codigo = codigo
 
 
+class PanelError(RuntimeError):
+    """Fallo del subproceso ``scripts/panel.py``, ya clasificado.
+
+    ``kind`` ∈ {'timeout', 'engine', 'data'}: 'engine' es salida no-cero o
+    JSON que no es objeto; 'data' es un JSON bien formado que trae ``error``.
+    ``detalle`` ya viene sin rutas locales y recortado (como ``_limpio`` del
+    dashboard), listo para mostrar.
+    """
+    def __init__(self, kind: str, detalle: str = ""):
+        super().__init__(f"{kind}: {detalle}")
+        self.kind = kind
+        self.detalle = detalle
+
+
+_RUTA_LOCAL_PANEL = re.compile(
+    r"(?<![\w:/])/(?:[^\s,;\"']+)|(?<![\w/])[A-Za-z]:[\\/][^\s,;\"']+")
+
+
+def _limpio_panel(texto) -> str:
+    """Quita rutas locales y recorta a 400: stderr del motor nunca sale tal cual."""
+    return _RUTA_LOCAL_PANEL.sub("<ruta-local>", str(texto))[:400]
+
+
 _MSG_INPUT_FIELDS = "Indica exactamente uno de los dos campos: texto o ruta."
 _MSG_INPUT_EMPTY = "El texto o la ruta están vacíos."
 _MSG_INPUT_EXTENSION = "Solo se aceptan archivos .md, .txt o .docx. Para un .pdf u otro formato, extrae el texto y pásalo en el campo texto."
@@ -206,36 +229,56 @@ def _panel_lectura_escritura(args: list, runtime: Path):
     """(lectura, escritura) del sandbox para un op de ``scripts/panel.py``.
 
     Medido con strace el 2026-11-09. Los ops ``nif`` y ``grafo personal``
-    usan el workspace escribible del plugin-data (``users/`` y ``home/``);
-    los ``grafo`` de corpus solo leen la generación sellada y escriben en
-    sus cachés (``home/`` y ``roots_cache/``). ``users/`` de la generación
+    usan el workspace escribible del plugin-data (``users/``, ``home/`` y
+    ``roots_cache/``) y solo LEEN ``config.yaml`` (LEXO_CONFIG apunta ahí y
+    ``load_config`` lo consulta para usuario/raíz). El resto del plugin-data
+    —``escritos/`` con los casos, ``privacidad/`` con los mapas seudónimos,
+    ``escritor/`` con la auditoría, ``generations/``— NO se monta: queda
+    invisible dentro del sandbox. Los ``grafo`` de corpus leen la generación
+    sellada entera y escriben solo en sus cachés. ``users/`` de la generación
     queda siempre en solo lectura: en ambos casos ``runtime`` se monta ro y
     los subdirectorios escribibles se montan encima en rw.
     """
     runtime = Path(runtime)
     grupo = args[0] if args else ""
     if grupo == "nif":
-        return [runtime], [runtime / "users", runtime / "home",
-                           runtime / "roots_cache"]
+        return [runtime / "config.yaml"], [runtime / "users", runtime / "home",
+                                           runtime / "roots_cache"]
     if grupo == "grafo" and len(args) > 1 and args[1] == "personal":
-        return [runtime], [runtime / "users", runtime / "home",
-                           runtime / "roots_cache"]
+        return [runtime / "config.yaml"], [runtime / "users", runtime / "home",
+                                           runtime / "roots_cache"]
     return [runtime], [runtime / "home", runtime / "roots_cache"]
 
 
 def _panel_json(args: list, *, runtime, timeout: int = 90, entrada=None):
-    """Corre ``scripts/panel.py`` por ``aislamiento.ejecutar``.
+    """Corre ``scripts/panel.py`` por ``aislamiento.ejecutar`` y parsea la salida.
 
-    Devuelve el ``CompletedProcess``; el llamador (dashboard) traduce
-    timeout/salida a sus códigos HTTP. ``runtime`` es la generación sellada
-    para los ops de corpus o el plugin-data para nif/grafo personal.
+    Devuelve el dict del panel en éxito. Errores tipados: ``PanelError`` con
+    ``kind`` 'timeout' (plazo), 'engine' (salida no-cero o JSON no-objeto) o
+    'data' (JSON con ``error``); ``SandboxNoDisponible`` se propaga sin tocar.
+    ``runtime`` es la generación sellada para los ops de corpus o el
+    plugin-data para nif/grafo personal.
     """
     runtime = Path(runtime)
     lectura, escritura = _panel_lectura_escritura(args, runtime)
-    return _aislamiento().ejecutar(
-        [sys.executable, str(_PANEL), *args],
-        lectura=lectura, escritura=escritura,
-        cwd=str(runtime), env=_entorno(runtime), timeout=timeout, stdin=entrada)
+    try:
+        proc = _aislamiento().ejecutar(
+            [sys.executable, str(_PANEL), *args],
+            lectura=lectura, escritura=escritura,
+            cwd=str(runtime), env=_entorno(runtime), timeout=timeout,
+            stdin=entrada)
+    except subprocess.TimeoutExpired:
+        raise PanelError('timeout') from None
+    salida = proc.stdout.strip()
+    try:
+        data = json.loads(salida) if salida else {}
+    except json.JSONDecodeError:
+        data = None
+    if proc.returncode != 0 or not isinstance(data, dict):
+        raise PanelError('engine', _limpio_panel(proc.stderr or salida))
+    if data.get('error'):
+        raise PanelError('data', _limpio_panel(data['error']))
+    return data
 
 
 def _hash_archivos_corpus(generation: Path) -> dict:

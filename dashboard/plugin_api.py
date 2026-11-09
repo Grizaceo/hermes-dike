@@ -16,7 +16,6 @@ import importlib.util
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 import threading
@@ -269,23 +268,19 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
     else:
         runtime = datos
     try:
-        proc = mod._panel_json(args, runtime=runtime, timeout=timeout,
+        return mod._panel_json(args, runtime=runtime, timeout=timeout,
                                entrada=entrada)
     except mod._aislamiento().SandboxNoDisponible as exc:
         raise HTTPException(status_code=503, detail=str(exc))
-    except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=504, detail="El motor tardó demasiado.")
-    salida = proc.stdout.strip()
-    try:
-        data = json.loads(salida) if salida else {}
-    except json.JSONDecodeError:
-        data = None
-    if proc.returncode != 0 or not isinstance(data, dict):
-        detalle = _limpio(proc.stderr or salida)
-        raise HTTPException(status_code=502, detail=f"motor: {detalle or 'sin salida'}")
-    if data.get("error"):
-        raise HTTPException(status_code=400, detail=_limpio(data["error"]))
-    return data
+    except mod.PanelError as exc:
+        if exc.kind == "timeout":
+            raise HTTPException(status_code=504,
+                                detail="El motor tardó demasiado.")
+        if exc.kind == "data":
+            raise HTTPException(status_code=400, detail=exc.detalle)
+        # 'engine' y cualquier kind futuro: fallo del subproceso.
+        raise HTTPException(status_code=502,
+                            detail=f"motor: {exc.detalle or 'sin salida'}")
 
 
 def _case_id(body: dict) -> str:

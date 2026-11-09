@@ -222,6 +222,14 @@ def test_buscar_sin_coincidencias(panel_mod, cache_a_tmp):
 # Ruta HTTP: validación, rótulo y transporte stdin
 # ---------------------------------------------------------------------------
 
+class _PanelErrorFalso(Exception):
+    """Doble del ``PanelError`` del adaptador: el dashboard solo lee kind/detalle."""
+    def __init__(self, kind, detalle=''):
+        super().__init__(kind)
+        self.kind = kind
+        self.detalle = detalle
+
+
 def _stub_motor(monkeypatch, api, stdout='{}'):
     capturado = {}
 
@@ -238,11 +246,25 @@ def _stub_motor(monkeypatch, api, stdout='{}'):
         capturado['kw'] = kw
         return proc
 
+    # Misma forma que __init__._panel_json: parsea y clasifica en PanelError.
     def fake_panel_json(args, *, runtime, timeout=90, entrada=None):
-        return subprocess.run(
-            [sys.executable, str(PANEL), *args],
-            env={}, cwd=str(runtime), input=entrada, capture_output=True,
-            text=True, timeout=timeout)
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(PANEL), *args],
+                env={}, cwd=str(runtime), input=entrada, capture_output=True,
+                text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            raise _PanelErrorFalso('timeout') from None
+        salida = proc.stdout.strip()
+        try:
+            data = json.loads(salida) if salida else {}
+        except json.JSONDecodeError:
+            data = None
+        if proc.returncode != 0 or not isinstance(data, dict):
+            raise _PanelErrorFalso('engine', api._limpio(proc.stderr or salida))
+        if data.get('error'):
+            raise _PanelErrorFalso('data', api._limpio(data['error']))
+        return data
 
     class _AislamientoFalso:
         class SandboxNoDisponible(Exception):
@@ -254,6 +276,7 @@ def _stub_motor(monkeypatch, api, stdout='{}'):
 
     mod = type('M', (), {
         'PACK_HASH': 'testpackhash0000',
+        'PanelError': _PanelErrorFalso,
         '_carpeta_de_datos': staticmethod(lambda: Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
@@ -261,7 +284,7 @@ def _stub_motor(monkeypatch, api, stdout='{}'):
         '_aislamiento': staticmethod(lambda: _AislamientoFalso),
     })()
     monkeypatch.setattr(api, '_adaptador', lambda: mod)
-    monkeypatch.setattr(api.subprocess, 'run', fake_run)
+    monkeypatch.setattr(subprocess, 'run', fake_run)
     return capturado
 
 

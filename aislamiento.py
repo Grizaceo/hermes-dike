@@ -89,13 +89,17 @@ def establecer_politica(fn) -> None:
 
 
 def _politica() -> str:
-    """'auto' solo si el setting vale exactamente 'auto'; otro valor, 'requerido'."""
+    """'auto' solo si el setting vale exactamente 'auto'; otro valor, 'requerido'.
+
+    Fail-closed: si el proveedor del setting falla, se exige sandbox como con
+    un valor desconocido — nunca se degrada en silencio por un error de lectura.
+    """
     if _PROVEEDOR_POLITICA is None:
         return "auto"
     try:
         valor = _PROVEEDOR_POLITICA()
     except Exception:
-        return "auto"
+        return "requerido"
     return "auto" if str(valor or "").strip() == "auto" else "requerido"
 
 
@@ -278,7 +282,13 @@ def _directorios_paquetes(env=None) -> list:
     for d in (env or {}).get("PYTHONPATH", "").split(os.pathsep):
         if d:
             agregar(d)
-    for d in site.getsitepackages() + [site.getusersitepackages()]:
+    paquetes = list(site.getsitepackages())
+    # El user-site solo existe si el intérprete lo habilita: en un venv está
+    # desactivado y el hijo nunca lo usa, así que montarlo expondría
+    # ~/.local/lib/pythonX.Y/site-packages sin necesidad.
+    if getattr(site, "ENABLE_USER_SITE", False):
+        paquetes.append(site.getusersitepackages())
+    for d in paquetes:
         agregar(d)
     return dirs
 

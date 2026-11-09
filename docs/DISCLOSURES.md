@@ -71,7 +71,11 @@ All writes go under the current profile's plugin data folder,
   per case, to `escritos/<case_id>.json` (folder `0700`, file `0600`,
   atomic write, revision check that refuses a stale save with 409). The
   file holds the brief's HTML and plain text and a small log of the
-  citations you withdrew or escalated, with your reason.
+  citations you withdrew or escalated, with your reason. It also holds
+  `registro.pistas`: the canonical citations you carried over from content
+  search with "Llevar al escrito" — each entry keeps the citation text, its
+  gid, the graph node id, a timestamp and `origen: 'busqueda'`. Never the
+  search query.
 - **Pseudonym maps and your privacy decisions.** `privacidad/<case_id>.json`
   (`0700`/`0600`) maps each personal value found in that case's text to its
   stable token (`[PERSONA_1]`, `[RUT_1]`…) and stores which values you chose

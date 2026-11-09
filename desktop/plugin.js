@@ -23300,7 +23300,13 @@ function mensajeVeredicto(veredicto) {
   }
   return null;
 }
-function etiquetaCita(estado, detalle, meta, registro) {
+function vieneDeBusqueda(citaRaw, registro) {
+  const pistas = registro && registro.pistas || [];
+  const raw = typeof citaRaw === "string" ? citaRaw.trim() : "";
+  if (!raw) return false;
+  return pistas.some((p2) => p2 && typeof p2.cita === "string" && (raw === p2.cita || raw.startsWith(p2.cita)));
+}
+function etiquetaCitaBase(estado, detalle, meta, registro) {
   const d2 = detalle || {};
   switch (estado) {
     case "verificada": {
@@ -23324,6 +23330,10 @@ function etiquetaCita(estado, detalle, meta, registro) {
     default:
       return "";
   }
+}
+function etiquetaCita(estado, detalle, meta, registro) {
+  const base2 = etiquetaCitaBase(estado, detalle, meta, registro);
+  return base2 && vieneDeBusqueda(detalle && detalle.cita_raw, registro) ? base2 + " \xB7 lleg\xF3 desde la b\xFAsqueda (pista)" : base2;
 }
 async function sha256Hex(texto) {
   const digest = await globalThis.crypto.subtle.digest(
@@ -25664,10 +25674,10 @@ function crearPredictorCorpus() {
     etiqueta: "texto del corpus, sin verificar como cita",
     disponible: () => true,
     async predecir({ segmento, signal }) {
-      const cola = String(segmento || "").trim().split(/\s+/).slice(-4).join(" ");
-      if (cola.length < 8) return null;
+      const cola2 = String(segmento || "").trim().split(/\s+/).slice(-4).join(" ");
+      if (cola2.length < 8) return null;
       const t02 = Date.now();
-      const r2 = await rest("/prediccion/corpus?cola=" + encodeURIComponent(cola), {
+      const r2 = await rest("/prediccion/corpus?cola=" + encodeURIComponent(cola2), {
         signal: signal && signal.abort,
         timeoutMs: 5e3
       }).catch(() => null);
@@ -25680,7 +25690,7 @@ function crearPredictorCorpus() {
           fuente: r2.fuente_url || r2.gid || "corpus Dik\xE9",
           gid: r2.gid,
           sha256: r2.sha256,
-          anclaLen: (r2.ancla || cola).length
+          anclaLen: (r2.ancla || cola2).length
         },
         latencia_ms: Date.now() - t02
       };
@@ -26023,6 +26033,24 @@ function PrediccionPanel({
   ] });
 }
 
+// src/puente.js
+var cola = [];
+function encolarCita(item) {
+  if (!item || typeof item.cita !== "string" || !item.cita.trim()) return false;
+  cola.push({
+    cita: item.cita,
+    gid: typeof item.gid === "string" ? item.gid : null,
+    nodo_id: typeof item.nodo_id === "string" ? item.nodo_id : null,
+    label: typeof item.label === "string" ? item.label : null
+  });
+  return true;
+}
+function tomarCitas() {
+  const out = cola;
+  cola = [];
+  return out;
+}
+
 // src/escritor/escritor.js
 var BORRADOR = "borrador";
 var DEBOUNCE_GUARDADO = 800;
@@ -26133,6 +26161,7 @@ function SeccionEscritor() {
   const timerInfo = useRef4(null);
   const infoDocRef = useRef4({ texto: "", hash: null });
   const verificacionRef = useRef4(null);
+  const verificarRef = useRef4(null);
   const [casos, setCasos] = useState5(null);
   const [caseId, setCaseId] = useState5(BORRADOR);
   const [estadoDoc, setEstadoDoc] = useState5("cargando");
@@ -26219,11 +26248,41 @@ function SeccionEscritor() {
       setRegistro(registroRef.current);
       setEstadoDoc("guardado");
       actualizarInfoDoc(ed);
+      const pendientes = tomarCitas();
+      if (pendientes.length) {
+        const ahora = (/* @__PURE__ */ new Date()).toISOString();
+        const nuevas = [];
+        for (const p2 of pendientes) {
+          const seguro = String(p2.cita).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          ed.chain().insertContentAt(
+            ed.state.doc.content.size,
+            "<p>" + seguro + ".</p>"
+          ).run();
+          nuevas.push({
+            cita: p2.cita,
+            gid: p2.gid,
+            nodo_id: p2.nodo_id,
+            fecha: ahora,
+            origen: "busqueda"
+          });
+        }
+        const reg = registroRef.current;
+        registroRef.current = {
+          ...reg,
+          pistas: [...reg.pistas || [], ...nuevas]
+        };
+        setRegistro(registroRef.current);
+        estadoRef.current = "sin-guardar";
+        setEstadoDoc("sin-guardar");
+        programarGuardado();
+        setAviso("Cita tra\xEDda desde la b\xFAsqueda: es una pista; se est\xE1 verificando.");
+        if (verificarRef.current) verificarRef.current();
+      }
     }).catch((e3) => {
       setEstadoDoc("sin-guardar");
       setError(e3);
     });
-  }, [actualizarInfoDoc]);
+  }, [actualizarInfoDoc, programarGuardado]);
   useEffect5(() => {
     const ed = montarEditor({
       element: hostRef.current,
@@ -26303,6 +26362,7 @@ function SeccionEscritor() {
       actualizarInfoDoc(ed);
     })).catch(setError).finally(() => setVerificando(false));
   }, [verificando, actualizarInfoDoc]);
+  verificarRef.current = verificar;
   const cambiarCaso = useCallback5((cid) => {
     clearTimeout(timerGuardado.current);
     const continuar = () => {
@@ -107573,7 +107633,19 @@ function TarjetaArista({ arista, fuente }) {
     ] }) : null
   ] });
 }
-function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
+function etiquetaVigencia(v2) {
+  const e3 = v2 && v2.estado;
+  if (!e3 || e3 === "IN_FORCE") return null;
+  if (e3 === "OUT_OF_FORCE") {
+    return v2.motivo === "SUPERSEDED_VERSION" ? { texto: "versi\xF3n superada", malo: false } : { texto: "derogado", malo: true };
+  }
+  if (e3 === "FUTURE") return { texto: "a\xFAn no vigente", malo: false };
+  return { texto: "vigencia desconocida", malo: false };
+}
+function vigenteDe(v2) {
+  return !v2 || !v2.estado || v2.estado === "IN_FORCE";
+}
+function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
   if (!nodo) {
     return jsx6("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
   }
@@ -107582,7 +107654,22 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
   return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
     busqueda ? jsxs6("div", { className: "flex flex-col gap-0.5", children: [
       jsx6("span", { className: S.chip + " " + S.chipOff, children: "Resultado de b\xFAsqueda: es una pista, no una fuente verificada" }),
-      (busqueda.terminos || []).length ? jsx6("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null
+      (busqueda.terminos || []).length ? jsx6("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null,
+      jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+        jsx6("span", {
+          title: busqueda.cita ? void 0 : busqueda.cita_motivo || "sin forma de cita",
+          children: jsx6("button", {
+            type: "button",
+            className: S.ghost,
+            disabled: !busqueda.cita || !onLlevar,
+            onClick: () => {
+              if (busqueda.cita && onLlevar) onLlevar(busqueda);
+            },
+            children: "Llevar al escrito"
+          })
+        }),
+        jsx6("span", { className: S.sub, children: vigenteDe(busqueda.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+      ] })
     ] }) : null,
     jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
       jsx6("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
@@ -107662,7 +107749,7 @@ function ListaCorpus() {
   if (!pack) return jsx6("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
   return jsx6("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx6(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
-function SeccionGrafo() {
+function SeccionGrafo({ onLlevarAlEscrito }) {
   const [red, setRed] = useState6(null);
   const [redErr, setRedErr] = useState6(null);
   const [personal, setPersonal] = useState6(null);
@@ -107887,6 +107974,9 @@ function SeccionGrafo() {
     }
     if (apiRef.current) apiRef.current.enfocar(r2.nodo_id);
   }, [expandidos, unidadesMap, fuente]);
+  const alLlevar = useCallback6((r2) => {
+    if (onLlevarAlEscrito && r2 && r2.cita) onLlevarAlEscrito(r2);
+  }, [onLlevarAlEscrito]);
   const q2 = query.trim().toLocaleLowerCase();
   const coincidencias = q2 ? nodos.filter((n2) => n2.label.toLocaleLowerCase().includes(q2) || n2.id.toLocaleLowerCase().includes(q2)).slice(0, 40) : [];
   const actual = seleccion ? indice.get(seleccion) : null;
@@ -108129,17 +108219,30 @@ function SeccionGrafo() {
                 (busqueda.data && busqueda.data.resultados || []).map((r2) => {
                   const metodo = busqueda.data && busqueda.data.metodo || {};
                   const rel = Math.max(0, Math.min(1, r2.score_rel || 0));
+                  const vig = etiquetaVigencia(r2.vigencia);
                   const fueraDelFiltro = materiaFiltro && !(r2.materias || []).some((m3) => m3.nodo === materiaFiltro);
-                  return jsxs6("button", {
+                  return jsxs6("div", {
                     key: r2.nodo_id,
-                    type: "button",
-                    className: "flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)" + (fueraDelFiltro ? " opacity-40" : ""),
+                    role: "button",
+                    tabIndex: 0,
+                    className: "flex w-full cursor-pointer flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)" + (fueraDelFiltro ? " opacity-40" : ""),
                     onClick: () => alElegirResultado(r2),
+                    onKeyDown: (e3) => {
+                      if (e3.target !== e3.currentTarget) return;
+                      if (e3.key === "Enter" || e3.key === " ") {
+                        e3.preventDefault();
+                        alElegirResultado(r2);
+                      }
+                    },
                     children: [
                       jsxs6("div", { className: "flex items-center gap-1.5", children: [
                         jsx6("span", { className: S.sub, children: "#" + r2.rank }),
                         jsx6("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
-                        jsx6("span", { className: S.chip + " " + S.chipOff, children: r2.canal })
+                        jsx6("span", { className: S.chip + " " + S.chipOff, children: r2.canal }),
+                        vig ? jsx6("span", {
+                          className: S.chip + " " + (vig.malo ? S.chipBad : S.chipOff),
+                          children: vig.texto
+                        }) : null
                       ] }),
                       jsxs6("div", { className: "flex items-center gap-1.5", children: [
                         jsx6("span", {
@@ -108155,7 +108258,23 @@ function SeccionGrafo() {
                         className: S.chip + " " + S.chipOff,
                         children: (m3.relacion === "ancla" ? "ancla" : "territorio") + " \xB7 " + m3.nombre
                       })) }) : null,
-                      jsx6("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") })
+                      jsx6("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") }),
+                      jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                        jsx6("span", {
+                          title: r2.cita ? void 0 : r2.cita_motivo || "sin forma de cita",
+                          children: jsx6("button", {
+                            type: "button",
+                            className: S.ghost,
+                            disabled: !r2.cita,
+                            onClick: (e3) => {
+                              e3.stopPropagation();
+                              alLlevar(r2);
+                            },
+                            children: "Llevar al escrito"
+                          })
+                        }),
+                        jsx6("span", { className: S.sub, children: vigenteDe(r2.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+                      ] })
                     ]
                   });
                 })
@@ -108166,7 +108285,8 @@ function SeccionGrafo() {
             nodo: actual,
             conteos,
             fuente,
-            busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null
+            busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null,
+            onLlevar: alLlevar
           }) }),
           aristaSel ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
           caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs6("div", {
@@ -108570,7 +108690,13 @@ var plugin_src_default = {
           }))
         }),
         pestana === "escritor" ? jsx7(SeccionEscritor, {}) : null,
-        pestana === "grafo" ? jsx7(SeccionGrafo, {}) : null,
+        pestana === "grafo" ? jsx7(SeccionGrafo, {
+          // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
+          // y cambia de pestaña; el escritor la inserta y la verifica.
+          onLlevarAlEscrito: (r2) => {
+            if (encolarCita(r2)) setPestana("escritor");
+          }
+        }) : null,
         pestana === "nif" ? jsx7(SeccionNifPanel, {}) : null
       ] });
     }

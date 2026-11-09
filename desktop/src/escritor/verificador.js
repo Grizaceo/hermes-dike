@@ -82,7 +82,18 @@ export function mensajeVeredicto(veredicto) {
   return null
 }
 
-export function etiquetaCita(estado, detalle, meta, registro) {
+// ¿La cita_raw coincide con una pista traída desde la búsqueda? La pista
+// guarda la cita canónica insertada; el motor puede extender el raw con
+// palabras siguientes, así que basta que el raw la cubra desde el inicio.
+export function vieneDeBusqueda(citaRaw, registro) {
+  const pistas = (registro && registro.pistas) || []
+  const raw = typeof citaRaw === 'string' ? citaRaw.trim() : ''
+  if (!raw) return false
+  return pistas.some((p) => p && typeof p.cita === 'string' &&
+    (raw === p.cita || raw.startsWith(p.cita)))
+}
+
+function etiquetaCitaBase(estado, detalle, meta, registro) {
   const d = detalle || {}
   switch (estado) {
     case 'verificada': {
@@ -107,6 +118,13 @@ export function etiquetaCita(estado, detalle, meta, registro) {
     default:
       return ''
   }
+}
+
+export function etiquetaCita(estado, detalle, meta, registro) {
+  const base = etiquetaCitaBase(estado, detalle, meta, registro)
+  return base && vieneDeBusqueda(detalle && detalle.cita_raw, registro)
+    ? base + ' · llegó desde la búsqueda (pista)'
+    : base
 }
 
 // --- Hash del texto verificado ----------------------------------------------

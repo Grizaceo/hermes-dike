@@ -17,6 +17,7 @@ import { ModuloPrivacidad } from './privacidad.js'
 import { ChatEscritor } from './chat.js'
 import { NifPropuestas } from './nif-propuestas.js'
 import { PrediccionPanel } from './prediccion.js'
+import { tomarCitas } from '../puente.js'
 
 const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
@@ -125,6 +126,7 @@ export function SeccionEscritor() {
   const timerInfo = useRef(null)
   const infoDocRef = useRef({ texto: '', hash: null })
   const verificacionRef = useRef(null)
+  const verificarRef = useRef(null)
 
   const [casos, setCasos] = useState(null)
   const [caseId, setCaseId] = useState(BORRADOR)
@@ -215,11 +217,43 @@ export function SeccionEscritor() {
       setRegistro(registroRef.current)
       setEstadoDoc('guardado')
       actualizarInfoDoc(ed)
+      // Citas traídas desde la búsqueda por contenido («Llevar al escrito»):
+      // párrafo nuevo al FINAL del documento con `cita + '.'`, registro de
+      // pistas (sin la consulta) y una sola verificación por tanda. La cita
+      // entra sin verificar: la revisa el motor como cualquier otra.
+      const pendientes = tomarCitas()
+      if (pendientes.length) {
+        const ahora = new Date().toISOString()
+        const nuevas = []
+        for (const p of pendientes) {
+          const seguro = String(p.cita).replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          ed.chain().insertContentAt(ed.state.doc.content.size,
+            '<p>' + seguro + '.</p>').run()
+          nuevas.push({
+            cita: p.cita, gid: p.gid, nodo_id: p.nodo_id,
+            fecha: ahora, origen: 'busqueda',
+          })
+        }
+        const reg = registroRef.current
+        registroRef.current = {
+          ...reg, pistas: [...(reg.pistas || []), ...nuevas],
+        }
+        setRegistro(registroRef.current)
+        // estadoRef sigue en 'cargando' dentro de esta misma promesa, así que
+        // onUpdate no programó guardado: hay que pedirlo aquí para que el
+        // párrafo y registro.pistas se persistan.
+        estadoRef.current = 'sin-guardar'
+        setEstadoDoc('sin-guardar')
+        programarGuardado()
+        setAviso('Cita traída desde la búsqueda: es una pista; se está verificando.')
+        if (verificarRef.current) verificarRef.current()
+      }
     }).catch((e) => {
       setEstadoDoc('sin-guardar')
       setError(e)
     })
-  }, [actualizarInfoDoc])
+  }, [actualizarInfoDoc, programarGuardado])
 
   // Montaje del editor (una vez) + primera carga.
   useEffect(() => {
@@ -316,6 +350,7 @@ export function SeccionEscritor() {
       .catch(setError)
       .finally(() => setVerificando(false))
   }, [verificando, actualizarInfoDoc])
+  verificarRef.current = verificar
 
   const cambiarCaso = useCallback((cid) => {
     clearTimeout(timerGuardado.current)

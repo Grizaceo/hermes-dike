@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { SeccionGrafo } from './grafo3d.js'
+import { encolarCita } from './puente.js'
 
 const ID = 'dike'
 
@@ -366,7 +367,13 @@ export default {
           })),
         }),
         pestana === 'escritor' ? jsx(SeccionEscritor, {}) : null,
-        pestana === 'grafo' ? jsx(SeccionGrafo, {}) : null,
+        pestana === 'grafo' ? jsx(SeccionGrafo, {
+          // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
+          // y cambia de pestaña; el escritor la inserta y la verifica.
+          onLlevarAlEscrito: (r) => {
+            if (encolarCita(r)) setPestana('escritor')
+          },
+        }) : null,
         pestana === 'nif' ? jsx(SeccionNifPanel, {}) : null,
       ] })
     }

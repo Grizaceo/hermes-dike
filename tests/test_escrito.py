@@ -164,3 +164,16 @@ def test_escrito_registro_persiste(api, datos):
     api.escrito_guardar({'case_id': 'c1', 'html': '', 'texto': '', 'rev_base': 0,
                          'registro': reg})
     assert api.escrito_obtener('c1')['registro'] == reg
+
+
+def test_escrito_registro_pistas(api, datos):
+    """registro.pistas (citas traídas desde la búsqueda) persiste tal cual:
+    /escrito acepta el registro como dict libre, sin esquema cerrado."""
+    pista = {'cita': 'artículo 161 del Código del Trabajo',
+             'gid': 'cl.norma.ct:art:0161',
+             'nodo_id': 'a:207436:art_0161',
+             'fecha': '2026-11-08T00:00:00Z', 'origen': 'busqueda'}
+    reg = {'pistas': [pista]}
+    api.escrito_guardar({'case_id': 'c1', 'html': '', 'texto': '', 'rev_base': 0,
+                         'registro': reg})
+    assert api.escrito_obtener('c1')['registro'] == reg

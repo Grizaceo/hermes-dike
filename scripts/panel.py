@@ -269,6 +269,132 @@ def _terminos_presentes(consulta_terminos: list, familias: set) -> list:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Cita canónica de un resultado de búsqueda («Llevar al escrito», Fase 3)
+# ---------------------------------------------------------------------------
+
+# Cuerpo → nombre en prosa que `norm_reference` reconoce y resuelve al mismo
+# alias. Una forma por tipo de norma; la verificación de ida y vuelta contra
+# `resolve_norm_reference` es la que decide si la cita sirve.
+_CUERPOS_CITA = {
+    "cc": "Código Civil",
+    "cpc": "Código de Procedimiento Civil",
+    "ct": "Código del Trabajo",
+    "ccom": "Código de Comercio",
+    "ctrib": "Código Tributario",
+    "cp": "Código Penal",
+    "cpp": "Código Procesal Penal",
+    "cot": "Código Orgánico de Tribunales",
+    "cpr": "Constitución Política",
+    "dfl_1122": "Código de Aguas",
+}
+
+# Sufijos de artículo que la gramática del verificador admite (los ordinales
+# latinos del corpus). Una letra suelta tras el sufijo individualiza el
+# artículo («152 quáter G»); sin sufijo no hay forma válida.
+_SUFIJOS_ARTICULO = {
+    "bis", "ter", "quater", "quinquies", "sexies", "septies", "octies",
+    "nonies",
+}
+
+# Artículos nombrados con palabra (ninguno en el pack actual, pero la forma
+# existe en la gramática).
+_ORDINALES_CITA = {
+    "primero", "segundo", "tercero", "cuarto", "quinto", "sexto", "septimo",
+    "séptimo", "octavo", "noveno", "decimo", "décimo", "undecimo",
+    "undécimo", "duodecimo", "duodécimo", "final",
+}
+
+_GID_RUNTIME_CITA = re.compile(r"cl\.norma\.([a-z0-9_-]+):art:(.+)\Z")
+_PARTE_ARTICULO = re.compile(
+    r"(\d+)(?:_([a-záéíóúñ]+))?(?:_([a-zñ]))?\Z")
+_PARTE_TRANSITORIO = re.compile(r"t_(\d+)\Z")
+_ALIAS_NUMERADO = re.compile(r"(ley|decreto|dfl|dl)_(\d+)\Z")
+_NOMBRES_ALIAS = {
+    "ley": "Ley", "decreto": "Decreto", "dfl": "DFL", "dl": "DL",
+}
+
+
+def _cuerpo_de_cita(alias: str) -> str | None:
+    """Nombre del cuerpo en prosa que el verificador resuelve al alias."""
+    if alias in _CUERPOS_CITA:
+        return _CUERPOS_CITA[alias]
+    m = _ALIAS_NUMERADO.fullmatch(alias)
+    if m:
+        tipo, digitos = m.groups()
+        numero = (digitos[:-3] + "." + digitos[-3:]
+                  if len(digitos) > 3 else digitos)
+        return f"{_NOMBRES_ALIAS[tipo]} {numero}"
+    return None
+
+
+def _preposicion_cuerpo(alias: str) -> str:
+    """«de la» ante femenino (ley, constitución); «del» en el resto."""
+    if alias.startswith("ley_") or alias == "cpr":
+        return "de la"
+    return "del"
+
+
+def _cita_de(gid: str, resolver=None):
+    """Texto de cita canónico para un gid, o ``(None, motivo)``.
+
+    Genera la forma «artículo N [sufijo [letra]] [transitorio] del/de la
+    <cuerpo>» que la gramática del verificador reconoce y comprueba —cuando
+    hay ``resolver``— que `resolve_norm_reference` la resuelve AL MISMO gid.
+    Solo así la cita puede entrar al escrito: nunca nace verificada, la
+    revisa el motor como cualquier otra. ``resolver=None`` devuelve la forma
+    sin comprobarla (solo para inspección; `buscar` siempre pasa resolver).
+    """
+    from lexo_cli.starter.norm_reference import resolve_norm_reference
+
+    par = _GID_RUNTIME_CITA.fullmatch(gid or "")
+    if not par:
+        return None, "gid sin forma runtime reconocible"
+    alias, parte = par.groups()
+    cuerpo = _cuerpo_de_cita(alias)
+    if cuerpo is None:
+        return None, "cuerpo sin forma de cita canónica"
+
+    transitorio = _PARTE_TRANSITORIO.fullmatch(parte)
+    if transitorio:
+        cita = (f"artículo transitorio {int(transitorio.group(1))} "
+                f"{_preposicion_cuerpo(alias)} {cuerpo}")
+    else:
+        m = _PARTE_ARTICULO.fullmatch(parte)
+        if not m:
+            if parte in _ORDINALES_CITA:
+                cita = (f"artículo {parte} "
+                        f"{_preposicion_cuerpo(alias)} {cuerpo}")
+            else:
+                return None, "forma de artículo no reconocida"
+        else:
+            numero, sufijo, letra = m.groups()
+            if sufijo and len(sufijo) == 1 and not letra:
+                # «0006_a»: letra suelta sin bis/ter — la gramática la
+                # descartaría y resolvería el numeral base (artículo DISTINTO).
+                return None, ("artículo letrado sin sufijo: la gramática del "
+                              "verificador lo confundiría con el numeral base")
+            if sufijo and sufijo not in _SUFIJOS_ARTICULO:
+                return None, f"sufijo de artículo «{sufijo}» no reconocido"
+            articulo = str(int(numero))
+            if sufijo:
+                articulo += f" {sufijo}"
+                if letra:
+                    articulo += f" {letra}"
+            cita = (f"artículo {articulo} "
+                    f"{_preposicion_cuerpo(alias)} {cuerpo}")
+
+    if resolver is None:
+        return cita, None
+    try:
+        res = resolve_norm_reference(cita, resolver)
+    except Exception:
+        res = None
+    if res is not None and res.status == "RESOLVED" and res.gid == gid:
+        return cita, None
+    return None, f"«{cita}» no resolvió a este artículo"
+
+
 def _explicar_arbol(consulta: str, retriever,
                     resultados: list, arbol_dir=None) -> dict:
     """Clasifica la consulta con el árbol de materias (canal_arbol).
@@ -471,6 +597,12 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
             "sha256": ev.text_sha256,
             "url": (ev.provenance or {}).get("wasDerivedFrom")
                    or ev.source_url or None,
+            # Vigencia que el resolver ya calculó para este gid (ventana
+            # temporal del artículo): no se recalcula nada aquí.
+            "vigencia": {
+                "estado": ev.temporal_status,
+                "motivo": ev.out_of_force_reason,
+            },
         })
 
     max_score = max((r["score"] for r in resultados), default=0.0)
@@ -497,7 +629,12 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
             "unidades": r["unidades"],
             "sha256": r["sha256"],
             "url": r["url"],
+            "vigencia": r["vigencia"],
         })
+    for r in finales:
+        cita, cita_motivo = _cita_de(r["gid"], resolver)
+        r["cita"] = cita
+        r["cita_motivo"] = cita_motivo
     resultados = finales
     if not pack and dirs:
         pack = dirs[0].parent.name

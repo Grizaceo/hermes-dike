@@ -9,6 +9,16 @@
   be repaired (the replacement must pass the engine before it can be
   applied), withdrawn with a reason, or escalated, following the loop of
   Diké Shield.
+- **From search.** In the graph tab's content search, "Llevar al escrito"
+  appends the article's canonical citation as a new paragraph at the end of
+  the brief and runs the verifier on it like any other citation — it never
+  arrives verified, and a derogated or not-yet-in-force article is expected
+  to come back FALLO. The citation is a clue carried over, not a verified
+  source, and the search query itself is never stored. Articles whose gid
+  has no form the verifier grammar accepts cannot be carried over — the
+  button stays disabled with the reason: 204 lettered-without-suffix
+  articles (e.g. `art. 54 a`) and 1 `bis e` in the current corpus, because
+  the grammar would resolve them to a different article.
 - **Privacy.** Before any text leaves for a model, a rule-based detector
   marks national IDs, emails, phones, addresses, plates, names with context
   and sensitive data, keeps case numbers and judges, and replaces the rest

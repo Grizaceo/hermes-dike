@@ -358,7 +358,26 @@ function TarjetaArista({ arista, fuente }) {
   ] })
 }
 
-function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
+// Chip de vigencia del resultado: solo cuando el resolver no la da por
+// vigente. OUT_OF_FORCE se distingue derogación de versión superada (el
+// resolver mismo lo advierte: rotular «derogado» a una versión vencida cita mal).
+function etiquetaVigencia(v) {
+  const e = v && v.estado
+  if (!e || e === 'IN_FORCE') return null
+  if (e === 'OUT_OF_FORCE') {
+    return v.motivo === 'SUPERSEDED_VERSION'
+      ? { texto: 'versión superada', malo: false }
+      : { texto: 'derogado', malo: true }
+  }
+  if (e === 'FUTURE') return { texto: 'aún no vigente', malo: false }
+  return { texto: 'vigencia desconocida', malo: false }
+}
+
+function vigenteDe(v) {
+  return !v || !v.estado || v.estado === 'IN_FORCE'
+}
+
+function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
       'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un artículo expande sus unidades.' })
@@ -372,6 +391,21 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda }) {
       (busqueda.terminos || []).length
         ? jsx('div', { className: S.sub, children: 'términos: ' + busqueda.terminos.join(', ') })
         : null,
+      jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
+        jsx('span', {
+          title: busqueda.cita ? undefined : (busqueda.cita_motivo || 'sin forma de cita'),
+          children: jsx('button', {
+            type: 'button', className: S.ghost,
+            disabled: !busqueda.cita || !onLlevar,
+            onClick: () => { if (busqueda.cita && onLlevar) onLlevar(busqueda) },
+            children: 'Llevar al escrito',
+          }),
+        }),
+        jsx('span', { className: S.sub, children:
+          vigenteDe(busqueda.vigencia)
+            ? 'entra como cita sin verificar; el verificador la revisa'
+            : 'el verificador la marcará FALLO: el artículo no está vigente' }),
+      ] }),
     ] }) : null,
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
       jsx('span', { className: S.chip + ' ' + S.chipOff, children: NOMBRE_TIPO[n.tipo] || n.tipo }),
@@ -476,7 +510,7 @@ function ListaCorpus() {
 
 // ---------------------------------------------------------------------------
 
-export function SeccionGrafo() {
+export function SeccionGrafo({ onLlevarAlEscrito }) {
   const [red, setRed] = useState(null)
   const [redErr, setRedErr] = useState(null)
   const [personal, setPersonal] = useState(null)
@@ -722,6 +756,12 @@ export function SeccionGrafo() {
     if (apiRef.current) apiRef.current.enfocar(r.nodo_id)
   }, [expandidos, unidadesMap, fuente])
 
+  // «Llevar al escrito»: el plugin.src encola la cita canónica y cambia de
+  // pestaña; aquí solo se reenvía el resultado (con su cita, nunca la consulta).
+  const alLlevar = useCallback((r) => {
+    if (onLlevarAlEscrito && r && r.cita) onLlevarAlEscrito(r)
+  }, [onLlevarAlEscrito])
+
   const q = query.trim().toLocaleLowerCase()
   const coincidencias = q
     ? nodos.filter((n) =>
@@ -963,18 +1003,32 @@ export function SeccionGrafo() {
                       ((busqueda.data && busqueda.data.resultados) || []).map((r) => {
                         const metodo = (busqueda.data && busqueda.data.metodo) || {}
                         const rel = Math.max(0, Math.min(1, r.score_rel || 0))
+                        const vig = etiquetaVigencia(r.vigencia)
                         const fueraDelFiltro = materiaFiltro
                           && !(r.materias || []).some((m) => m.nodo === materiaFiltro)
-                        return jsxs('button', {
-                          key: r.nodo_id, type: 'button',
-                          className: 'flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)' +
+                        return jsxs('div', {
+                          key: r.nodo_id, role: 'button', tabIndex: 0,
+                          className: 'flex w-full cursor-pointer flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)' +
                             (fueraDelFiltro ? ' opacity-40' : ''),
                           onClick: () => alElegirResultado(r),
+                          onKeyDown: (e) => {
+                            // Solo la fila misma: las teclas del botón
+                            // «Llevar al escrito» no deben elegir el resultado.
+                            if (e.target !== e.currentTarget) return
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              alElegirResultado(r)
+                            }
+                          },
                           children: [
                             jsxs('div', { className: 'flex items-center gap-1.5', children: [
                               jsx('span', { className: S.sub, children: '#' + r.rank }),
                               jsx('span', { className: 'min-w-0 flex-1 truncate', children: r.label }),
                               jsx('span', { className: S.chip + ' ' + S.chipOff, children: r.canal }),
+                              vig ? jsx('span', {
+                                className: S.chip + ' ' + (vig.malo ? S.chipBad : S.chipOff),
+                                children: vig.texto,
+                              }) : null,
                             ] }),
                             jsxs('div', { className: 'flex items-center gap-1.5', children: [
                               jsx('span', {
@@ -1003,6 +1057,24 @@ export function SeccionGrafo() {
                             jsx('div', { className: S.sub + ' truncate', children:
                               (metodo.motor || 'bm25') + ' · canal ' + (r.canal || '') +
                               (r.evidencia ? ' — ' + r.evidencia : '') }),
+                            jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
+                              jsx('span', {
+                                title: r.cita ? undefined : (r.cita_motivo || 'sin forma de cita'),
+                                children: jsx('button', {
+                                  type: 'button', className: S.ghost,
+                                  disabled: !r.cita,
+                                  onClick: (e) => {
+                                    e.stopPropagation()
+                                    alLlevar(r)
+                                  },
+                                  children: 'Llevar al escrito',
+                                }),
+                              }),
+                              jsx('span', { className: S.sub, children:
+                                vigenteDe(r.vigencia)
+                                  ? 'entra como cita sin verificar; el verificador la revisa'
+                                  : 'el verificador la marcará FALLO: el artículo no está vigente' }),
+                            ] }),
                           ],
                         })
                       }),
@@ -1012,6 +1084,7 @@ export function SeccionGrafo() {
                   jsx(TarjetaNodo, {
                     nodo: actual, conteos, fuente,
                     busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null,
+                    onLlevar: alLlevar,
                   }) }),
                 aristaSel ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaArista, { arista: aristaSel, fuente }) }) : null,

@@ -235,3 +235,95 @@ export function nombrePerfilActivo(perfil) {
   }
   return ''
 }
+
+// --- Notas al pie «[^n]: dike:…» y fragmentos del artículo ------------------
+// El modelo ancla cada afirmación sobre un artículo con una nota de esta
+// forma; parsearNotas la separa del cuerpo y la deja lista para verificarla
+// contra el grafo. La forma canónica la fija escritor/instrucciones.md.
+
+const RE_NOTA = /^\[\^(\d+)\]:\s*dike:(a:\d+:[A-Za-z0-9_]+)(#u(\d{1,4}))?\s+(«([^»]*)»|“([^”]*)”|"([^"]*)")\s*(\((.+)\))?\s*$/
+const RE_NOTA_FILA = /^\[\^(\d+)\]:/
+
+// {cuerpo, notas, invalidas}: `cuerpo` es el texto sin las líneas de nota;
+// `notas` = [{n, nodo_id, unidad_id|null, fragmento, cita|null}]; `invalidas`
+// = líneas que empiezan por «[^n]:» pero no siguen el formato.
+export function parsearNotas(texto) {
+  const cuerpo = []
+  const notas = []
+  const invalidas = []
+  for (const linea of String(texto || '').split('\n')) {
+    const m = RE_NOTA.exec(linea)
+    if (m) {
+      const nodo_id = m[2]
+      const unidadNum = m[4]
+      notas.push({
+        n: parseInt(m[1], 10),
+        nodo_id,
+        unidad_id: unidadNum != null
+          ? nodo_id + '#u' + String(parseInt(unidadNum, 10)).padStart(2, '0')
+          : null,
+        fragmento: m[6] != null ? m[6] : (m[7] != null ? m[7] : (m[8] || '')),
+        cita: m[10] || null,
+      })
+    } else {
+      const inv = RE_NOTA_FILA.exec(linea)
+      if (inv) invalidas.push({ n: parseInt(inv[1], 10), linea })
+      else cuerpo.push(linea)
+    }
+  }
+  return { cuerpo: cuerpo.join('\n'), notas, invalidas }
+}
+
+// Normalización para comparar/ubicar un fragmento: NFC, espacios colapsados a
+// uno, bordes recortados y comillas unificadas («»“”„‟" → "; ‘’ → '). Sin
+// doblar mayúsculas ni quitar acentos: el fragmento debe ser literal.
+// Devuelve también el mapa norm[i] → índice original, para el resaltado.
+function _normMapa(texto) {
+  const norm = []
+  const mapa = []
+  let prevEsp = true
+  const s = String(texto || '')
+  for (let i = 0; i < s.length; i += 1) {
+    const ch = s[i]
+    if (/\s/.test(ch)) {
+      if (!prevEsp) { norm.push(' '); mapa.push(i); prevEsp = true }
+      continue
+    }
+    prevEsp = false
+    for (const c of ch.normalize('NFC')) {
+      const q = /[«»“”„‟"]/.test(c) ? '"' : (/[‘’]/.test(c) ? "'" : c)
+      norm.push(q)
+      mapa.push(i)
+    }
+  }
+  while (norm.length && norm[0] === ' ') { norm.shift(); mapa.shift() }
+  while (norm.length && norm[norm.length - 1] === ' ') { norm.pop(); mapa.pop() }
+  return { norm: norm.join(''), mapa }
+}
+
+export function normalizarFragmento(s) {
+  return _normMapa(s).norm
+}
+
+// ¿El fragmento aparece literal en el texto del artículo? motivo: 'corto' |
+// 'largo' | 'ausente' | null (null = encontrado). Longitudes tras normalizar.
+export function fragmentoEn(fragmento, texto) {
+  const f = normalizarFragmento(fragmento)
+  const t = normalizarFragmento(texto)
+  if (f.length < 20) return { ok: false, motivo: 'corto' }
+  if (f.length > 400) return { ok: false, motivo: 'largo' }
+  const ok = t.includes(f)
+  return { ok, motivo: ok ? null : 'ausente' }
+}
+
+// [inicio, fin] en offsets del texto ORIGINAL donde cae el fragmento, o null.
+// Se usa para resaltar el fragmento dentro del texto del artículo.
+export function rangoFragmento(texto, fragmento) {
+  const frag = normalizarFragmento(fragmento)
+  if (!frag || frag.length < 20 || frag.length > 400) return null
+  const { norm, mapa } = _normMapa(texto)
+  const ini = norm.indexOf(frag)
+  if (ini < 0) return null
+  const fin = ini + frag.length
+  return [mapa[ini], mapa[fin - 1] + 1]
+}

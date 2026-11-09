@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { SeccionGrafo } from './grafo3d.js'
-import { encolarCita } from './puente.js'
+import { encolarCita, pedirFoco } from './puente.js'
 
 const ID = 'dike'
 
@@ -354,6 +354,11 @@ export default {
         ['grafo', 'Grafo'],
         ['nif', 'NIF'],
       ]
+      // «Abrir en el grafo» desde una nota del chat o una cita verificada:
+      // deja el foco en memoria y cambia a la pestaña Grafo.
+      const onAbrirGrafo = (foco) => {
+        if (pedirFoco(foco)) setPestana('grafo')
+      }
       return jsxs('div', { className: S.page, children: [
         jsxs('div', { children: [
           jsx('div', { className: S.title, children: 'Diké' }),
@@ -372,7 +377,7 @@ export default {
             children: label,
           })),
         }),
-        pestana === 'escritor' ? jsx(SeccionEscritor, {}) : null,
+        pestana === 'escritor' ? jsx(SeccionEscritor, { onAbrirGrafo }) : null,
         pestana === 'grafo' ? jsx(SeccionGrafo, {
           // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
           // y cambia de pestaña; el escritor la inserta y la verifica.

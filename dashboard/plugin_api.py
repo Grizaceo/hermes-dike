@@ -459,6 +459,38 @@ def grafo_buscar(body: dict):
                   timeout=120, entrada=entrada)
 
 
+@router.post("/grafo/leer")
+def grafo_leer(body: dict):
+    """Lee el texto de un artículo del corpus sellado (cita, gid o nodo_id).
+
+    Pasa por el handler ``leer_articulo`` del adaptador — el mismo que usa la
+    herramienta del chat— así la ruta y el modelo comparten validación,
+    sandbox y hash. Una resolución no RESOLVED vuelve 200 con su
+    ``resolucion``; la interfaz decide qué mostrar.
+    """
+    mod = _adaptador()
+    try:
+        crudo = mod.leer_articulo(body if isinstance(body, dict) else {})
+    except Exception:
+        raise HTTPException(status_code=502, detail="motor: sin salida")
+    try:
+        data = json.loads(crudo) if isinstance(crudo, str) else crudo
+    except json.JSONDecodeError:
+        data = None
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail="motor: respuesta inválida")
+    code = data.get("error_code")
+    if code == "SANDBOX_UNAVAILABLE":
+        raise HTTPException(status_code=503,
+                            detail=str(data.get("error") or "sandbox no disponible"))
+    if code == "INPUT_ERROR":
+        raise HTTPException(status_code=400,
+                            detail=str(data.get("error") or "entrada inválida"))
+    if "error" in data:
+        raise HTTPException(status_code=502, detail=_limpio(str(data.get("error"))))
+    return data
+
+
 def _ambiental_dir(mod) -> Path:
     """Datos locales del grafo ambiental (solo en este equipo, no publicados)."""
     return mod._carpeta_de_datos() / "grafo-local" / "ambiental"

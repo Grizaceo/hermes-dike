@@ -23898,6 +23898,84 @@ function nombrePerfilActivo(perfil) {
   }
   return "";
 }
+var RE_NOTA = /^\[\^(\d+)\]:\s*dike:(a:\d+:[A-Za-z0-9_]+)(#u(\d{1,4}))?\s+(«([^»]*)»|“([^”]*)”|"([^"]*)")\s*(\((.+)\))?\s*$/;
+var RE_NOTA_FILA = /^\[\^(\d+)\]:/;
+function parsearNotas(texto) {
+  const cuerpo = [];
+  const notas = [];
+  const invalidas = [];
+  for (const linea of String(texto || "").split("\n")) {
+    const m3 = RE_NOTA.exec(linea);
+    if (m3) {
+      const nodo_id = m3[2];
+      const unidadNum = m3[4];
+      notas.push({
+        n: parseInt(m3[1], 10),
+        nodo_id,
+        unidad_id: unidadNum != null ? nodo_id + "#u" + String(parseInt(unidadNum, 10)).padStart(2, "0") : null,
+        fragmento: m3[6] != null ? m3[6] : m3[7] != null ? m3[7] : m3[8] || "",
+        cita: m3[10] || null
+      });
+    } else {
+      const inv = RE_NOTA_FILA.exec(linea);
+      if (inv) invalidas.push({ n: parseInt(inv[1], 10), linea });
+      else cuerpo.push(linea);
+    }
+  }
+  return { cuerpo: cuerpo.join("\n"), notas, invalidas };
+}
+function _normMapa(texto) {
+  const norm2 = [];
+  const mapa = [];
+  let prevEsp = true;
+  const s2 = String(texto || "");
+  for (let i3 = 0; i3 < s2.length; i3 += 1) {
+    const ch = s2[i3];
+    if (/\s/.test(ch)) {
+      if (!prevEsp) {
+        norm2.push(" ");
+        mapa.push(i3);
+        prevEsp = true;
+      }
+      continue;
+    }
+    prevEsp = false;
+    for (const c4 of ch.normalize("NFC")) {
+      const q2 = /[«»“”„‟"]/.test(c4) ? '"' : /[‘’]/.test(c4) ? "'" : c4;
+      norm2.push(q2);
+      mapa.push(i3);
+    }
+  }
+  while (norm2.length && norm2[0] === " ") {
+    norm2.shift();
+    mapa.shift();
+  }
+  while (norm2.length && norm2[norm2.length - 1] === " ") {
+    norm2.pop();
+    mapa.pop();
+  }
+  return { norm: norm2.join(""), mapa };
+}
+function normalizarFragmento(s2) {
+  return _normMapa(s2).norm;
+}
+function fragmentoEn(fragmento, texto) {
+  const f2 = normalizarFragmento(fragmento);
+  const t4 = normalizarFragmento(texto);
+  if (f2.length < 20) return { ok: false, motivo: "corto" };
+  if (f2.length > 400) return { ok: false, motivo: "largo" };
+  const ok = t4.includes(f2);
+  return { ok, motivo: ok ? null : "ausente" };
+}
+function rangoFragmento(texto, fragmento) {
+  const frag = normalizarFragmento(fragmento);
+  if (!frag || frag.length < 20 || frag.length > 400) return null;
+  const { norm: norm2, mapa } = _normMapa(texto);
+  const ini = norm2.indexOf(frag);
+  if (ini < 0) return null;
+  const fin = ini + frag.length;
+  return [mapa[ini], mapa[fin - 1] + 1];
+}
 
 // src/escritor/chat.js
 var PERFIL_DEFAULT = "lexo-lawyer";
@@ -23912,6 +23990,110 @@ var ESTILOS_ESTADO_RESP = {
   retirada: "chipOff",
   escalada: "chipOff"
 };
+var _leerCache = /* @__PURE__ */ new Map();
+function leerArticulo(nodoId) {
+  if (!_leerCache.has(nodoId)) {
+    _leerCache.set(nodoId, rest("/grafo/leer", {
+      method: "POST",
+      body: { nodo_id: nodoId },
+      timeoutMs: 12e4
+    }).catch((e3) => ({ __error: e3 })));
+  }
+  return _leerCache.get(nodoId);
+}
+function textoParaNota(data, unidadId) {
+  if (!data || data.resolucion !== "RESOLVED") return null;
+  if (unidadId) {
+    const u2 = (data.unidades || []).find((x3) => x3.id === unidadId);
+    if (u2 && typeof u2.texto === "string") return u2.texto;
+  }
+  return typeof data.texto === "string" ? data.texto : null;
+}
+function NotaItem({ nota, verif, onAbrirGrafo }) {
+  const [nodoOk, setNodoOk] = useState2(null);
+  const [frag, setFrag] = useState2(null);
+  const [citaDet, setCitaDet] = useState2(void 0);
+  const nodoId = nota.nodo_id;
+  useEffect2(() => {
+    let vivo = true;
+    setNodoOk(null);
+    setFrag(null);
+    rest("/grafo/nodo?id=" + encodeURIComponent(nodoId)).then(() => {
+      if (vivo) setNodoOk(true);
+    }).catch(() => {
+      if (vivo) setNodoOk(false);
+    });
+    leerArticulo(nodoId).then((data) => {
+      if (!vivo) return;
+      if (data && data.__error) {
+        setFrag(null);
+        return;
+      }
+      const texto = textoParaNota(data, nota.unidad_id);
+      setFrag(texto == null ? { ok: false, motivo: "ausente" } : fragmentoEn(nota.fragmento, texto));
+    }).catch(() => {
+      if (vivo) setFrag(null);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [nodoId, nota.unidad_id, nota.fragmento]);
+  useEffect2(() => {
+    const detalles = verif && verif.res && verif.res.detalles || [];
+    const c4 = (nota.cita || "").trim();
+    setCitaDet(c4 ? detalles.find((d2) => (d2.cita_raw || "").trim() === c4) : void 0);
+  }, [nota.cita, verif]);
+  const nodoInexistente = nodoOk === false;
+  const fragTexto = frag == null ? "comprobando fragmento\u2026" : frag.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (frag.motivo === "corto" ? " (muy corto para comparar)" : frag.motivo === "largo" ? " (demasiado largo)" : "");
+  const abrir = () => onAbrirGrafo && onAbrirGrafo({
+    nodo_id: nodoId,
+    unidad_id: nota.unidad_id,
+    fragmento: nota.fragmento
+  });
+  return jsxs2("div", { className: "flex flex-col gap-0.5 text-xs", children: [
+    jsxs2("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx2("span", { className: S.sub, children: "[^" + nota.n + "]" }),
+      jsx2("code", { className: S.sub, children: nodoId + (nota.unidad_id ? " " + nota.unidad_id.split("#")[1] : "") }),
+      citaDet ? jsx2("span", {
+        className: S.chip + " " + (citaDet.estado === "VERIFICADA" ? S.chipOk : S.chipOff),
+        title: "Estado que fij\xF3 el motor para esta cita",
+        children: citaDet.estado
+      }) : null,
+      jsx2("button", {
+        type: "button",
+        className: S.link,
+        disabled: nodoInexistente,
+        title: nodoInexistente ? "El nodo no existe en el corpus" : "Verif\xEDcalo t\xFA: abrir en el grafo",
+        onClick: abrir,
+        children: "Verif\xEDcalo t\xFA: abrir en el grafo"
+      })
+    ] }),
+    jsxs2("div", { className: S.sub, children: [
+      nodoOk === null ? "comprobando nodo\u2026" : nodoInexistente ? "Nodo inexistente" : null,
+      nodoOk === true ? jsx2("span", { children: (nodoOk === true ? " \xB7 " : "") + fragTexto }) : null
+    ] })
+  ] });
+}
+function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
+  if (!notas.length && !invalidas.length) return null;
+  return jsxs2("div", { className: "flex flex-col gap-1 rounded border border-(--ui-stroke-secondary) p-2", children: [
+    jsx2("div", { className: S.cardTitle, children: "Notas" }),
+    ...notas.map((n2) => jsx2(NotaItem, {
+      key: n2.n,
+      nota: n2,
+      verif,
+      onAbrirGrafo
+    })),
+    ...invalidas.map(
+      (iv) => jsx2("div", {
+        key: "inv" + iv.n,
+        className: "text-xs text-(--ui-danger)",
+        children: "Nota con formato no reconocible: [^" + iv.n + "]"
+      })
+    ),
+    jsx2("div", { className: S.sub, children: "La pertinencia para el caso es una lectura del modelo; decides t\xFA." })
+  ] });
+}
 function ChatEscritor({
   editorRef,
   caseId,
@@ -23921,7 +24103,8 @@ function ChatEscritor({
   setRegistro,
   estrategiaPriv,
   rev,
-  onSesion
+  onSesion,
+  onAbrirGrafo
 }) {
   const [perfilOk, setPerfilOk] = useState2(null);
   const [perfilElegido, setPerfilElegido] = useState2(null);
@@ -24236,41 +24419,57 @@ function ChatEscritor({
     jsx2("div", { className: S.sub, children: "El estado de las citas lo fija Dik\xE9, no el modelo." }),
     perfilOk === null ? jsx2("div", { className: S.sub, children: "abriendo sesi\xF3n\u2026" }) : null,
     jsxs2("div", { className: "flex max-h-80 flex-col gap-2 overflow-auto", children: [
-      ...mensajes.map((m3, i3) => jsxs2("div", {
-        key: i3,
-        className: m3.rol === "user" ? "text-sm" : "rounded border border-(--ui-stroke-secondary) p-2 text-sm",
-        children: [
-          m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { children: "T\xFA: " }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1", children: [
-            jsx2("div", { className: "whitespace-pre-wrap", children: rehidratar(
-              m3.texto,
-              registro && registro.chat && registro.chat.mapa || {}
-            ) }),
-            m3.verificando ? jsx2("span", {
-              className: S.chip + " " + S.chipOff,
-              children: "verificando citas\u2026"
-            }) : null,
-            m3.verif && m3.verif.fallo ? jsx2("div", {
-              className: "text-xs text-(--ui-danger)",
-              children: "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas."
-            }) : null,
-            m3.verif && m3.verif.res ? jsxs2("div", { className: "flex flex-wrap gap-1", children: (m3.verif.res.detalles || []).map((d2, j2) => {
-              const est = estadoCita(d2, m3.verif.hash, m3.verif.hash, registro);
-              return jsx2("span", {
-                key: j2,
-                className: S.chip + " " + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                title: etiquetaCita(est, d2, m3.verif.res.meta || {}, registro),
-                children: d2.cita_raw
-              });
-            }) }) : null,
-            jsx2("button", {
-              type: "button",
-              className: S.link,
-              onClick: () => insertar(m3.texto),
-              children: "Insertar en el escrito"
-            })
-          ] })
-        ]
-      })),
+      ...mensajes.map((m3, i3) => {
+        const notas = m3.rol === "assistant" ? parsearNotas(m3.texto) : { cuerpo: m3.texto, notas: [], invalidas: [] };
+        return jsxs2("div", {
+          key: i3,
+          className: m3.rol === "user" ? "text-sm" : "rounded border border-(--ui-stroke-secondary) p-2 text-sm",
+          children: [
+            m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { children: "T\xFA: " }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1", children: [
+              jsx2("div", { className: "whitespace-pre-wrap", children: rehidratar(
+                notas.cuerpo,
+                registro && registro.chat && registro.chat.mapa || {}
+              ) }),
+              m3.verificando ? jsx2("span", {
+                className: S.chip + " " + S.chipOff,
+                children: "verificando citas\u2026"
+              }) : null,
+              m3.verif && m3.verif.fallo ? jsx2("div", {
+                className: "text-xs text-(--ui-danger)",
+                children: "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas."
+              }) : null,
+              m3.verif && m3.verif.res ? jsxs2("div", { className: "flex flex-wrap gap-1", children: (m3.verif.res.detalles || []).map((d2, j2) => {
+                const est = estadoCita(d2, m3.verif.hash, m3.verif.hash, registro);
+                const chip = {
+                  key: j2,
+                  className: S.chip + " " + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
+                  title: etiquetaCita(est, d2, m3.verif.res.meta || {}, registro) + (d2.nodo_id ? " \xB7 clic para abrir en el grafo" : ""),
+                  children: d2.cita_raw
+                };
+                return est === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx2("button", {
+                  type: "button",
+                  className: chip.className + " cursor-pointer",
+                  title: chip.title,
+                  onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
+                  children: d2.cita_raw
+                }) : jsx2("span", chip);
+              }) }) : null,
+              jsx2(NotasAlPie, {
+                notas: notas.notas,
+                invalidas: notas.invalidas,
+                verif: m3.verif,
+                onAbrirGrafo
+              }),
+              jsx2("button", {
+                type: "button",
+                className: S.link,
+                onClick: () => insertar(m3.texto),
+                children: "Insertar en el escrito"
+              })
+            ] })
+          ]
+        });
+      }),
       stream ? jsx2("div", { className: "rounded border border-(--ui-stroke-secondary) p-2 text-sm whitespace-pre-wrap", children: stream }) : null
     ] }),
     error2 ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
@@ -26062,6 +26261,25 @@ function tomarCitas() {
   cola = [];
   return out;
 }
+var RE_NODO = /^a:\d+:[A-Za-z0-9_]+$/;
+var foco = null;
+var _texto = (v2) => typeof v2 === "string" && v2 ? v2 : null;
+function pedirFoco(item) {
+  if (!item || typeof item.nodo_id !== "string" || !RE_NODO.test(item.nodo_id)) {
+    return false;
+  }
+  foco = {
+    nodo_id: item.nodo_id,
+    unidad_id: _texto(item.unidad_id),
+    fragmento: _texto(item.fragmento)
+  };
+  return true;
+}
+function tomarFoco() {
+  const out = foco;
+  foco = null;
+  return out;
+}
 
 // src/escritor/escritor.js
 var BORRADOR = "borrador";
@@ -26161,7 +26379,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
     ] })
   ] });
 }
-function SeccionEscritor() {
+function SeccionEscritor({ onAbrirGrafo }) {
   const hostRef = useRef4(null);
   const editorRef = useRef4(null);
   const revRef = useRef4(0);
@@ -26523,7 +26741,8 @@ function SeccionEscritor() {
       setRegistro,
       estrategiaPriv: ((registro || {}).privacidad || {}).estrategia,
       rev: revRef.current,
-      onSesion: setChatSesion
+      onSesion: setChatSesion,
+      onAbrirGrafo
     }),
     jsx5(NifPropuestas, {
       editorRef,
@@ -26562,7 +26781,13 @@ function SeccionEscritor() {
           jsxs5("div", { className: "min-w-0", children: [
             jsxs5("div", { className: "flex items-center gap-2", children: [
               jsx5("div", { children: d2.cita_raw }),
-              jsx5("span", { className: S.chip + " " + S[es.chip], children: es.texto })
+              estado === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx5("button", {
+                type: "button",
+                className: S.chip + " " + S[es.chip] + " cursor-pointer",
+                title: "Abrir el art\xEDculo en el grafo",
+                onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
+                children: es.texto
+              }) : jsx5("span", { className: S.chip + " " + S[es.chip], children: es.texto })
             ] }),
             jsx5("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
             estado === "fallo" ? jsx5(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
@@ -107761,6 +107986,88 @@ function ListaCorpus() {
   if (!pack) return jsx6("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
   return jsx6("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx6(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
+function TextoArticulo({ foco: foco2 }) {
+  const [data, setData] = useState6(null);
+  const [error2, setError] = useState6(null);
+  const nodoId = foco2 && foco2.nodo_id;
+  useEffect6(() => {
+    setData(null);
+    setError(null);
+    if (!nodoId) return void 0;
+    let vivo = true;
+    rest("/grafo/leer", {
+      method: "POST",
+      body: { nodo_id: nodoId },
+      timeoutMs: 12e4
+    }).then((d2) => {
+      if (vivo) setData(d2);
+    }).catch((e3) => {
+      if (vivo) setError(e3);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [nodoId]);
+  if (error2) {
+    return jsx6("div", {
+      className: "text-xs text-(--ui-danger)",
+      children: "No se pudo leer el art\xEDculo: " + mensajeError(error2)
+    });
+  }
+  if (!data) return jsx6("div", { className: S.sub, children: "Leyendo el art\xEDculo\u2026" });
+  if (data.resolucion !== "RESOLVED") {
+    return jsx6("div", { className: S.sub, children: "El art\xEDculo no se resolvi\xF3 en el corpus (" + (data.resolucion || "?") + (data.motivo ? ": " + data.motivo : "") + ")." });
+  }
+  const texto = data.texto || "";
+  const unidades = data.unidades || [];
+  const unidad = foco2 && foco2.unidad_id ? unidades.find((u2) => u2.id === foco2.unidad_id) : null;
+  const marcas = [];
+  if (unidad && Number.isFinite(unidad.inicio) && Number.isFinite(unidad.fin)) {
+    marcas.push({ ini: unidad.inicio, fin: unidad.fin, cls: "unit" });
+  }
+  let fragEstado = null;
+  if (foco2 && foco2.fragmento) {
+    fragEstado = fragmentoEn(foco2.fragmento, texto);
+    const rango = rangoFragmento(texto, foco2.fragmento);
+    if (rango) marcas.push({ ini: rango[0], fin: rango[1], cls: "frag" });
+  }
+  const segmentos = _segmentes(texto, marcas);
+  const etiquetaUnidad = unidad ? unidad.etiqueta : null;
+  return jsxs6("div", { className: "flex flex-col gap-1.5", children: [
+    jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx6("span", { className: S.cardTitle, children: "Texto del art\xEDculo" }),
+      jsx6("span", {
+        className: S.chip + " " + S.chipOff,
+        children: data.articulo || data.nodo_id || ""
+      }),
+      data.pack_hash ? jsx6("span", {
+        className: S.sub,
+        children: "pack " + data.pack_hash
+      }) : null
+    ] }),
+    jsxs6("div", { className: S.sub, children: [
+      data.norma && (data.norma.nombre_corto || data.norma.titulo) ? (data.norma.nombre_corto || data.norma.titulo) + " \u2014 " : "",
+      jsx6("a", {
+        href: data.fuente_url,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        className: S.link,
+        children: "fuente \u2197"
+      }),
+      " \xB7 Copia fechada: verifica t\xFA el texto vigente"
+    ] }),
+    unidad ? jsx6("div", { className: S.sub, children: "Unidad resaltada: " + (etiquetaUnidad || foco2.unidad_id) }) : null,
+    fragEstado ? jsx6("div", { className: S.sub, children: fragEstado.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (fragEstado.motivo === "corto" ? " (muy corto para comparar)" : fragEstado.motivo === "largo" ? " (demasiado largo)" : "") }) : null,
+    jsxs6("div", {
+      className: "max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md border border-(--ui-stroke-secondary) p-2 text-xs leading-relaxed",
+      children: segmentos.map((s2, i3) => jsx6("span", {
+        key: i3,
+        style: s2.cls === "frag" ? { background: "rgba(250,204,21,0.35)" } : s2.cls === "unit" ? { background: "rgba(96,165,250,0.18)" } : void 0,
+        children: s2.texto
+      }))
+    })
+  ] });
+}
 function SeccionGrafo({ onLlevarAlEscrito }) {
   const [red, setRed] = useState6(null);
   const [redErr, setRedErr] = useState6(null);
@@ -107792,6 +108099,8 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
   const [fallo3d, setFallo3d] = useState6(null);
   const [listaAbierta, setListaAbierta] = useState6(false);
   const apiRef = useRef5(null);
+  const [foco2] = useState6(() => tomarFoco());
+  const focoAplicado = useRef5(false);
   const cargar = useCallback6(() => {
     setRedErr(null);
     setPersonalErr(null);
@@ -107805,6 +108114,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
   useEffect6(() => {
     rest("/grafo/fuentes").then((fs) => {
       setFuentes(fs);
+      if (foco2) return;
       const amb = fs && fs.find((f2) => f2.id === "ambiental" && f2.disponible);
       let elegida = null;
       try {
@@ -107817,7 +108127,25 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       else if (amb) setFuenteState("ambiental");
     }).catch(() => {
     });
-  }, []);
+  }, [foco2]);
+  useEffect6(() => {
+    if (!foco2 || focoAplicado.current) return;
+    if (fuente !== "corpus") {
+      setFuenteState("corpus");
+      return;
+    }
+    if (!red) return;
+    focoAplicado.current = true;
+    setSeleccion(foco2.nodo_id);
+    if (!expandidos.has(foco2.nodo_id)) {
+      setExpandidos((prev) => new Set(prev).add(foco2.nodo_id));
+      if (!unidadesMap.has(foco2.nodo_id)) {
+        rest("/grafo/unidades?articulo=" + encodeURIComponent(foco2.nodo_id)).then((d2) => setUnidadesMap((prev) => new Map(prev).set(foco2.nodo_id, d2))).catch(() => {
+        });
+      }
+    }
+    if (apiRef.current) apiRef.current.enfocar(foco2.nodo_id);
+  }, [foco2, fuente, red, expandidos, unidadesMap]);
   const alFallo3d = useCallback6((msg) => {
     setFallo3d(msg);
     setListaAbierta(true);
@@ -107896,10 +108224,10 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     if (caminoOn && cam && (cam.ids || []).length) {
       return { ids: new Set(cam.ids), links: new Set(cam.links || []) };
     }
-    const foco = seleccion || hover;
-    if (foco) {
-      const ids2 = /* @__PURE__ */ new Set([foco]);
-      const res = busquedaPorNodo.get(foco);
+    const foco3 = seleccion || hover;
+    if (foco3) {
+      const ids2 = /* @__PURE__ */ new Set([foco3]);
+      const res = busquedaPorNodo.get(foco3);
       if (res) {
         for (const u2 of res.unidades || []) ids2.add(u2.id);
       }
@@ -107907,11 +108235,11 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       for (const l2 of proyeccion.links) {
         const s2 = idDe(l2.source);
         const t4 = idDe(l2.target);
-        if (s2 === foco) {
+        if (s2 === foco3) {
           ids2.add(t4);
           links2.add(s2 + "|" + t4 + "|" + l2.tipo);
         }
-        if (t4 === foco) {
+        if (t4 === foco3) {
           ids2.add(s2);
           links2.add(s2 + "|" + t4 + "|" + l2.tipo);
         }
@@ -108293,6 +108621,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
               ] }) : null
             ]
           }) : null,
+          foco2 ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TextoArticulo, { foco: foco2 }) }) : null,
           jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaNodo, {
             nodo: actual,
             conteos,
@@ -108688,6 +109017,9 @@ var plugin_src_default = {
         ["grafo", "Grafo"],
         ["nif", "NIF"]
       ];
+      const onAbrirGrafo = (foco2) => {
+        if (pedirFoco(foco2)) setPestana("grafo");
+      };
       return jsxs7("div", { className: S.page, children: [
         jsxs7("div", { children: [
           jsx7("div", { className: S.title, children: "Dik\xE9" }),
@@ -108707,7 +109039,7 @@ var plugin_src_default = {
             children: label2
           }))
         }),
-        pestana === "escritor" ? jsx7(SeccionEscritor, {}) : null,
+        pestana === "escritor" ? jsx7(SeccionEscritor, { onAbrirGrafo }) : null,
         pestana === "grafo" ? jsx7(SeccionGrafo, {
           // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
           // y cambia de pestaña; el escritor la inserta y la verifica.

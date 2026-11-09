@@ -7,6 +7,8 @@ import ForceGraph3D from '3d-force-graph'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { mensajeError, rest, storage, S } from './common.js'
+import { tomarFoco } from './puente.js'
+import { fragmentoEn, rangoFragmento } from './escritor/chat-logica.js'
 
 const COLORES_NODO = {
   instrumento: '#60a5fa',
@@ -509,6 +511,110 @@ function ListaCorpus() {
 }
 
 // ---------------------------------------------------------------------------
+// Texto del artículo (foco desde una nota del chat): lee /grafo/leer y
+// resalta el rango de la unidad y, dentro, el fragmento citado.
+// ---------------------------------------------------------------------------
+
+// Segmenta `texto` por los rangos {ini, fin, cls} ('unit' | 'frag'), que ya
+// vienen en offsets del texto original. Devuelve [{texto, cls}].
+function _segmentos(texto, marcas) {
+  const puntos = new Set([0, texto.length])
+  for (const m of marcas) { puntos.add(m.ini); puntos.add(m.fin) }
+  const orden = [...puntos].sort((a, b) => a - b)
+  const out = []
+  for (let i = 0; i < orden.length - 1; i += 1) {
+    const a = orden[i]
+    const b = orden[i + 1]
+    if (a >= b) continue
+    const en = marcas.filter((m) => m.ini <= a && a < m.fin)
+    const cls = en.some((m) => m.cls === 'frag') ? 'frag' : (en.length ? 'unit' : '')
+    out.push({ texto: texto.slice(a, b), cls })
+  }
+  return out
+}
+
+function TextoArticulo({ foco }) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+  const nodoId = foco && foco.nodo_id
+  useEffect(() => {
+    setData(null)
+    setError(null)
+    if (!nodoId) return undefined
+    let vivo = true
+    rest('/grafo/leer', {
+      method: 'POST', body: { nodo_id: nodoId }, timeoutMs: 120000,
+    }).then((d) => { if (vivo) setData(d) })
+      .catch((e) => { if (vivo) setError(e) })
+    return () => { vivo = false }
+  }, [nodoId])
+
+  if (error) {
+    return jsx('div', { className: 'text-xs text-(--ui-danger)',
+      children: 'No se pudo leer el artículo: ' + mensajeError(error) })
+  }
+  if (!data) return jsx('div', { className: S.sub, children: 'Leyendo el artículo…' })
+  if (data.resolucion !== 'RESOLVED') {
+    return jsx('div', { className: S.sub, children:
+      'El artículo no se resolvió en el corpus (' +
+      (data.resolucion || '?') + (data.motivo ? ': ' + data.motivo : '') + ').' })
+  }
+
+  const texto = data.texto || ''
+  const unidades = data.unidades || []
+  const unidad = foco && foco.unidad_id
+    ? unidades.find((u) => u.id === foco.unidad_id) : null
+  const marcas = []
+  if (unidad && Number.isFinite(unidad.inicio) && Number.isFinite(unidad.fin)) {
+    marcas.push({ ini: unidad.inicio, fin: unidad.fin, cls: 'unit' })
+  }
+  let fragEstado = null
+  if (foco && foco.fragmento) {
+    fragEstado = fragmentoEn(foco.fragmento, texto)
+    const rango = rangoFragmento(texto, foco.fragmento)
+    if (rango) marcas.push({ ini: rango[0], fin: rango[1], cls: 'frag' })
+  }
+  const segmentos = _segmentes(texto, marcas)
+  const etiquetaUnidad = unidad ? unidad.etiqueta : null
+
+  return jsxs('div', { className: 'flex flex-col gap-1.5', children: [
+    jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
+      jsx('span', { className: S.cardTitle, children: 'Texto del artículo' }),
+      jsx('span', { className: S.chip + ' ' + S.chipOff,
+        children: (data.articulo || data.nodo_id || '') }),
+      data.pack_hash ? jsx('span', { className: S.sub,
+        children: 'pack ' + data.pack_hash }) : null,
+    ] }),
+    jsxs('div', { className: S.sub, children: [
+      (data.norma && (data.norma.nombre_corto || data.norma.titulo)
+        ? (data.norma.nombre_corto || data.norma.titulo) + ' — ' : ''),
+      jsx('a', { href: data.fuente_url, target: '_blank', rel: 'noopener noreferrer',
+        className: S.link, children: 'fuente ↗' }),
+      ' · Copia fechada: verifica tú el texto vigente',
+    ] }),
+    unidad ? jsx('div', { className: S.sub, children:
+      'Unidad resaltada: ' + (etiquetaUnidad || foco.unidad_id) }) : null,
+    fragEstado ? jsx('div', { className: S.sub, children:
+      fragEstado.ok
+        ? 'Fragmento encontrado en el artículo'
+        : 'El fragmento no está en ese artículo' +
+          (fragEstado.motivo === 'corto' ? ' (muy corto para comparar)'
+            : fragEstado.motivo === 'largo' ? ' (demasiado largo)' : '') }) : null,
+    jsxs('div', {
+      className: 'max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md '
+        + 'border border-(--ui-stroke-secondary) p-2 text-xs leading-relaxed',
+      children: segmentos.map((s, i) => jsx('span', {
+        key: i,
+        style: s.cls === 'frag'
+          ? { background: 'rgba(250,204,21,0.35)' }
+          : s.cls === 'unit' ? { background: 'rgba(96,165,250,0.18)' } : undefined,
+        children: s.texto,
+      })),
+    }),
+  ] })
+}
+
+// ---------------------------------------------------------------------------
 
 export function SeccionGrafo({ onLlevarAlEscrito }) {
   const [red, setRed] = useState(null)
@@ -542,6 +648,10 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
   const apiRef = useRef(null)
+  // Foco pendiente del chat (una nota «abrir en el grafo»). Se lee una vez al
+  // montar; la fuente se fuerza a corpus y la preferencia guardada no se toca.
+  const [foco] = useState(() => tomarFoco())
+  const focoAplicado = useRef(false)
 
   const cargar = useCallback(() => {
     setRedErr(null)
@@ -556,6 +666,9 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   useEffect(() => {
     rest('/grafo/fuentes').then((fs) => {
       setFuentes(fs)
+      // Un foco pendiente fuerza corpus: no se restaura la fuente guardada
+      // (ni se sobrescribe — setFuenteState, no setFuente).
+      if (foco) return
       const amb = fs && fs.find((f) => f.id === 'ambiental' && f.disponible)
       let elegida = null
       try { elegida = storage && storage.get('grafo.fuente') } catch (e) { elegida = null }
@@ -563,7 +676,27 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
       else if (elegida === 'corpus') setFuenteState('corpus')
       else if (amb) setFuenteState('ambiental')
     }).catch(() => {})
-  }, [])
+  }, [foco])
+
+  // Aplica el foco una vez que la red del corpus está cargada: selecciona y
+  // expande el artículo (como alElegirResultado) y enfoca la cámara. Mientras
+  // `red` carga el panel «Texto del artículo» ya muestra su propio estado.
+  useEffect(() => {
+    if (!foco || focoAplicado.current) return
+    if (fuente !== 'corpus') { setFuenteState('corpus'); return }
+    if (!red) return
+    focoAplicado.current = true
+    setSeleccion(foco.nodo_id)
+    if (!expandidos.has(foco.nodo_id)) {
+      setExpandidos((prev) => new Set(prev).add(foco.nodo_id))
+      if (!unidadesMap.has(foco.nodo_id)) {
+        rest('/grafo/unidades?articulo=' + encodeURIComponent(foco.nodo_id))
+          .then((d) => setUnidadesMap((prev) => new Map(prev).set(foco.nodo_id, d)))
+          .catch(() => {})
+      }
+    }
+    if (apiRef.current) apiRef.current.enfocar(foco.nodo_id)
+  }, [foco, fuente, red, expandidos, unidadesMap])
 
   const alFallo3d = useCallback((msg) => {
     setFallo3d(msg)
@@ -1080,6 +1213,8 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                       }),
                     ] }) : null,
                   ] }) : null,
+                foco ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
+                  jsx(TextoArticulo, { foco }) }) : null,
                 jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaNodo, {
                     nodo: actual, conteos, fuente,

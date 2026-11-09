@@ -24,3 +24,34 @@ export function tomarCitas() {
   cola = []
   return out
 }
+
+// --- Foco del grafo (Chat/Notas → pestaña Grafo) --------------------------
+// Un solo foco pendiente en memoria: la última petición gana y se consume al
+// leerla. Sin persistencia ni storage.
+
+const RE_NODO = /^a:\d+:[A-Za-z0-9_]+$/
+let foco = null
+
+const _texto = (v) => (typeof v === 'string' && v ? v : null)
+
+// pedirFoco({nodo_id, unidad_id?, fragmento?}) -> true si quedó encolado.
+// nodo_id es obligatorio y debe tener la forma a:CODE:EID; unidad_id y
+// fragmento se sanea a string o null.
+export function pedirFoco(item) {
+  if (!item || typeof item.nodo_id !== 'string' || !RE_NODO.test(item.nodo_id)) {
+    return false
+  }
+  foco = {
+    nodo_id: item.nodo_id,
+    unidad_id: _texto(item.unidad_id),
+    fragmento: _texto(item.fragmento),
+  }
+  return true
+}
+
+// tomarFoco() -> el foco pendiente y lo limpia (una sola lectura lo consume).
+export function tomarFoco() {
+  const out = foco
+  foco = null
+  return out
+}

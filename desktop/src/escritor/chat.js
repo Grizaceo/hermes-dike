@@ -12,7 +12,8 @@ import { estadoCita, etiquetaCita, sha256Hex } from './verificador.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import {
   acumDeltas, activoDe, candidatosPerfil, componerTurno, etiquetaDestino,
-  etiquetaModelo, filtroEvento, nombrePerfilActivo, parsePregunta,
+  etiquetaModelo, filtroEvento, fragmentoEn, nombrePerfilActivo, parsePregunta,
+  parsearNotas,
 } from './chat-logica.js'
 
 const PERFIL_DEFAULT = 'lexo-lawyer'
@@ -35,9 +36,117 @@ const ESTILOS_ESTADO_RESP = {
   retirada: 'chipOff', escalada: 'chipOff',
 }
 
+// Caché por nodo_id de las lecturas /grafo/leer dentro del componente: varias
+// notas pueden citar el mismo artículo y no hay que releerlo.
+const _leerCache = new Map()
+function leerArticulo(nodoId) {
+  if (!_leerCache.has(nodoId)) {
+    _leerCache.set(nodoId, rest('/grafo/leer', {
+      method: 'POST', body: { nodo_id: nodoId }, timeoutMs: 120000,
+    }).catch((e) => ({ __error: e })))
+  }
+  return _leerCache.get(nodoId)
+}
+
+// Texto contra el que se compara el fragmento: el de la unidad si la nota la
+// señala, o el del artículo completo.
+function textoParaNota(data, unidadId) {
+  if (!data || data.resolucion !== 'RESOLVED') return null
+  if (unidadId) {
+    const u = (data.unidades || []).find((x) => x.id === unidadId)
+    if (u && typeof u.texto === 'string') return u.texto
+  }
+  return typeof data.texto === 'string' ? data.texto : null
+}
+
+// Una nota al pie: verifica el nodo, el fragmento contra el artículo y la
+// cita contra la verificación del motor. Nunca afirma pertinencia.
+function NotaItem({ nota, verif, onAbrirGrafo }) {
+  const [nodoOk, setNodoOk] = useState(null)   // null | true | false
+  const [frag, setFrag] = useState(null)      // null | {ok, motivo}
+  const [citaDet, setCitaDet] = useState(undefined) // undefined | detalle
+  const nodoId = nota.nodo_id
+
+  useEffect(() => {
+    let vivo = true
+    setNodoOk(null); setFrag(null)
+    rest('/grafo/nodo?id=' + encodeURIComponent(nodoId))
+      .then(() => { if (vivo) setNodoOk(true) })
+      .catch(() => { if (vivo) setNodoOk(false) })
+    leerArticulo(nodoId).then((data) => {
+      if (!vivo) return
+      if (data && data.__error) { setFrag(null); return }
+      const texto = textoParaNota(data, nota.unidad_id)
+      setFrag(texto == null ? { ok: false, motivo: 'ausente' }
+        : fragmentoEn(nota.fragmento, texto))
+    }).catch(() => { if (vivo) setFrag(null) })
+    return () => { vivo = false }
+  }, [nodoId, nota.unidad_id, nota.fragmento])
+
+  useEffect(() => {
+    const detalles = (verif && verif.res && verif.res.detalles) || []
+    const c = (nota.cita || '').trim()
+    setCitaDet(c ? detalles.find((d) => (d.cita_raw || '').trim() === c) : undefined)
+  }, [nota.cita, verif])
+
+  const nodoInexistente = nodoOk === false
+  const fragTexto = frag == null ? 'comprobando fragmento…'
+    : frag.ok ? 'Fragmento encontrado en el artículo'
+    : 'El fragmento no está en ese artículo' +
+      (frag.motivo === 'corto' ? ' (muy corto para comparar)'
+        : frag.motivo === 'largo' ? ' (demasiado largo)' : '')
+  const abrir = () => onAbrirGrafo &&
+    onAbrirGrafo({ nodo_id: nodoId, unidad_id: nota.unidad_id,
+      fragmento: nota.fragmento })
+
+  return jsxs('div', { className: 'flex flex-col gap-0.5 text-xs', children: [
+    jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
+      jsx('span', { className: S.sub, children: '[^' + nota.n + ']' }),
+      jsx('code', { className: S.sub, children: nodoId + (nota.unidad_id ? ' ' + nota.unidad_id.split('#')[1] : '') }),
+      citaDet
+        ? jsx('span', {
+            className: S.chip + ' ' + (citaDet.estado === 'VERIFICADA' ? S.chipOk : S.chipOff),
+            title: 'Estado que fijó el motor para esta cita',
+            children: citaDet.estado,
+          })
+        : null,
+      jsx('button', {
+        type: 'button', className: S.link, disabled: nodoInexistente,
+        title: nodoInexistente ? 'El nodo no existe en el corpus'
+          : 'Verifícalo tú: abrir en el grafo',
+        onClick: abrir,
+        children: 'Verifícalo tú: abrir en el grafo',
+      }),
+    ] }),
+    jsxs('div', { className: S.sub, children: [
+      nodoOk === null ? 'comprobando nodo…' : nodoInexistente ? 'Nodo inexistente' : null,
+      nodoOk === true ? jsx('span', { children: (nodoOk === true ? ' · ' : '') + fragTexto }) : null,
+    ] }),
+  ] })
+}
+
+// Bloque «Notas» de una respuesta del asistente: las notas válidas con su
+// verificación y las líneas con formato no reconocible. Siempre recuerda que
+// la pertinencia es una lectura del modelo, no una conclusión.
+function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
+  if (!notas.length && !invalidas.length) return null
+  return jsxs('div', { className: 'flex flex-col gap-1 rounded border '
+    + 'border-(--ui-stroke-secondary) p-2', children: [
+    jsx('div', { className: S.cardTitle, children: 'Notas' }),
+    ...notas.map((n) => jsx(NotaItem, {
+      key: n.n, nota: n, verif, onAbrirGrafo })),
+    ...invalidas.map((iv) => jsx('div', {
+      key: 'inv' + iv.n, className: 'text-xs text-(--ui-danger)',
+      children: 'Nota con formato no reconocible: [^' + iv.n + ']' }),
+    ),
+    jsx('div', { className: S.sub, children:
+      'La pertinencia para el caso es una lectura del modelo; decides tú.' }),
+  ] })
+}
+
 
 export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
-  registro, setRegistro, estrategiaPriv, rev, onSesion }) {
+  registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo }) {
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
   const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
   const [sesion, setSesion] = useState(null)     // {session_id, stored_id, info}
@@ -328,7 +437,12 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     perfilOk === null ? jsx('div', { className: S.sub, children: 'abriendo sesión…' }) : null,
 
     jsxs('div', { className: 'flex max-h-80 flex-col gap-2 overflow-auto', children: [
-      ...mensajes.map((m, i) => jsxs('div', {
+      ...mensajes.map((m, i) => {
+        // Las notas al pie se separan del cuerpo para verificarlas contra el
+        // grafo; «Insertar en el escrito» sigue insertando el texto crudo.
+        const notas = m.rol === 'assistant' ? parsearNotas(m.texto)
+          : { cuerpo: m.texto, notas: [], invalidas: [] }
+        return jsxs('div', {
         key: i,
         className: m.rol === 'user' ? 'text-sm' : 'rounded border border-(--ui-stroke-secondary) p-2 text-sm',
         children: [
@@ -336,7 +450,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
             ? jsxs('span', { children: [jsx('b', { children: 'Tú: ' }), rehidratar(m.texto, {})] })
             : jsxs('div', { className: 'flex flex-col gap-1', children: [
                 jsx('div', { className: 'whitespace-pre-wrap', children:
-                  rehidratar(m.texto,
+                  rehidratar(notas.cuerpo,
                     (registro && registro.chat && registro.chat.mapa) || {}) }),
                 m.verificando ? jsx('span', { className: S.chip + ' ' + S.chipOff,
                   children: 'verificando citas…' }) : null,
@@ -345,20 +459,35 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 m.verif && m.verif.res ? jsxs('div', { className: 'flex flex-wrap gap-1', children:
                     (m.verif.res.detalles || []).map((d, j) => {
                       const est = estadoCita(d, m.verif.hash, m.verif.hash, registro)
-                      return jsx('span', {
+                      const chip = {
                         key: j,
                         className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                        title: etiquetaCita(est, d, (m.verif.res.meta || {}), registro),
+                        title: etiquetaCita(est, d, (m.verif.res.meta || {}), registro)
+                          + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
                         children: d.cita_raw,
-                      })
+                      }
+                      // Una cita VERIFICADA con nodo del grafo abre el artículo.
+                      return est === 'verificada' && d.nodo_id && onAbrirGrafo
+                        ? jsx('button', {
+                            type: 'button', className: chip.className + ' cursor-pointer',
+                            title: chip.title,
+                            onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
+                            children: d.cita_raw,
+                          })
+                        : jsx('span', chip)
                     }) }) : null,
+                jsx(NotasAlPie, {
+                  notas: notas.notas, invalidas: notas.invalidas,
+                  verif: m.verif, onAbrirGrafo,
+                }),
                 jsx('button', {
                   type: 'button', className: S.link,
                   onClick: () => insertar(m.texto), children: 'Insertar en el escrito',
                 }),
               ] }),
         ],
-      })),
+      })
+      }),
       stream ? jsx('div', { className: 'rounded border border-(--ui-stroke-secondary) p-2 text-sm whitespace-pre-wrap', children: stream }) : null,
     ] }),
 

@@ -227,3 +227,68 @@ def test_marcador_lista_de_partes(hooks, sesiones):
     out = hooks.pre_llm_call(platform='otro', session_id='m3',
                              user_message=partes, is_first_turn=False)
     assert out is not None and hooks._marcada('m3')
+
+
+# --- Parte 2: dike_leer_articulo y dike_buscar_corpus ------------------------
+
+def _marcar(hooks, sesiones, sid='h1'):
+    hooks.pre_llm_call(platform='dike-escritor', session_id=sid, is_first_turn=True)
+    return sid
+
+
+def test_leer_articulo_valido_permitido(hooks, sesiones):
+    sid = _marcar(hooks, sesiones)
+    for args in ({'cita': 'artículo 161 del Código del Trabajo'},
+                 {'gid': 'cl.norma.ct:art:0161'},
+                 {'nodo_id': 'a:207436:art_0161'}):
+        assert hooks.pre_tool_call(session_id=sid, tool_name='dike_leer_articulo',
+                                   args=args) is None
+
+
+def test_leer_articulo_argumentos_invalidos_bloqueados(hooks, sesiones):
+    sid = _marcar(hooks, sesiones)
+    for args in ({'cita': 'x', 'gid': 'y'},          # dos claves
+                 {'otra': 'x'},                       # clave extra/desconocida
+                 {'cita': '../etc/passwd'},            # ruta
+                 {'cita': 'a/b'},                      # separador
+                 {'cita': ''},                         # vacío
+                 {'cita': 42},                         # tipo
+                 'no-dict',                            # no objeto
+                 {}):                                  # vacío
+        out = hooks.pre_tool_call(session_id=sid, tool_name='dike_leer_articulo',
+                                  args=args)
+        assert out and out.get('action') == 'block', (args, out)
+
+
+def test_buscar_corpus_valido_y_limites(hooks, sesiones):
+    sid = _marcar(hooks, sesiones)
+    assert hooks.pre_tool_call(session_id=sid, tool_name='dike_buscar_corpus',
+                               args={'consulta': 'despido'}) is None
+    assert hooks.pre_tool_call(session_id=sid, tool_name='dike_buscar_corpus',
+                               args={'consulta': 'x', 'limite': 10}) is None
+    for args in ({'consulta': 'x', 'limite': 11},
+                 {'consulta': 'x', 'limite': 0},
+                 {'consulta': 'x', 'limite': True},
+                 {'consulta': 'a/b'},
+                 {'consulta': 'x', 'extra': 1},
+                 {'limite': 3},
+                 {'consulta': ''},
+                 {}):
+        out = hooks.pre_tool_call(session_id=sid, tool_name='dike_buscar_corpus',
+                                  args=args)
+        assert out and out.get('action') == 'block', (args, out)
+
+
+def test_auditoria_solo_nombres_no_valores(hooks, sesiones):
+    """Los argumentos de las nuevas herramientas nunca llegan a auditoria.jsonl."""
+    sid = _marcar(hooks, sesiones, 'h2')
+    secreto = 'VALOR-SECRETO-QUE-NO-DEBE-LOGUEARSE'
+    hooks.pre_tool_call(session_id=sid, tool_name='dike_leer_articulo',
+                        args={'cita': secreto + ' ../x'})
+    hooks.pre_tool_call(session_id=sid, tool_name='dike_buscar_corpus',
+                        args={'consulta': '../' + secreto, 'limite': 99})
+    ruta = _auditoria_path(sesiones)
+    crudo = ruta.read_text() if ruta.is_file() else ''
+    assert secreto not in crudo
+    assert 'dike_leer_articulo:argumentos' in crudo
+    assert 'dike_buscar_corpus:argumentos' in crudo

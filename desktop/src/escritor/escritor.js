@@ -114,7 +114,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
 
 // --- Sección principal --------------------------------------------------------
 
-export function SeccionEscritor() {
+export function SeccionEscritor({ onAbrirGrafo }) {
   const hostRef = useRef(null)
   const editorRef = useRef(null)
   const revRef = useRef(0)
@@ -518,6 +518,7 @@ export function SeccionEscritor() {
       estrategiaPriv: ((registro || {}).privacidad || {}).estrategia,
       rev: revRef.current,
       onSesion: setChatSesion,
+      onAbrirGrafo,
     }),
 
     jsx(NifPropuestas, {
@@ -558,7 +559,15 @@ export function SeccionEscritor() {
           jsxs('div', { className: 'min-w-0', children: [
             jsxs('div', { className: 'flex items-center gap-2', children: [
               jsx('div', { children: d.cita_raw }),
-              jsx('span', { className: S.chip + ' ' + S[es.chip], children: es.texto }),
+              estado === 'verificada' && d.nodo_id && onAbrirGrafo
+                ? jsx('button', {
+                    type: 'button',
+                    className: S.chip + ' ' + S[es.chip] + ' cursor-pointer',
+                    title: 'Abrir el artículo en el grafo',
+                    onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
+                    children: es.texto,
+                  })
+                : jsx('span', { className: S.chip + ' ' + S[es.chip], children: es.texto }),
             ] }),
             jsx('div', { className: S.meta, children: etiquetaCita(estado, d, meta, registro) }),
             estado === 'fallo'

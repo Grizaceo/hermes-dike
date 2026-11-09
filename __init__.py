@@ -40,6 +40,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import unicodedata
 from pathlib import Path
 
 _RAIZ = Path(__file__).resolve().parent
@@ -128,6 +129,53 @@ ESQUEMA = {
         "properties": {
             "texto": {"type": "string", "description": "El texto del escrito, o el pasaje con las citas."},
             "ruta": {"type": "string", "description": "Ruta de un archivo .md, .txt o .docx con el escrito (alternativa a `texto`). Para .pdf u otros formatos, extrae el texto y pásalo en `texto`."},
+        },
+    },
+}
+
+ESQUEMA_LEER = {
+    "name": "dike_leer_articulo",
+    "description": (
+        "Lee el texto de un artículo de una ley chilena en la copia local y "
+        "sellada de Diké (25 normas, identificada por hash), con sus unidades "
+        "normativas (incisos, letras, números) y el nodo del grafo de cada una. "
+        "Úsala antes de afirmar qué dice un artículo o si sirve para unos "
+        "hechos, y para copiar el fragmento literal de una nota al pie. Recibe "
+        "uno solo de: cita («artículo 161 del Código del Trabajo»), gid o "
+        "nodo_id. Si la cita es AMBIGUOUS o UNRESOLVABLE no devuelve texto: "
+        "dilo tal cual. Es el texto de una copia fechada: no certifica "
+        "pertinencia ni vigencia actual. English: reads the text of a Chilean "
+        "statute article from Diké's local sealed corpus."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "cita": {"type": "string",
+                     "description": "Cita en prosa, por ejemplo «artículo 161 del Código del Trabajo»."},
+            "gid": {"type": "string",
+                    "description": "Identificador del motor, por ejemplo cl.norma.ct:art:0161."},
+            "nodo_id": {"type": "string",
+                        "description": "Nodo del grafo, por ejemplo a:207436:art_0161."},
+        },
+    },
+}
+
+ESQUEMA_BUSCAR = {
+    "name": "dike_buscar_corpus",
+    "description": (
+        "Busca artículos de las 25 leyes chilenas del corpus local de Diké por "
+        "su contenido (BM25 determinista, sin modelo y sin red). Devuelve "
+        "pistas para leer con dike_leer_articulo, nunca citas verificadas. "
+        "English: lexical search over Diké's local Chilean statute corpus; "
+        "results are leads, not verified citations."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "consulta": {"type": "string",
+                         "description": "Términos a buscar (1 a 300 caracteres)."},
+            "limite": {"type": "integer",
+                       "description": "Cuántos resultados (1 a 10; por defecto 5)."},
         },
     },
 }
@@ -445,6 +493,15 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
     elif isinstance(raw, EntradaInvalida):
         return {'error': f'INPUT_ERROR: {raw}', 'error_code': 'INPUT_ERROR',
                 'motivo': raw.codigo, 'todo_verificado': False, 'aislamiento': aislado}
+    elif isinstance(raw, PanelError):
+        if raw.kind == 'timeout':
+            code, message = 'TIMEOUT', 'El panel no respondió dentro del plazo.'
+        elif raw.kind == 'data':
+            return {'error': f'PANEL_ERROR: {raw.detalle or "entrada rechazada por el panel"}',
+                    'error_code': 'PANEL_ERROR', 'motivo': 'PANEL_DATA',
+                    'todo_verificado': False, 'aislamiento': aislado}
+        else:
+            code, message = 'ENGINE_EXIT_ERROR', 'El panel terminó con un error.'
     elif isinstance(raw, (ValueError, TypeError, KeyError)):
         code, message = 'CONTRACT_OR_INPUT_ERROR', 'Entrada, corpus o respuesta incompatibles con el contrato.'
         # Fixed diagnostics, no raw interpolation. The English phrase stays as a stable marker.
@@ -797,6 +854,222 @@ def _salida_publica(c):
     return clean(out)
 
 
+# ── Herramientas de lectura del artículo y búsqueda del corpus ──────────
+# Argumentos de texto breve (cita, gid, nodo_id, consulta): nunca rutas.
+
+_EXT_ARCHIVO = re.compile(r'\.(?:md|txt|docx|pdf|json|py|ya?ml|html?)$',
+                          re.IGNORECASE)
+_MSG_CAMPOS_LEER = 'indica exactamente uno de: cita, gid o nodo_id.'
+_MSG_CAMPOS_BUSCAR = 'la búsqueda admite solo los campos consulta y limite.'
+
+
+def _texto_corto(nombre: str, valor) -> str:
+    """Texto breve y seguro (1–300): sin controles ni pinta de ruta/archivo."""
+    if not isinstance(valor, str):
+        raise EntradaInvalida('INPUT_TYPE', f'{nombre} debe ser texto.')
+    v = valor.strip()
+    if not (1 <= len(v) <= 300):
+        raise EntradaInvalida('INPUT_LENGTH',
+                              f'{nombre} debe tener entre 1 y 300 caracteres.')
+    if any(unicodedata.category(c).startswith('C') for c in v):
+        raise EntradaInvalida('INPUT_CONTROL',
+                              f'{nombre} tiene caracteres de control.')
+    if ('/' in v or '\\' in v or v.startswith('~') or v.startswith('.')
+            or _EXT_ARCHIVO.search(v)):
+        raise EntradaInvalida('INPUT_PATH',
+                              f'{nombre} no puede ser una ruta de archivo.')
+    return v
+
+
+def _campos_leer(args) -> tuple:
+    """(clave, valor) del único campo cita|gid|nodo_id, ya validado."""
+    if not isinstance(args, dict):
+        raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_LEER)
+    presentes = [k for k in ('cita', 'gid', 'nodo_id') if k in args]
+    if len(presentes) != 1 or set(args) - {'cita', 'gid', 'nodo_id'}:
+        raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_LEER)
+    clave = presentes[0]
+    return clave, _texto_corto(clave, args[clave])
+
+
+def _alcance_lectura() -> dict:
+    return {
+        'pack_hash': PACK_HASH,
+        'certificacion_sustantiva': False,
+        'alcance': ('Texto de una copia fechada del corpus local; no certifica '
+                    'que el artículo sea pertinente para el caso ni que siga '
+                    'vigente hoy.'),
+        'aislamiento': _aislamiento().estado(),
+    }
+
+
+def leer_articulo(args: dict, **kwargs) -> str:
+    """Handler de ``dike_leer_articulo``: texto del artículo y sus unidades."""
+    try:
+        clave, valor = _campos_leer(args)
+        datos = _carpeta_de_datos().resolve()
+        installed = _asegurar_corpus(datos)
+        runtime = Path(installed.get('generation', datos))
+        payload = json.dumps({clave: valor}, ensure_ascii=False)
+        data = _panel_json(['grafo', 'leer'], runtime=runtime, entrada=payload)
+        base = _alcance_lectura()
+        if data.get('resolucion') != 'RESOLVED':
+            res = {k: data[k] for k in
+                   ('resolucion', 'candidatos', 'motivo', 'failure_kind',
+                    'gid', 'nodo_id') if k in data}
+            return json.dumps({**res, **base}, ensure_ascii=False)
+        # Segunda capa: el texto devuelto debe reproducir su propio sha256.
+        real = hashlib.sha256(
+            (data.get('texto') or '').encode('utf-8')).hexdigest()
+        if real != data.get('texto_sha256'):
+            raise ValueError('installed corpus integrity mismatch')
+        return json.dumps({**data, **base}, ensure_ascii=False)
+    except Exception as exc:
+        return json.dumps(_error_adaptador(exc), ensure_ascii=False)
+
+
+def buscar_corpus(args: dict, **kwargs) -> str:
+    """Handler de ``dike_buscar_corpus``: pistas BM25, nunca citas verificadas."""
+    try:
+        if not isinstance(args, dict) or not set(args) <= {'consulta', 'limite'}:
+            raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_BUSCAR)
+        if 'consulta' not in args:
+            raise EntradaInvalida('INPUT_FIELDS', 'falta el campo consulta.')
+        consulta = _texto_corto('consulta', args['consulta'])
+        limite = args.get('limite', 5)
+        if isinstance(limite, bool) or not isinstance(limite, int):
+            raise EntradaInvalida('INPUT_TYPE', 'limite debe ser entero.')
+        if not (1 <= limite <= 10):
+            raise EntradaInvalida('INPUT_RANGE',
+                                  'limite debe estar entre 1 y 10.')
+        datos = _carpeta_de_datos().resolve()
+        installed = _asegurar_corpus(datos)
+        runtime = Path(installed.get('generation', datos))
+        payload = json.dumps({'q': consulta, 'limite': limite},
+                             ensure_ascii=False)
+        data = _panel_json(['grafo', 'buscar'], runtime=runtime,
+                           timeout=120, entrada=payload)
+        rotulo = 'pista, no cita verificada'
+        resultados = [{
+            'nodo_id': r.get('nodo_id'),
+            'gid': r.get('gid'),
+            'cita': r.get('cita'),
+            'label': r.get('label'),
+            'score': r.get('score'),
+            'vigencia': r.get('vigencia'),
+            'rotulo': rotulo,
+        } for r in (data.get('resultados') or [])]
+        return json.dumps({
+            'resultados': resultados,
+            'rotulo': rotulo,
+            'metodo': data.get('metodo'),
+            'pack_hash': PACK_HASH,
+            'aislamiento': _aislamiento().estado(),
+        }, ensure_ascii=False)
+    except Exception as exc:
+        return json.dumps(_error_adaptador(exc), ensure_ascii=False)
+
+
+# ── nodo_id en las citas verificadas (enriquecimiento, nunca cambia el veredicto)
+
+_NODO_ID_SAFE = re.compile(r'^a:\d+:[A-Za-z0-9_]+$')
+_NODOS_MEM: dict = {}
+
+
+def _token_articulo(eid: str) -> str:
+    """La regla de ``StarterCorpusResolver._article_token``, reimplementada."""
+    token = eid.removeprefix('art_').lower()
+    if token.isdigit():
+        return f'{int(token):04d}'
+    return token.replace('-', '_')
+
+
+def _mapa_nodos(datos: Path):
+    """``{gid: nodo_id}`` del corpus; caché en disco y memoria. None si falla."""
+    if PACK_HASH in _NODOS_MEM:
+        return _NODOS_MEM[PACK_HASH]
+    mapa = None
+    cache = datos / 'cache' / f'nodos_v1_{PACK_HASH}.json'
+    try:
+        if cache.is_file():
+            guardado = json.loads(cache.read_text(encoding='utf-8'))
+            if isinstance(guardado, dict) and isinstance(
+                    guardado.get('nodos'), dict):
+                mapa = guardado['nodos']
+    except (OSError, json.JSONDecodeError):
+        mapa = None
+    if mapa is None:
+        try:
+            instalado = _asegurar_corpus(datos)
+            runtime = Path(instalado.get('generation', datos))
+            data = _panel_json(['grafo', 'nodos'], runtime=runtime,
+                               entrada='{}')
+            nodos = data.get('nodos')
+            if isinstance(nodos, dict):
+                mapa = nodos
+                try:
+                    cache.parent.mkdir(parents=True, exist_ok=True)
+                    tmp = cache.with_suffix('.tmp')
+                    tmp.write_text(json.dumps({'nodos': mapa},
+                                              ensure_ascii=False),
+                                   encoding='utf-8')
+                    tmp.replace(cache)
+                except OSError:
+                    pass
+        except Exception:
+            mapa = None
+    _NODOS_MEM[PACK_HASH] = mapa
+    return mapa
+
+
+def _nodo_id_para_gid(gid, mapa) -> str | None:
+    """``nodo_id`` válido para ``gid``, o None. Nunca lanza ni inventa."""
+    try:
+        if not isinstance(gid, str) or not isinstance(mapa, dict):
+            return None
+        nodo = mapa.get(gid)
+        if not isinstance(nodo, str) or not _NODO_ID_SAFE.fullmatch(nodo):
+            return None
+        partes = nodo.split(':')
+        if len(partes) != 3:
+            return None
+        eid = partes[2]
+        # El token del eId debe ser el mismo que el sufijo :art: del gid.
+        if ':art:' not in gid:
+            return None
+        if gid.rsplit(':art:', 1)[-1] != _token_articulo(eid):
+            return None
+        return nodo
+    except Exception:
+        return None
+
+
+def _enriquecer_nodo_id(c, datos: Path):
+    """Añade ``nodo_id`` a cada detalle VERIFICADA; nunca toca el veredicto.
+
+    Se aplica tras ``_degradar_cuerpos_en_conflicto`` y solo a detalles
+    VERIFICADA. Cualquier fallo del índice (build, caché corrupta, sandbox)
+    omite el campo sin cambiar estado, conteos, veredicto ni problemas.
+    """
+    try:
+        detalles = c.get('detalles') or []
+        if not any(isinstance(d, dict) and d.get('estado') == 'VERIFICADA'
+                   for d in detalles):
+            return c
+        mapa = _mapa_nodos(datos)
+        if not mapa:
+            return c
+        for d in detalles:
+            if not isinstance(d, dict) or d.get('estado') != 'VERIFICADA':
+                continue
+            nodo = _nodo_id_para_gid(d.get('gid'), mapa)
+            if nodo:
+                d['nodo_id'] = nodo
+    except Exception:
+        pass
+    return c
+
+
 def verificar_citas(args: dict, **kwargs) -> str:
     stdout, stderr, returncode = '', '', None
     try:
@@ -830,6 +1103,7 @@ def verificar_citas(args: dict, **kwargs) -> str:
             # ya lo había verificado): se recalcula todo y, si difiere, es corrupción.
             _comprobar_generacion_completa(Path(installed['generation']))
         c = _degradar_cuerpos_en_conflicto(c)
+        c = _enriquecer_nodo_id(c, datos)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
         return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
@@ -926,6 +1200,8 @@ def register(ctx):
     global _CTX
     _CTX = ctx
     ctx.register_tool(name='dike_verificar_citas', toolset='dike', schema=ESQUEMA, handler=verificar_citas)
+    ctx.register_tool(name='dike_leer_articulo', toolset='dike', schema=ESQUEMA_LEER, handler=leer_articulo)
+    ctx.register_tool(name='dike_buscar_corpus', toolset='dike', schema=ESQUEMA_BUSCAR, handler=buscar_corpus)
     ctx.register_command('dike-verificar', _comando, 'Verifica citas contra el corpus local; no firma.',
                          args_hint='<texto o ruta .md/.txt/.docx>')
     carpeta = _RAIZ / 'skills'

@@ -4,7 +4,8 @@ import assert from 'node:assert/strict'
 import {
   acumDeltas, activoDe, candidatosPerfil, bloqueCambios, bloqueConstancia, bloqueEscrito,
   componerTurno, diffParrafos, etiquetaDestino, etiquetaModelo, filtroEvento,
-  hashParrafo, neutralizar, nombrePerfilActivo, parsePregunta,
+  fragmentoEn, hashParrafo, neutralizar, nombrePerfilActivo, normalizarFragmento,
+  parsePregunta, parsearNotas, rangoFragmento,
 } from '../src/escritor/chat-logica.js'
 
 const VERIF = {
@@ -187,4 +188,70 @@ test('candidatosPerfil con el nombre que da nombrePerfilActivo', () => {
   assert.deepEqual(
     candidatosPerfil([{ targetProfile: 'lexo-alpha' }],
       nombrePerfilActivo(undefined)), [])
+})
+
+// --- Notas al pie y fragmentos ---------------------------------------------
+
+test('parsearNotas separa cuerpo, notas válidas e inválidas', () => {
+  const texto = [
+    'El artículo 161 exige aviso.',
+    '',
+    '[^1]: dike:a:207436:art_0161#u02 «El empleador podrá poner término al contrato» (artículo 161 del Código del Trabajo)',
+    '[^2]: dike:a:207436:art_0162 "La indemnización se calcula"',
+    '[^9]: esto empieza como nota pero no sigue el formato',
+    'texto final',
+  ].join('\n')
+  const { cuerpo, notas, invalidas } = parsearNotas(texto)
+  assert.equal(notas.length, 2)
+  assert.equal(invalidas.length, 1)
+  assert.equal(notas[0].n, 1)
+  assert.equal(notas[0].nodo_id, 'a:207436:art_0161')
+  assert.equal(notas[0].unidad_id, 'a:207436:art_0161#u02')
+  assert.equal(notas[0].fragmento, 'El empleador podrá poner término al contrato')
+  assert.equal(notas[0].cita, 'artículo 161 del Código del Trabajo')
+  assert.equal(notas[1].unidad_id, null)
+  assert.equal(notas[1].fragmento, 'La indemnización se calcula')
+  // el cuerpo conserva todo menos las líneas de nota (válidas e inválidas)
+  assert.ok(cuerpo.includes('El artículo 161 exige aviso.'))
+  assert.ok(cuerpo.includes('texto final'))
+  assert.ok(!cuerpo.includes('dike:a:207436'))
+  assert.ok(!cuerpo.includes('[^1]:'))
+})
+
+test('parsearNotas normaliza el número de unidad a #uNN', () => {
+  const { notas } = parsearNotas('[^3]: dike:a:5:art_0007#u7 «fragmento suficientemente largo aquí»')
+  assert.equal(notas[0].unidad_id, 'a:5:art_0007#u07')
+})
+
+test('parsearNotas sin notas devuelve el texto intacto', () => {
+  const { cuerpo, notas, invalidas } = parsearNotas('solo texto\nsin notas')
+  assert.equal(cuerpo, 'solo texto\nsin notas')
+  assert.deepEqual(notas, [])
+  assert.deepEqual(invalidas, [])
+})
+
+test('fragmentoEn: encontrado, corto, largo y ausente', () => {
+  const articulo = 'El empleador podrá poner término al contrato de trabajo. ' +
+    'La indemnización se calculará conforme a la ley.'
+  const fragOk = 'podrá poner término al contrato de trabajo. La indemnización'
+  assert.deepEqual(fragmentoEn(fragOk, articulo), { ok: true, motivo: null })
+  assert.equal(fragmentoEn('corto', articulo).motivo, 'corto')
+  assert.equal(fragmentoEn('x'.repeat(401), articulo).motivo, 'largo')
+  assert.equal(fragmentoEn('este fragmento no está en el artículo para nada', articulo).motivo, 'ausente')
+})
+
+test('normalizarFragmento unifica espacios y comillas sin doblar acentos', () => {
+  assert.equal(normalizarFragmento('  «a»   “b”  ‘c’  '), '"a" "b" \'c\'')
+  // conserva mayúsculas y acentos (la comparación es literal)
+  assert.equal(normalizarFragmento('  El Código   del Trabajo  '), 'El Código del Trabajo')
+})
+
+test('rangoFragmento devuelve offsets del texto original', () => {
+  const texto = 'Intro. El empleador podrá poner término al contrato. Fin.'
+  const frag2 = 'El empleador podrá poner término al contrato'
+  const r = rangoFragmento(texto, frag2)
+  assert.ok(Array.isArray(r))
+  assert.equal(texto.slice(r[0], r[1]), frag2)
+  assert.equal(rangoFragmento(texto, 'no está'), null)
+  assert.equal(rangoFragmento(texto, 'corto'), null)
 })

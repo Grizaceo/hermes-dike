@@ -22,7 +22,7 @@ homepage: https://github.com/Grizaceo/hermes-dike
 tags: [legal, chile, citations, verification, offline, spanish]
 requires_hermes: ">=0.23.0"
 platforms: [linux]
-provides_tools: [dike_verificar_citas]
+provides_tools: [dike_verificar_citas, dike_leer_articulo, dike_buscar_corpus]
 provides_hooks: [pre_llm_call, pre_tool_call]
 python_dependencies:
   - "pydantic>=2.0,<3"

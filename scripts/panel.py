@@ -763,10 +763,167 @@ def _nif(args: list[str]) -> int:
 # Grafo — relaciones evidenciadas personales (GRE) y mapa del corpus sellado
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Lectura de un artículo y mapa gid→nodo (stdin JSON, como `grafo buscar`)
+# ---------------------------------------------------------------------------
+
+# Topes por encima del máximo medido del corpus instalado (2026-11-09):
+# artículo más largo 27.535 caracteres y 115 unidades (articulo_242302_art_0019).
+_MAX_TEXTO_LEER = 40_000
+_MAX_UNIDADES_LEER = 300
+_NODO_ID_LEER = re.compile(r"^a:\d+:[A-Za-z0-9_]+$")
+
+
+def _norma_de(current: Path, code: str):
+    """(titulo, nombre_corto) de la norma `code`, o ('', '') si no está."""
+    n = _read_json(current / "normas" / f"norma_{code}.json") or {}
+    eli = n.get("eli") or {}
+    return (n.get("title") or "", _nombre_corto(eli))
+
+
+def _articulo_json(ev) -> dict:
+    """El JSON del archivo del artículo que el resolver ya verificó."""
+    try:
+        return json.loads(Path(ev.source_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _payload_leer(ev, nodo_id: str) -> dict:
+    """Respuesta RESOLVED de `grafo leer`: texto, vigencia y unidades."""
+    import hashlib as _hl
+    texto_completo = ev.text or ""
+    # Integridad: el hash recalculado del texto fuente debe ser el registrado.
+    real = _hl.sha256(texto_completo.encode("utf-8")).hexdigest()
+    if real != (ev.text_sha256 or ""):
+        raise ValueError("texto del artículo no coincide con su hash registrado")
+    truncado = len(texto_completo) > _MAX_TEXTO_LEER
+    texto = texto_completo[:_MAX_TEXTO_LEER] if truncado else texto_completo
+    articulo = _articulo_json(ev)
+    current = Path(ev.source_path).parent.parent
+    titulo, corto = _norma_de(current, ev.leychile_code)
+    unidades = []
+    for u in _unidades(texto):
+        if len(unidades) >= _MAX_UNIDADES_LEER:
+            truncado = True
+            break
+        mod, regla = _modalidad(u["texto"])
+        unidades.append({
+            "id": f"{nodo_id}#u{u['orden']:02d}",
+            "inicio": u["char_start"],
+            "fin": u["char_end"],
+            "texto": u["texto"],
+            "etiqueta": u["etiqueta"],
+            "modalidad_candidata": mod,
+            "modalidad_regla": regla,
+        })
+    return {
+        "resolucion": "RESOLVED",
+        "gid": ev.gid,
+        "nodo_id": nodo_id,
+        "norma": {
+            "codigo": ev.leychile_code,
+            "titulo": titulo,
+            "nombre_corto": corto,
+        },
+        "articulo": str(articulo.get("label") or articulo.get("eId")
+                        or ev.eid),
+        "texto": texto,
+        # sha256 del texto devuelto (tras el recorte): el adaptador lo
+        # recalcula sobre `texto`. La integridad de la fuente ya se verificó
+        # arriba contra `ev.text_sha256` antes de recortar.
+        "texto_sha256": _hl.sha256(texto.encode("utf-8")).hexdigest(),
+        "fuente_url": ev.source_url,
+        "fecha_recuperacion": ev.retrieved_at,
+        "vigencia": {
+            "desde": ev.temporal_from,
+            "hasta": ev.temporal_to,
+            "estado": ev.temporal_status,
+            "motivo": ev.out_of_force_reason,
+            "citabilidad": ev.citation_status,
+        },
+        "unidades": unidades,
+        "truncado": truncado,
+    }
+
+
+def _ev_por_nodo_id(nodo_id: str, resolver):
+    """Evidencia del artículo `a:CODE:EID`, o None si no está en el corpus."""
+    from lexo_cli.starter.resolver import NormativeResolutionError
+    for current in _corpus_dirs():
+        for af in _candidatos_articulo(current, nodo_id):
+            a = _read_json(af)
+            if not isinstance(a, dict) or not _es_articulo(a, nodo_id):
+                continue
+            eli = a.get("@id")
+            if not isinstance(eli, str) or not eli:
+                continue
+            try:
+                return resolver.resolve_eli(eli)
+            except NormativeResolutionError:
+                return None
+    return None
+
+
+def leer(payload: dict) -> dict:
+    """Resuelve UNA cita/gid/nodo_id y devuelve el artículo con sus unidades.
+
+    Exactamente una de las tres claves. Una resolución que no es RESOLVED se
+    devuelve tal cual (``resolucion`` + ``candidatos``/``motivo``/
+    ``failure_kind``), sin texto; un ``nodo_id`` inexistente es UNRESOLVABLE
+    con motivo ``NODO_INEXISTENTE``.
+    """
+    from lexo_cli.starter.norm_reference import resolve_norm_reference
+    from lexo_cli.starter.resolver import (
+        NormativeResolutionError, StarterCorpusResolver)
+
+    if not isinstance(payload, dict):
+        raise ValueError("entrada inválida: se esperaba un objeto JSON.")
+    claves = [k for k in ("cita", "gid", "nodo_id") if k in payload]
+    if len(claves) != 1 or set(payload) - {"cita", "gid", "nodo_id"}:
+        raise ValueError("indica exactamente uno de: cita, gid o nodo_id.")
+    clave = claves[0]
+    valor = payload[clave]
+    if not isinstance(valor, str) or not valor.strip():
+        raise ValueError(f"{clave} debe ser texto no vacío.")
+
+    resolver = StarterCorpusResolver(_corpus_dirs())
+    if clave == "cita":
+        res = resolve_norm_reference(valor.strip(), resolver)
+        if res.status != "RESOLVED" or not res.gid:
+            return {"resolucion": res.status,
+                    "candidatos": list(res.candidates or []),
+                    "motivo": res.reason or "",
+                    "failure_kind": res.failure_kind}
+        ev = resolver.resolve(res.gid)
+    elif clave == "gid":
+        try:
+            ev = resolver.resolve(valor.strip())
+        except NormativeResolutionError as exc:
+            return {"resolucion": "UNRESOLVABLE", "motivo": exc.code}
+    else:
+        nodo_id = valor.strip()
+        if not _NODO_ID_LEER.fullmatch(nodo_id):
+            return {"resolucion": "UNRESOLVABLE", "motivo": "NODO_INEXISTENTE"}
+        ev = _ev_por_nodo_id(nodo_id, resolver)
+        if ev is None:
+            return {"resolucion": "UNRESOLVABLE", "motivo": "NODO_INEXISTENTE"}
+    nodo_id = f"a:{ev.leychile_code}:{ev.eid}"
+    return _payload_leer(ev, nodo_id)
+
+
+def mapa_nodos() -> dict:
+    """Mapa ``{gid: nodo_id}`` de todo el corpus (para enriquecer citas)."""
+    from lexo_cli.starter.resolver import StarterCorpusResolver
+    resolver = StarterCorpusResolver(_corpus_dirs())
+    return {"nodos": {gid: f"a:{ev.leychile_code}:{ev.eid}"
+                     for gid, ev in resolver._by_gid.items()}}
+
+
 def _grafo(args: list[str]) -> int:
     if not args:
         return _fail("grafo: falta el objetivo (personal|corpus|corpus-norma|"
-                     "red|nodo|unidad|unidades|buscar).")
+                     "red|nodo|unidad|unidades|buscar|leer|nodos).")
     op, rest = args[0], args[1:]
 
     if op == "personal":
@@ -1067,6 +1224,21 @@ def _grafo(args: list[str]) -> int:
             return _fail("entrada inválida: se esperaba un objeto JSON.")
         try:
             _out(buscar(payload.get("q"), payload.get("limite", 20)))
+        except ValueError as exc:
+            return _fail(str(exc))
+        return 0
+
+    if op in ("leer", "nodos"):
+        # La entrada NO viaja por argv: llega por STDIN como JSON, igual que
+        # `grafo buscar`, para que citas e identificadores no queden en `ps`.
+        if rest:
+            return _fail(f"grafo {op} no lleva argumentos: la entrada va por stdin.")
+        try:
+            payload = json.loads(sys.stdin.read() or "{}")
+        except json.JSONDecodeError:
+            return _fail("entrada inválida: se esperaba JSON.")
+        try:
+            _out(leer(payload) if op == "leer" else mapa_nodos())
         except ValueError as exc:
             return _fail(str(exc))
         return 0

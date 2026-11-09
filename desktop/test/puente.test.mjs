@@ -58,3 +58,45 @@ test('citas vacías o nulas no se encolan', () => {
   assert.equal(encolarCita({ cita: 42 }), false)
   assert.deepEqual(tomarCitas(), [])
 })
+
+// --- Foco del grafo (Chat/Notas → pestaña Grafo) ---------------------------
+import { pedirFoco, tomarFoco } from '../src/puente.js'
+
+test('pedirFoco/tomarFoco: ida y vuelta con saneo', () => {
+  assert.deepEqual(tomarFoco(), null)
+  assert.equal(pedirFoco({
+    nodo_id: 'a:207436:art_0161',
+    unidad_id: 'a:207436:art_0161#u02',
+    fragmento: 'El empleador podrá poner término',
+  }), true)
+  assert.deepEqual(tomarFoco(), {
+    nodo_id: 'a:207436:art_0161',
+    unidad_id: 'a:207436:art_0161#u02',
+    fragmento: 'El empleador podrá poner término',
+  })
+  // se consume: una segunda lectura no devuelve nada
+  assert.deepEqual(tomarFoco(), null)
+})
+
+test('pedirFoco sanea unidad_id/fragmento a string o null', () => {
+  pedirFoco({ nodo_id: 'a:1:art_0001', unidad_id: 42, fragmento: '' })
+  assert.deepEqual(tomarFoco(), {
+    nodo_id: 'a:1:art_0001', unidad_id: null, fragmento: null,
+  })
+})
+
+test('pedirFoco exige un nodo_id con la forma del contrato', () => {
+  for (const malo of [null, {}, { nodo_id: '' }, { nodo_id: 'x' },
+    { nodo_id: 'n:207436' }, { nodo_id: 'a:207436' },
+    { nodo_id: 'a:207436:art_0161/../x' }, { nodo_id: 123 }]) {
+    assert.equal(pedirFoco(malo), false, JSON.stringify(malo))
+  }
+  assert.deepEqual(tomarFoco(), null)
+})
+
+test('la última petición de foco gana', () => {
+  pedirFoco({ nodo_id: 'a:1:art_0001' })
+  pedirFoco({ nodo_id: 'a:2:art_0002', fragmento: 'frag' })
+  assert.equal(tomarFoco().nodo_id, 'a:2:art_0002')
+  assert.deepEqual(tomarFoco(), null)
+})

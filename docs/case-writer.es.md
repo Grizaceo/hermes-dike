@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of case-writer.md sha256=8a672d7c8fd76f101896defd44771354832f7b5e934d6e36c8bd329c7c5a7431 -->
+<!-- vitrina:translation-of case-writer.md sha256=9621a47f6764187ccc8ce1adfded4a5930ca6919cb939d684fe43585c077546a -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
@@ -48,6 +48,37 @@
   frases procesales deterministas, continuaciones literales desde el corpus
   y, solo con tu opt-in, una continuación del modelo que se seudonimiza si
   saldría del equipo.
+
+## Elegir el perfil donde corre el chat
+
+El chat del Case Writer corre en un perfil de Hermes que tiene Diké
+habilitado y un modelo configurado. Por defecto es el **perfil activo**: el
+que la app Desktop tiene conectada. Dos formas de cambiarlo:
+
+- **Correr todo en un perfil dedicado.** Créalo, instala y habilita Diké
+  ahí, dale un modelo y abre la app Desktop con ese perfil. `--clone` copia
+  el `config.yaml` del perfil activo (que lleva el modelo), el `.env`, el
+  `SOUL.md` y las skills; `--clone-from <nombre>` clona otra fuente, y
+  `--no-skills` hace un perfil liviano (configura un modelo después):
+
+  ```bash
+  hermes profile create abogado-dike --clone
+  hermes -p abogado-dike plugins install Grizaceo/hermes-dike --ref <sha>
+  hermes -p abogado-dike plugins enable dike
+  ```
+
+- **Dejar el panel en un perfil y el chat en otro.** Fija el setting
+  `perfil_chat` del plugin en el perfil que sirve el panel al nombre del
+  perfil que debe correr el chat (ese perfil igual necesita Diké y un
+  modelo):
+
+  ```bash
+  hermes -p <perfil-del-panel> config set plugins.entries.dike.settings.perfil_chat abogado-dike
+  ```
+
+  Deja `perfil_chat` vacío (`""`) para usar el perfil activo. La misma clave
+  está en el `config.yaml` de ese perfil, en
+  `plugins.entries.dike.settings.perfil_chat`.
 
 ## Planeado: un solo contrato de recuperación para búsqueda y predicción
 

@@ -23881,10 +23881,11 @@ function etiquetaDestino(info) {
   if (/localhost|127\.0\.0\.1|\[?::1\]?/.test(base2)) return "local";
   return "nube";
 }
-function candidatosPerfil(rutas, perfilActivo, preferido = "lexo-lawyer") {
+function candidatosPerfil(rutas, perfilActivo, perfilConfigurado = "") {
   const nombres = (rutas || []).map((r2) => r2 && (r2.targetProfile || r2.profile)).filter(Boolean);
+  const preferidos = perfilConfigurado ? [perfilConfigurado] : [perfilActivo];
   const out = [];
-  for (const p2 of [preferido, perfilActivo]) {
+  for (const p2 of preferidos) {
     if (p2 && nombres.includes(p2) && !out.includes(p2)) out.push(p2);
   }
   return out;
@@ -23978,7 +23979,6 @@ function rangoFragmento(texto, fragmento) {
 }
 
 // src/escritor/chat.js
-var PERFIL_DEFAULT = "lexo-lawyer";
 var TIMEOUT_RPC = 6e4;
 function tituloSesion(caseId) {
   return "Dik\xE9 \xB7 Escrito \xB7 " + caseId;
@@ -24125,6 +24125,7 @@ function ChatEscritor({
 }) {
   const [perfilOk, setPerfilOk] = useState2(null);
   const [perfilElegido, setPerfilElegido] = useState2(null);
+  const perfilRef = useRef2(null);
   const [sesion, setSesion] = useState2(null);
   const rutaRef = useRef2(null);
   const [modelo, setModelo] = useState2(null);
@@ -24146,12 +24147,19 @@ function ChatEscritor({
     setPerfilOk(null);
     setSesion(null);
     setMensajes([]);
+    perfilRef.current = null;
     (async () => {
       try {
         const rutas = await host.profileRoutes();
         const listaRutas = rutas && (rutas.routes || rutas) || [];
         const activo = nombrePerfilActivo(host.state && host.state.profile);
-        const candidatos = candidatosPerfil(listaRutas, activo);
+        let perfilConfigurado = "";
+        try {
+          const est = await rest("/estado");
+          perfilConfigurado = est && est.perfil_chat || "";
+        } catch {
+        }
+        const candidatos = candidatosPerfil(listaRutas, activo, perfilConfigurado);
         let ruta = null;
         let perfilObjetivo = null;
         const paso = async (nombre, fn) => {
@@ -24197,10 +24205,11 @@ function ChatEscritor({
           }
         }
         if (!ruta) {
-          throw new Error("El chat del escrito necesita un perfil con Dik\xE9 habilitado (lexo-lawyer o el perfil activo): sin sus hooks no se puede garantizar que el modelo no use herramientas.");
+          throw new Error("El chat del escrito necesita un perfil con Dik\xE9 habilitado: configura el setting perfil_chat del plugin o usa el perfil activo" + (activo ? " (\xAB" + activo + "\xBB)" : "") + ". Sin sus hooks no se puede garantizar que el modelo no use herramientas.");
         }
         const perfil = perfilObjetivo;
         setPerfilElegido(perfil);
+        perfilRef.current = perfil;
         rutaRef.current = ruta;
         releaseRef.current = await host.retainProfile(ruta);
         const titulo = tituloSesion(caseId);
@@ -24352,7 +24361,7 @@ function ChatEscritor({
       caseId: cid,
       hashActual: hashP
     });
-    const destino = PERFIL_DEFAULT + " \xB7 " + etiquetaModelo(modelo && modelo.id);
+    const destino = (perfilRef.current || "perfil sin resolver") + " \xB7 " + etiquetaModelo(modelo && modelo.id);
     const cfgPriv = registro && registro.privacidad || {};
     const seudonimizar = cfgPriv.seudonimizar !== false;
     if (!seudonimizar && cfgPriv.acepto_datos !== true) {
@@ -24374,7 +24383,7 @@ function ChatEscritor({
         {
           session_id: s2.session_id,
           text: envio.texto,
-          profile: rutaRef.current && rutaRef.current.targetProfile || PERFIL_DEFAULT
+          profile: perfilRef.current || rutaRef.current && (rutaRef.current.targetProfile || rutaRef.current.profile)
         },
         TIMEOUT_RPC
       ).then(() => {
@@ -24403,7 +24412,7 @@ function ChatEscritor({
       "session.interrupt",
       {
         session_id: s2.session_id,
-        profile: rutaRef.current && rutaRef.current.targetProfile || PERFIL_DEFAULT
+        profile: perfilRef.current || rutaRef.current && (rutaRef.current.targetProfile || rutaRef.current.profile)
       },
       TIMEOUT_RPC
     ).catch(() => {
@@ -24806,7 +24815,7 @@ function NifPropuestas({
       const envio = await prepararEnvio({
         caseId,
         texto: input,
-        destino: (sesion.perfil || "lexo-lawyer") + " \xB7 " + (modeloLabel || "modelo") + " \xB7 NIF",
+        destino: (sesion.perfil || "perfil sin resolver") + " \xB7 " + (modeloLabel || "modelo") + " \xB7 NIF",
         seudonimizar,
         estrategia: cfgPriv.estrategia || "media"
       });
@@ -26108,7 +26117,7 @@ function PrediccionPanel({
           return prepararEnvio({
             caseId,
             texto,
-            destino: (sesion && sesion.perfil || "lexo-lawyer") + " \xB7 predicci\xF3n \xB7 nube",
+            destino: (sesion && sesion.perfil || "perfil sin resolver") + " \xB7 predicci\xF3n \xB7 nube",
             seudonimizar: cfgPriv.seudonimizar !== false,
             estrategia: cfgPriv.estrategia || "media"
           });

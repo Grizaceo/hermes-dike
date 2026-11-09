@@ -109,7 +109,7 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
           const cfgPriv = ((registro || {}).privacidad) || {}
           return prepararEnvio({
             caseId, texto,
-            destino: (sesion && sesion.perfil || 'lexo-lawyer')
+            destino: (sesion && sesion.perfil || 'perfil sin resolver')
               + ' · predicción · nube',
             seudonimizar: cfgPriv.seudonimizar !== false,
             estrategia: cfgPriv.estrategia || 'media',

@@ -16,7 +16,6 @@ import {
   parsearNotas,
 } from './chat-logica.js'
 
-const PERFIL_DEFAULT = 'lexo-lawyer'
 const TIMEOUT_RPC = 60000
 
 // Resuelve el descriptor de ruta del perfil (requestProfile exige el objeto,
@@ -161,6 +160,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo }) {
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
   const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
+  const perfilRef = useRef(null)                    // perfil resuelto (callbacks)
   const [sesion, setSesion] = useState(null)     // {session_id, stored_id, info}
   const rutaRef = useRef(null)                   // PluginProfileRoute
   const [modelo, setModelo] = useState(null)     // {id, destino}
@@ -184,15 +184,22 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     setPerfilOk(null)
     setSesion(null)
     setMensajes([])
+    perfilRef.current = null
     ;(async () => {
       try {
-        // candidatos: lexo-lawyer primero, luego el perfil activo de la app;
-        // los hooks viajan con el plugin, así que cualquier perfil con Diké
-        // habilitado es seguro — el primero con dike-verificar responde.
+        // candidato: el setting perfil_chat si está configurado, si no el
+        // perfil activo de la app. Los hooks viajan con el plugin, así que
+        // cualquier perfil con Diké habilitado es seguro — el primero con
+        // dike-verificar responde.
         const rutas = await host.profileRoutes()
         const listaRutas = (rutas && (rutas.routes || rutas)) || []
         const activo = nombrePerfilActivo(host.state && host.state.profile)
-        const candidatos = candidatosPerfil(listaRutas, activo)
+        let perfilConfigurado = ''
+        try {
+          const est = await rest('/estado')
+          perfilConfigurado = (est && est.perfil_chat) || ''
+        } catch { /* sin /estado el chat sigue con el perfil activo */ }
+        const candidatos = candidatosPerfil(listaRutas, activo, perfilConfigurado)
         let ruta = null
         let perfilObjetivo = null
         const paso = async (nombre, fn) => {
@@ -229,11 +236,14 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
         }
         if (!ruta) {
           throw new Error('El chat del escrito necesita un perfil con Diké ' +
-            'habilitado (lexo-lawyer o el perfil activo): sin sus hooks no ' +
-            'se puede garantizar que el modelo no use herramientas.')
+            'habilitado: configura el setting perfil_chat del plugin o usa el ' +
+            'perfil activo' + (activo ? ' («' + activo + '»)' : '') +
+            '. Sin sus hooks no se puede garantizar que el modelo no use ' +
+            'herramientas.')
         }
         const perfil = perfilObjetivo
         setPerfilElegido(perfil)
+        perfilRef.current = perfil
         rutaRef.current = ruta
         releaseRef.current = await host.retainProfile(ruta)
         const titulo = tituloSesion(caseId)
@@ -376,7 +386,8 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
       pregunta: q, textoEscrito, ultimoEnviado: ultimo, activo,
       verificacion, rev, caseId: cid, hashActual: hashP,
     })
-    const destino = PERFIL_DEFAULT + ' · ' + etiquetaModelo(modelo && modelo.id)
+    const destino = (perfilRef.current || 'perfil sin resolver') +
+      ' · ' + etiquetaModelo(modelo && modelo.id)
     const cfgPriv = (registro && registro.privacidad) || {}
     const seudonimizar = cfgPriv.seudonimizar !== false
     if (!seudonimizar && cfgPriv.acepto_datos !== true) {
@@ -392,7 +403,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
       if (!puedeEnviar()) throw new Error('privacidad bloqueó el envío')
       return host.requestProfile(rutaRef.current, 'prompt.submit',
         { session_id: s.session_id, text: envio.texto,
-          profile: (rutaRef.current && rutaRef.current.targetProfile) || PERFIL_DEFAULT },
+          profile: perfilRef.current ||
+            (rutaRef.current && (rutaRef.current.targetProfile
+              || rutaRef.current.profile)) },
         TIMEOUT_RPC)
         .then(() => {
           setMensajes((ms) => [...ms, { rol: 'user', texto: q }])
@@ -415,7 +428,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     if (!s) return
     host.requestProfile(rutaRef.current, 'session.interrupt',
       { session_id: s.session_id,
-        profile: (rutaRef.current && rutaRef.current.targetProfile) || PERFIL_DEFAULT },
+        profile: perfilRef.current ||
+          (rutaRef.current && (rutaRef.current.targetProfile
+            || rutaRef.current.profile)) },
       TIMEOUT_RPC).catch(() => {})
     setOcupado(false)
   }, [])

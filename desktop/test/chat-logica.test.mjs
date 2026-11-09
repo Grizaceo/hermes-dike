@@ -139,21 +139,22 @@ test('activoDe: selección gana sobre párrafo del cursor', () => {
   assert.equal(activoDe(null, 'párrafo'), 'párrafo')
 })
 
-test('candidatosPerfil: lexo-lawyer primero, luego el perfil activo', () => {
+test('candidatosPerfil: perfil_chat configurado o perfil activo', () => {
   const rutas = [
-    { targetProfile: 'lexo-lawyer', profile: 'default' },
+    { targetProfile: 'mi-perfil', profile: 'default' },
     { targetProfile: 'lexo-alpha', profile: 'lexo-alpha' },
   ]
-  // lexo-lawyer presente → es el candidato único si el activo no tiene ruta
-  assert.deepEqual(candidatosPerfil(rutas, 'default'), ['lexo-lawyer'])
-  // sin lexo-lawyer cae al perfil activo si tiene ruta
-  assert.deepEqual(candidatosPerfil(
-    [{ targetProfile: 'lexo-alpha' }], 'lexo-alpha'), ['lexo-alpha'])
-  // ambos disponibles → orden lexo-lawyer primero
-  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha'),
-    ['lexo-lawyer', 'lexo-alpha'])
-  // sin rutas → vacío (el error lo da el llamador)
-  assert.deepEqual(candidatosPerfil([], 'lexo-lawyer'), [])
+  // Sin perfil_chat → el perfil activo es el único candidato.
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha', ''), ['lexo-alpha'])
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha'), ['lexo-alpha'])
+  // Con perfil_chat → ese perfil, no el activo.
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha', 'mi-perfil'), ['mi-perfil'])
+  // perfil_chat sin ruta disponible → vacío (el error lo da el llamador).
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha', 'inexistente'), [])
+  // perfil_chat igual al activo → un solo candidato, sin duplicar.
+  assert.deepEqual(candidatosPerfil(rutas, 'lexo-alpha', 'lexo-alpha'), ['lexo-alpha'])
+  // sin rutas → vacío.
+  assert.deepEqual(candidatosPerfil([], 'lexo-alpha', 'mi-perfil'), [])
 })
 
 test('nombrePerfilActivo: átomo, string plano y ausencia', () => {
@@ -174,20 +175,18 @@ test('nombrePerfilActivo: átomo, string plano y ausencia', () => {
 
 test('candidatosPerfil con el nombre que da nombrePerfilActivo', () => {
   const rutas = [
-    { targetProfile: 'lexo-lawyer', profile: 'default' },
+    { targetProfile: 'mi-perfil', profile: 'default' },
     { targetProfile: 'lexo-alpha', profile: 'lexo-alpha' },
   ]
   // El perfil activo llega como átomo: nombrePerfilActivo lo resuelve al
-  // string y candidatosPerfil ya puede incluirlo como segundo candidato.
+  // string y, sin perfil_chat, es el único candidato.
   const activo = nombrePerfilActivo({ get: () => 'lexo-alpha' })
-  assert.deepEqual(candidatosPerfil(rutas, activo), ['lexo-lawyer', 'lexo-alpha'])
-  // Sin lexo-lawyer en las rutas, el activo del átomo es el único candidato.
+  assert.deepEqual(candidatosPerfil(rutas, activo, ''), ['lexo-alpha'])
+  // Con perfil_chat configurado, ese perfil gana sobre el activo.
+  assert.deepEqual(candidatosPerfil(rutas, activo, 'mi-perfil'), ['mi-perfil'])
+  // Un perfil activo vacío no añade candidato.
   assert.deepEqual(
-    candidatosPerfil([{ targetProfile: 'lexo-alpha' }], activo), ['lexo-alpha'])
-  // Un átomo sin perfil ('') no añade candidato.
-  assert.deepEqual(
-    candidatosPerfil([{ targetProfile: 'lexo-alpha' }],
-      nombrePerfilActivo(undefined)), [])
+    candidatosPerfil(rutas, nombrePerfilActivo(undefined), ''), [])
 })
 
 // --- Notas al pie y fragmentos ---------------------------------------------

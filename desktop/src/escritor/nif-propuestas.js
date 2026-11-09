@@ -94,7 +94,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       }
       const envio = await prepararEnvio({
         caseId, texto: input,
-        destino: (sesion.perfil || 'lexo-lawyer') + ' · '
+        destino: (sesion.perfil || 'perfil sin resolver') + ' · '
           + (modeloLabel || 'modelo') + ' · NIF',
         seudonimizar, estrategia: cfgPriv.estrategia || 'media',
       })

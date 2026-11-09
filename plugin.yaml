@@ -9,8 +9,9 @@ description: >-
   and never calls a model. The opt-in Desktop page adds a Case Writer: a brief
   editor with the verifier as a module (prove, repair, withdraw with a reason,
   escalate), a pseudonymization step you see and control before any text leaves,
-  and a chat about the brief that runs in your own Hermes gateway (lexo-lawyer by
-  default) with two hooks that inject fail-closed instructions and block every tool
+  and a chat about the brief that runs in a Hermes profile you choose — the
+  active profile by default, or the one set in perfil_chat — with two hooks
+  that inject fail-closed instructions and block every tool
   except skills and the verifier, only in those sessions. It also proposes NIF
   case-board updates that enter only when you accept them, plus a read-only map of
   the sealed corpus graph whose content search is lexical, deterministic and

@@ -47,6 +47,38 @@
   and, only with your opt-in, a model completion that is pseudonymized when
   it would leave the machine.
 
+## Choosing the profile the chat runs in
+
+The Case Writer chat runs in a Hermes profile that has Diké enabled and a
+model configured. By default that is the **active profile** — the one the
+Desktop app is connected to. Two ways to change it:
+
+- **Run everything in a dedicated profile.** Create it, install and enable
+  Diké there, give it a model, and open the Desktop app on that profile.
+  `--clone` copies the active profile's `config.yaml` (which carries the
+  model), `.env`, `SOUL.md` and skills; `--clone-from <name>` clones a
+  different source, and `--no-skills` makes a lean profile (configure a
+  model afterwards):
+
+  ```bash
+  hermes profile create abogado-dike --clone
+  hermes -p abogado-dike plugins install Grizaceo/hermes-dike --ref <sha>
+  hermes -p abogado-dike plugins enable dike
+  ```
+
+- **Keep the dashboard on one profile and the chat on another.** Set the
+  plugin's `perfil_chat` setting in the profile that serves the dashboard to
+  the name of the profile that should run the chat (that profile still needs
+  Diké and a model):
+
+  ```bash
+  hermes -p <dashboard-profile> config set plugins.entries.dike.settings.perfil_chat abogado-dike
+  ```
+
+  Leave `perfil_chat` empty (`""`) to use the active profile. The same key
+  lives in that profile's `config.yaml` under
+  `plugins.entries.dike.settings.perfil_chat`.
+
 ## Planned: one retrieval contract for search and prediction
 
 Not implemented. This fixes the shape so a later retriever can plug in

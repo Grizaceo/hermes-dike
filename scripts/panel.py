@@ -44,6 +44,12 @@ _MOTOR = Path(__file__).resolve().parent.parent / "motor"
 if str(_MOTOR) not in sys.path:
     sys.path.insert(0, str(_MOTOR))
 
+# scripts/ también entra al path: `canal_arbol` vive junto a este archivo y
+# debe importarse igual cuando panel.py corre como script o como módulo.
+_PANEL_DIR = Path(__file__).resolve().parent
+if str(_PANEL_DIR) not in sys.path:
+    sys.path.insert(0, str(_PANEL_DIR))
+
 _CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _MAX_ARTICULOS = 300
 
@@ -263,7 +269,100 @@ def _terminos_presentes(consulta_terminos: list, familias: set) -> list:
     return out
 
 
-def buscar(consulta: str, limite: int = 20, corpus_dirs=None) -> dict:
+def _explicar_arbol(consulta: str, retriever,
+                    resultados: list, arbol_dir=None) -> dict:
+    """Clasifica la consulta con el árbol de materias (canal_arbol).
+
+    Explica, no reordena: el bloque ``arbol`` y las ``materias`` de cada
+    resultado son metadatos de auditoría; ``resultados`` conserva el orden
+    y los puntajes del BM25. Si el árbol no carga —falta el JSON, es
+    inválido o el lexicón está vacío— la búsqueda sigue igual y se informa
+    ``disponible: false`` con el motivo. Nunca lanza.
+
+    ``arbol_dir`` (tests) apunta a un directorio con
+    ``arbol_derecho_anclas.json`` y ``arbol_lexicon.json``; por defecto se
+    usan los empaquetados en ``data/arbol/``.
+    """
+    try:
+        import canal_arbol
+    except Exception as e:
+        return {"disponible": False,
+                "motivo": f"canal_arbol no importable: {type(e).__name__}: {e}"[:200]}
+    try:
+        if arbol_dir is None:
+            canal = canal_arbol.CanalArbol(retriever)
+        else:
+            d = Path(arbol_dir)
+            canal = canal_arbol.CanalArbol(
+                retriever,
+                arbol_path=d / "arbol_derecho_anclas.json",
+                lexicon_path=d / "arbol_lexicon.json")
+    except Exception as e:
+        return {"disponible": False,
+                "motivo": f"{type(e).__name__}: {e}"[:200]}
+    if canal.arbol is None:
+        return {"disponible": False,
+                "motivo": f"árbol no encontrado ({canal.arbol_path.name})"}
+    if not canal.lexicon:
+        return {"disponible": False,
+                "motivo": "lexicón de materias ausente o vacío"}
+    try:
+        clasificacion = canal.clasificar(consulta, top=3)
+    except Exception as e:
+        return {"disponible": False,
+                "motivo": f"clasificación falló: {type(e).__name__}: {e}"[:200]}
+
+    clasif: list[dict] = []
+    for c in clasificacion:
+        clasif.append({
+            "nodo": c["nodo"],
+            "nombre": c["nombre"],
+            "rama": c["rama"],
+            "score": c["score"],
+            "terminos": c["terminos"],
+            "cobertura": c["cobertura"],
+            "n_anclas": c["n_anclas"],
+            "codigos": canal.territorio(c["nodo"])["codigos"],
+        })
+    ratio = None
+    if len(clasif) >= 2 and clasif[1]["score"]:
+        ratio = round(clasif[0]["score"] / clasif[1]["score"], 3)
+    clara = ratio is not None and ratio >= 1.6
+
+    anclas_por_nodo = {
+        nid: set(gids) for nid, gids in canal.nodo_anclas.items()}
+    for r in resultados:
+        materias = []
+        for c in clasif:
+            nid = c["nodo"]
+            if r["gid"] in anclas_por_nodo.get(nid, ()):
+                relacion = "ancla"
+            elif (canal_arbol.codigo_umj(r["gid"])
+                    in canal.nodo_codigos.get(nid, set())):
+                relacion = "territorio"
+            else:
+                continue
+            materias.append({
+                "nodo": nid,
+                "nombre": c["nombre"],
+                "relacion": relacion,
+            })
+        r["materias"] = materias
+
+    return {
+        "disponible": True,
+        "nodos": len(canal.nodos),
+        "anclas": sum(len(g) for g in canal.nodo_anclas.values()),
+        "clasificacion": clasif,
+        "ratio": ratio,
+        "umbral": 1.6,
+        "clara": clara,
+        "nota": "Clasificación léxica por árbol de materias: explica, no reordena",
+    }
+
+
+def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
+            arbol_dir=None) -> dict:
     """Busca artículos del corpus sellado por contenido (BM25, sin modelo).
 
     Cada acierto del retriever se traduce al nodo ``a:CODE:EID`` que ``grafo
@@ -274,6 +373,12 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None) -> dict:
     ``corpus_dirs`` permite apuntar a otro conjunto de ``*/current`` (tests);
     por defecto usa ``_corpus_dirs()``. La consulta se valida aquí también:
     este script es la última línea antes del motor.
+
+    ``arbol_dir`` (tests) inyecta el árbol de materias; por defecto se usan
+    los JSON empaquetados en ``data/arbol/``. El bloque ``arbol`` explica la
+    clasificación por materia y cada resultado lleva ``materias``; nada de
+    eso toca el orden ni los puntajes del BM25, y un árbol ausente o inválido
+    nunca tumba la búsqueda.
     """
     from lexo_cli.starter.resolver import StarterCorpusResolver
     from lexo_cli.starter.retrieval import StarterCorpusRetriever, terminos
@@ -396,6 +501,10 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None) -> dict:
     resultados = finales
     if not pack and dirs:
         pack = dirs[0].parent.name
+    arbol = _explicar_arbol(q, retriever, resultados,
+                            arbol_dir=arbol_dir)
+    for r in resultados:
+        r.setdefault("materias", [])
     return {
         "rotulo": _ROTULO_BUSQUEDA,
         "metodo": {
@@ -406,6 +515,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None) -> dict:
             "pack": pack,
             "descripcion": "BM25 por cláusula sobre el corpus sellado, sin modelo",
         },
+        "arbol": arbol,
         "total": len(resultados),
         "sin_nodo": sin_nodo,
         "resultados": resultados,

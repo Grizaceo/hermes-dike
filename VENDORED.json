@@ -163,6 +163,47 @@
       ],
       "licencia": "MIT",
       "que": "FORMALISMO (13 encabezados) + ACCIONES (38 acciones del numerus clausus) verbatim; predictFormalismo, predictContenidoJuridico, segmentoActual, sufijoPendiente, textoAInsertar, contieneClave, puntuarAcciones con disparadores/ventana. Sin CopilotConfig ni aprendizaje de frecuencia."
+    },
+    "scripts/canal_arbol.py": {
+      "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/indexo-retriever-prod",
+      "commit": "32a0d86",
+      "archivos_origen": [
+        "canal_arbol.py"
+      ],
+      "licencia": "MIT (ver repo origen)",
+      "sha256_origen": "580333cfec67f6558c2cef5d6ddc77e425980b93a2b0a098f683d741b429b30b",
+      "sha256_vendorizado": "5a986b625d3aeaa0a4ca767fb4882a8ce2e1d2654976089e81b9227ea7aa6d38",
+      "adaptaciones": [
+        "from _vendor.dike_id import … → from dike_id import … (motor/dike_id ya vendorizado, byte a byte idéntico al _vendor de IndexO)",
+        "ARBOL_PATH/LEXICON_PATH → data/arbol/ dentro del plugin; sin variables de entorno ni rutas /home; CanalArbol acepta arbol_path/lexicon_path opcionales",
+        "Quitados buscar() (el boost) y _MATERIA_A_NODO/materia_a_nodo (helper del goldset); quedan codigo_umj, NODO_CODIGOS, CanalArbol(_cargar_lexicon, _cargar, _descendientes, clasificar, territorio)"
+      ],
+      "que": "Clasificación de consultas por materia (árbol de derecho + lexicón). Explica qué términos activaron cada materia; NO reordena la búsqueda (medido: el boost no mejora el ranking)."
+    },
+    "data/arbol/": {
+      "descripcion": "Árbol de materias y lexicón conceptual para la clasificación de consultas (Fase 2). Datos, no código.",
+      "fuentes": [
+        {
+          "origen": "~/.hermes/profiles/lexo-alpha/attachments/",
+          "archivos_origen": [
+            "arbol_derecho_anclas.json",
+            "arbol_lexicon.json"
+          ],
+          "archivos_destino": [
+            "data/arbol/arbol_derecho_anclas.json",
+            "data/arbol/arbol_lexicon.json"
+          ],
+          "sha256_origen": {
+            "arbol_derecho_anclas.json": "c675dfe38eb58bbbd4fcb72f3b5d2ffe086829d804089cd9d08ed810216cd826",
+            "arbol_lexicon.json": "b77153bb397c55b07c716187f06281a5c290c6b21226de5649fb80c4ca19b300"
+          },
+          "sha256_vendorizado": {
+            "data/arbol/arbol_derecho_anclas.json": "c675dfe38eb58bbbd4fcb72f3b5d2ffe086829d804089cd9d08ed810216cd826",
+            "data/arbol/arbol_lexicon.json": "b77153bb397c55b07c716187f06281a5c290c6b21226de5649fb80c4ca19b300"
+          },
+          "nota": "Copiados byte a byte. arbol_derecho_anclas.json: 85 nodos, 51 anclas (37 únicas). arbol_lexicon.json: 44 nodos, 312 términos — semilla derivada del corpus (aproximación, no el original, según start_v3.sh). Contenido revisado: solo nombres de materia, términos, gids y coordenadas de layout."
+        }
+      ]
     }
   }
 }

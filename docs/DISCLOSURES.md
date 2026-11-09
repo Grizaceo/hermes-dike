@@ -29,7 +29,9 @@ for the catalog review and for anyone deciding whether to install it.
   the calling session's working directory when Hermes reports one; when it
   does not (gateway sessions), a relative path is refused, never resolved
   against the gateway's own directory.
-- Its own `corpus/` and `motor/` folders.
+- Its own `corpus/`, `motor/` and `data/arbol/` folders. The matter tree
+  and lexicon under `data/arbol/` are packaged JSON read by the search
+  route — offline, no network.
 
 ## It writes
 
@@ -303,7 +305,15 @@ listed in "It writes"; no route writes outside plugin-data.
   citations. Reads only the sealed corpus; the single write is the BM25
   index cache at `<generation>/home/.dike/bm25_cache/<snapshot16>.pkl` —
   outside the `users/` subtree the integrity check hashes, next to the
-  existing binding cache.
+  existing binding cache. The response also carries an `arbol` block and
+  per-result `materias` labels: the packaged matter tree
+  (`data/arbol/arbol_derecho_anclas.json` + `arbol_lexicon.json`) lexically
+  classifies the query, names the terms that activated each of the top
+  three matters, and marks each result as `ancla` or `territorio` of
+  them. This explains the classification — it does not reorder results,
+  improve ranking, or certify citations (measured: the tree's ranking
+  boost does not help). If the tree files are missing or invalid the
+  search still answers, with `arbol.disponible: false` and the reason.
 - `/grafo/fuentes` — lists the corpus and the optional local layer.
 - `/grafo/evidencia` — evidence snippet for one local-layer link.
 - `/nif/*` — case-board CRUD via `scripts/panel.py` (writes under

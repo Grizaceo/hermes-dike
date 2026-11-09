@@ -503,6 +503,8 @@ export function SeccionGrafo() {
   const [busqueda, setBusqueda] = useState(null)
   // nodo_id -> resultado de la búsqueda que lo trajo (para la ficha y las unidades).
   const [busquedaPorNodo, setBusquedaPorNodo] = useState(() => new Map())
+  // nodo_id de la materia cuyo filtro de resalte está activo (null = todos).
+  const [materiaFiltro, setMateriaFiltro] = useState(null)
   const [fallo3d, setFallo3d] = useState(null)
   const [listaAbierta, setListaAbierta] = useState(false)
   const apiRef = useRef(null)
@@ -633,14 +635,19 @@ export function SeccionGrafo() {
     }
     // Sin camino ni selección ni hover: los resultados de la búsqueda
     // por contenido iluminan sus artículos y los instrumentos que los contienen.
+    // Con filtro de materia activo solo encienden los resultados de esa
+    // materia (la lista sigue completa y en el mismo orden).
     const data = busqueda && busqueda.estado === 'lista' ? busqueda.data : null
     const lista = (data && data.resultados) || []
     if (!lista.length) return null
     const ids = new Set()
     for (const r of lista) {
+      if (materiaFiltro
+          && !(r.materias || []).some((m) => m.nodo === materiaFiltro)) continue
       ids.add(r.nodo_id)
       ids.add(r.instrumento)
     }
+    if (!ids.size) return null
     const links = new Set()
     for (const l of proyeccion.links) {
       if (l.tipo !== 'contiene') continue
@@ -649,7 +656,7 @@ export function SeccionGrafo() {
       if (ids.has(s) && ids.has(t)) links.add(s + '|' + t + '|' + l.tipo)
     }
     return { ids, links }
-  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo])
+  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo, materiaFiltro])
 
   // Órbita lenta para el video; se apaga con cualquier interacción.
   useEffect(() => {
@@ -676,6 +683,7 @@ export function SeccionGrafo() {
     if (!q || fuente !== 'corpus') return
     setBusqueda({ estado: 'cargando' })
     setBusquedaPorNodo(new Map())
+    setMateriaFiltro(null)
     rest('/grafo/buscar', {
       method: 'POST',
       body: { q, limite: 20 },
@@ -693,6 +701,7 @@ export function SeccionGrafo() {
       .catch((e) => {
         setBusqueda({ estado: 'error', mensaje: mensajeError(e) })
         setBusquedaPorNodo(new Map())
+        setMateriaFiltro(null)
       })
   }, [query, fuente])
 
@@ -720,6 +729,9 @@ export function SeccionGrafo() {
       .slice(0, 40)
     : []
   const actual = seleccion ? indice.get(seleccion) : null
+  const arbolData = busqueda && busqueda.estado === 'lista' && busqueda.data
+    ? busqueda.data.arbol || null
+    : null
   const candidatos = (personal && personal.candidates) || []
   const aristasP = (personal && personal.edges) || []
   const totales = (red && red.conteos) || {}
@@ -912,15 +924,51 @@ export function SeccionGrafo() {
                         children:
                           (busqueda.data && busqueda.data.rotulo) ||
                           'Resultado de búsqueda: es una pista, no una fuente verificada' }),
+                      arbolData
+                        ? (arbolData.disponible
+                          ? jsxs('div', { className: 'flex flex-col gap-0.5 px-1', children: [
+                              jsxs('div', { className: 'flex flex-wrap items-center gap-1', children: [
+                                jsx('span', { className: S.sub, children: 'Materias de la consulta' }),
+                                ...(arbolData.clasificacion || []).map((c) => jsx('button', {
+                                  key: c.nodo, type: 'button',
+                                  className: S.chip + ' ' + (materiaFiltro === c.nodo ? S.chipOk : S.chipOff),
+                                  title: 'términos: ' + (c.terminos || []).join(', ') +
+                                    ' · cobertura ' + Math.round((c.cobertura || 0) * 100) + '%',
+                                  onClick: () => setMateriaFiltro(
+                                    (prev) => (prev === c.nodo ? null : c.nodo)),
+                                  children: c.nombre + ' · ' + c.score,
+                                })),
+                                !arbolData.clara
+                                  ? jsx('span', { className: S.chip + ' ' + S.chipOff,
+                                      children: 'clasificación ambigua' })
+                                  : null,
+                              ] }),
+                              ...(arbolData.clasificacion || []).map((c) => jsx('div', {
+                                key: 't-' + c.nodo,
+                                className: S.sub + ' truncate',
+                                children: c.nombre + ' — ' +
+                                  ((c.terminos || []).join(', ') || 'sin términos') +
+                                  ' · cobertura ' + Math.round((c.cobertura || 0) * 100) + '%',
+                              })),
+                              jsx('div', { className: S.sub + ' truncate', children:
+                                'clasificación léxica por árbol de materias: explica, no reordena' }),
+                            ] })
+                          : jsx('div', { className: S.sub + ' px-1', children:
+                              'árbol de materias no disponible' +
+                              (arbolData.motivo ? ' — ' + arbolData.motivo : '') }))
+                        : null,
                       ((busqueda.data && busqueda.data.resultados) || []).length === 0
                         ? jsx('div', { className: S.sub + ' p-1', children: 'Sin resultados.' })
                         : null,
                       ((busqueda.data && busqueda.data.resultados) || []).map((r) => {
                         const metodo = (busqueda.data && busqueda.data.metodo) || {}
                         const rel = Math.max(0, Math.min(1, r.score_rel || 0))
+                        const fueraDelFiltro = materiaFiltro
+                          && !(r.materias || []).some((m) => m.nodo === materiaFiltro)
                         return jsxs('button', {
                           key: r.nodo_id, type: 'button',
-                          className: 'flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)',
+                          className: 'flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)' +
+                            (fueraDelFiltro ? ' opacity-40' : ''),
                           onClick: () => alElegirResultado(r),
                           children: [
                             jsxs('div', { className: 'flex items-center gap-1.5', children: [
@@ -942,6 +990,15 @@ export function SeccionGrafo() {
                             (r.unidades || []).length
                               ? jsx('div', { className: S.sub + ' truncate', children:
                                   'unidades: ' + r.unidades.map((u) => u.etiqueta).join(', ') })
+                              : null,
+                            (r.materias || []).length
+                              ? jsx('div', { className: 'flex flex-wrap gap-1', children:
+                                  r.materias.map((m, i) => jsx('span', {
+                                    key: m.nodo + '-' + i,
+                                    className: S.chip + ' ' + S.chipOff,
+                                    children: (m.relacion === 'ancla' ? 'ancla' : 'territorio') +
+                                      ' · ' + m.nombre,
+                                  })) })
                               : null,
                             jsx('div', { className: S.sub + ' truncate', children:
                               (metodo.motor || 'bm25') + ' · canal ' + (r.canal || '') +

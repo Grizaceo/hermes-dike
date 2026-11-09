@@ -1,0 +1,402 @@
+{
+  "sociedades": [
+    "sociedad",
+    "sociedades",
+    "socios",
+    "capital social",
+    "persona jurídica"
+  ],
+  "nmt54oatsmhw6": [
+    "sociedad anónima",
+    "accionistas",
+    "directorio",
+    "dividendos",
+    "junta de accionistas"
+  ],
+  "nmt54vz8qe6ei": [
+    "sociedad de responsabilidad limitada",
+    "limitada",
+    "cuotas sociales"
+  ],
+  "nmt54oay8v1vp": [
+    "SPA",
+    "sociedad por acciones",
+    "estatuto"
+  ],
+  "nmt54rb8b2to8": [
+    "sociedad colectiva",
+    "colectiva",
+    "aporte social"
+  ],
+  "nmt54xoo7fkfw": [
+    "sociedad en comandita",
+    "comandita",
+    "comanditario",
+    "gestor"
+  ],
+  "jurisdiccion": [
+    "jurisdicción",
+    "competencia",
+    "prórroga",
+    "incompetencia",
+    "radicación",
+    "implicancia",
+    "recusación"
+  ],
+  "civil": [
+    "civil",
+    "obligaciones",
+    "contratos",
+    "persona",
+    "bienes",
+    "herencia",
+    "sucesión",
+    "familia",
+    "matrimonio",
+    "filiación",
+    "acto jurídico"
+  ],
+  "persona": [
+    "persona",
+    "nombre",
+    "domicilio",
+    "estado civil",
+    "filiación",
+    "identidad"
+  ],
+  "familia": [
+    "familia",
+    "matrimonio",
+    "divorcio",
+    "filiación",
+    "paternidad",
+    "custodia",
+    "hijo",
+    "cónyuge"
+  ],
+  "bienes": [
+    "bienes",
+    "propiedad",
+    "patrimonio",
+    "posesión",
+    "cosa",
+    "inmueble",
+    "mueble",
+    "dueño",
+    "propietario"
+  ],
+  "acto": [
+    "acto",
+    "jurídico",
+    "contrato",
+    "negocio",
+    "obligación",
+    "acto jurídico",
+    "declaración",
+    "consentimiento"
+  ],
+  "obligaciones": [
+    "obligación",
+    "obligaciones",
+    "incumplimiento",
+    "mora",
+    "perjuicio",
+    "cláusula penal",
+    "pago",
+    "deuda",
+    "acreedor",
+    "deudor",
+    "cumplimiento"
+  ],
+  "contratos-g": [
+    "contrato",
+    "contratos",
+    "obligaciones",
+    "comprador",
+    "vendedor",
+    "causa",
+    "objeto",
+    "consentimiento",
+    "partes"
+  ],
+  "contratos-e": [
+    "contrato",
+    "especial",
+    "compraventa",
+    "arrendamiento",
+    "comodato",
+    "mutuo",
+    "título",
+    "tradición",
+    "entrega"
+  ],
+  "resp": [
+    "responsabilidad",
+    "civil",
+    "daño",
+    "perjuicio",
+    "culpa",
+    "negligencia",
+    "indemnización",
+    "víctima",
+    "causal"
+  ],
+  "sucesorio": [
+    "sucesión",
+    "herencia",
+    "testamento",
+    "causante",
+    "heredero",
+    "legítimo",
+    "aceptación",
+    "masa hereditaria",
+    "bienes"
+  ],
+  "comercial": [
+    "comercial",
+    "sociedad",
+    "sociedades",
+    "comerciante",
+    "cambio",
+    "letra",
+    "pagaré"
+  ],
+  "penal": [
+    "penal",
+    "delito",
+    "castigo",
+    "autor",
+    "criminal",
+    "pena",
+    "imputable",
+    "culpa",
+    "tipicidad"
+  ],
+  "procesal-penal": [
+    "formalización",
+    "imputado",
+    "fiscal",
+    "fiscalía",
+    "querellante",
+    "sobreseimiento",
+    "prisión preventiva",
+    "investigación penal",
+    "juicio oral",
+    "procedimiento abreviado"
+  ],
+  "tributario": [
+    "tributario",
+    "impuesto",
+    "renta",
+    "contribuyente",
+    "servicio",
+    "imposición",
+    "tributación",
+    "declaración",
+    "deuda"
+  ],
+  "laboral": [
+    "laboral",
+    "trabajador",
+    "empleador",
+    "contrato",
+    "despido",
+    "jornada",
+    "remuneraciones",
+    "feriado",
+    "salario"
+  ],
+  "jordinario": [
+    "juicio",
+    "ordinario",
+    "procedimiento",
+    "juzgado",
+    "local",
+    "sentencia",
+    "audiencia",
+    "prueba",
+    "alegatos"
+  ],
+  "jejecutivo": [
+    "ejecutivo",
+    "juicio",
+    "ejecución",
+    "deuda",
+    "cobro",
+    "embargo",
+    "demanda"
+  ],
+  "incidentes": [
+    "incidente",
+    "incidentes",
+    "incidental",
+    "incidentales"
+  ],
+  "recursos": [
+    "recurso",
+    "reposición",
+    "apelación",
+    "queja",
+    "nulidad",
+    "casación",
+    "revisión",
+    "hecho"
+  ],
+  "prueba": [
+    "prueba",
+    "probatoria",
+    "medios",
+    "documental",
+    "testimonial",
+    "pericial",
+    "confesional",
+    "presunción",
+    "carga"
+  ],
+  "cautelares": [
+    "medida",
+    "cautelar",
+    "cautelares",
+    "solicitud",
+    "juez",
+    "proceso",
+    "aseguramiento",
+    "perjuicio",
+    "medidas"
+  ],
+  "nulidad-procesal": [
+    "nulidad",
+    "procesal",
+    "nulidad procesal",
+    "reposición",
+    "recurso"
+  ],
+  "cosa-juzgada": [
+    "cosa",
+    "juzgada",
+    "sentencia",
+    "inmutabilidad",
+    "autoridad",
+    "firme"
+  ],
+  "prejudiciales": [
+    "prejudicial",
+    "prejudiciales",
+    "cuestión",
+    "previo",
+    "declaración"
+  ],
+  "filiacion": [
+    "filiación",
+    "paternidad",
+    "maternidad",
+    "hijo",
+    "matrimonio",
+    "declaración"
+  ],
+  "matrimonio": [
+    "matrimonio",
+    "cónyuges",
+    "esposa",
+    "esposo",
+    "divorcio",
+    "sociedad",
+    "conyugal"
+  ],
+  "vif": [
+    "violencia",
+    "intrafamiliar",
+    "maltrato",
+    "género",
+    "víctima",
+    "protección",
+    "medidas"
+  ],
+  "ambiental": [
+    "ambiental",
+    "sma",
+    "responsabilidad",
+    "daño",
+    "impacto",
+    "evaluación",
+    "recurso",
+    "protección",
+    "mediación"
+  ],
+  "seguridad-social": [
+    "seguridad",
+    "social",
+    "afp",
+    "pensión",
+    "ahorro",
+    "invalidez",
+    "sobreviviente"
+  ],
+  "migratorio": [
+    "migración",
+    "extranjería",
+    "visa",
+    "residencia",
+    "nacionalización"
+  ],
+  "electoral": [
+    "electoral",
+    "voto",
+    "sufragio",
+    "elecciones",
+    "partido",
+    "candidato"
+  ],
+  "constitucional": [
+    "constitucional",
+    "constitución",
+    "libertad",
+    "garantía",
+    "protección",
+    "recurso"
+  ],
+  "administrativo": [
+    "administrativo",
+    "administración",
+    "acto",
+    "decreto",
+    "resolución",
+    "procedimiento",
+    "recurso",
+    "revocación"
+  ],
+  "economico": [
+    "económico",
+    "economía",
+    "mercado",
+    "competencia",
+    "consumidor",
+    "protección"
+  ],
+  "urbanistico": [
+    "urbanístico",
+    "construcción",
+    "permiso",
+    "edificación",
+    "norma",
+    "urbanística"
+  ],
+  "arbitraje": [
+    "arbitraje",
+    "mediación",
+    "árbitro",
+    "laudo",
+    "arbitral",
+    "comisión"
+  ],
+  "tribunales": [
+    "tribunal",
+    "tribunales",
+    "juzgado",
+    "juzgados",
+    "corte",
+    "cortes",
+    "ministros",
+    "organización judicial"
+  ]
+}

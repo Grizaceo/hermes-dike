@@ -107689,6 +107689,7 @@ function SeccionGrafo() {
   const [modoBusqueda, setModoBusqueda] = useState6("nombre");
   const [busqueda, setBusqueda] = useState6(null);
   const [busquedaPorNodo, setBusquedaPorNodo] = useState6(() => /* @__PURE__ */ new Map());
+  const [materiaFiltro, setMateriaFiltro] = useState6(null);
   const [fallo3d, setFallo3d] = useState6(null);
   const [listaAbierta, setListaAbierta] = useState6(false);
   const apiRef = useRef5(null);
@@ -107823,9 +107824,11 @@ function SeccionGrafo() {
     if (!lista.length) return null;
     const ids = /* @__PURE__ */ new Set();
     for (const r2 of lista) {
+      if (materiaFiltro && !(r2.materias || []).some((m3) => m3.nodo === materiaFiltro)) continue;
       ids.add(r2.nodo_id);
       ids.add(r2.instrumento);
     }
+    if (!ids.size) return null;
     const links = /* @__PURE__ */ new Set();
     for (const l2 of proyeccion.links) {
       if (l2.tipo !== "contiene") continue;
@@ -107834,7 +107837,7 @@ function SeccionGrafo() {
       if (ids.has(s2) && ids.has(t4)) links.add(s2 + "|" + t4 + "|" + l2.tipo);
     }
     return { ids, links };
-  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo]);
+  }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo, materiaFiltro]);
   useEffect6(() => {
     if (!rotar) return void 0;
     const id = setInterval(() => {
@@ -107853,6 +107856,7 @@ function SeccionGrafo() {
     if (!q3 || fuente !== "corpus") return;
     setBusqueda({ estado: "cargando" });
     setBusquedaPorNodo(/* @__PURE__ */ new Map());
+    setMateriaFiltro(null);
     rest("/grafo/buscar", {
       method: "POST",
       body: { q: q3, limite: 20 },
@@ -107868,6 +107872,7 @@ function SeccionGrafo() {
     }).catch((e3) => {
       setBusqueda({ estado: "error", mensaje: mensajeError(e3) });
       setBusquedaPorNodo(/* @__PURE__ */ new Map());
+      setMateriaFiltro(null);
     });
   }, [query, fuente]);
   const alElegirResultado = useCallback6((r2) => {
@@ -107885,6 +107890,7 @@ function SeccionGrafo() {
   const q2 = query.trim().toLocaleLowerCase();
   const coincidencias = q2 ? nodos.filter((n2) => n2.label.toLocaleLowerCase().includes(q2) || n2.id.toLocaleLowerCase().includes(q2)).slice(0, 40) : [];
   const actual = seleccion ? indice.get(seleccion) : null;
+  const arbolData = busqueda && busqueda.estado === "lista" && busqueda.data ? busqueda.data.arbol || null : null;
   const candidatos = personal && personal.candidates || [];
   const aristasP = personal && personal.edges || [];
   const totales = red && red.conteos || {};
@@ -108094,14 +108100,40 @@ function SeccionGrafo() {
                   className: S.chip + " " + S.chipOff,
                   children: busqueda.data && busqueda.data.rotulo || "Resultado de b\xFAsqueda: es una pista, no una fuente verificada"
                 }),
+                arbolData ? arbolData.disponible ? jsxs6("div", { className: "flex flex-col gap-0.5 px-1", children: [
+                  jsxs6("div", { className: "flex flex-wrap items-center gap-1", children: [
+                    jsx6("span", { className: S.sub, children: "Materias de la consulta" }),
+                    ...(arbolData.clasificacion || []).map((c4) => jsx6("button", {
+                      key: c4.nodo,
+                      type: "button",
+                      className: S.chip + " " + (materiaFiltro === c4.nodo ? S.chipOk : S.chipOff),
+                      title: "t\xE9rminos: " + (c4.terminos || []).join(", ") + " \xB7 cobertura " + Math.round((c4.cobertura || 0) * 100) + "%",
+                      onClick: () => setMateriaFiltro(
+                        (prev) => prev === c4.nodo ? null : c4.nodo
+                      ),
+                      children: c4.nombre + " \xB7 " + c4.score
+                    })),
+                    !arbolData.clara ? jsx6("span", {
+                      className: S.chip + " " + S.chipOff,
+                      children: "clasificaci\xF3n ambigua"
+                    }) : null
+                  ] }),
+                  ...(arbolData.clasificacion || []).map((c4) => jsx6("div", {
+                    key: "t-" + c4.nodo,
+                    className: S.sub + " truncate",
+                    children: c4.nombre + " \u2014 " + ((c4.terminos || []).join(", ") || "sin t\xE9rminos") + " \xB7 cobertura " + Math.round((c4.cobertura || 0) * 100) + "%"
+                  })),
+                  jsx6("div", { className: S.sub + " truncate", children: "clasificaci\xF3n l\xE9xica por \xE1rbol de materias: explica, no reordena" })
+                ] }) : jsx6("div", { className: S.sub + " px-1", children: "\xE1rbol de materias no disponible" + (arbolData.motivo ? " \u2014 " + arbolData.motivo : "") }) : null,
                 (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx6("div", { className: S.sub + " p-1", children: "Sin resultados." }) : null,
                 (busqueda.data && busqueda.data.resultados || []).map((r2) => {
                   const metodo = busqueda.data && busqueda.data.metodo || {};
                   const rel = Math.max(0, Math.min(1, r2.score_rel || 0));
+                  const fueraDelFiltro = materiaFiltro && !(r2.materias || []).some((m3) => m3.nodo === materiaFiltro);
                   return jsxs6("button", {
                     key: r2.nodo_id,
                     type: "button",
-                    className: "flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)",
+                    className: "flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary)" + (fueraDelFiltro ? " opacity-40" : ""),
                     onClick: () => alElegirResultado(r2),
                     children: [
                       jsxs6("div", { className: "flex items-center gap-1.5", children: [
@@ -108118,6 +108150,11 @@ function SeccionGrafo() {
                       ] }),
                       (r2.terminos || []).length ? jsx6("div", { className: S.sub + " truncate", children: "t\xE9rminos: " + r2.terminos.join(", ") }) : null,
                       (r2.unidades || []).length ? jsx6("div", { className: S.sub + " truncate", children: "unidades: " + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
+                      (r2.materias || []).length ? jsx6("div", { className: "flex flex-wrap gap-1", children: r2.materias.map((m3, i3) => jsx6("span", {
+                        key: m3.nodo + "-" + i3,
+                        className: S.chip + " " + S.chipOff,
+                        children: (m3.relacion === "ancla" ? "ancla" : "territorio") + " \xB7 " + m3.nombre
+                      })) }) : null,
                       jsx6("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") })
                     ]
                   });

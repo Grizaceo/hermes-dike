@@ -71,7 +71,10 @@ deontic-modality label computed by a table of regex rules (R-EXC …
 R-DEF) — deterministic candidates, not validated. Its search box has two
 modes: by name, and by content — a deterministic BM25 search over the
 sealed corpus that returns article nodes as clues, never as verified
-citations. Optionally, a user can
+citations. Matter chips then explain the query: they name the legal
+matters the tree classified it under, the terms that activated each one,
+and whether each result is an anchor of that matter or inside its
+territory — explanation only, never a reorder. Optionally, a user can
 build a local graph from their own anonymized database with
 `scripts/construir_red_local.py`: the builder refuses to run unless an
 approval file records the database's sha256, writes only under the
@@ -192,6 +195,8 @@ chat, live NIF and the experimental predictor — is described in
 - **Content search is lexical (BM25), not semantic; it does not cross the
   concept→norm jump.** Results are clues to read, labeled as such — never
   verified citations.
+- **The matter tree has 51 anchors and does not change the ranking
+  (measured); it explains the classification, it does not improve it.**
 - **Not instant.** Every call re-checks the installed corpus and starts the
   engine, so it takes several seconds.
 - **Disk.** The installed corpus takes about 300 MB in the plugin's data

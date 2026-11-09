@@ -3,7 +3,7 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
       "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "277",
+      "value": "285",
       "date": "2026-11-08"
     },
     {
@@ -88,6 +88,12 @@
       "claim": "Content search over the sealed corpus (POST /grafo/buscar, scripts/panel.py grafo buscar) is a development measurement within the sample: recall@10 0.952, recall@5 0.823, mrr@10 0.636 over the 31 frozen queries of normas_qrels_v1, which cover 4 of the 25 statutes. The qrels were frozen with this same StarterCorpusRetriever and its constants were fixed while looking at the source goldset, so the numbers are not an independent holdout estimate.",
       "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current",
       "value": "recall@10 0.952",
+      "date": "2026-11-08"
+    },
+    {
+      "claim": "The packaged matter tree (data/arbol/, 85 nodes, 51 anchors) explains content-search queries without reordering them: over the same 31 normas_qrels_v1 queries the ranking metrics are unchanged (0.823 / 0.952 / 0.636), the classification is clear (top1/top2 ratio >= 1.6) in 8 of 31, and the top-1 matter's territory contains the statute of an expected article in 14 of 31. It is an explanation of the classification, not a quality improvement.",
+      "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current  # fields clara, materia_top1_cubre_esperado",
+      "value": "clara 8/31, materia_top1_cubre_esperado 14/31",
       "date": "2026-11-08"
     }
   ]

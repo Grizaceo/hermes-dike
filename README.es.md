@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=8f52ae5c35625fbc4cff15095fa60ca05cadbb3220561e8fcb3568757ee0ac60 -->
+<!-- vitrina:translation-of README.md sha256=78227c87b1e72bdaa9cbc6c8c7f0a2868fd8896e59ad5e3df32a47e01726b46d -->
 # Diké para Hermes
 
 [English](README.md)
@@ -46,7 +46,9 @@ página en la barra lateral de la app Desktop (la mitad de escritorio es
 optativa: actívala en Capabilities → Plugins). La página Desktop tiene tres
 pestañas: el **Case Writer**, un mapa de solo lectura del grafo del corpus
 sellado (sus 25 normas, 8.544 artículos y aristas) con búsqueda por
-contenido sobre los artículos, y un tablero de caso — el
+contenido sobre los artículos — chips de materia que explican qué materias
+activó la consulta, qué términos las encendieron y si cada resultado es
+ancla o territorio de ellas, sin reordenar nada —, y un tablero de caso — el
 NIF — donde la teoría de cada caso es versionada, con parches atribuidos y
 marca de validación humana. Todas llaman al mismo motor por el backend
 `/api/plugins/dike` del plugin.
@@ -190,6 +192,8 @@ en [docs/DISCLOSURES.md](docs/DISCLOSURES.md).
 - **La búsqueda es léxica (BM25), no semántica; no cruza el salto
   concepto→norma.** Los resultados son pistas de lectura, rotulados como
   tales — nunca citas verificadas.
+- **El árbol tiene 51 anclas y no cambia el ranking (medido); explica la
+  clasificación, no la mejora.**
 - **No es instantáneo.** Cada llamada vuelve a revisar el corpus instalado y
   arranca el motor, así que tarda varios segundos.
 - **Disco.** El corpus instalado ocupa unos 300 MB en la carpeta de datos del

@@ -56,7 +56,7 @@ def test_disclosure_not_optional_or_wrong_type(native, monkeypatch, value):
 def test_temporal_evidence_reports_each_source_age(native, monkeypatch):
     p = _green_payload()
     second = copy.deepcopy(p['detalles'][0])
-    second['gid'] = 'synthetic:second'
+    second['gid'] = 'cl.norma.ct:art:0162'  # forma válida: el contrato rechaza gid inventados
     second['fecha_recuperacion'] = '2026-08-14T00:00:00Z'
     p['detalles'].append(second)
     p['meta'].update(total_citas=2, citas_verificadas=2)

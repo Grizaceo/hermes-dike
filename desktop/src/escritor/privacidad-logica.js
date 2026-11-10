@@ -71,7 +71,7 @@ export function marcasParaEditor(entidades, candidatos, rangoAPos) {
   }
   for (const c of candidatos || []) {
     const r = rangoAPos(c.inicio, c.fin)
-    if (r) marcas.push({ from: r.from, to: r.to, clase: 'candidato', title: 'posible persona' })
+    if (r) marcas.push({ from: r.from, to: r.to, clase: 'candidato', title: 'POSSIBLE_PERSON' })
   }
   return marcas
 }

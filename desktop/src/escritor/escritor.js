@@ -1,3 +1,5 @@
+import { t, useIdioma } from '../i18n.js'
+import { etiquetaCodigo } from '../i18n.js'
 // Case Writer (Estudio de Escritos):
 // 1. Barra superior de documento y formato tipo Word (Archivo, Escribir/Leer,
 //    Documento/Caso, Deshacer/Rehacer, Tipografía, Tamaño, Formalismos, Verificar).
@@ -46,6 +48,7 @@ const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
 const DEBOUNCE_INFO = 300
 const MAX_INTENTOS_REPARAR = 2
+const PIZARRA_VACIA = { nodos: [], aristas: [], colapsada: false, altura: 225 }
 
 const ESTILOS_ESTADO = {
   verificada: { chip: 'chipOk', texto: 'verificada' },
@@ -57,21 +60,21 @@ const ESTILOS_ESTADO = {
 
 const TEMAS_HOJA = {
   clasico: {
-    label: 'Papel clásico',
+    get label() { return t('writer.classic.paper') },
     entorno: '#e5e7eb',
     hojaBg: '#ffffff',
     hojaTexto: '#1a1a1a',
     hojaBorde: 'rgba(0,0,0,0.08)',
   },
   sepia: {
-    label: 'Sepia lectura',
+    get label() { return t('writer.warm.sepia') },
     entorno: '#e4ddd0',
     hojaBg: '#fdf6e3',
     hojaTexto: '#2b2118',
     hojaBorde: 'rgba(120,90,40,0.18)',
   },
   nocturno: {
-    label: 'Tinta oscura',
+    get label() { return t('writer.dark.ink') },
     entorno: '#0f172a',
     hojaBg: '#1e293b',
     hojaTexto: '#f1f5f9',
@@ -81,46 +84,46 @@ const TEMAS_HOJA = {
 
 const ANCHOS_HOJA = {
   a4: { label: 'A4 (210 mm)', width: '210mm', padding: '2.2cm 2.6cm' },
-  carta: { label: 'Carta (216 mm)', width: '216mm', padding: '2.0cm 2.4cm' },
-  ancho: { label: 'Ancho fluido', width: '100%', padding: '1.6rem 2.2rem' },
+  carta: { get label() { return t('writer.letter.216.mm') }, width: '216mm', padding: '2.0cm 2.4cm' },
+  ancho: { get label() { return t('writer.full.width') }, width: '100%', padding: '1.6rem 2.2rem' },
 }
 
 const HERRAMIENTAS_BARRA = [
   {
     id: 'citas',
     icono: '§',
-    label: 'Verificador de Citas',
-    titulo: 'Verificador de Citas Diké',
+    get label() { return t('writer.citation.check') },
+    get titulo() { return t('writer.citation.check2') },
   },
   {
     id: 'privacidad',
     icono: '⊘',
-    label: 'Privacidad y Anonimizado',
-    titulo: 'Seudonimización y Privacidad (Ley 21.719)',
+    get label() { return t('writer.privacy.label') },
+    get titulo() { return t('writer.privacy.and.pseudonymization.ley.21.719') },
   },
   {
     id: 'estilo',
     icono: 'Aa',
-    label: 'Revisión de Estilo (LexO Escribe Claro)',
-    titulo: 'Revisión de Estilo · LexO Escribe Claro',
+    get label() { return t('writer.plain.language.review') },
+    get titulo() { return t('writer.plain.language.review2') },
   },
   {
     id: 'nif',
     icono: '▦',
-    label: 'NIF Interactivo y NIF Vivo',
-    titulo: 'Tablero NIF Interactivo y Propuestas',
+    get label() { return t('writer.case.board.label') },
+    get titulo() { return t('writer.case.board.and.suggested.updates') },
   },
   {
     id: 'grafos',
     icono: '◈',
-    label: 'Herramientas de Grafos y Ordenamientos',
-    titulo: 'Grafos del Corpus y Constructor de Ordenamientos',
+    get label() { return t('writer.graphs.and.legal.systems') },
+    get titulo() { return t('writer.corpus.graph.and.legal.systems') },
   },
   {
     id: 'ajustes',
     icono: '✦',
-    label: 'Copilot y Personalización',
-    titulo: 'Personalización de Estudio y Predicción',
+    get label() { return t('writer.settings.label') },
+    get titulo() { return t('writer.settings.and.suggestions') },
   },
 ]
 
@@ -137,7 +140,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
       jsx('input', {
         className: 'flex-1 min-w-36 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: reparar,
-        placeholder: 'texto de reemplazo',
+        placeholder: t('writer.replacement.text'),
         disabled: agotados,
         onChange: (e) => setReparar(e.target.value),
       }),
@@ -146,14 +149,14 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         className: 'dk-btn dk-btn--borde dk-btn--chico',
         disabled: agotados || a.ocupado || !reparar.trim(),
         onClick: () => onAccion('probar', reparar.trim()),
-        children: a.ocupado ? 'probando…' : 'Probar reemplazo',
+        children: a.ocupado ? t('writer.testing') : t('writer.test.replacement'),
       }),
       jsx('button', {
         type: 'button',
         className: 'dk-btn dk-btn--chico',
         disabled: !a.probado || agotados || reparar.trim() !== a.probadoTexto,
         onClick: () => onAccion('aplicar', a.probadoTexto),
-        children: 'Aplicar',
+        children: t('writer.apply'),
       }),
     ] }),
     a.resumenPrueba
@@ -161,13 +164,13 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
       : null,
     agotados
       ? jsx('div', { className: S.bad + ' font-medium', children:
-          'Dos intentos de reparación sin éxito: conviene escalar.' })
+          t('writer.two.repair.attempts.failed.request.human.review') })
       : null,
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
       jsx('input', {
         className: 'flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: motivo,
-        placeholder: 'motivo para retirarla',
+        placeholder: t('writer.reason.for.removal'),
         onChange: (e) => setMotivo(e.target.value),
       }),
       jsx('button', {
@@ -175,12 +178,12 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer',
         disabled: !motivo.trim(),
         onClick: () => { onAccion('retirar', motivo.trim()); setMotivo('') },
-        children: 'Retirar',
+        children: t('writer.remove'),
       }),
       jsx('input', {
         className: 'flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: nota,
-        placeholder: 'nota para revisión humana',
+        placeholder: t('writer.note.for.human.review'),
         onChange: (e) => setNota(e.target.value),
       }),
       jsx('button', {
@@ -188,7 +191,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer',
         disabled: !nota.trim(),
         onClick: () => { onAccion('escalar', nota.trim()); setNota('') },
-        children: 'Escalar',
+        children: t('writer.request.review'),
       }),
     ] }),
   ] })
@@ -197,6 +200,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
 // --- Sección principal del Case Writer ----------------------------------------
 
 export function SeccionEscritor({ onAbrirGrafo }) {
+  const idioma = useIdioma()
   const hostRef = useRef(null)
   const editorRef = useRef(null)
   const revRef = useRef(0)
@@ -256,6 +260,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     }).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const ed = editorRef.current
+    if (ed) ed.view.dispatch(ed.state.tr)
+  }, [idioma])
+
   const guardarPrefs = useCallback((parche) => {
     setPrefs((prev) => {
       const sig = { ...prev, ...parche }
@@ -271,7 +280,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const actualizarInfoDoc = useCallback((ed) => {
     const texto = textoDelEditor(ed)
     sha256Hex(texto).then((hash) => {
-      if (!montadoRef.current) return
+      if (!montadoRef.current || textoDelEditor(ed) !== texto) return
       const info = { texto, hash }
       infoDocRef.current = info
       setDocInfo(info)
@@ -394,7 +403,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       setEstadoDoc('sin-guardar')
       programarGuardado()
     }
-    setAviso('Cita traída desde la búsqueda: es una pista; se está verificando.')
+    setAviso(t('writer.search.lead.added.checking.the.citation'))
     if (verificarRef.current) verificarRef.current()
   }, [programarGuardado])
 
@@ -442,7 +451,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         setRegistro(registroRef.current)
         estadoRef.current = 'sin-guardar'
         setEstadoDoc('sin-guardar')
-        setAviso('Recuperé cambios que no se habían guardado; reintentando el guardado.')
+        setAviso(t('writer.unsaved.changes.recovered.retrying.save'))
         programarGuardado()
       } else {
         setEstadoDoc('guardado')
@@ -473,7 +482,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         estadoRef.current = 'sin-guardar'
         setEstadoDoc('sin-guardar')
         programarGuardado()
-        setAviso('Cita traída desde la búsqueda: es una pista; se está verificando.')
+        setAviso(t('writer.search.lead.added.checking.the.citation'))
         if (verificarRef.current) verificarRef.current()
       }
     }).catch((e) => {
@@ -507,18 +516,23 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     const ed = montarEditor({
       element: hostRef.current,
       content: '',
-      placeholder: 'Comience a redactar su escrito aquí…',
+      placeholder: () => t('writer.start.writing.your.brief.here'),
       onUpdate: (editor) => {
         const texto = textoDelEditor(editor)
-        if (texto === textoGuardadoRef.current) {
-          setEstadoDoc((s) => (s === 'guardando' || s === 'conflicto' ? s : 'guardado'))
-        } else if (estadoRef.current !== 'conflicto' && estadoRef.current !== 'cargando') {
-          setEstadoDoc('sin-guardar')
-          programarGuardado()
+        const estado = estadoRef.current
+        const siguiente = texto === textoGuardadoRef.current
+          ? (estado === 'guardando' || estado === 'conflicto' ? estado : 'guardado')
+          : (estado === 'conflicto' || estado === 'cargando' ? estado : 'sin-guardar')
+        if (siguiente !== estado) {
+          estadoRef.current = siguiente
+          setEstadoDoc(siguiente)
         }
+        if (texto !== textoGuardadoRef.current && estado !== 'conflicto' && estado !== 'cargando') programarGuardado()
         if (infoDocRef.current.texto !== texto) {
+          // Invalidate verified marks once, then publish a snapshot after the pause.
+          const invalidar = infoDocRef.current.hash != null
           infoDocRef.current = { texto, hash: null }
-          setDocInfo(infoDocRef.current)
+          if (invalidar) setDocInfo(infoDocRef.current)
         }
         programarInfoDoc(editor)
         if (editorRef.prediccionPedir) editorRef.prediccionPedir(editor)
@@ -646,7 +660,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       if (!montadoRef.current) return
       if (d && (d.html || d.texto)) {
         ed.commands.setContent(d.html || d.texto)
-        setAviso('Escrito sintético de demostración cargado. Pulsa «Verificar citas» para probar el motor.')
+        setAviso(t('writer.demo.brief.loaded.select.check.citations.to.try.the.engine'))
       }
     }).catch(setError)
   }, [])
@@ -673,8 +687,8 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       y: 22 + Math.floor(idx / 4) * 175,
       w: 232,
       h: 155,
-      titulo: datosNota.titulo || 'Nota ' + (idx + 1),
-      tag: datosNota.tag || 'NOTA',
+      titulo: datosNota.titulo || t('piz.tituloNota', { n: idx + 1 }),
+      tag: datosNota.tag || t('piz.tagNota'),
       color: datosNota.color || '#bfdbfe',
       texto: datosNota.texto || '',
       nodo_id: datosNota.nodo_id || null,
@@ -731,9 +745,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               probado: ok,
               probadoTexto: ok ? valor : null,
               resumenPrueba: ok
-                ? 'El motor verificó el reemplazo: aplícalo y vuelve a verificar el escrito.'
-                : 'FALLO del reemplazo: ' +
-                  ((primerFallo && primerFallo.resolucion) || res.veredicto || 'sin detalle'),
+                ? t('writer.replacement.verified.apply.it.then.check.the.brief.again')
+                : t('writer.failedReplacement') +
+                  (etiquetaCodigo((primerFallo && primerFallo.resolucion) || res.veredicto) || t('writer.noDetail')),
             },
           }))
         })
@@ -752,7 +766,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       const rangos = ubicar()
       if (rangos.length) {
         borrarRangos(ed, rangos)
-        setAviso('Cita retirada del texto: la frase puede quedar rota, revísala.')
+        setAviso(t('writer.citation.removed.review.the.sentence.for.missing.text'))
       }
       const reg = registroRef.current
       fijarRegistro({
@@ -772,6 +786,21 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     }
   }, [acciones, fijarRegistro])
 
+  const alternarHerramienta = useCallback((id) => {
+    setHerramientaActiva((prev) => prev === id ? null : id)
+  }, [])
+  const cambiarPizarra = useCallback((pizarra) => {
+    actualizarRegistro((r) => ({ ...(r || {}), pizarra }))
+  }, [actualizarRegistro])
+  const enviarAPizarra = useCallback((pizarra) => {
+    cambiarPizarra(pizarra)
+    guardarPrefs({ mostrar_pizarra: true })
+  }, [cambiarPizarra, guardarPrefs])
+  const abrirGrafo = useCallback((foco) => {
+    if (onAbrirGrafo) onAbrirGrafo(foco || { nodo_id: 'n:207436' })
+  }, [onAbrirGrafo])
+  const abrirPrivacidad = useCallback(() => setHerramientaActiva('privacidad'), [])
+
   // --- Derivados de vista ---------------------------------------------------
 
   const v = verificacion
@@ -783,11 +812,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const temaActual = TEMAS_HOJA[prefs.tema_papel] || TEMAS_HOJA.clasico
   const anchoActual = ANCHOS_HOJA[prefs.ancho_hoja] || ANCHOS_HOJA.a4
   const cfgHerramienta = HERRAMIENTAS_BARRA.find((h) => h.id === herramientaActiva) || null
-  const pizarraEstado = (registro && registro.pizarra) || { nodos: [], aristas: [], colapsada: false, altura: 225 }
+  const pizarraEstado = (registro && registro.pizarra) || PIZARRA_VACIA
 
   return jsxs('div', {
-    className: 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
-    style: { minHeight: '760px' },
+    className: 'dk-writer ' + (herramientaActiva ? 'dk-writer--tool ' : '') + 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
+    style: { minHeight: '620px' },
     children: [
       // 1. Barra de formato y documento estilo Word (2 filas, como imagen 2)
       jsx(BarraFormato, {
@@ -808,14 +837,14 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         prefs,
         onCambiarPrefs: guardarPrefs,
         docInfo,
-        onAbrirHerramienta: (id) => setHerramientaActiva((prev) => (prev === id ? null : id)),
+        onAbrirHerramienta: alternarHerramienta,
       }),
 
       // 2. Pizarra Estratégica encima del editor (colapsable y redimensionable)
       modoVista !== 'read' && prefs.mostrar_pizarra !== false
         ? jsx(PizarraEstrategica, {
             pizarra: pizarraEstado,
-            onChange: (nuevaPizarra) => actualizarRegistro((r) => ({ ...(r || {}), pizarra: nuevaPizarra })),
+            onChange: cambiarPizarra,
             onInsertarTexto: insertarTextoEnEditor,
             onLlevarCitaAlEscrito: insertarCitaEnEscrito,
             onAbrirGrafo,
@@ -827,13 +856,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         className: 'flex items-center gap-3 border-b px-4 py-1.5 text-xs shrink-0 ' + S.noticeWarn,
         children: [
           jsx('span', { className: 'flex-1', children:
-            'Otro proceso guardó este escrito' +
+            t('writer.another.process.saved.this.brief') +
             (conflictoRev != null ? ' (rev ' + conflictoRev + ')' : '') + '.' }),
           jsx('button', {
             type: 'button',
             onClick: recargarTrasConflicto,
             className: 'dk-btn dk-btn--borde dk-btn--chico',
-            children: 'descargar y perder mis cambios',
+            children: t('writer.reload.and.discard.my.changes'),
           }),
         ],
       }) : null,
@@ -843,7 +872,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         role: 'alert',
         children: [
           jsx('span', { children: mensajeError(error) }),
-          jsx('button', { type: 'button', 'aria-label': 'Cerrar aviso de error', onClick: () => setError(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
+          jsx('button', { type: 'button', 'aria-label': t('writer.dismiss.error'), onClick: () => setError(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
         ],
       }) : null,
 
@@ -852,7 +881,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         role: 'status',
         children: [
           jsx('span', { children: aviso }),
-          jsx('button', { type: 'button', 'aria-label': 'Cerrar aviso', onClick: () => setAviso(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
+          jsx('button', { type: 'button', 'aria-label': t('writer.dismiss.notice'), onClick: () => setAviso(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
         ],
       }) : null,
 
@@ -867,7 +896,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               // Entorno gris desplazable con la hoja centrada
               jsxs('div', {
                 className: 'flex-1 overflow-y-auto flex justify-center py-6 px-4',
-                style: { backgroundColor: temaActual.entorno },
+                style: { backgroundColor: 'var(--dk-superficie-2)' },
                 children: [
                   jsxs('div', {
                     className: 'dike-editor-page transition-all',
@@ -879,7 +908,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       color: temaActual.hojaTexto,
                       border: '1px solid ' + temaActual.hojaBorde,
                       boxShadow: '0 2px 12px rgba(0, 0, 0, 0.14)',
-                      padding: anchoActual.padding,
+                      padding: 'clamp(20px, 3vw, 70px) clamp(20px, 3vw, 80px)',
                       fontFamily: prefs.fuente || "Georgia, 'Times New Roman', serif",
                       fontSize: (prefs.tamano_fuente || '12') + 'pt',
                       lineHeight: '1.65',
@@ -888,12 +917,12 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       modoVista === 'read' ? jsxs('div', {
                         className: 'mb-4 flex items-center justify-between rounded border border-(--dk-borde) bg-(--dk-superficie) px-3 py-1.5 font-sans text-xs text-(--dk-texto-2)',
                         children: [
-                          jsx('span', { children: 'Modo lectura — edición bloqueada para revisar texto y citas' }),
+                          jsx('span', { children: t('writer.read.mode.review.the.text.and.citations') }),
                           jsx('button', {
                             type: 'button',
                             onClick: () => setModoVista('write'),
                             className: S.link + ' font-semibold cursor-pointer',
-                            children: 'Volver a Escribir',
+                            children: t('writer.return.to.writing'),
                           }),
                         ],
                       }) : null,
@@ -911,19 +940,19 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 role: 'status',
                 children: [
                   res.error
-                    ? jsx('span', { children: 'Diké no pudo revisar el escrito: ' + String(res.error) })
+                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
                     : jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
                         jsx('span', { className: 'font-semibold', children:
-                          `Diké: ${meta.citas_verificadas || 0} de ${meta.total_citas || 0} citas verificadas` +
-                          (res.veredicto ? ` (${res.veredicto})` : '') }),
+                          t('writer.count', { ok: meta.citas_verificadas || 0, total: meta.total_citas || 0 }) +
+                          (res.veredicto ? ` (${etiquetaCodigo(res.veredicto)})` : '') }),
                         jsx('span', { className: 'text-xs opacity-80', children:
-                          `corpus ${meta.pack_hash || '?'}` + (meta.as_of ? ` · al ${meta.as_of}` : '') }),
+                          `corpus ${meta.pack_hash || '?'}` + (meta.as_of ? t('writer.asOf') + meta.as_of : '') }),
                       ] }),
                   jsx('button', {
                     type: 'button',
                     onClick: () => setHerramientaActiva('citas'),
                     className: 'dk-btn dk-btn--borde dk-btn--chico',
-                    children: herramientaActiva === 'citas' ? 'Viendo detalle en barra derecha' : 'Ver detalle y reparar citas',
+                    children: herramientaActiva === 'citas' ? t('writer.citation.details.open') : t('writer.review.and.repair.citations'),
                   }),
                 ],
               }) : null,
@@ -932,25 +961,25 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               jsxs('div', {
                 className: 'flex flex-wrap items-center gap-2 border-t border-(--dk-borde) bg-(--dk-superficie) px-3 py-1 text-xs text-(--dk-texto-2) select-none shrink-0',
                 children: [
-                  jsx('span', { className: 'text-(--dk-texto-3)', children: 'Datos:' }),
+                  jsx('span', { className: 'text-(--dk-texto-3)', children: t('writer.data') }),
                   jsx('span', {
                     className: 'inline-flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 font-medium text-(--dk-texto-2)',
-                    children: 'Guardado local en este equipo (plugin-data)',
+                    children: t('writer.saved.on.this.device'),
                   }),
                   jsx('span', {
                     className: 'text-(--dk-texto-3) hidden sm:inline truncate',
-                    children: 'El escrito vive en tu equipo; hacia el modelo viaja seudonimizado.',
+                    children: t('writer.brief.stored.on.this.device.privacy.settings.control.what.is.sent'),
                   }),
                   jsxs('div', { className: 'ml-auto flex items-center gap-1.5', children: [
-                    jsx('span', { className: 'text-(--dk-texto-3)', children: 'Papel:' }),
+                    jsx('span', { className: 'text-(--dk-texto-3)', children: t('writer.paper.label') }),
                     ...Object.entries(TEMAS_HOJA).map(([tid, tmeta]) => jsx('button', {
                       key: tid,
                       type: 'button',
                       onClick: () => guardarPrefs({ tema_papel: tid }),
                       'aria-pressed': prefs.tema_papel === tid,
-                      'aria-label': 'Tema de papel: ' + tmeta.label,
+                      'aria-label': t('writer.paper.theme') + ' ' + tmeta.label,
                       className: 'dk-btn dk-btn--chico',
-                      children: tmeta.label.split(' ')[1] || tmeta.label,
+                      children: t('paper.' + tid),
                     })),
                   ] }),
                 ],
@@ -961,7 +990,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
           // ── CAJÓN DESLIZANTE DE LA HERRAMIENTA ACTIVA (a la izquierda de la barra de iconos) ──
           jsxs('div', {
             className: (herramientaActiva ? 'flex ' : 'hidden ') +
-              'w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
+              'dk-tool-drawer shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: [
               // Cabecera del cajón
               cfgHerramienta ? jsxs('div', {
@@ -969,13 +998,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 children: [
                   jsxs('div', { className: 'flex items-center gap-2 min-w-0', children: [
                     jsx('span', { className: 'text-sm font-bold text-(--dk-texto-2)', children: cfgHerramienta.icono }),
-                    jsx('span', { className: 'text-xs font-bold uppercase tracking-wide truncate text-(--dk-texto)', children: cfgHerramienta.titulo }),
+                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto)', children: cfgHerramienta.titulo }),
                   ] }),
                   jsx('button', {
                     type: 'button',
                     onClick: () => setHerramientaActiva(null),
-                    title: 'Cerrar panel de herramienta',
-                    'aria-label': 'Cerrar panel de herramienta',
+                    title: t('writer.close.tool.panel'),
+                    'aria-label': t('writer.close.tool.panel'),
                     className: 'dk-btn dk-btn--icono dk-btn--chico',
                     children: '✕',
                   }),
@@ -991,36 +1020,36 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                     className: 'flex flex-col gap-3 p-3 text-xs text-(--dk-texto)',
                     children: [
                       jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                        jsx('span', { className: 'text-(--dk-texto-2)', children: 'Verificación determinista contra las 25 leyes del corpus sellado.' }),
+                        jsx('span', { className: 'text-(--dk-texto-2)', children: t('writer.check.against.the.25.laws.in.the.corpus.pack') }),
                         jsx('button', {
                           type: 'button',
                           onClick: verificar,
                           disabled: verificando || estadoDoc === 'cargando',
-                          className: 'dk-btn dk-btn--primario dk-btn--chico shrink-0',
-                          children: verificando ? 'Verificando…' : 'Verificar citas',
+                          className: 'dk-btn dk-btn--borde dk-btn--chico shrink-0',
+                          children: verificando ? t('writer.checking') : t('writer.check.citations'),
                         }),
                       ] }),
 
                       !res && !verificando ? jsx('div', {
                         className: 'rounded border border-dashed border-(--dk-borde) p-4 text-center text-(--dk-texto-3)',
-                        children: 'Pulsa «Verificar citas» para comprobar todas las referencias normativas del escrito.',
+                        children: t('writer.select.check.citations.to.check.the.brief.s.article.references'),
                       }) : null,
 
                       res && res.error ? jsxs('div', {
                         className: S.noticeBad,
                         children: [
-                          jsx('span', { className: S.chip + ' ' + S.chipBad, children: 'sin revisar' }),
-                          jsx('div', { className: 'mt-1', children: 'Diké no pudo revisar el escrito: ' + String(res.error) }),
+                          jsx('span', { className: S.chip + ' ' + S.chipBad, children: t('writer.unchecked') }),
+                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
                         ],
                       }) : null,
 
                       res && !res.error ? jsxs('div', { className: 'flex flex-col gap-2', children: [
                         jsx('div', { className: 'font-semibold text-(--dk-texto)', children:
-                          'Diké: ' + (meta.citas_verificadas || 0) + ' de ' + (meta.total_citas || 0) +
-                          ' citas verificadas' + (res.veredicto ? ' (' + res.veredicto + ')' : '') +
+                          t('writer.dik') + (meta.citas_verificadas || 0) + t('writer.of') + (meta.total_citas || 0) +
+                          t('writer.verifiedSuffix') + (res.veredicto ? ' (' + etiquetaCodigo(res.veredicto) + ')' : '') +
                           ' · corpus ' + (meta.pack_hash || '?') +
-                          (meta.as_of ? ' · al ' + meta.as_of : '') }),
-                        msgVeredicto ? jsx('div', { className: 'text-xs text-(--dk-texto-2)', children: msgVeredicto }) : null,
+                          (meta.as_of ? t('writer.asOf') + meta.as_of : '') }),
+                        msgVeredicto ? jsx('div', { className: 'text-xs text-(--dk-texto-2)', children: t(msgVeredicto) }) : null,
 
                         ...detalles.map((d, i) => {
                           const estado = estadoCita(d, v.hash, docInfo.hash, registro)
@@ -1038,13 +1067,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                   ? jsx('button', {
                                       type: 'button',
                                       className: S.chip + ' ' + S[es.chip] + ' cursor-pointer',
-                                      title: 'Abrir el artículo en el grafo 3D',
+                                      title: t('writer.open.article.in.corpus.graph'),
                                       onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
-                                      children: es.texto + ' · grafo',
+                                      children: etiquetaCodigo(estado === 'verificada' ? 'VERIFICADA' : estado === 'fallo' ? 'FALLO' : estado) + t('writer.graph'),
                                     })
-                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: es.texto }),
+                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: etiquetaCodigo(estado === 'verificada' ? 'VERIFICADA' : estado === 'fallo' ? 'FALLO' : estado) }),
                               ] }),
-                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: etiquetaCita(estado, d, meta, registro) }),
+                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })() }),
                               estado === 'fallo'
                                 ? jsx(AccionesFallo, { detalle: d, acciones: acciones[i], onAccion: (t, val) => accionCita(i, t, val) })
                                 : null,
@@ -1055,34 +1084,33 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         (res.problemas && res.problemas.length) ? jsxs('div', {
                           className: S.noticeWarn,
                           children: [
-                            jsx('div', { className: 'dk-rotulo', children: 'Problemas del motor' }),
+                            jsx('div', { className: 'dk-rotulo', children: t('writer.engine.problems') }),
                             ...res.problemas.map((p, i) => jsx('div', { key: i, className: 'text-xs', children: String(p) })),
                           ],
                         }) : null,
 
                         (res.no_verificadas && res.no_verificadas.length) ? jsx('div', {
                           className: 'text-xs text-(--dk-texto-3)',
-                          children: 'Menciones sin artículo, no verificadas: ' + res.no_verificadas.join(', '),
+                          children: t('writer.references.without.an.article.unchecked') + res.no_verificadas.join(', '),
                         }) : null,
 
                         ((registro.retiros && registro.retiros.length) || (registro.escaladas && registro.escaladas.length)) ? jsxs('details', {
                           className: 'text-xs',
                           children: [
                             jsx('summary', { className: 'cursor-pointer text-(--dk-texto-3)', children:
-                              'Registro: ' + ((registro.retiros || []).length) + ' retiradas · ' +
-                              ((registro.escaladas || []).length) + ' escaladas' }),
+                              t('writer.custody', { removed: (registro.retiros || []).length, review: (registro.escaladas || []).length }) }),
                             ...(registro.retiros || []).map((r, i) => jsxs('div', { key: 'r' + i, className: 'py-0.5 text-xs', children: [
                               jsx('span', { className: 'text-(--dk-texto-3)', children: String(r.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
-                              jsx('span', { children: 'Retirada — ' + r.cita_raw + ' · ' + r.motivo }),
+                              jsx('span', { children: t('writer.removed') + r.cita_raw + ' · ' + r.motivo }),
                             ] })),
                             ...(registro.escaladas || []).map((e, i) => jsxs('div', { key: 'e' + i, className: 'py-0.5 text-xs', children: [
                               jsx('span', { className: 'text-(--dk-texto-3)', children: String(e.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
-                              jsx('span', { children: 'Escalada — ' + e.cita_raw + ' · ' + e.nota }),
+                              jsx('span', { children: t('writer.sent.for.review') + e.cita_raw + ' · ' + e.nota }),
                             ] })),
                           ],
                         }) : null,
 
-                        jsx('div', { className: 'text-xs text-(--dk-texto-3) pt-1 border-t border-(--dk-borde-suave)', children: AVISO_JUICIO }),
+                        jsx('div', { className: 'text-xs text-(--dk-texto-3) pt-1 border-t border-(--dk-borde-suave)', children: t(AVISO_JUICIO) }),
                         res.alcance ? jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: res.alcance }) : null,
                       ] }) : null,
                     ],
@@ -1106,10 +1134,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                     docInfo,
                     contextoInicial: prefs.contexto_estilo,
                     autoAnalizarInicial: prefs.auto_analizar_estilo,
-                    onEnviarAPizarra: (nuevaPizarra) => {
-                      actualizarRegistro((r) => ({ ...(r || {}), pizarra: nuevaPizarra }))
-                      guardarPrefs({ mostrar_pizarra: true })
-                    },
+                    onEnviarAPizarra: enviarAPizarra,
                   }) : null,
 
                   // 4. Herramienta: NIF Interactivo + NIF Vivo
@@ -1130,9 +1155,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                   herramientaActiva === 'grafos' ? jsx(PanelHerramientasGrafos, {
                     onLlevarCitaAlEscrito: insertarCitaEnEscrito,
                     onAgregarAPizarra: agregarNotaAPizarra,
-                    onAbrirGrafo3D: (foco) => {
-                      if (onAbrirGrafo) onAbrirGrafo(foco || { nodo_id: 'n:207436' })
-                    },
+                    onAbrirGrafo3D: abrirGrafo,
                   }) : null,
 
                   // 6. Herramienta: Personalización de Usuario + Predicción (siempre montada para ghost text)
@@ -1143,9 +1166,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       jsxs('div', {
                         className: 'flex flex-col gap-2.5 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3',
                         children: [
-                          jsx('div', { className: 'dk-rotulo', children: 'Personalización del Estudio (Preferencias de Usuario)' }),
+                          jsx('div', { className: 'dk-rotulo', children: t('writer.writer.settings') }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Tema de la hoja:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: t('writer.paper.theme') }),
                             jsx('select', {
                               value: prefs.tema_papel,
                               onChange: (e) => guardarPrefs({ tema_papel: e.target.value }),
@@ -1155,7 +1178,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                             }),
                           ] }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Formato de página:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: t('writer.page.format') }),
                             jsx('select', {
                               value: prefs.ancho_hoja,
                               onChange: (e) => guardarPrefs({ ancho_hoja: e.target.value }),
@@ -1165,7 +1188,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                             }),
                           ] }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Estrategia de privacidad inicial:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: t('writer.default.privacy.strategy') }),
                             jsx('select', {
                               value: prefs.estrategia_privacidad,
                               onChange: (e) => {
@@ -1175,9 +1198,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                               },
                               className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs',
                               children: [
-                                jsx('option', { key: 'ligera', value: 'ligera', children: 'Ligera (solo críticos)' }),
-                                jsx('option', { key: 'media', value: 'media', children: 'Media (críticos + altos)' }),
-                                jsx('option', { key: 'estricta', value: 'estricta', children: 'Estricta (+ medios y nombres)' }),
+                                jsx('option', { key: 'ligera', value: 'ligera', children: t('writer.light.critical.only') }),
+                                jsx('option', { key: 'media', value: 'media', children: t('writer.medium.critical.and.high') }),
+                                jsx('option', { key: 'estricta', value: 'estricta', children: t('writer.strict.also.medium.and.names') }),
                               ],
                             }),
                           ] }),
@@ -1187,7 +1210,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                               checked: prefs.mostrar_pizarra !== false,
                               onChange: (e) => guardarPrefs({ mostrar_pizarra: e.target.checked }),
                             }),
-                            'Mostrar Pizarra Estratégica encima del escrito',
+                            t('writer.show.strategy.board.above.the.brief'),
                           ] }),
                           jsxs('label', { className: 'flex items-center gap-2 text-(--dk-texto-2)', children: [
                             jsx('input', {
@@ -1195,7 +1218,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                               checked: chatAbierto,
                               onChange: (e) => guardarPrefs({ mostrar_chat: e.target.checked }),
                             }),
-                            'Mostrar panel de Chat Hermes a la derecha',
+                            t('writer.show.hermes.chat'),
                           ] }),
                         ],
                       }),
@@ -1219,12 +1242,12 @@ export function SeccionEscritor({ onAbrirGrafo }) {
 
           // ── BARRA VERTICAL DE HERRAMIENTAS A LA DERECHA (estilo VS Code / imagen 2) ──
           jsxs('div', {
-            className: 'flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none',
+            className: 'flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none',
             children: [
-              ...HERRAMIENTAS_BARRA.map((t) => {
-                const activa = herramientaActiva === t.id
+              ...HERRAMIENTAS_BARRA.map((tool) => {
+                const activa = herramientaActiva === tool.id
                 let badge = null
-                if (t.id === 'citas' && res && !res.error) {
+                if (tool.id === 'citas' && res && !res.error) {
                   const fallos = meta.citas_fallidas || 0
                   badge = fallos > 0
                     ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-(--dk-mal) px-1 text-xs font-bold text-(--dk-sobre-solido)', children: String(fallos) })
@@ -1233,15 +1256,15 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         : null)
                 }
                 return jsxs('button', {
-                  key: t.id,
+                  key: tool.id,
                   type: 'button',
-                  title: t.label,
-                  'aria-label': t.label,
+                  title: tool.label,
+                  'aria-label': tool.label,
                   'aria-pressed': activa,
-                  onClick: () => setHerramientaActiva((prev) => (prev === t.id ? null : t.id)),
-                  className: 'dk-btn dk-btn--icono relative',
+                  onClick: () => setHerramientaActiva((prev) => (prev === tool.id ? null : tool.id)),
+                  className: 'dk-btn dk-tool-button relative',
                   children: [
-                    jsx('span', { children: t.icono }),
+                    jsx('span', { children: t('rail.' + tool.id) }),
                     badge,
                   ],
                 })
@@ -1252,20 +1275,20 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               // Botón para mostrar/ocultar el panel de Chat Hermes a la derecha
               jsx('button', {
                 type: 'button',
-                title: chatAbierto ? 'Ocultar panel de Chat Hermes' : 'Mostrar panel de Chat Hermes a la derecha',
-                'aria-label': chatAbierto ? 'Ocultar panel de Chat Hermes' : 'Mostrar panel de Chat Hermes a la derecha',
+                title: chatAbierto ? t('writer.hide.hermes.chat') : t('writer.show.hermes.chat'),
+                'aria-label': chatAbierto ? t('writer.hide.hermes.chat') : t('writer.show.hermes.chat'),
                 'aria-pressed': chatAbierto,
                 onClick: () => guardarPrefs({ mostrar_chat: !chatAbierto }),
-                className: 'dk-btn dk-btn--icono',
-                children: '✉',
+                className: 'dk-btn dk-tool-button',
+                children: t('rail.chat'),
               }),
             ],
           }),
 
           // ── PANEL DERECHO CONECTADO CON HERMES (Chat del escrito, siempre montado) ──
           jsx('div', {
-            className: (chatAbierto ? 'flex ' : 'hidden ') +
-              'w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
+            className: (chatAbierto ? '' : 'hidden ') +
+              'dk-chat-dock shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: jsx(ChatEscritor, {
               editorRef,
               caseId,
@@ -1277,7 +1300,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               rev: revRef.current,
               onSesion: setChatSesion,
               onAbrirGrafo,
-              onAbrirPrivacidad: () => setHerramientaActiva('privacidad'),
+              onAbrirPrivacidad: abrirPrivacidad,
               modoDock: true,
             }),
           }),

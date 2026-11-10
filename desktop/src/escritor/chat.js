@@ -1,3 +1,6 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
+import { etiquetaCodigo } from '../i18n.js'
 // Chat del escrito (F2b): sesión por caso en el perfil del abogado, con el
 // escrito viajando seudonimizado en cada turno. El estado de las citas lo
 // fija Diké, nunca el modelo. Fail-closed: sin perfil con Diké habilitado no
@@ -28,7 +31,7 @@ async function resolverRuta(perfil) {
 }
 
 function tituloSesion(caseId) {
-  return 'Diké · Escrito · ' + caseId
+  return t('chat.sessionTitle') + caseId
 }
 
 const ESTILOS_ESTADO_RESP = {
@@ -100,13 +103,13 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
   }, [nota.cita, verif])
 
   const nodoInexistente = nodoOk === false || leerRes != null
-  const fragTexto = leerMal ? 'No se pudo leer el artículo'
+  const fragTexto = leerMal ? t('extra.could.not.read.the.article')
     : leerRes != null ? 'Nodo inexistente'
     : frag == null ? 'comprobando fragmento…'
-    : frag.ok ? 'Fragmento encontrado en el artículo'
-    : 'El fragmento no está en ese artículo' +
-      (frag.motivo === 'corto' ? ' (muy corto para comparar)'
-        : frag.motivo === 'largo' ? ' (demasiado largo)' : '')
+    : frag.ok ? t('graph.passage.found.in.article')
+    : t('graph.passage.not.found.in.this.article') +
+      (frag.motivo === 'corto' ? t('graph.too.short.to.compare')
+        : frag.motivo === 'largo' ? t('graph.too.long') : '')
   const abrir = () => onAbrirGrafo &&
     onAbrirGrafo({ nodo_id: nodoId, unidad_id: nota.unidad_id,
       fragmento: nota.fragmento })
@@ -119,7 +122,7 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
         ? jsx('span', {
             className: S.chip + ' ' + (citaDet.estado === 'VERIFICADA' ? S.chipOk : S.chipOff),
             title: t('chat.estadoMotor'),
-            children: citaDet.estado,
+            children: etiquetaCodigo(citaDet.estado),
           })
         : null,
       jsx('button', {
@@ -157,9 +160,10 @@ function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
 }
 
 
-export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
+function ChatEscritorImpl({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo,
   onAbrirPrivacidad, modoDock = true }) {
+  useIdioma()
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
   const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
   const perfilRef = useRef(null)                    // perfil resuelto (callbacks)
@@ -390,7 +394,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
       verificacion, rev, caseId: cid, hashActual: hashP,
     })
     const destino = (perfilRef.current || 'perfil sin resolver') +
-      ' · ' + etiquetaModelo(modelo && modelo.id)
+      ' · ' + nombreModelo(modelo && modelo.id)
     const cfgPriv = (registro && registro.privacidad) || {}
     const seudonimizar = cfgPriv.seudonimizar !== false
     if (!seudonimizar && cfgPriv.acepto_datos !== true) {
@@ -447,8 +451,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   }, [editorRef, registro])
 
   useEffect(() => {
-    if (endRef.current && typeof endRef.current.scrollIntoView === 'function') {
-      endRef.current.scrollIntoView({ behavior: 'smooth' })
+    const panel = endRef.current && endRef.current.parentElement
+    if (panel && (mensajes.length || ocupado || stream)) {
+      panel.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' })
     }
   }, [mensajes.length, ocupado, stream])
 
@@ -488,18 +493,18 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           jsx('span', { className: 'font-semibold text-(--dk-texto)', children: 'Hermes' }),
           jsx('span', {
             className: 'text-(--dk-texto-3) truncate',
-            children: perfilElegido || 'abriendo…',
+            children: perfilElegido || t('chat.abriendo'),
           }),
           jsx('span', {
             className: 'h-2 w-2 rounded-full shrink-0 ' +
               (perfilOk === true ? 'bg-(--dk-ok)' : 'bg-(--dk-superficie-2)'),
             title: modelo
-              ? etiquetaModelo(modelo.id) + ' · ' + modelo.destino
-              : 'conectando sesión del escrito',
+              ? nombreModelo(modelo.id) + ' · ' + (modelo.destino === 'nube' ? t('pred.destinoNube') : 'local')
+              : t('extra.connecting.brief.chat'),
           }),
           modelo ? jsx('span', {
             className: 'text-xs text-(--dk-texto-3) truncate',
-            children: etiquetaModelo(modelo.id) + ' · ' + modelo.destino,
+            children: nombreModelo(modelo.id) + ' · ' + (modelo.destino === 'nube' ? t('pred.destinoNube') : 'local'),
           }) : null,
           jsxs('div', { className: 'ml-auto flex items-center gap-1', children: [
             mensajes.length > 0 ? jsx('button', {
@@ -507,7 +512,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
               onClick: () => setMensajes([]),
               className: 'rounded px-1.5 py-0.5 text-xs text-(--dk-texto-3) hover:bg-(--dk-sobre) hover:text-(--dk-texto) cursor-pointer',
               title: t('chat.limpiarTitulo'),
-              children: t('chat.limpiar'),
+              children: t('piz.limpiar'),
             }) : null,
             jsx('button', {
               type: 'button',
@@ -529,7 +534,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           jsx('div', { children: t('chat.contextoCaso', { caso: caseId, largo: largoEscrito, citas: numCitasVerif }) }),
           jsx('div', {
             children: seudOn
-              ? t('chat.contextoPrivOn', { estrategia: estrategiaActiva })
+              ? t('chat.contextoPrivOn', { estrategia: t('strategy.' + estrategiaActiva) })
               : t('chat.contextoPrivOff'),
           }),
           jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: t('chat.contextoNota') }),
@@ -556,13 +561,13 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
               jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2 text-xs', children: [
                 jsxs('div', { className: 'flex items-center justify-between', children: [
                   jsx('span', { className: 'font-medium text-(--dk-texto)', children: t('chat.destino') }),
-                  jsx('span', { className: 'font-mono text-(--dk-texto-2)', children: (perfilElegido || t('chat.perfilActivo')) + (modelo ? ' · ' + modelo.destino : '') }),
+                  jsx('span', { className: 'font-mono text-(--dk-texto-2)', children: (perfilElegido || t('chat.perfilActivo')) + (modelo ? ' · ' + (modelo.destino === 'nube' ? t('pred.destinoNube') : 'local') : '') }),
                 ] }),
                 jsxs('div', { className: 'flex items-center justify-between', children: [
                   jsx('span', { className: 'font-medium text-(--dk-texto)', children: t('chat.seudonimizacion') }),
                   jsx('span', {
                     className: 'font-semibold ' + (seudOn ? S.ok : S.warn),
-                    children: seudOn ? t('chat.privActiva', { estrategia: estrategiaActiva }) : t('chat.privApagada'),
+                    children: seudOn ? t('chat.privActiva', { estrategia: t('strategy.' + estrategiaActiva) }) : t('chat.privApagada'),
                   }),
                 ] }),
               ] }),
@@ -570,7 +575,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 jsx('button', {
                   type: 'button',
                   onClick: () => setAvisoCerrado(true),
-                  className: 'dk-btn dk-btn--primario dk-btn--chico',
+                  className: 'dk-btn dk-btn--borde dk-btn--chico',
                   children: t('chat.entendido'),
                 }),
                 onAbrirPrivacidad ? jsx('button', {
@@ -615,8 +620,8 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                             const chip = {
                               key: j,
                               className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                              title: etiquetaCita(est, d, (m.verif.res.meta || {}), registro)
-                                + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
+                              title: (() => { const e = etiquetaCita(est, d, (m.verif.res.meta || {}), registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })()
+                                + (d.nodo_id ? ' · ' + t('chat.verificarGrafo') : ''),
                               children: d.cita_raw,
                             }
                             return est === 'verificada' && d.nodo_id && onAbrirGrafo
@@ -634,7 +639,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                       }),
                       jsx('button', {
                         type: 'button', className: S.link + ' text-left text-xs font-medium pt-0.5',
-                        onClick: () => insertar(m.texto), children: t('chat.insertar'),
+                        onClick: () => insertar(m.texto), children: t('nifp.aEscrito'),
                       }),
                     ] }),
               ],
@@ -671,7 +676,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 disabled: !sesion || ocupado || !pregunta.trim(),
                 'aria-label': t('chat.enviar'),
                 title: t('chat.enviar'),
-                className: 'dk-btn dk-btn--primario dk-btn--icono shrink-0',
+                className: 'dk-btn dk-btn--borde dk-btn--icono shrink-0',
                 children: '➤',
               })
             : jsx('button', {
@@ -686,3 +691,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     ],
   })
 }
+
+function nombreModelo(id) { const code = etiquetaModelo(id); return code === 'NOUS_HOSTED_MODEL' ? t('chat.hostedModel') : code }
+
+export const ChatEscritor = memo(ChatEscritorImpl)

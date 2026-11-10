@@ -68,18 +68,10 @@ function ultimoRegistro(registro, clave, citaRaw) {
 
 // --- Etiquetas (textos fijos, no suavizar) ----------------------------------
 
-export const AVISO_JUICIO =
-  'Diké no evalúa si la norma respalda el argumento; eso es juicio del abogado.'
+export const AVISO_JUICIO = 'verify.judgment'
 
 export function mensajeVeredicto(veredicto) {
-  if (veredicto === 'SIN_CITAS') {
-    return 'La gramática del motor no vio citas con artículo; ' +
-      'no significa que el escrito no cite normas.'
-  }
-  if (veredicto === 'SIN_CORPUS') {
-    return 'No había corpus con qué verificar; no es un resultado favorable.'
-  }
-  return null
+  return ({ SIN_CITAS: 'verify.SIN_CITAS', SIN_CORPUS: 'verify.SIN_CORPUS' })[veredicto] || null
 }
 
 // ¿La cita_raw coincide con una pista traída desde la búsqueda? La pista
@@ -93,38 +85,22 @@ export function vieneDeBusqueda(citaRaw, registro) {
     (raw === p.cita || raw.startsWith(p.cita)))
 }
 
-function etiquetaCitaBase(estado, detalle, meta, registro) {
-  const d = detalle || {}
-  switch (estado) {
-    case 'verificada': {
-      const m = meta || {}
-      let t = 'Probado por Diké: existe, tiene texto citable y estaba vigente al ' +
-        (m.as_of || '?') + ' en el corpus ' + (m.pack_hash || '?')
-      const extra = [d.gid, d.fuente_url].filter(Boolean).join(' · ')
-      return extra ? t + ' · ' + extra : t
-    }
-    case 'fallo':
-      return 'FALLO · ' + (d.resolucion || 'sin resolución')
-    case 'desactualizada':
-      return 'El texto cambió: verifica de nuevo'
-    case 'retirada': {
-      const r = ultimoRegistro(registro, 'retiros', d.cita_raw)
-      return 'Retirada: ' + ((r && r.motivo) || '')
-    }
-    case 'escalada': {
-      const e = ultimoRegistro(registro, 'escaladas', d.cita_raw)
-      return 'Escalada para revisión humana: ' + ((e && e.nota) || '')
-    }
-    default:
-      return ''
-  }
-}
-
 export function etiquetaCita(estado, detalle, meta, registro) {
-  const base = etiquetaCitaBase(estado, detalle, meta, registro)
-  return base && vieneDeBusqueda(detalle && detalle.cita_raw, registro)
-    ? base + ' · llegó desde la búsqueda (pista)'
-    : base
+  const d = detalle || {}
+  const m = meta || {}
+  const retiro = ultimoRegistro(registro, 'retiros', d.cita_raw)
+  const escalada = ultimoRegistro(registro, 'escaladas', d.cita_raw)
+  return {
+    codigo: ({ verificada: 'verify.verificada', fallo: 'verify.fallo', desactualizada: 'verify.desactualizada', retirada: 'verify.retirada', escalada: 'verify.escalada' })[estado] || estado,
+    datos: {
+      date: m.as_of || '?', pack: m.pack_hash || '?',
+      source: [d.gid, d.fuente_url].filter(Boolean).join(' · '),
+      resolution: d.resolucion || '',
+      reason: (retiro && retiro.motivo) || '',
+      note: (escalada && escalada.nota) || '',
+    },
+    pista: vieneDeBusqueda(d.cita_raw, registro),
+  }
 }
 
 // --- Hash del texto verificado ----------------------------------------------

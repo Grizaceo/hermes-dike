@@ -1,3 +1,5 @@
+import { t } from './i18n.js'
+import { etiquetaCodigo } from './i18n.js'
 // Vista 3D del grafo del corpus (3d-force-graph + three, empaquetados en el
 // bundle). Muestra primero solo los 25 instrumentos; un clic en un
 // instrumento (o el interruptor "mostrar artículos") expande sus artículos.
@@ -28,16 +30,11 @@ const COLORES_ARISTA = {
   excepciona: '#06b6d4',
 }
 const NOMBRE_TIPO = {
-  instrumento: 'Instrumento',
-  articulo: 'Artículo',
-  sentencia: 'Sentencia',
-  resolucion: 'Resolución',
-  unidad: 'Unidad',
-}
-const NOMBRE_ESTADO = {
-  verificada_estructura: 'verificada (estructura)',
-  candidata: 'candidata',
-  aprobada: 'aprobada',
+  get instrumento() { return t('graph.instrument') },
+  get articulo() { return t('graph.article.label') },
+  get sentencia() { return t('graph.judgment') },
+  get resolucion() { return t('graph.decision') },
+  get unidad() { return t('graph.unit.label') },
 }
 // Color de las unidades por modalidad deóntica (candidata, sin validar).
 const COLORES_MODALIDAD = {
@@ -123,7 +120,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
   useEffect(() => {
     if (!hostEl.current) return undefined
     if (!hayWebGL()) {
-      onFallo('WebGL no está disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.')
+      onFallo(t('graph.webgl.unavailable.use.the.corpus.list.below'))
       return undefined
     }
     let graph
@@ -131,7 +128,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
     try {
       graph = new ForceGraph3D(hostEl.current)
     } catch (e) {
-      onFallo('No se pudo iniciar el renderizador 3D: ' + mensajeError(e))
+      onFallo(t('graph.could.not.start.the.3d.view') + mensajeError(e))
       return undefined
     }
     graph
@@ -143,10 +140,10 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
       .nodeOpacity(0.95)
       .nodeColor((n) => colorNodoResalte(n, resalteRef.current))
       .nodeLabel((n) => n.tipo === 'instrumento'
-        ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + ' artículos'
+        ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + t('graph.articles')
         : n.label)
       .linkColor((l) => colorAristaResalte(l, resalteRef.current))
-      .linkLabel((l) => l.tipo + ' · ' + (NOMBRE_ESTADO[l.estado] || l.estado))
+      .linkLabel((l) => l.tipo + ' · ' + etiquetaCodigo(l.estado))
       .linkOpacity(0.5)
       .linkWidth((l) => (l.tipo === 'contiene' ? 0.4 : 1.2))
       .linkDirectionalArrowLength((l) => (l.tipo === 'contiene' ? 0 : 2.5))
@@ -282,7 +279,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
 
   return jsxs('div', { className: 'relative min-w-0', children: [
     jsx('div', { ref: hostEl, className: 'h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]' }),
-    !listo ? jsx('div', { className: S.sub + ' absolute left-3 top-3', children: 'Dibujando el grafo…' }) : null,
+    !listo ? jsx('div', { className: S.sub + ' absolute left-3 top-3', children: t('graph.drawing.graph') }) : null,
   ] })
 }
 
@@ -297,7 +294,7 @@ function UnidadDetalle({ nodo, fuente }) {
       .catch(setError)
   }, [nodo.id, fuente])
   if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
-  if (!data) return jsx('div', { className: S.sub, children: 'Cargando el texto de la unidad…' })
+  if (!data) return jsx('div', { className: S.sub, children: t('graph.loading.unit.text') })
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
       children: data.texto }),
@@ -305,11 +302,11 @@ function UnidadDetalle({ nodo, fuente }) {
       'offsets ' + data.char_start + '–' + data.char_end +
       (data.articulo_url ? ' · ' : '') }),
     data.articulo_url ? jsx('a', { className: S.link, href: data.articulo_url,
-      target: '_blank', rel: 'noopener noreferrer', children: 'Artículo fuente ↗' }) : null,
+      target: '_blank', rel: 'noopener noreferrer', children: t('graph.source.article') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
-      children: 'sha256 unidad ' + data.sha256 }) : null,
+      children: t('graph.unit.sha.256') + data.sha256 }) : null,
     data.articulo_sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
-      children: 'sha256 artículo ' + data.articulo_sha256 }) : null,
+      children: t('graph.article.sha.256') + data.articulo_sha256 }) : null,
   ] })
 }
 
@@ -326,10 +323,10 @@ function NodoDetalle({ nodo, fuente }) {
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     data.titulo ? jsx('div', { className: S.sub, children: data.titulo }) : null,
     data.vigencia && data.vigencia.estado ? jsx('div', { className: S.sub, children:
-      'Vigencia: ' + data.vigencia.estado +
-      (data.vigencia.desde ? ' desde ' + data.vigencia.desde : '') }) : null,
+      t('graph.in.force.label') + etiquetaCodigo(data.vigencia.estado) +
+      (data.vigencia.desde ? t('graph.from') + data.vigencia.desde : '') }) : null,
     data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
-      children: 'Fuente original ↗' }) : null,
+      children: t('graph.original.source') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 ' + data.sha256 }) : null,
   ] })
@@ -358,11 +355,11 @@ function TarjetaArista({ arista, fuente }) {
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) +
         ' → ' + (arista.target && arista.target.id ? arista.target.id : arista.target) }),
     e.regla ? jsx('div', { className: S.sub, children:
-      'regla ' + e.regla + (e.nivel ? ' · nivel ' + e.nivel : '') }) : null,
+      t('graph.rule') + e.regla + (e.nivel ? t('graph.level') + e.nivel : '') }) : null,
     err ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(err) }) : null,
     ev ? jsxs('div', { className: 'max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs', children: [
       ev.snippet || '',
-      ev.n_evidencias ? ' (' + ev.n_evidencias + ' evidencias)' : '',
+      ev.n_evidencias ? ' (' + ev.n_evidencias + t('graph.evidence.items') : '',
     ] }) : null,
   ] })
 }
@@ -372,14 +369,8 @@ function TarjetaArista({ arista, fuente }) {
 // resolver mismo lo advierte: rotular «derogado» a una versión vencida cita mal).
 function etiquetaVigencia(v) {
   const e = v && v.estado
-  if (!e || e === 'IN_FORCE') return null
-  if (e === 'OUT_OF_FORCE') {
-    return v.motivo === 'SUPERSEDED_VERSION'
-      ? { texto: 'versión superada', malo: false }
-      : { texto: 'derogado', malo: true }
-  }
-  if (e === 'FUTURE') return { texto: 'aún no vigente', malo: false }
-  return { texto: 'vigencia desconocida', malo: false }
+  if (!e) return null
+  return { texto: etiquetaCodigo(e) + (v.motivo ? ' · ' + etiquetaCodigo(v.motivo) : ''), malo: e === 'OUT_OF_FORCE' && v.motivo !== 'SUPERSEDED_VERSION' }
 }
 
 function vigenteDe(v) {
@@ -389,31 +380,31 @@ function vigenteDe(v) {
 function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
   if (!nodo) {
     return jsx('div', { className: S.sub, children:
-      'Haz clic en un nodo (o búscalo) para ver su ficha. Un clic en un artículo expande sus unidades.' })
+      t('graph.select.or.search.for.a.node.to.see.its.details.select.an.article.') })
   }
   const n = nodo
   const esUnidad = n.tipo === 'unidad'
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     busqueda ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
       jsx('span', { className: S.chip + ' ' + S.chipOff, children:
-        'Resultado de búsqueda: es una pista, no una fuente verificada' }),
+        t('graph.search.lead.citation.not.yet.checked') }),
       (busqueda.terminos || []).length
-        ? jsx('div', { className: S.sub, children: 'términos: ' + busqueda.terminos.join(', ') })
+        ? jsx('div', { className: S.sub, children: t('graph.terms') + busqueda.terminos.join(', ') })
         : null,
       jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
         jsx('span', {
-          title: busqueda.cita ? undefined : (busqueda.cita_motivo || 'sin forma de cita'),
+          title: busqueda.cita ? undefined : (busqueda.cita_motivo || t('graph.no.citation.form.available')),
           children: jsx('button', {
             type: 'button', className: S.ghost,
             disabled: !busqueda.cita || !onLlevar,
             onClick: () => { if (busqueda.cita && onLlevar) onLlevar(busqueda) },
-            children: 'Llevar al escrito',
+            children: t('graph.add.to.brief'),
           }),
         }),
         jsx('span', { className: S.sub, children:
           vigenteDe(busqueda.vigencia)
-            ? 'entra como cita sin verificar; el verificador la revisa'
-            : 'el verificador la marcará FALLO: el artículo no está vigente' }),
+            ? t('graph.added.as.an.unchecked.citation.citation.check.runs.next')
+            : t('graph.citation.check.will.return.fallo.article.out.of.force') }),
       ] }),
     ] }) : null,
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
@@ -421,24 +412,24 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
       esUnidad ? jsx('span', {
         className: S.chip + ' ' + S.chipOff,
         style: { borderLeft: '3px solid ' + (COLORES_MODALIDAD[n.modalidad] || '#64748b') },
-        children: (n.modalidad || 'otra') + (n.modalidad_regla ? ' · ' + n.modalidad_regla : ''),
+        children: t('mod.' + (n.modalidad || 'otra')) + (n.modalidad_regla ? ' · ' + n.modalidad_regla : ''),
       }) : null,
-      esUnidad ? jsx('span', { className: S.chip + ' ' + S.chipOff, children: 'candidata' }) : null,
+      esUnidad ? jsx('span', { className: S.chip + ' ' + S.chipOff, children: t('graph.candidate.label_text') }) : null,
     ] }),
     jsx('div', { className: 'font-medium', children: n.label }),
     n.tipo === 'instrumento' ? jsx('div', { className: S.sub, children:
-      (n.n_articulos || conteos.get(n.id) || 0) + ' artículos' }) : null,
+      (n.n_articulos || conteos.get(n.id) || 0) + t('graph.articles') }) : null,
     n.tipo === 'articulo' ? jsx('div', { className: S.sub, children:
-      (n.n_unidades || 0) + ' unidades' +
-      (fuente === 'corpus' ? ' · clic para expandir/plegar' : '') }) : null,
+      (n.n_unidades || 0) + t('graph.units') +
+      (fuente === 'corpus' ? t('graph.select.to.expand.collapse') : '') }) : null,
     n.tipo === 'resolucion' ? jsx('div', { className: S.sub, children:
       (n.organismo ? n.organismo + ' · ' : '') + 'N° ' + n.numero + '/' + n.anio +
-      ' · ' + (n.menciones || 0) + ' menciones' +
+      ' · ' + (n.menciones || 0) + t('graph.mentions') +
       (n.rca ? ' · RCA' : '') }) : null,
     n.tipo === 'resolucion' ? jsx('div', { className: S.sub, children:
-      'sin texto local: inferida de menciones en sentencias' }) : null,
+      t('graph.no.local.text.inferred.from.mentions.in.judgments') }) : null,
     esUnidad && n.articulo ? jsx('div', { className: S.sub, children:
-      'Unidad ' + (n.etiqueta || '') + (n.clase === 'judicial' ? ' de la sentencia' : ' del artículo') }) : null,
+      t('graph.unit2') + (n.etiqueta || '') + (n.clase === 'judicial' ? t('graph.of.the.judgment') : t('graph.of.the.article')) }) : null,
     jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)', children: n.id }),
     esUnidad ? jsx(UnidadDetalle, { nodo: n, fuente }) : jsx(NodoDetalle, { nodo: n, fuente }),
   ] })
@@ -450,17 +441,17 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
 
 function NormaDetalle({ data, error }) {
   if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
-  if (!data) return jsx('div', { className: S.sub, children: 'Cargando artículos…' })
+  if (!data) return jsx('div', { className: S.sub, children: t('graph.loading.articles') })
   const arts = data.articulos || []
   return jsxs('div', { className: 'flex flex-col gap-1 pl-4', children: [
     jsx('div', { className: S.sub, children:
-      (data.articulos_total || arts.length) + ' artículos' +
-      (data.articulos_truncados ? ' (mostrando ' + arts.length + ')' : '') }),
+      (data.articulos_total || arts.length) + t('graph.articles') +
+      (data.articulos_truncados ? t('graph.showing') + arts.length + ')' : '') }),
     ...arts.map((a, i) => jsxs('details', { key: i, className: 'text-xs', children: [
       jsx('summary', { className: 'cursor-pointer py-0.5', children:
         'art. ' + (a.label || a.eId) +
-        (a.estado ? ' · ' + a.estado : '') +
-        (a.vigente_desde ? ' · desde ' + String(a.vigente_desde).slice(0, 10) : '') }),
+        (a.estado ? ' · ' + etiquetaCodigo(a.estado) : '') +
+        (a.vigente_desde ? t('graph.from2') + String(a.vigente_desde).slice(0, 10) : '') }),
       jsx('div', { className: S.sub + ' pl-3 pb-1 whitespace-pre-wrap',
         children: String(a.texto || '').slice(0, 1200) }),
     ] })),
@@ -495,7 +486,7 @@ function NormaRow({ norma }) {
       children: [
         jsx('span', { className: S.sub, children: abierta ? '▾' : '▸' }),
         jsxs('div', { className: 'min-w-0', children: [
-          jsx('div', { children: rotulo + (norma.estado ? ' · ' + norma.estado : '') }),
+          jsx('div', { children: rotulo + (norma.estado ? ' · ' + etiquetaCodigo(norma.estado) : '') }),
           jsx('div', { className: S.sub + ' truncate', children: norma.titulo }),
         ] }),
       ],
@@ -512,7 +503,7 @@ function ListaCorpus() {
   }, [])
   if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   const pack = corpus && corpus.packs && corpus.packs[0]
-  if (!pack) return jsx('div', { className: S.sub, children: 'Leyendo el corpus…' })
+  if (!pack) return jsx('div', { className: S.sub, children: t('graph.loading.corpus.label') })
   return jsx('div', { className: 'flex flex-col', children:
     (pack.normas || []).map((n) => jsx(NormaRow, { key: n.leychileCode, norma: n })) })
 }
@@ -558,13 +549,13 @@ function TextoArticulo({ foco }) {
 
   if (error) {
     return jsx('div', { className: 'text-xs dk-mal',
-      children: 'No se pudo leer el artículo: ' + mensajeError(error) })
+      children: t('graph.could.not.read.the.article') + mensajeError(error) })
   }
-  if (!data) return jsx('div', { className: S.sub, children: 'Leyendo el artículo…' })
+  if (!data) return jsx('div', { className: S.sub, children: t('graph.loading.article') })
   if (data.resolucion !== 'RESOLVED') {
     return jsx('div', { className: S.sub, children:
-      'El artículo no se resolvió en el corpus (' +
-      (data.resolucion || '?') + (data.motivo ? ': ' + data.motivo : '') + ').' })
+      t('graph.article.could.not.be.resolved.in.the.corpus') +
+      etiquetaCodigo(data.resolucion || '?') + (data.motivo ? ': ' + etiquetaCodigo(data.motivo) : '') + ').' })
   }
 
   const texto = data.texto || ''
@@ -586,7 +577,7 @@ function TextoArticulo({ foco }) {
 
   return jsxs('div', { className: 'flex flex-col gap-1.5', children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
-      jsx('span', { className: S.cardTitle, children: 'Texto del artículo' }),
+      jsx('span', { className: S.cardTitle, children: t('graph.article.text') }),
       jsx('span', { className: S.chip + ' ' + S.chipOff,
         children: (data.articulo || data.nodo_id || '') }),
       data.pack_hash ? jsx('span', { className: S.sub,
@@ -596,17 +587,17 @@ function TextoArticulo({ foco }) {
       (data.norma && (data.norma.nombre_corto || data.norma.titulo)
         ? (data.norma.nombre_corto || data.norma.titulo) + ' — ' : ''),
       jsx('a', { href: data.fuente_url, target: '_blank', rel: 'noopener noreferrer',
-        className: S.link, children: 'fuente ↗' }),
-      ' · Copia fechada: verifica tú el texto vigente',
+        className: S.link, children: t('graph.source.label') }),
+      t('graph.dated.copy.check.the.text.in.force.yourself'),
     ] }),
     unidad ? jsx('div', { className: S.sub, children:
-      'Unidad resaltada: ' + (etiquetaUnidad || foco.unidad_id) }) : null,
+      t('graph.highlighted.unit') + (etiquetaUnidad || foco.unidad_id) }) : null,
     fragEstado ? jsx('div', { className: S.sub, children:
       fragEstado.ok
-        ? 'Fragmento encontrado en el artículo'
-        : 'El fragmento no está en ese artículo' +
-          (fragEstado.motivo === 'corto' ? ' (muy corto para comparar)'
-            : fragEstado.motivo === 'largo' ? ' (demasiado largo)' : '') }) : null,
+        ? t('graph.passage.found.in.article')
+        : t('graph.passage.not.found.in.this.article') +
+          (fragEstado.motivo === 'corto' ? t('graph.too.short.to.compare')
+            : fragEstado.motivo === 'largo' ? t('graph.too.long') : '') }) : null,
     jsxs('div', {
       className: 'max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md '
         + 'border border-(--ui-stroke-secondary) p-2 text-xs leading-relaxed',
@@ -919,10 +910,10 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   return jsxs('div', { className: 'flex flex-col gap-3', children: [
     jsxs('div', { className: S.card, children: [
       jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-2', children: [
-        jsx('div', { className: S.cardTitle, children: 'Red del corpus (3D)' }),
+        jsx('div', { className: S.cardTitle, children: t('graph.corpus.graph') }),
         jsxs('select', {
           className: S.input,
-          title: 'Fuente del grafo',
+          title: t('graph.graph.source'),
           value: fuente,
           onChange: (e) => {
             setFuente(e.target.value)
@@ -934,31 +925,31 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
             }
           },
           children: [
-            jsx('option', { value: 'corpus', children: 'Corpus Diké (25 leyes)' }),
+            jsx('option', { value: 'corpus', children: t('graph.dik.corpus.25.laws') }),
             jsx('option', {
               value: 'ambiental',
               disabled: !(fuentes && fuentes.find((f) => f.id === 'ambiental' && f.disponible)),
-              title: 'solo en este equipo — no publicada',
-              children: 'Ambiental local (solo en este equipo)',
+              title: t('graph.only.on.this.device.unpublished'),
+              children: t('graph.local.environmental.graph.this.device'),
             }),
           ] }),
         fuente === 'ambiental' ? jsx('span', { className: S.chip + ' ' + S.chipOff,
-          children: 'local — no publicado · sentencias anonimizadas · '
-            + 'relaciones candidatas, sin validar' }) : null,
+          children: t('graph.local.unpublished.pseudonymized.judgments')
+            + t('graph.candidate.relations.unvalidated') }) : null,
         red ? jsx('div', { className: S.sub, children:
           (red.pack_hash ? 'pack ' + red.pack_hash + ' · ' : '') +
-          (totales.nodes || 0) + ' nodos · ' + (totales.links || 0) + ' aristas' +
-          (red.truncado ? ' · truncado' : '') }) : null,
+          (totales.nodes || 0) + t('graph.nodes') + (totales.links || 0) + t('graph.edges') +
+          (red.truncado ? t('graph.truncated') : '') }) : null,
       ] }),
       redErr
         ? jsxs('div', { className: 'flex flex-col items-start gap-1.5', children: [
             jsx('div', { className: 'text-xs dk-mal', children: mensajeError(redErr) }),
             jsx('button', { type: 'button', className: S.ghost, onClick: cargar,
-              children: 'Reintentar' }),
+              children: t('graph.retry') }),
           ] })
         : !red
           ? jsx('div', { className: S.sub, children:
-              'Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus…' })
+              t('graph.loading.corpus.graph.the.first.load.may.take.a.minute.while.the.c') })
           : jsxs('div', { className: 'grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]', children: [
               jsxs('div', { className: 'min-w-0', children: [
                 jsxs('div', { className: 'mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs', children: [
@@ -971,24 +962,24 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                   jsxs('label', { className: 'flex items-center gap-1.5 ' + S.sub, children: [
                     jsx('input', { type: 'checkbox', checked: ocultarArts,
                       onChange: (e) => setOcultarArts(e.target.checked) }),
-                    'ocultar artículos',
+                    t('graph.hide.articles'),
                   ] }),
                   jsx('span', { className: S.sub, children: '|' }),
-                  jsx('span', { className: S.sub, children: 'modalidad deóntica (candidata, sin validar):' }),
+                  jsx('span', { className: S.sub, children: t('graph.candidate.label.unvalidated') }),
                   Object.keys(COLORES_MODALIDAD).map((mod) => jsxs('span', {
                     key: mod, className: 'flex items-center gap-1 ' + S.sub, children: [
                       jsx('span', { className: 'inline-block h-2 w-2 rounded-full',
                         style: { background: COLORES_MODALIDAD[mod] } }),
-                      mod,
+                      t('mod.' + mod),
                     ] })),
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
-                    children: 'encajar' }),
+                    children: t('graph.fit') }),
                   fuente === 'ambiental' && red && (red.caminos_demo || []).length
                     ? jsxs('span', { className: 'flex items-center gap-1', children: [
                         jsxs('select', {
                           className: S.input,
-                          title: 'Camino destacado',
+                          title: t('graph.highlighted.path'),
                           value: caminoIdx,
                           onChange: (e) => {
                             const i = Number(e.target.value)
@@ -1014,7 +1005,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                               apiRef.current.encuadrar(cm.ids)
                             }
                           },
-                          children: 'camino destacado',
+                          children: t('graph.highlighted.path2'),
                         }),
                       ] })
                     : null,
@@ -1022,42 +1013,42 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                     className: 'flex items-center gap-1.5 ' + S.sub, children: [
                       jsx('input', { type: 'checkbox', checked: rotar,
                         onChange: (e) => setRotar(e.target.checked) }),
-                      'rotar',
+                      t('graph.rotate'),
                     ] }) : null,
                   jsx('span', { className: S.sub + ' ml-auto', children:
-                    proyeccion.nodes.length + ' visibles · ' + proyeccion.links.length + ' aristas' }),
+                    proyeccion.nodes.length + t('graph.visible') + proyeccion.links.length + t('graph.edges') }),
                 ] }),
                 fallo3d
                   ? jsxs('div', { className: S.card, children: [
                       jsx('div', { className: 'text-xs dk-mal', children: fallo3d }),
                       jsx('div', { className: S.sub, children:
-                        'El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.' }),
+                        t('graph.the.3d.graph.needs.webgl.the.list.below.has.the.same.corpus') }),
                     ] })
                   : jsx(LienzoGrafo, {
                       proyeccion, padres, conteos, alClickNodo, alClickArista,
                       alHover, alFondo, resalte, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
-                jsxs('div', { className: 'flex items-center gap-1', children: [
+                jsxs('div', { className: 'flex flex-wrap items-center gap-1', children: [
                   jsx('select', {
-                    className: S.input,
-                    title: 'Modo de búsqueda',
+                    className: S.input + ' w-full',
+                    title: t('graph.search.mode'),
                     value: modoBusqueda,
                     onChange: (e) => setModoBusqueda(e.target.value),
                     children: [
-                      jsx('option', { value: 'nombre', children: 'por nombre' }),
+                      jsx('option', { value: 'nombre', children: t('graph.by.name') }),
                       jsx('option', {
                         value: 'contenido',
                         disabled: fuente !== 'corpus',
-                        children: 'por contenido',
+                        children: t('graph.by.content'),
                       }),
                     ],
                   }),
                   jsx('input', {
                     className: S.input + ' w-full',
                     placeholder: modoBusqueda === 'contenido'
-                      ? 'Buscar por contenido en los artículos…'
-                      : 'Buscar ley, código o artículo…',
+                      ? t('graph.search.article.text')
+                      : t('graph.search.law.code.or.article'),
                     value: query,
                     onChange: (e) => setQuery(e.target.value),
                     onKeyDown: (e) => {
@@ -1071,12 +1062,12 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                     className: S.ghost,
                     disabled: !query.trim() || busqueda?.estado === 'cargando',
                     onClick: buscarContenido,
-                    children: busqueda?.estado === 'cargando' ? 'Buscando…' : 'Buscar',
+                    children: busqueda?.estado === 'cargando' ? t('graph.searching.label') : t('graph.search.label'),
                   }) : null,
                 ] }),
                 modoBusqueda === 'contenido' && fuente !== 'corpus'
                   ? jsx('div', { className: S.sub, children:
-                      'la búsqueda por contenido cubre solo el corpus Diké' })
+                      t('graph.text.search.covers.the.dik.corpus.only') })
                   : null,
                 modoBusqueda === 'nombre' && q ? jsxs('div', { className: 'max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)', children: [
                   coincidencias.map((n) => jsxs('button', {
@@ -1088,13 +1079,13 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                       n.label,
                     ] })),
                   coincidencias.length === 0
-                    ? jsx('div', { className: S.sub + ' p-2', children: 'Sin coincidencias.' }) : null,
+                    ? jsx('div', { className: S.sub + ' p-2', children: t('graph.no.matches') }) : null,
                 ] }) : null,
                 modoBusqueda === 'contenido' && busqueda ? jsxs('div', {
                   className: 'flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-(--ui-stroke-secondary) p-1.5',
                   children: [
                     busqueda.estado === 'cargando'
-                      ? jsx('div', { className: S.sub + ' p-1', children: 'Buscando en el corpus…' })
+                      ? jsx('div', { className: S.sub + ' p-1', children: t('graph.searching.corpus') })
                       : null,
                     busqueda.estado === 'error'
                       ? jsx('div', { className: 'text-xs dk-mal p-1', children: busqueda.mensaje })
@@ -1103,42 +1094,42 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                       jsx('span', { className: S.chip + ' ' + S.chipOff,
                         children:
                           (busqueda.data && busqueda.data.rotulo) ||
-                          'Resultado de búsqueda: es una pista, no una fuente verificada' }),
+                          t('graph.search.lead.citation.not.yet.checked') }),
                       arbolData
                         ? (arbolData.disponible
                           ? jsxs('div', { className: 'flex flex-col gap-0.5 px-1', children: [
                               jsxs('div', { className: 'flex flex-wrap items-center gap-1', children: [
-                                jsx('span', { className: S.sub, children: 'Materias de la consulta' }),
+                                jsx('span', { className: S.sub, children: t('graph.query.subjects') }),
                                 ...(arbolData.clasificacion || []).map((c) => jsx('button', {
                                   key: c.nodo, type: 'button',
                                   className: S.chip + ' ' + (materiaFiltro === c.nodo ? S.chipOk : S.chipOff),
-                                  title: 'términos: ' + (c.terminos || []).join(', ') +
-                                    ' · cobertura ' + Math.round((c.cobertura || 0) * 100) + '%',
+                                  title: t('graph.terms') + (c.terminos || []).join(', ') +
+                                    t('graph.coverage') + Math.round((c.cobertura || 0) * 100) + '%',
                                   onClick: () => setMateriaFiltro(
                                     (prev) => (prev === c.nodo ? null : c.nodo)),
                                   children: c.nombre + ' · ' + c.score,
                                 })),
                                 !arbolData.clara
                                   ? jsx('span', { className: S.chip + ' ' + S.chipOff,
-                                      children: 'clasificación ambigua' })
+                                      children: t('graph.ambiguous.classification') })
                                   : null,
                               ] }),
                               ...(arbolData.clasificacion || []).map((c) => jsx('div', {
                                 key: 't-' + c.nodo,
                                 className: S.sub + ' truncate',
                                 children: c.nombre + ' — ' +
-                                  ((c.terminos || []).join(', ') || 'sin términos') +
-                                  ' · cobertura ' + Math.round((c.cobertura || 0) * 100) + '%',
+                                  ((c.terminos || []).join(', ') || t('graph.no.terms')) +
+                                  t('graph.coverage') + Math.round((c.cobertura || 0) * 100) + '%',
                               })),
                               jsx('div', { className: S.sub + ' truncate', children:
-                                'clasificación léxica por árbol de materias: explica, no reordena' }),
+                                t('graph.subject.classification.explains.matches.it.does.not.change.their.') }),
                             ] })
                           : jsx('div', { className: S.sub + ' px-1', children:
-                              'árbol de materias no disponible' +
+                              t('graph.subject.tree.unavailable') +
                               (arbolData.motivo ? ' — ' + arbolData.motivo : '') }))
                         : null,
                       ((busqueda.data && busqueda.data.resultados) || []).length === 0
-                        ? jsx('div', { className: S.sub + ' p-1', children: 'Sin resultados.' })
+                        ? jsx('div', { className: S.sub + ' p-1', children: t('graph.no.results') })
                         : null,
                       ((busqueda.data && busqueda.data.resultados) || []).map((r) => {
                         const metodo = (busqueda.data && busqueda.data.metodo) || {}
@@ -1179,27 +1170,27 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                             ] }),
                             (r.terminos || []).length
                               ? jsx('div', { className: S.sub + ' truncate', children:
-                                  'términos: ' + r.terminos.join(', ') })
+                                  t('graph.terms') + r.terminos.join(', ') })
                               : null,
                             (r.unidades || []).length
                               ? jsx('div', { className: S.sub + ' truncate', children:
-                                  'unidades: ' + r.unidades.map((u) => u.etiqueta).join(', ') })
+                                  t('graph.units2') + r.unidades.map((u) => u.etiqueta).join(', ') })
                               : null,
                             (r.materias || []).length
                               ? jsx('div', { className: 'flex flex-wrap gap-1', children:
                                   r.materias.map((m, i) => jsx('span', {
                                     key: m.nodo + '-' + i,
                                     className: S.chip + ' ' + S.chipOff,
-                                    children: (m.relacion === 'ancla' ? 'ancla' : 'territorio') +
+                                    children: (m.relacion === 'ancla' ? t('graph.anchor') : t('graph.territory')) +
                                       ' · ' + m.nombre,
                                   })) })
                               : null,
                             jsx('div', { className: S.sub + ' truncate', children:
-                              (metodo.motor || 'bm25') + ' · canal ' + (r.canal || '') +
+                              (metodo.motor || 'bm25') + t('graph.channel') + (r.canal || '') +
                               (r.evidencia ? ' — ' + r.evidencia : '') }),
                             jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
                               jsx('span', {
-                                title: r.cita ? undefined : (r.cita_motivo || 'sin forma de cita'),
+                                title: r.cita ? undefined : (r.cita_motivo || t('graph.no.citation.form.available')),
                                 children: jsx('button', {
                                   type: 'button', className: S.ghost,
                                   disabled: !r.cita,
@@ -1207,13 +1198,13 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                                     e.stopPropagation()
                                     alLlevar(r)
                                   },
-                                  children: 'Llevar al escrito',
+                                  children: t('graph.add.to.brief'),
                                 }),
                               }),
                               jsx('span', { className: S.sub, children:
                                 vigenteDe(r.vigencia)
-                                  ? 'entra como cita sin verificar; el verificador la revisa'
-                                  : 'el verificador la marcará FALLO: el artículo no está vigente' }),
+                                  ? t('graph.added.as.an.unchecked.citation.citation.check.runs.next')
+                                  : t('graph.citation.check.will.return.fallo.article.out.of.force') }),
                             ] }),
                           ],
                         })
@@ -1234,7 +1225,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                   className: 'rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1',
                   children: [
                     jsx('div', { className: S.cardTitle, children:
-                      'Camino destacado · ' + ((red.caminos_demo || [])[caminoIdx].relajacion || '') }),
+                      t('graph.highlighted.path2') + ((red.caminos_demo || [])[caminoIdx].relajacion || '') }),
                     ...(red.caminos_demo[caminoIdx].ids || []).map((id, i) => {
                       const n = indice.get(id)
                       const paso = i > 0
@@ -1258,21 +1249,21 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
       onToggle: (e) => setListaAbierta(e.currentTarget.open),
       children: [
         jsx('summary', { className: 'cursor-pointer ' + S.cardTitle + ' normal-case',
-          children: 'Lista del corpus (texto)' }),
+          children: t('graph.corpus.list.text') }),
         listaAbierta ? jsx('div', { className: 'mt-2', children: jsx(ListaCorpus, {}) }) : null,
       ] }) : null,
     fuente === 'corpus' ? jsxs('div', { className: S.card, children: [
-      jsx('div', { className: S.cardTitle, children: 'Grafo personal (GRE)' }),
+      jsx('div', { className: S.cardTitle, children: t('graph.personal.review.graph') }),
       personalErr
         ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(personalErr) })
         : !personal
-          ? jsx('div', { className: S.sub, children: 'Consultando…' })
+          ? jsx('div', { className: S.sub, children: t('graph.loading.label') })
           : jsxs('div', { className: 'flex flex-col gap-1', children: [
-              jsx('div', { className: S.sub, children: candidatos.length + ' candidatos · ' + aristasP.length + ' aristas' }),
+              jsx('div', { className: S.sub, children: candidatos.length + t('graph.candidates') + aristasP.length + t('graph.edges') }),
               candidatos.length === 0
                 ? jsx('div', { className: S.sub, children:
-                    'Sin candidatos todavía: el grafo personal se llena cuando agentes o el ' +
-                    'escrito alimentan evidencia al pipeline GRE.' })
+                    t('graph.no.candidates.yet.the.personal.review.graph.collects.evidence.fro') +
+                    t('graph.brief') })
                 : jsx('div', { className: 'flex flex-col', children:
                     candidatos.map((c, i) => jsxs('div', { key: i, className: S.row, children: [
                       jsxs('div', { className: 'min-w-0', children: [

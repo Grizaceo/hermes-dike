@@ -117,32 +117,29 @@ test('etiqueta verificada incluye as_of, pack_hash, gid y fuente_url', () => {
   const d = { cita_raw: 'art. 161 CT', gid: 'leychile:codigo-trabajo:art_161',
     fuente_url: 'https://leychile.cl/N?i=1' }
   const meta = { as_of: '2026-11-08', pack_hash: 'af1422d66d1e6eee' }
-  const t = etiquetaCita('verificada', d, meta, {})
-  assert.ok(t.includes('vigente al 2026-11-08'))
-  assert.ok(t.includes('corpus af1422d66d1e6eee'))
-  assert.ok(t.includes(d.gid) && t.includes(d.fuente_url))
-  assert.ok(t.startsWith('Probado por Diké:'))
+  const e = etiquetaCita('verificada', d, meta, {})
+  assert.equal(e.codigo, 'verify.verificada')
+  assert.equal(e.datos.date, meta.as_of)
+  assert.equal(e.datos.pack, meta.pack_hash)
+  assert.ok(e.datos.source.includes(d.gid) && e.datos.source.includes(d.fuente_url))
+  assert.equal(e.pista, false)
 })
 
-test('etiquetas de fallo, desactualizada, retirada y escalada', () => {
+test('etiquetas devuelven códigos y datos sin traducir', () => {
   const d = { cita_raw: 'x', resolucion: 'AMBIGUOUS' }
-  assert.equal(etiquetaCita('fallo', d, {}, {}), 'FALLO · AMBIGUOUS')
-  assert.equal(etiquetaCita('desactualizada', d, {}, {}),
-    'El texto cambió: verifica de nuevo')
-  const reg = {
-    retiros: [{ cita_raw: 'x', motivo: 'no aplica' }],
-    escaladas: [{ cita_raw: 'x', nota: 'revisar con socio' }],
-  }
-  assert.equal(etiquetaCita('retirada', d, {}, reg), 'Retirada: no aplica')
-  assert.equal(etiquetaCita('escalada', d, {}, reg),
-    'Escalada para revisión humana: revisar con socio')
+  assert.equal(etiquetaCita('fallo', d, {}, {}).datos.resolution, 'AMBIGUOUS')
+  assert.equal(etiquetaCita('desactualizada', d, {}, {}).codigo, 'verify.desactualizada')
+  const reg = { retiros: [{ cita_raw: 'x', motivo: 'no aplica' }], escaladas: [{ cita_raw: 'x', nota: 'revisar con socio' }] }
+  assert.equal(etiquetaCita('retirada', d, {}, reg).datos.reason, 'no aplica')
+  assert.equal(etiquetaCita('escalada', d, {}, reg).datos.note, 'revisar con socio')
+  assert.equal(etiquetaCita('fallo', d, {}, { pistas: [{ cita: 'x' }] }).pista, true)
 })
 
-test('mensajes de veredicto y aviso de alcance fijos', () => {
-  assert.ok(mensajeVeredicto('SIN_CITAS').includes('no significa que el escrito no cite'))
-  assert.ok(mensajeVeredicto('SIN_CORPUS').includes('no es un resultado favorable'))
+test('mensajes de veredicto devuelven códigos estables', () => {
+  assert.equal(mensajeVeredicto('SIN_CITAS'), 'verify.SIN_CITAS')
+  assert.equal(mensajeVeredicto('SIN_CORPUS'), 'verify.SIN_CORPUS')
   assert.equal(mensajeVeredicto('TODAS_VERIFICADAS'), null)
-  assert.ok(AVISO_JUICIO.includes('juicio del abogado'))
+  assert.equal(AVISO_JUICIO, 'verify.judgment')
 })
 
 // --- Mapa offsets ↔ posiciones PM -------------------------------------------------

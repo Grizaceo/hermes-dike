@@ -1,3 +1,6 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
+import { t } from '../i18n.js'
 // Barra superior tipo Word del Case Writer (2 filas, inspirada en el Case
 // Writer original de Diké):
 // Fila 1: Menú Archivo · Escribir/Leer · Selector de Documento/Caso + estado
@@ -12,7 +15,7 @@ import { S } from '../common.js'
 import { textoDelEditor } from './editor.js'
 
 const FUENTES = [
-  { label: 'Predeterminada (Serif)', value: "Georgia, 'Times New Roman', serif" },
+  { get label() { return t('format.default.serif') }, value: "Georgia, 'Times New Roman', serif" },
   { label: 'Times New Roman', value: "'Times New Roman', Times, serif" },
   { label: 'Georgia', value: 'Georgia, serif' },
   { label: 'Arial / Sans', value: 'Arial, Helvetica, sans-serif' },
@@ -33,11 +36,11 @@ const FORMALISMOS_RAPIDOS = [
 ]
 
 const TEXTO_GUARDADO = {
-  cargando: { label: 'cargando…', cls: S.chip + ' ' + S.chipOff },
-  guardado: { label: 'guardado', cls: S.chip + ' ' + S.chipOk },
-  guardando: { label: 'guardando…', cls: S.chip + ' ' + S.chipInfo },
-  'sin-guardar': { label: 'sin guardar', cls: S.chip + ' ' + S.chipWarn },
-  conflicto: { label: 'conflicto', cls: S.chip + ' ' + S.chipBad },
+  cargando: { get label() { return t('format.loading.label') }, cls: S.chip + ' ' + S.chipOff },
+  guardado: { get label() { return t('format.saved') }, cls: S.chip + ' ' + S.chipOk },
+  guardando: { get label() { return t('format.saving') }, cls: S.chip + ' ' + S.chipInfo },
+  'sin-guardar': { get label() { return t('format.unsaved') }, cls: S.chip + ' ' + S.chipWarn },
+  conflicto: { get label() { return t('format.save.conflict') }, cls: S.chip + ' ' + S.chipBad },
 }
 
 function Separador() {
@@ -58,7 +61,7 @@ function BotonBarra({ onClick, activo, disabled, title, children }) {
   })
 }
 
-export function BarraFormato({
+function BarraFormatoImpl({
   editorRef,
   caseId,
   casos,
@@ -78,6 +81,7 @@ export function BarraFormato({
   docInfo,
   onAbrirHerramienta,
 }) {
+  useIdioma()
   const [menuArchivo, setMenuArchivo] = useState(false)
   const [menuFormalismos, setMenuFormalismos] = useState(false)
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false)
@@ -152,7 +156,7 @@ export function BarraFormato({
     setMenuArchivo(false)
   }
 
-  const opcionesCaso = [{ case_id: 'borrador', legal_question: 'borrador (sin caso)' }]
+  const opcionesCaso = [{ case_id: 'borrador', legal_question: t('format.draft.no.case') }]
     .concat(casos || [])
   const infoGuardado = TEXTO_GUARDADO[estadoDoc] || { label: estadoDoc, cls: 'bg-(--dk-superficie-2) text-(--dk-texto-2)' }
 
@@ -174,7 +178,7 @@ export function BarraFormato({
               onClick: () => setMenuArchivo((v) => !v),
               'aria-expanded': menuArchivo,
               className: 'dk-btn',
-              children: ['Archivo ▾'],
+              children: [t('format.file')],
             }),
             menuArchivo ? jsxs('div', {
               className: 'absolute left-0 top-full z-50 mt-1 w-64 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl text-xs',
@@ -186,13 +190,13 @@ export function BarraFormato({
                     setMenuArchivo(false)
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Cargar escrito de demostración (CT)'],
+                  children: [t('format.load.demo.brief.ct')],
                 }),
                 jsx('button', {
                   type: 'button',
                   onClick: importarArchivoLocal,
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Abrir archivo (.md, .txt, .html)…'],
+                  children: [t('format.open.file.md.txt.html')],
                 }),
                 jsx('button', {
                   type: 'button',
@@ -201,7 +205,7 @@ export function BarraFormato({
                     setMenuArchivo(false)
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Guardar ahora'],
+                  children: [t('format.save.now')],
                 }),
                 jsx('div', { className: 'my-1 h-px bg-(--dk-superficie-2)' }),
                 jsx('button', {
@@ -211,7 +215,7 @@ export function BarraFormato({
                     if (editor) exportarArchivo('md', 'text/markdown', textoDelEditor(editor))
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Exportar como Markdown (.md)'],
+                  children: [t('format.export.markdown.md')],
                 }),
                 jsx('button', {
                   type: 'button',
@@ -220,7 +224,7 @@ export function BarraFormato({
                     if (editor) exportarArchivo('txt', 'text/plain', textoDelEditor(editor))
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Exportar como Texto (.txt)'],
+                  children: [t('format.export.text.txt')],
                 }),
                 jsx('button', {
                   type: 'button',
@@ -229,7 +233,7 @@ export function BarraFormato({
                     if (editor) exportarArchivo('html', 'text/html', editor.getHTML())
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Exportar como HTML (.html)'],
+                  children: [t('format.export.html.html')],
                 }),
                 jsx('div', { className: 'my-1 h-px bg-(--dk-superficie-2)' }),
                 jsx('button', {
@@ -240,7 +244,7 @@ export function BarraFormato({
                     setMenuArchivo(false)
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left ' + S.bad + ' hover:bg-(--dk-sobre)',
-                  children: ['Vaciar escrito actual'],
+                  children: [t('format.clear.brief')],
                 }),
                 jsx('button', {
                   type: 'button',
@@ -249,7 +253,7 @@ export function BarraFormato({
                     window.print()
                   },
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
-                  children: ['Imprimir / Guardar PDF'],
+                  children: [t('format.print.save.pdf')],
                 }),
               ],
             }) : null,
@@ -265,7 +269,7 @@ export function BarraFormato({
                 'aria-pressed': modoVista !== 'read',
                 className: 'flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ' +
                   (modoVista !== 'read' ? 'bg-(--dk-elevada) text-(--dk-texto) shadow-2xs' : 'text-(--dk-texto-3) hover:text-(--dk-texto)'),
-                children: ['Escribir'],
+                children: [t('format.write')],
               }),
               jsx('button', {
                 type: 'button',
@@ -273,7 +277,7 @@ export function BarraFormato({
                 'aria-pressed': modoVista === 'read',
                 className: 'flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ' +
                   (modoVista === 'read' ? 'bg-(--dk-elevada) text-(--dk-texto) shadow-2xs' : 'text-(--dk-texto-3) hover:text-(--dk-texto)'),
-                children: ['Leer'],
+                children: [t('format.read')],
               }),
             ],
           }),
@@ -282,28 +286,28 @@ export function BarraFormato({
 
           // Selector de Documento / Caso + Crear caso
           jsxs('div', { className: 'flex items-center gap-1.5', children: [
-            jsx('span', { className: 'text-xs text-(--dk-texto-3)', children: 'Documento' }),
+            jsx('span', { className: 'text-xs text-(--dk-texto-3)', children: t('format.brief.label') }),
             jsx('select', {
               value: caseId,
               onChange: (e) => onCambiarCaso && onCambiarCaso(e.target.value),
-              ariaLabel: 'Documento o caso activo',
+              'aria-label': t('format.active.brief.or.case'),
               className: 'h-7 max-w-56 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 text-xs text-(--dk-texto) outline-none focus:border-(--dk-acento)',
               children: casos === null
-                ? jsx('option', { value: caseId, children: 'Cargando casos…' })
+                ? jsx('option', { value: caseId, children: t('format.loading.cases') })
                 : opcionesCaso.map((c) => jsx('option', {
                     key: c.case_id,
                     value: c.case_id,
                     children: c.case_id === 'borrador'
-                      ? 'default — borrador (sin caso)'
+                      ? t('format.default.draft.no.case')
                       : c.case_id + (c.legal_question ? ' — ' + String(c.legal_question).slice(0, 48) : ''),
                   })),
             }),
             jsx('button', {
               type: 'button',
               onClick: () => setModalNuevoCaso((v) => !v),
-              title: 'Crear o sembrar un caso NIF para vincular el escrito',
+              title: t('format.create.or.load.a.case.for.this.brief'),
               className: 'dk-btn dk-btn--icono',
-              'aria-label': 'Crear o vincular un caso NIF',
+              'aria-label': t('format.create.or.link.a.case'),
               children: '+',
             }),
             jsx('span', {
@@ -317,13 +321,13 @@ export function BarraFormato({
 
           // Deshacer / Rehacer
           jsx(BotonBarra, {
-            title: 'Deshacer (Ctrl+Z)',
+            title: t('format.undo.ctrl.z'),
             disabled: !ed || !ed.can().undo(),
             onClick: () => comando((e) => e.chain().focus().undo().run()),
             children: '↶',
           }),
           jsx(BotonBarra, {
-            title: 'Rehacer (Ctrl+Y)',
+            title: t('format.redo.ctrl.y'),
             disabled: !ed || !ed.can().redo(),
             onClick: () => comando((e) => e.chain().focus().redo().run()),
             children: '↷',
@@ -335,7 +339,7 @@ export function BarraFormato({
           jsx('select', {
             value: (prefs && prefs.fuente) || FUENTES[0].value,
             onChange: (e) => onCambiarPrefs && onCambiarPrefs({ fuente: e.target.value }),
-            title: 'Tipografía de la hoja del escrito',
+            title: t('format.brief.font'),
             className: 'h-7 max-w-40 rounded border border-(--dk-borde) bg-(--dk-elevada) px-1.5 text-xs text-(--dk-texto-2) cursor-pointer',
             children: FUENTES.map((f) => jsx('option', { key: f.label, value: f.value, children: f.label })),
           }),
@@ -344,7 +348,7 @@ export function BarraFormato({
           jsx('select', {
             value: (prefs && prefs.tamano_fuente) || '12',
             onChange: (e) => onCambiarPrefs && onCambiarPrefs({ tamano_fuente: e.target.value }),
-            title: 'Tamaño de letra (pt)',
+            title: t('format.font.size.pt'),
             className: 'h-7 w-16 rounded border border-(--dk-borde) bg-(--dk-elevada) px-1 text-xs text-(--dk-texto-2) cursor-pointer',
             children: TAMANOS.map((t) => jsx('option', { key: t, value: t, children: t + ' pt' })),
           }),
@@ -354,28 +358,29 @@ export function BarraFormato({
             metaVerif ? jsx('button', {
               type: 'button',
               onClick: () => onAbrirHerramienta && onAbrirHerramienta('citas'),
-              title: 'Abrir detalle de verificación de citas',
+              title: t('format.open.citation.details'),
               className: S.chip + ' ' +
                 ((metaVerif.citas_fallidas || 0) > 0 ? S.chipBad : S.chipOk) +
                 ' cursor-pointer',
-              children: `✓ ${metaVerif.citas_verificadas || 0}/${metaVerif.total_citas || 0} citas`,
+              children: t('format.citationCount', { ok: metaVerif.citas_verificadas || 0, total: metaVerif.total_citas || 0 }),
             }) : null,
 
             jsx('button', {
               type: 'button',
               onClick: onVerificar,
+              'data-dike-check': true,
               disabled: verificando || estadoDoc === 'cargando',
               className: 'dk-btn dk-btn--primario',
-              children: verificando ? 'Verificando…' : 'Verificar citas',
+              children: verificando ? t('writer.checking') : t('writer.check.citations'),
             }),
 
             jsx('button', {
               type: 'button',
               onClick: () => onAbrirHerramienta && onAbrirHerramienta('ajustes'),
-              title: 'Configurar copilot jurídico (predicción) y personalización de vista',
-              'aria-label': 'Ajustes del escritor',
+              title: t('format.configure.suggestions.and.appearance'),
+              'aria-label': t('format.writer.settings'),
               className: 'dk-btn dk-btn--chico',
-              children: 'Ajustes',
+              children: t('format.settings'),
             }),
           ] }),
         ],
@@ -385,17 +390,17 @@ export function BarraFormato({
       modalNuevoCaso ? jsxs('div', {
         className: 'flex flex-wrap items-center gap-2 border-b border-(--dk-borde-suave) bg-(--dk-superficie) px-3 py-1.5 text-xs',
         children: [
-          jsx('span', { className: 'font-semibold text-(--dk-texto)', children: 'Vincular caso NIF:' }),
+          jsx('span', { className: 'font-semibold text-(--dk-texto)', children: t('format.link.a.case') }),
           jsx('input', {
             value: nuevoCaseId,
             onChange: (e) => setNuevoCaseId(e.target.value),
-            placeholder: 'id-del-caso (ej. causa-despido)',
+            placeholder: t('format.case.id.e.g.dismissal.case'),
             className: 'dk-campo w-44',
           }),
           jsx('input', {
             value: nuevaPregunta,
             onChange: (e) => setNuevaPregunta(e.target.value),
-            placeholder: 'Pregunta jurídica del caso…',
+            placeholder: t('format.case.s.legal.question'),
             className: 'dk-campo flex-1 min-w-52',
           }),
           jsx('button', {
@@ -409,7 +414,7 @@ export function BarraFormato({
               setModalNuevoCaso(false)
             },
             className: 'dk-btn dk-btn--primario',
-            children: 'Crear caso',
+            children: t('format.create.case'),
           }),
           onSembrarDemoCaso ? jsx('button', {
             type: 'button',
@@ -418,12 +423,12 @@ export function BarraFormato({
               setModalNuevoCaso(false)
             },
             className: 'dk-btn dk-btn--borde',
-            children: 'Cargar caso demo (CT)',
+            children: t('format.load.demo.case.ct'),
           }) : null,
           jsx('button', {
             type: 'button',
             onClick: () => setModalNuevoCaso(false),
-            'aria-label': 'Cerrar',
+            'aria-label': t('format.close'),
             className: 'dk-btn dk-btn--icono ml-auto',
             children: '✕',
           }),
@@ -435,19 +440,19 @@ export function BarraFormato({
         className: 'flex flex-wrap items-center gap-0.5 px-3 py-1 bg-(--dk-superficie)',
         children: [
           jsx(BotonBarra, {
-            title: 'Negrita (Ctrl+B)',
+            title: t('format.bold.ctrl.b'),
             activo: ed && ed.isActive('bold'),
             onClick: () => comando((e) => e.chain().focus().toggleBold().run()),
             children: jsx('b', { className: 'font-serif text-sm', children: 'B' }),
           }),
           jsx(BotonBarra, {
-            title: 'Cursiva (Ctrl+I)',
+            title: t('format.italic.ctrl.i'),
             activo: ed && ed.isActive('italic'),
             onClick: () => comando((e) => e.chain().focus().toggleItalic().run()),
             children: jsx('i', { className: 'font-serif text-sm', children: 'I' }),
           }),
           jsx(BotonBarra, {
-            title: 'Tachado',
+            title: t('format.strikethrough'),
             activo: ed && ed.isActive('strike'),
             onClick: () => comando((e) => e.chain().focus().toggleStrike().run()),
             children: jsx('s', { className: 'font-serif text-sm', children: 'S' }),
@@ -456,25 +461,25 @@ export function BarraFormato({
           jsx(Separador, {}),
 
           jsx(BotonBarra, {
-            title: 'Título 1',
+            title: t('format.heading.1'),
             activo: ed && ed.isActive('heading', { level: 1 }),
             onClick: () => comando((e) => e.chain().focus().toggleHeading({ level: 1 }).run()),
             children: 'H₁',
           }),
           jsx(BotonBarra, {
-            title: 'Título 2',
+            title: t('format.heading.2'),
             activo: ed && ed.isActive('heading', { level: 2 }),
             onClick: () => comando((e) => e.chain().focus().toggleHeading({ level: 2 }).run()),
             children: 'H₂',
           }),
           jsx(BotonBarra, {
-            title: 'Título 3',
+            title: t('format.heading.3'),
             activo: ed && ed.isActive('heading', { level: 3 }),
             onClick: () => comando((e) => e.chain().focus().toggleHeading({ level: 3 }).run()),
             children: 'H₃',
           }),
           jsx(BotonBarra, {
-            title: 'Párrafo normal',
+            title: t('format.paragraph'),
             activo: ed && ed.isActive('paragraph'),
             onClick: () => comando((e) => e.chain().focus().setParagraph().run()),
             children: '¶',
@@ -483,25 +488,25 @@ export function BarraFormato({
           jsx(Separador, {}),
 
           jsx(BotonBarra, {
-            title: 'Lista con viñetas',
+            title: t('format.bullet.list'),
             activo: ed && ed.isActive('bulletList'),
             onClick: () => comando((e) => e.chain().focus().toggleBulletList().run()),
-            children: '• Lista',
+            children: t('format.list'),
           }),
           jsx(BotonBarra, {
-            title: 'Lista numerada',
+            title: t('format.numbered.list'),
             activo: ed && ed.isActive('orderedList'),
             onClick: () => comando((e) => e.chain().focus().toggleOrderedList().run()),
-            children: '1. Lista',
+            children: t('format.1.list'),
           }),
           jsx(BotonBarra, {
-            title: 'Bloque de cita / sangría',
+            title: t('format.block.quote'),
             activo: ed && ed.isActive('blockquote'),
             onClick: () => comando((e) => e.chain().focus().toggleBlockquote().run()),
-            children: '❝ Cita',
+            children: t('format.quote'),
           }),
           jsx(BotonBarra, {
-            title: 'Línea divisoria horizontal',
+            title: t('format.horizontal.rule'),
             onClick: () => comando((e) => e.chain().focus().setHorizontalRule().run()),
             children: '―',
           }),
@@ -515,8 +520,8 @@ export function BarraFormato({
               onClick: () => setMenuFormalismos((v) => !v),
               'aria-expanded': menuFormalismos,
               className: 'dk-btn dk-btn--borde',
-              title: 'Insertar encabezado o fórmula procesal chilena',
-              children: ['Formalismo ▾'],
+              title: t('format.insert.a.chilean.pleading.formula'),
+              children: [t('format.pleading.formulas')],
             }),
             menuFormalismos ? jsxs('div', {
               className: 'absolute left-0 top-full z-40 mt-1 w-56 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl text-xs',
@@ -538,27 +543,27 @@ export function BarraFormato({
             type: 'button',
             onClick: onCargarEscritoDemo,
             className: 'dk-btn dk-btn--borde dk-btn--chico ml-1',
-            children: 'Cargar escrito demo',
+            children: t('format.load.demo.brief.label'),
           }) : null,
 
           // Resumen rápido a la derecha de la fila 2
           jsxs('div', {
             className: 'ml-auto flex items-center gap-3 text-xs text-(--dk-texto-3)',
             children: [
-              jsx('span', { children: `${numPalabras} palabras` }),
+              jsx('span', { children: t('format.words', { n: numPalabras }) }),
               jsx('button', {
                 type: 'button',
                 onClick: () => onAbrirHerramienta && onAbrirHerramienta('estilo'),
                 className: S.link + ' font-medium',
-                title: 'Abrir revisión de estilo LexO Escribe Claro',
-                children: 'Escribe Claro',
+                title: t('format.open.plain.language.review'),
+                children: t('format.style'),
               }),
               jsx('button', {
                 type: 'button',
                 onClick: () => onAbrirHerramienta && onAbrirHerramienta('privacidad'),
                 className: S.link + ' font-medium',
-                title: 'Abrir control de seudonimización y privacidad',
-                children: 'Privacidad',
+                title: t('format.open.privacy.settings'),
+                children: t('format.privacy'),
               }),
             ],
           }),
@@ -567,3 +572,5 @@ export function BarraFormato({
     ],
   })
 }
+
+export const BarraFormato = memo(BarraFormatoImpl)

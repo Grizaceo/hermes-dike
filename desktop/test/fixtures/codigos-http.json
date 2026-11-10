@@ -1,0 +1,943 @@
+[
+  {
+    "code": "ARTICLE_ID_INVALID",
+    "en": "The article ID is invalid. Select an article from the graph.",
+    "es": "id de artículo inválido.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/unidades"
+    ]
+  },
+  {
+    "code": "ARTICLE_NOT_FOUND",
+    "en": "The article was not found in the installed corpus. Select an article from the graph.",
+    "es": "artículo no encontrado en el corpus instalado.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "BODY_INVALID",
+    "en": "The request body must be a JSON object.",
+    "es": "body debe ser un objeto JSON.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /estilo/analizar",
+      "POST /estilo/grafo",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /ordenamiento/construir",
+      "POST /ordenamiento/plantilla",
+      "POST /prediccion/corpus",
+      "POST /prediccion/evento",
+      "POST /preferencias",
+      "POST /privacidad/decision",
+      "POST /privacidad/detectar",
+      "POST /privacidad/envio",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "BRIEF_UNREADABLE",
+    "en": "The saved brief could not be read. Restore a valid saved copy.",
+    "es": "El escrito guardado está ilegible.",
+    "status": 500,
+    "routes": [
+      "GET /escrito",
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "CASE_ID_INVALID",
+    "en": "The case ID is invalid. Use 1–64 letters, digits, dots, hyphens or underscores, starting with a letter or digit.",
+    "es": "case_id inválido.",
+    "status": 400,
+    "routes": [
+      "GET /escrito",
+      "GET /nif/snapshot",
+      "POST /escrito",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar",
+      "POST /privacidad/decision",
+      "POST /privacidad/detectar",
+      "POST /privacidad/envio",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "CONFIDENCE_INVALID",
+    "en": "confidence must be between 0 and 1.",
+    "es": "confidence debe estar entre 0 y 1.",
+    "status": 400,
+    "routes": [
+      "POST /nif/confianza"
+    ]
+  },
+  {
+    "code": "COUNTS_INVALID",
+    "en": "conteos must contain non-negative integer counts by type.",
+    "es": "conteos debe contener cantidades enteras no negativas por tipo.",
+    "status": 400,
+    "routes": [
+      "POST /privacidad/envio"
+    ]
+  },
+  {
+    "code": "DESTINATION_TOO_LONG",
+    "en": "destino exceeds 200 characters. Use a shorter destination label.",
+    "es": "destino demasiado largo.",
+    "status": 400,
+    "routes": [
+      "POST /privacidad/envio"
+    ]
+  },
+  {
+    "code": "ENGINE_ERROR",
+    "en": "Engine error: {detail}",
+    "es": "motor: {detail}",
+    "status": 502,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /grafo/leer",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "ENGINE_NO_OUTPUT",
+    "en": "The engine returned no output. Try again or check the plugin installation.",
+    "es": "motor: sin salida",
+    "status": 502,
+    "routes": [
+      "POST /grafo/leer"
+    ]
+  },
+  {
+    "code": "ENGINE_RESPONSE_INVALID",
+    "en": "The engine returned an invalid response. Check the plugin installation.",
+    "es": "motor: respuesta inválida",
+    "status": 502,
+    "routes": [
+      "POST /grafo/leer"
+    ]
+  },
+  {
+    "code": "ENGINE_TIMEOUT",
+    "en": "The engine did not respond in time. Try again.",
+    "es": "El motor tardó demasiado.",
+    "status": 504,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "EVIDENCE_NOT_FOUND",
+    "en": "No evidence was found for this link. Reload the local graph.",
+    "es": "evidencia no encontrada.",
+    "status": 404,
+    "routes": [
+      "GET /grafo/evidencia"
+    ]
+  },
+  {
+    "code": "EVIDENCE_SOURCE_INVALID",
+    "en": "Link evidence is available only in the local graph. Select ambiental.",
+    "es": "evidencia solo está disponible en la capa local.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/evidencia"
+    ]
+  },
+  {
+    "code": "FIELD_BOOLEAN_INVALID",
+    "en": "{field} must be a boolean.",
+    "es": "{field} debe ser booleano.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "FIELD_MISSING",
+    "en": "{field} is missing. Provide a non-empty value.",
+    "es": "Falta el campo {field}.",
+    "status": 400,
+    "routes": [
+      "POST /nif/gap"
+    ]
+  },
+  {
+    "code": "FIELD_NUMBER_INVALID",
+    "en": "{field} must be a finite number.",
+    "es": "{field} debe ser finito.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /ordenamiento/plantilla",
+      "POST /prediccion/corpus",
+      "POST /prediccion/evento",
+      "POST /preferencias",
+      "POST /privacidad/decision",
+      "POST /privacidad/detectar",
+      "POST /privacidad/envio",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "FIELD_TYPE_INVALID",
+    "en": "{field} must be {expected}.",
+    "es": "{field} debe ser {expected}.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /ordenamiento/plantilla",
+      "POST /prediccion/corpus",
+      "POST /prediccion/evento",
+      "POST /preferencias",
+      "POST /privacidad/decision",
+      "POST /privacidad/detectar",
+      "POST /privacidad/envio",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "FIELD_UNICODE_INVALID",
+    "en": "{field} contains invalid Unicode. Copy it again from the original.",
+    "es": "{field} trae Unicode inválido.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /ordenamiento/plantilla",
+      "POST /prediccion/corpus",
+      "POST /prediccion/evento",
+      "POST /preferencias",
+      "POST /privacidad/decision",
+      "POST /privacidad/detectar",
+      "POST /privacidad/envio",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "FILENAME_INVALID",
+    "en": "The filename is not allowed: {name}. Use letters, digits, dots, hyphens or underscores and a .txt extension.",
+    "es": "Nombre de archivo no permitido: {name}",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "FILES_COUNT_INVALID",
+    "en": "textos must contain 1–25 files.",
+    "es": "textos debe tener entre 1 y 25 archivos.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "FILES_INVALID",
+    "en": "Each textos entry must have a text filename and text content.",
+    "es": "textos inválidos.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "FONT_INVALID",
+    "en": "fuente must be text of at most 120 characters.",
+    "es": "fuente inválida.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "FONT_SIZE_INVALID",
+    "en": "Choose a supported tamano_fuente: 10, 11, 12, 13, 14, 16, 18 or 20.",
+    "es": "tamano_fuente inválido.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "GRAPH_SOURCE_INVALID",
+    "en": "Unknown graph source: {source}. Select corpus or ambiental.",
+    "es": "fuente '{source}' no existe: solo 'corpus' y 'ambiental' están implementadas.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/red"
+    ]
+  },
+  {
+    "code": "HTML_MISSING",
+    "en": "HTML is missing. Provide html.",
+    "es": "Falta el campo html.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "HTML_TOO_LARGE",
+    "en": "HTML exceeds the 2 MB limit. Use a smaller brief.",
+    "es": "El html supera el límite permitido.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "INPUT_ERROR",
+    "en": "The input was rejected. Check the fields and try again.",
+    "es": "entrada inválida",
+    "status": 400,
+    "routes": [
+      "POST /grafo/leer"
+    ]
+  },
+  {
+    "code": "JURISDICTION_INVALID",
+    "en": "jur must contain 2–8 lowercase letters, such as ar, pe, es, mx or xx.",
+    "es": "jur debe tener entre 2 y 8 letras minúsculas (ej. ar, pe, es, mx, xx).",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/plantilla"
+    ]
+  },
+  {
+    "code": "LENGTH_INVALID",
+    "en": "largo must be non-negative.",
+    "es": "largo debe ser no negativo.",
+    "status": 400,
+    "routes": [
+      "POST /prediccion/evento"
+    ]
+  },
+  {
+    "code": "LIMIT_INVALID",
+    "en": "limite must be an integer.",
+    "es": "limite debe ser entero.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/buscar"
+    ]
+  },
+  {
+    "code": "LINK_INVALID",
+    "en": "The link ID is invalid. Select a link from the graph.",
+    "es": "link inválido.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/evidencia"
+    ]
+  },
+  {
+    "code": "LOCAL_GRAPH_MISSING",
+    "en": "The local environmental graph has not been built. Run scripts/construir_red_local.py with an approved anonymized source.",
+    "es": "la capa ambiental local no está construida (scripts/construir_red_local.py).",
+    "status": 404,
+    "routes": [
+      "GET /grafo/nodo",
+      "GET /grafo/red"
+    ]
+  },
+  {
+    "code": "LOCAL_GRAPH_UNREADABLE",
+    "en": "The local environmental graph could not be read: {detail}",
+    "es": "red ambiental ilegible: {detail}",
+    "status": 500,
+    "routes": [
+      "GET /grafo/nodo",
+      "GET /grafo/red"
+    ]
+  },
+  {
+    "code": "LOCAL_NODE_NOT_FOUND",
+    "en": "The node was not found in the local graph. Reload the graph.",
+    "es": "nodo no existe en la capa local.",
+    "status": 404,
+    "routes": [
+      "GET /grafo/nodo"
+    ]
+  },
+  {
+    "code": "LOCAL_UNIT_NOT_FOUND",
+    "en": "The unit was not found in the local graph. Reload the graph.",
+    "es": "unidad no existe en la capa local.",
+    "status": 404,
+    "routes": [
+      "GET /grafo/unidad"
+    ]
+  },
+  {
+    "code": "NIF_FIELD_INVALID",
+    "en": "This NIF field cannot be edited from the page. Select an editable field.",
+    "es": "field_path no editable desde el panel.",
+    "status": 400,
+    "routes": [
+      "POST /nif/edit"
+    ]
+  },
+  {
+    "code": "NODE_ID_INVALID",
+    "en": "The node ID is invalid. Select a node from the graph.",
+    "es": "id inválido.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/nodo"
+    ]
+  },
+  {
+    "code": "NODE_NOT_FOUND",
+    "en": "The node was not found in the installed corpus. Select a node from the graph.",
+    "es": "nodo no encontrado en el corpus instalado.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "PACK_MISSING",
+    "en": "The pack configuration is missing. Provide a paquete JSON object.",
+    "es": "Falta el objeto paquete.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "PAGE_WIDTH_INVALID",
+    "en": "ancho_hoja must be a4, carta or ancho.",
+    "es": "ancho_hoja inválido.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "PANEL_INPUT_ERROR",
+    "en": "The panel rejected this request: {detail}",
+    "es": "Entrada rechazada por el panel: {detail}",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "PAPER_THEME_INVALID",
+    "en": "tema_papel must be clasico, sepia or nocturno.",
+    "es": "tema_papel inválido.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "PRIVACY_ACTION_INVALID",
+    "en": "accion must be conservar, enmascarar or olvidar.",
+    "es": "accion debe ser conservar, enmascarar u olvidar.",
+    "status": 400,
+    "routes": [
+      "POST /privacidad/decision"
+    ]
+  },
+  {
+    "code": "PRIVACY_STRATEGY_INVALID",
+    "en": "estrategia_privacidad must be ligera, media or estricta.",
+    "es": "estrategia_privacidad inválida.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "PRIVACY_VALUE_EMPTY",
+    "en": "The value is empty. Select text to keep or mask.",
+    "es": "El valor no puede estar vacío.",
+    "status": 400,
+    "routes": [
+      "POST /privacidad/decision"
+    ]
+  },
+  {
+    "code": "PROFILE_MISSING",
+    "en": "The profile is missing. Provide a perfil JSON object.",
+    "es": "Falta el objeto perfil.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir",
+      "POST /ordenamiento/validar-perfil"
+    ]
+  },
+  {
+    "code": "QUERY_CONTROL",
+    "en": "q contains control characters. Remove them and try again.",
+    "es": "q tiene caracteres de control.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/buscar"
+    ]
+  },
+  {
+    "code": "QUERY_LENGTH_INVALID",
+    "en": "q must contain 1–300 characters.",
+    "es": "q debe tener entre 1 y 300 caracteres.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/buscar"
+    ]
+  },
+  {
+    "code": "QUERY_MISSING",
+    "en": "Search terms are missing. Provide q.",
+    "es": "Falta el campo q.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/buscar"
+    ]
+  },
+  {
+    "code": "QUERY_NO_TERMS",
+    "en": "The query has no searchable terms. Enter words from the statute.",
+    "es": "la consulta no tiene términos buscables.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "QUESTION_MISSING",
+    "en": "The question is missing. Provide pregunta.",
+    "es": "Falta el campo pregunta.",
+    "status": 400,
+    "routes": [
+      "POST /nif/init"
+    ]
+  },
+  {
+    "code": "REGISTRY_INVALID",
+    "en": "registro must be a JSON object.",
+    "es": "registro debe ser un objeto JSON.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "REGISTRY_TOO_LARGE",
+    "en": "registro exceeds the 200,000-byte limit. Reduce the saved citation log.",
+    "es": "El registro supera el límite permitido.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "REGISTRY_UNICODE_INVALID",
+    "en": "registro contains invalid Unicode. Copy it again from the original.",
+    "es": "registro trae Unicode inválido.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "REV_BASE_INVALID",
+    "en": "rev_base must be a non-negative integer. Reload the brief and try again.",
+    "es": "rev_base debe ser entero >= 0.",
+    "status": 400,
+    "routes": [
+      "POST /escrito"
+    ]
+  },
+  {
+    "code": "SANDBOX_UNAVAILABLE",
+    "en": "A sandbox is required but unavailable. Enable bubblewrap or select sandbox: auto.",
+    "es": "sandbox requerido por configuración pero bubblewrap no está disponible en este equipo; no se verificó nada",
+    "status": 503,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /grafo/leer",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "SEND_LOG_FAILED",
+    "en": "The send could not be logged. Do not send the text; check disk space and permissions.",
+    "es": "No se pudo registrar el envío; no envíes el texto.",
+    "status": 500,
+    "routes": [
+      "POST /privacidad/envio"
+    ]
+  },
+  {
+    "code": "SHA256_INVALID",
+    "en": "sha256 must contain 64 lowercase hexadecimal characters.",
+    "es": "sha256 inválido.",
+    "status": 400,
+    "routes": [
+      "POST /privacidad/envio"
+    ]
+  },
+  {
+    "code": "STATUTE_CODE_INVALID",
+    "en": "code must be a numeric Ley Chile identifier.",
+    "es": "code debe ser el leychileCode numérico.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus/norma/{code}"
+    ]
+  },
+  {
+    "code": "STATUTE_NOT_FOUND",
+    "en": "Statute {code} is not in the installed corpus. Select a statute from the corpus.",
+    "es": "norma {code} no está en el corpus instalado.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "STATUTE_TEXT_TOO_LARGE",
+    "en": "Statute text exceeds 200,000 bytes. Use a smaller source file.",
+    "es": "Texto de norma demasiado grande.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "STATUTE_UNICODE_INVALID",
+    "en": "Statute text contains invalid Unicode. Copy it again from the original.",
+    "es": "Texto de norma trae Unicode inválido.",
+    "status": 400,
+    "routes": [
+      "POST /ordenamiento/construir"
+    ]
+  },
+  {
+    "code": "STYLE_CONTEXT_INVALID",
+    "en": "contexto must be text.",
+    "es": "contexto debe ser string.",
+    "status": 400,
+    "routes": [
+      "POST /estilo/analizar"
+    ]
+  },
+  {
+    "code": "STYLE_CONTEXT_OPTION_INVALID",
+    "en": "contexto_estilo must be escrito, demanda, sentencia or general.",
+    "es": "contexto_estilo inválido.",
+    "status": 400,
+    "routes": [
+      "POST /preferencias"
+    ]
+  },
+  {
+    "code": "STYLE_DETAIL_INVALID",
+    "en": "detallado must be a boolean.",
+    "es": "detallado debe ser booleano.",
+    "status": 400,
+    "routes": [
+      "POST /estilo/analizar"
+    ]
+  },
+  {
+    "code": "TAIL_EMPTY",
+    "en": "cola is empty. Provide the preceding words.",
+    "es": "cola vacía.",
+    "status": 400,
+    "routes": [
+      "POST /prediccion/corpus"
+    ]
+  },
+  {
+    "code": "TAIL_TOO_LONG",
+    "en": "cola exceeds 300 characters. Use fewer preceding words.",
+    "es": "cola demasiado larga.",
+    "status": 400,
+    "routes": [
+      "POST /prediccion/corpus"
+    ]
+  },
+  {
+    "code": "TEXT_MISSING",
+    "en": "Text is missing. Provide texto.",
+    "es": "Falta el campo texto.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /estilo/analizar",
+      "POST /estilo/grafo",
+      "POST /verificar"
+    ]
+  },
+  {
+    "code": "TEXT_TOO_LARGE",
+    "en": "Text exceeds the 400,000-byte limit. Use a smaller input.",
+    "es": "El texto supera el límite permitido.",
+    "status": 400,
+    "routes": [
+      "POST /escrito",
+      "POST /estilo/analizar",
+      "POST /estilo/grafo",
+      "POST /privacidad/detectar",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "TEXT_TYPE_INVALID",
+    "en": "texto must be text.",
+    "es": "El campo texto debe ser un string.",
+    "status": 400,
+    "routes": [
+      "POST /estilo/analizar",
+      "POST /estilo/grafo",
+      "POST /privacidad/detectar",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "TEXT_UNICODE_INVALID",
+    "en": "The text contains invalid Unicode. Copy it again from the original.",
+    "es": "El texto trae caracteres Unicode inválidos.",
+    "status": 400,
+    "routes": [
+      "POST /estilo/analizar",
+      "POST /estilo/grafo",
+      "POST /privacidad/detectar",
+      "POST /privacidad/seudonimizar"
+    ]
+  },
+  {
+    "code": "UNIT_ID_INVALID",
+    "en": "The unit ID is invalid. Select a unit from the graph.",
+    "es": "id de unidad inválido.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "UNIT_INDEX_NOT_FOUND",
+    "en": "Unit {unit} does not exist in that article. Select an existing unit.",
+    "es": "la unidad {unit} no existe en ese artículo.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "UNIT_NOT_FOUND",
+    "en": "The unit was not found in the installed corpus. Select a unit from the graph.",
+    "es": "unidad no encontrada en el corpus instalado.",
+    "status": 400,
+    "routes": [
+      "GET /grafo/corpus",
+      "GET /grafo/corpus/norma/{code}",
+      "GET /grafo/nodo",
+      "GET /grafo/personal",
+      "GET /grafo/red",
+      "GET /grafo/unidad",
+      "GET /grafo/unidades",
+      "GET /nif/casos",
+      "GET /nif/snapshot",
+      "POST /grafo/buscar",
+      "POST /nif/confianza",
+      "POST /nif/edit",
+      "POST /nif/gap",
+      "POST /nif/init",
+      "POST /nif/seed",
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "VALIDATED_INVALID",
+    "en": "validated must be a boolean.",
+    "es": "validated debe ser booleano.",
+    "status": 400,
+    "routes": [
+      "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "VALUE_MISSING",
+    "en": "The value is missing. Provide value.",
+    "es": "Falta el campo value.",
+    "status": 400,
+    "routes": [
+      "POST /nif/edit"
+    ]
+  }
+]

@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Predicción (experimental, F4): panel del Case Writer con el interruptor
 // general APAGADO por defecto, sub-interruptores L0/L1/L2 y telemetría.
 // Estado por caso en registro.prediccion. Las sugerencias son propuestas:
@@ -22,9 +24,9 @@ function cfgDe(registro) {
 }
 
 const ETIQUETA_CAPA = {
-  L0: 'formalismo procesal (determinista)',
-  L1: 'texto del corpus, sin verificar como cita',
-  L2: 'modelo',
+  get L0() { return t('pred.templateSource') },
+  get L1() { return t('pred.corpusSource') },
+  get L2() { return t('pred.l2') },
 }
 
 function predictorL0() {
@@ -60,8 +62,9 @@ function predictorL0() {
   }
 }
 
-export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
+function PrediccionPanelImpl({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, sesion }) {
+  useIdioma()
   const cfg = cfgDe(registro)
   const [destinoL2, setDestinoL2] = useState(null) // 'local'|'nube'|null
   const mesaRef = useRef(null)
@@ -234,3 +237,5 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
       t('pred.nota') }),
   ] })
 }
+
+export const PrediccionPanel = memo(PrediccionPanelImpl)

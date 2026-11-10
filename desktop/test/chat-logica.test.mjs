@@ -109,7 +109,7 @@ test('acumDeltas aplica por offset e ignora replayed', () => {
 })
 
 test('etiquetaModelo: stealth oculto', () => {
-  assert.equal(etiquetaModelo('stealth/x'), 'modelo alojado por Nous')
+  assert.equal(etiquetaModelo('stealth/x'), 'NOUS_HOSTED_MODEL')
   assert.equal(etiquetaModelo('claude-x'), 'claude-x')
 })
 

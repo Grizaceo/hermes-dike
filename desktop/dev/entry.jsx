@@ -2,7 +2,7 @@
 // plugin con el ctx del sdk-stub y el mock de la API. Sin red ni backend.
 
 import { jsx, jsxs } from 'react/jsx-runtime'
-import { useState } from 'react'
+import { Profiler, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import plugin from '../src/plugin.src.js'
 import { createCtx, host, setIdiomaArnes, idiomaArnes, PALETTE_AREA,
@@ -30,7 +30,28 @@ setMockLento(params.get('slow') === '1')
 if (params.get('tab')) pedirPestana(params.get('tab'))
 
 // Registra el plugin con el ctx stub y localiza la contribución de página.
-const rest = createMockRest()
+const mockRest = createMockRest()
+const demosCargados = new Set()
+const rest = async (path, opts = {}) => {
+  const data = await mockRest(path, opts)
+  if (params.get('demo') === '1' && path.startsWith('/escrito?') && !opts.method && !demosCargados.has(path)) {
+    const demo = await mockRest('/escrito/demo')
+    demosCargados.add(path)
+    const saved = await mockRest('/escrito', { method: 'POST', body: { case_id: data.case_id, rev_base: data.rev, ...demo } })
+    return { ...data, ...demo, rev: saved.rev, existe: true }
+  }
+  return data
+}
+if (params.get('verificar') === '1') {
+  const observer = new MutationObserver(() => {
+    const editor = document.querySelector('.ProseMirror')
+    const button = document.querySelector('[data-dike-check]')
+    if (!editor?.textContent?.trim() || !button || button.disabled) return
+    observer.disconnect()
+    button.click()
+  })
+  observer.observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true })
+}
 const ctx = createCtx({ rest })
 plugin.register(ctx)
 const contribuciones = globalThis.__dikeContribs || []
@@ -68,7 +89,13 @@ const barraEl = document.createElement('div')
 document.body.prepend(barraEl)
 createRoot(barraEl).render(jsx(Barra, {}))
 
-createRoot(document.getElementById('root')).render(pagina.render())
+const page = pagina.render()
+globalThis.__dikeCommits = []
+createRoot(document.getElementById('root')).render(params.get('perf') === '1'
+  ? jsx(Profiler, { id: 'page', onRender: (_id, phase, duration) => {
+      globalThis.__dikeCommits.push({ phase, duration })
+    }, children: page })
+  : page)
 
 // Superficie de depuración para capturas/scripts: estado del mock y host.
 globalThis.__dike = { host, ctx, rest, contribuciones }

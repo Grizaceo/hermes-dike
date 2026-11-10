@@ -2,6 +2,7 @@
 // @tiptap/react ni react-dom) + plugin de marcas de citas y placeholder
 // visible sin CSS externo (Decoration.widget, como en la variante C del probe).
 
+import { t } from '../i18n.js'
 import { Editor, Extension } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -154,9 +155,9 @@ function pluginPlaceholderVacio(texto) {
           return null
         }
         const span = document.createElement('span')
-        span.textContent = texto
+        span.textContent = typeof texto === 'function' ? texto() : texto
         span.setAttribute('style',
-          'color:var(--ui-text-tertiary,#9ca3af);pointer-events:none;user-select:none')
+          'color:inherit;opacity:.6;pointer-events:none;user-select:none')
         return DecorationSet.create(doc, [
           Decoration.widget(1, span, { side: -1 }),
         ])
@@ -242,13 +243,14 @@ export function fijarGhost(editor, sugerencia) {
 
 export function montarEditor({ element, content, placeholder, onUpdate,
   onAceptarPrediccion }) {
-  const pluginPh = pluginPlaceholderVacio(placeholder)
+  const textoPlaceholder = placeholder || (() => t('writer.start.writing.your.brief.here'))
+  const pluginPh = pluginPlaceholderVacio(textoPlaceholder)
   const pluginGhost = pluginGhostTexto({ onAceptar: onAceptarPrediccion })
   return new Editor({
     element,
     extensions: [
       StarterKit,
-      Placeholder.configure({ placeholder: placeholder || 'Escribe el escrito…' }),
+      Placeholder.configure({ placeholder: textoPlaceholder }),
       MarcasCitas,
       MarcasPrivacidad,
       Extension.create({

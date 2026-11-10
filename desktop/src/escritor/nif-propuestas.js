@@ -1,3 +1,6 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
+import { etiquetaCodigo } from '../i18n.js'
 // NIF vivo (F3): el modelo propone actualizaciones del NIF a partir del
 // escrito; el abogado acepta, edita o rechaza cada una. Nada entra al NIF
 // sin aceptación humana; las normas quedan "sin verificar" hasta que Diké
@@ -19,8 +22,8 @@ import PROMPT_NIF from '../../../escritor/nif_propuestas.md'
 
 const TIMEOUT_RPC = 120000
 const ETIQUETAS = {
-  'facts.known': 'nifp.etiqueta.acreditados', 'facts.alleged': 'nif.seccion.factsAlleged',
-  'facts.missing': 'nifp.etiqueta.porConocer', subjects: 'nif.seccion.subjects',
+  'facts.known': 'nif.seccion.factsKnown', 'facts.alleged': 'nif.seccion.factsAlleged',
+  'facts.missing': 'nif.seccion.factsMissing', subjects: 'nif.seccion.subjects',
   norms: 'nif.seccion.norms', hypotheses: 'nif.seccion.hypotheses',
   gaps: 'nif.seccion.gaps', principles: 'nif.seccion.principles',
   conflicts: 'nif.seccion.conflicts',
@@ -109,7 +112,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
           + (modeloLabel || t('nifp.modelo')) + ' · ' + t('nifp.tablero'),
         seudonimizar, estrategia: cfgPriv.estrategia || 'media',
       })
-      if (!puedeEnviar()) throw new Error('privacidad bloqueó el envío')
+      if (!puedeEnviar()) throw new Error(t('extra.privacy.blocked.sending'))
       const params = {
         instructions: PROMPT_NIF, input: envio.texto,
         session_id: sesion.session_id, temperature: 0.2, max_tokens: 3000,
@@ -178,8 +181,8 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       cita_del_escrito: p.cita_del_escrito || ' ' },
       { textoEnviado: p.cita_del_escrito || ' ', nifActual: snapshot,
         rechazadas: [] })
-    if (!forma.ok && forma.motivo === 'forma o enum inválido en value') {
-      setError(new Error('Valor editado inválido: ' + forma.motivo)); return
+    if (!forma.ok && forma.motivo === 'VALUE_INVALID') {
+      setError(new Error(t('extra.invalid.edited.value') + t('proposal.' + forma.motivo))); return
     }
     setPropuestas((ps) => (ps || []).map((x, i) =>
       i === idx ? { ...x, value: v } : x))
@@ -193,27 +196,27 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       .then((r) => {
         const ok = (r.detalles || []).some((d) => d.estado === 'VERIFICADA')
         setVerifica((v) => ({ ...v, [key]: {
-          estado: ok ? 'verificada' : 'no verificada', label } }))
+          estado: ok ? 'VERIFICADA' : 'NOT_VERIFIED', label } }))
       })
       .catch(() => setVerifica((v) => ({ ...v, [key]: {
-        estado: 'no verificada', label } })))
+        estado: 'NOT_VERIFIED', label } })))
   }, [])
 
   if (!tieneNif) {
     return jsxs('div', { className: S.card, children: [
-      jsx('div', { className: S.cardTitle, children: 'NIF vivo' }),
+      jsx('div', { className: S.cardTitle, children: t('nifp.suggestions') }),
       jsx('div', { className: 'text-xs text-(--ui-text-secondary)', children:
         'Elige o crea un caso con NIF.' }),
       jsx('div', { className: 'text-xs', children:
-        'El modelo propone; nada entra al NIF sin tu aceptación.' }),
+        t('nifp.onlyAccepted') }),
     ] })
   }
 
   return jsxs('div', { className: S.card, children: [
     jsxs('div', { className: 'flex items-center gap-2', children: [
-      jsx('div', { className: S.cardTitle, children: 'NIF vivo' }),
+      jsx('div', { className: S.cardTitle, children: t('nifp.suggestions') }),
       jsx('div', { className: 'text-xs text-(--ui-text-secondary)', children:
-        'El modelo propone; nada entra al NIF sin tu aceptación.' }),
+        t('nifp.onlyAccepted') }),
       jsx('button', {
         type: 'button', className: S.button,
         disabled: Boolean(deshabilitado) || ocupado,
@@ -225,7 +228,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
     deshabilitado && tieneNif ? jsx('div', { className: 'text-xs',
       children: deshabilitado }) : null,
     error ? jsx('div', { className: 'text-xs dk-mal',
-      children: mensajeError(error) }) : null,
+      children: mensajePropuesta(error) }) : null,
 
     propuestas && !propuestas.length && !descartadas.length
       ? jsx('div', { className: 'text-sm', children:
@@ -286,8 +289,8 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
                 ] }) : null,
               verifica[keyNorma] ? jsxs('div', { className: 'mt-1 text-xs',
                 children: [
-                  'Norma «' + (verifica[keyNorma].label || '') + '»: ',
-                  jsx('b', { children: verifica[keyNorma].estado }),
+                  t('nifp.normPrefix') + (verifica[keyNorma].label || '') + t('nifp.normSuffix'),
+                  jsx('b', { children: etiquetaCodigo(verifica[keyNorma].estado) }),
                   verifica[keyNorma].estado === 'sin verificar'
                     ? jsx('button', { type: 'button', className: S.button,
                         onClick: () => verificarNorma(
@@ -302,7 +305,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       jsxs('summary', { children: [
         t('nifp.descartadas', { n: descartadas.length })] }),
       descartadas.map((d, i) => jsxs('div', { key: i, children: [
-        (d.field_path || '?') + ': ' + (d.motivo || ''),
+        (d.field_path || '?') + ': ' + t('proposal.' + d.motivo),
       ] })),
     ] }) : null,
   ] })
@@ -315,16 +318,16 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
 // ---------------------------------------------------------------------------
 
 const SECCIONES_TABLERO_NIF = [
-  ['facts.known', 'nif.seccion.factsKnown', 'nifp.tagHecho', '#bbf7d0'],
-  ['facts.alleged', 'nif.seccion.factsAlleged', 'nifp.tagHecho', '#bfdbfe'],
-  ['facts.missing', 'nif.seccion.factsMissing', 'nifp.tagHecho', '#fed7aa'],
-  ['norms', 'nif.seccion.norms', 'piz.tagNorma', '#e9d5ff'],
+  ['facts.known', 'nif.seccion.factsKnown', 'style.fact.label', '#bbf7d0'],
+  ['facts.alleged', 'nif.seccion.factsAlleged', 'style.fact.label', '#bfdbfe'],
+  ['facts.missing', 'nif.seccion.factsMissing', 'style.fact.label', '#fed7aa'],
+  ['norms', 'nif.seccion.norms', 'style.norm', '#e9d5ff'],
   ['subjects', 'nif.seccion.subjects', 'nifp.tagPartes', '#bfdbfe'],
-  ['hypotheses', 'nif.seccion.hypotheses', 'nifp.tagConclusion', '#fef08a'],
-  ['gaps', 'nifp.seccion.gaps', 'nifp.tagPrueba', '#fecaca'],
-  ['conflicts', 'nif.seccion.conflicts', 'piz.tagNorma', '#fecaca'],
-  ['principles', 'nif.seccion.principles', 'piz.tagNorma', '#e9d5ff'],
-  ['deontic_positions', 'nif.seccion.deonticPositions', 'piz.tagNorma', '#bbf7d0'],
+  ['hypotheses', 'nif.seccion.hypotheses', 'style.conclusion', '#fef08a'],
+  ['gaps', 'nif.seccion.gaps', 'style.evidence', '#fecaca'],
+  ['conflicts', 'nif.seccion.conflicts', 'style.norm', '#fecaca'],
+  ['principles', 'nif.seccion.principles', 'style.norm', '#e9d5ff'],
+  ['deontic_positions', 'nif.seccion.deonticPositions', 'style.norm', '#bbf7d0'],
 ]
 
 function formatearItemNif(v) {
@@ -336,7 +339,7 @@ function formatearItemNif(v) {
   return JSON.stringify(v)
 }
 
-export function NifInteractivoEscritor({
+function NifInteractivoEscritorImpl({
   editorRef,
   caseId,
   registro,
@@ -348,6 +351,7 @@ export function NifInteractivoEscritor({
   onAgregarAPizarra,
   onInsertarTexto,
 }) {
+  useIdioma()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [ocupado, setOcupado] = useState(false)
@@ -447,19 +451,19 @@ export function NifInteractivoEscritor({
                 setNuevaPregunta('')
               },
               className: 'dk-btn dk-btn--primario',
-              children: t('nifp.crearCaso'),
+              children: t('format.create.case'),
             }),
             onSembrarDemoCaso ? jsx('button', {
               type: 'button',
               onClick: onSembrarDemoCaso,
               className: 'dk-btn dk-btn--borde',
-              children: t('nifp.cargarDemo'),
+              children: t('format.load.demo.case.ct'),
             }) : null,
           ] }),
         ],
       }) : null,
 
-      error ? jsx('div', { className: S.noticeBad, children: mensajeError(error) }) : null,
+      error ? jsx('div', { className: S.noticeBad, children: mensajePropuesta(error) }) : null,
 
       // 3. Tablero NIF interactivo del caso activo
       tieneNif && nif ? jsxs('div', {
@@ -561,7 +565,7 @@ export function NifInteractivoEscritor({
                       onClick: () => agregarItem(campo),
                       disabled: ocupado || !nuevoValor.trim(),
                       className: 'dk-btn dk-btn--primario dk-btn--chico',
-                      children: t('nifp.agregar'),
+                      children: t('nif.agregar'),
                     }),
                   ] }),
                 ] }) : null,
@@ -573,3 +577,7 @@ export function NifInteractivoEscritor({
     ],
   })
 }
+
+function mensajePropuesta(error) { const code = error && error.message; const key = 'proposal.' + code; return t(key) === key ? mensajeError(error) : t(key) }
+
+export const NifInteractivoEscritor = memo(NifInteractivoEscritorImpl)

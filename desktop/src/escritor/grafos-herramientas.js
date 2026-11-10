@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Herramientas diferenciadas de Grafos en la barra lateral derecha del Case Writer:
 // 1. Buscador y Lector del Grafo del Corpus (BM25 + Árbol IndexO + lectura de
 //    unidades normativas + Llevar cita al escrito / Pizarra / Abrir en 3D).
@@ -13,11 +15,12 @@ import { t } from '../i18n.js'
 
 import { BuscadorCorpus } from './buscador-corpus.js'
 
-export function PanelHerramientasGrafos({
+function PanelHerramientasGrafosImpl({
   onLlevarCitaAlEscrito,
   onAgregarAPizarra,
   onAbrirGrafo3D,
 }) {
+  useIdioma()
   const [herramienta, setHerramienta] = useState('corpus') // 'corpus' | 'constructor' | 'fuentes'
 
   return jsxs('div', {
@@ -168,7 +171,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
             type: 'button',
             onClick: () => onAgregarAPizarra({
               titulo: r.cita || r.label || t('piz.normaFallback'),
-              tag: 'NORMA',
+              tag: t('style.norm'),
               color: '#bfdbfe',
               texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 240) : ''),
               nodo_id: r.nodo_id,
@@ -375,8 +378,8 @@ function SubHerramientaConstructorOrdenamiento() {
               jsx('div', {
                 className: 'font-bold',
                 children: validacion.ok
-                  ? '✓ Perfil válido conforme a dike-perfil-ordenamiento-v1'
-                  : `✗ ${validacion.errores.length} observación(es) en el perfil:`,
+                  ? t('extra.profile.valid.under.dike.perfil.ordenamiento.v1')
+                  : t('extra.profileIssues', { n: validacion.errores.length }),
               }),
               ...(validacion.errores || []).slice(0, 6).map((er, i) => jsx('div', {
                 key: i,
@@ -516,3 +519,5 @@ function SubHerramientaFuentes({ onAbrirGrafo3D }) {
     ],
   })
 }
+
+export const PanelHerramientasGrafos = memo(PanelHerramientasGrafosImpl)

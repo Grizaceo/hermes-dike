@@ -38,7 +38,7 @@ function Estado() {
         t('shell.estado.sinBackend') +
         (perfil ? ' (' + perfil + ')' : '') + ': ' + mensajeError(err) + '.' }),
       jsx('div', { className: S.sub, children: t('shell.estado.ayuda') }),
-      jsx('button', { type: 'button', className: S.ghost, onClick: cargar, children: t('shell.estado.reintentar') }),
+      jsx('button', { type: 'button', className: S.ghost, onClick: cargar, children: t('graph.retry') }),
     ]})
   }
   if (!estado) return jsx('div', { className: S.sub, children: t('shell.estado.cargando') })
@@ -102,7 +102,7 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
         type: 'button',
         className: S.link + ' normal-case',
         onClick: () => setEditando(!editando),
-        children: editando ? t('nif.cerrar') : t('nif.agregar'),
+        children: editando ? t('format.close') : t('nif.agregar'),
       }),
     ] }),
     ...lista.map((v, i) => jsx(ItemNif, { key: i, valor: v })),
@@ -376,7 +376,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
       jsxs('div', { className: 'flex flex-col gap-3', children: [
         jsxs('div', { className: S.card, children: [
           jsxs('div', { className: 'flex items-center justify-between', children: [
-            jsx('div', { className: S.cardTitle, children: t('prefs.titulo') }),
+            jsx('div', { className: S.cardTitle, children: t('format.writer.settings') }),
             guardadoMsg ? jsx('span', { className: S.chip + ' ' + S.chipOk, children: guardadoMsg }) : null,
           ] }),
           jsx('div', { className: S.sub, children: t('prefs.ayuda') }),
@@ -402,7 +402,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
                 onChange: (e) => actualizarPref({ ancho_hoja: e.target.value }),
                 children: [
                   jsx('option', { key: 'a4', value: 'a4', children: t('prefs.a4') }),
-                  jsx('option', { key: 'carta', value: 'carta', children: t('prefs.carta') }),
+                  jsx('option', { key: 'carta', value: 'carta', children: t('writer.letter.216.mm') }),
                   jsx('option', { key: 'ancho', value: 'ancho', children: t('prefs.ancho') }),
                 ],
               }),
@@ -485,7 +485,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
 export default {
   id: ID,
   name: 'Diké',
-  description: 'Verificación local de citas de la ley chilena, mapa del corpus y tablero NIF.',
+  description: 'Local Chilean citation checks, corpus graph and case board.',
   defaultEnabled: true,
 
   register(ctx) {
@@ -618,7 +618,7 @@ export default {
         area: PALETTE_AREA,
         data: {
           id: 'dike.open',
-          label: 'Diké: verificar citas',
+          label: 'Diké: check citations',
           keywords: ['dike', 'citas', 'legal', 'verificar', 'nif', 'grafo'],
           run: () => host.navigate('/dike'),
         },

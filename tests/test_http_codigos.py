@@ -35,6 +35,8 @@ def test_inventario_exacto():
     assert set(codigos) == declarados | API._CODIGOS_PANEL
     esperado = [dict(code=c, en=API._TEXTOS.TEXTOS['en'][c], es=API._TEXTOS.TEXTOS['es'][c], **datos)
                 for c, datos in codigos.items()]
+    fixture = ROOT / 'desktop/test/fixtures/codigos-http.json'
+    assert json.loads(fixture.read_text()) == esperado
     # El inventario es un handoff gitignored; un checkout limpio no lo necesita.
     informe = ROOT / '.workshop/pulido-final/codigos-http.json'
     if informe.exists():

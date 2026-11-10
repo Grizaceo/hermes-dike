@@ -70,3 +70,10 @@ test('el texto demo del mock coincide con tests/fixtures/escrito_demo.md', async
     path.join(DESKTOP, '..', 'tests', 'fixtures', 'escrito_demo.md'), 'utf8').trim()
   assert.equal(DEMO_TEXTO.trim(), real)
 })
+
+test('el demo emite veredictos del contrato público', async () => {
+  const { resultadoVerificar, DEMO_TEXTO } = await import('../dev/fixtures.js')
+  for (const text of [DEMO_TEXTO, '']) {
+    assert.ok(['TODAS_VERIFICADAS', 'CON_PROBLEMAS', 'SIN_CITAS', 'SIN_CORPUS'].includes(resultadoVerificar(text).veredicto))
+  }
+})

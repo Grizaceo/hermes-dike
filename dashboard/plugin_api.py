@@ -42,17 +42,31 @@ _CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _RUTA_LOCAL = re.compile(r"(?<![\w:/])/(?:[^\s,;\"']+)|(?<![\w/])[A-Za-z]:[\\/][^\s,;\"']+")
 
 
+_ADAPTADOR = None
+_adaptador_lock = threading.Lock()
+
+
 def _adaptador():
-    """Carga ``__init__.py`` del plugin como módulo, sin efectos al importar."""
-    spec = importlib.util.spec_from_file_location("dike_adapter_http", _RAIZ / "__init__.py")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    try:
-        spec.loader.exec_module(mod)
-    except Exception:
-        sys.modules.pop(spec.name, None)
-        raise
-    return mod
+    """El adaptador del plugin (``__init__.py``), cargado por ruta una sola vez.
+
+    Una sola instancia por proceso: así conserva entre peticiones lo que ya
+    comprobó del corpus (el hash completo se calcula una vez, no en cada
+    ``/verificar``) y el índice de nodos en memoria.
+    """
+    global _ADAPTADOR
+    with _adaptador_lock:
+        if _ADAPTADOR is None:
+            spec = importlib.util.spec_from_file_location(
+                "dike_adapter_http", _RAIZ / "__init__.py")
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = mod
+            try:
+                spec.loader.exec_module(mod)
+            except Exception:
+                sys.modules.pop(spec.name, None)
+                raise
+            _ADAPTADOR = mod
+        return _ADAPTADOR
 
 
 def _version() -> str | None:
@@ -267,10 +281,11 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
                      else mod._asegurar_corpus(datos))
         runtime = Path(instalado["generation"])
     else:
+        instalado = None
         runtime = datos
     try:
         return mod._panel_json(args, runtime=runtime, timeout=timeout,
-                               entrada=entrada)
+                               entrada=entrada, instalado=instalado)
     except mod._aislamiento().SandboxNoDisponible as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     except mod.PanelError as exc:

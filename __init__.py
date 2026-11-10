@@ -253,9 +253,10 @@ def _entorno(datos: Path) -> dict:
 def _aislamiento():
     """Carga ``aislamiento.py`` una vez y lo comparte vía ``sys.modules``.
 
-    El dashboard carga este adaptador por ruta en cada petición y el agente
-    lo carga una vez: guardar el módulo en ``sys.modules`` bajo un nombre
-    fijo hace que todos compartan la misma sonda y la misma política.
+    El dashboard y el agente cargan este adaptador por separado (por ruta y
+    como paquete): guardar el módulo en ``sys.modules`` bajo un nombre fijo
+    hace que compartan la misma sonda, la misma política y el mismo motor
+    en caliente.
     """
     mod = sys.modules.get("dike_aislamiento")
     if mod is None:
@@ -349,23 +350,53 @@ def _panel_lectura_escritura(args: list, runtime: Path):
     return [runtime], [runtime / "home", runtime / "roots_cache"]
 
 
-def _panel_json(args: list, *, runtime, timeout: int = 90, entrada=None):
-    """Corre ``scripts/panel.py`` por ``aislamiento.ejecutar`` y parsea la salida.
+def _consultar_motor(instalado: dict, pedido: dict, timeout: int):
+    """Pedido de solo lectura al motor en caliente de la generación instalada.
+
+    ``instalado`` es lo que devuelve ``_asegurar_corpus``: la generación y la
+    ``firma`` del estado que se acaba de comprobar. Devuelve un
+    ``CompletedProcess``, o None cuando toca el proceso de un solo uso (sin
+    firma, o el servidor está ocupado o caído).
+    """
+    firma = instalado.get('firma')
+    if not firma:
+        return None
+    runtime = Path(instalado['generation'])
+    entrada = runtime.parents[1] / 'entrada'
+    entrada.mkdir(exist_ok=True)
+    # El día entra en la firma: el motor resuelve la vigencia a una fecha, y
+    # un servidor por día no acumula en memoria el corpus de fechas pasadas.
+    return _aislamiento().consultar(
+        runtime, f'{firma}:{date.today().isoformat()}', pedido,
+        lectura=[runtime, entrada],
+        escritura=[runtime / 'home', runtime / 'roots_cache'],
+        cwd=str(runtime), env=_entorno(runtime), timeout=timeout)
+
+
+def _panel_json(args: list, *, runtime, timeout: int = 90, entrada=None,
+                instalado=None):
+    """Corre ``scripts/panel.py`` en el subproceso del motor y parsea la salida.
 
     Devuelve el dict del panel en éxito. Errores tipados: ``PanelError`` con
     ``kind`` 'timeout' (plazo), 'engine' (salida no-cero o JSON no-objeto) o
     'data' (JSON con ``error``); ``SandboxNoDisponible`` se propaga sin tocar.
     ``runtime`` es la generación sellada para los ops de corpus o el
-    plugin-data para nif/grafo personal.
+    plugin-data para nif/grafo personal. Con ``instalado`` (solo ops de
+    lectura del corpus) el pedido va primero al motor en caliente.
     """
     runtime = Path(runtime)
     lectura, escritura = _panel_lectura_escritura(args, runtime)
     try:
-        proc = _aislamiento().ejecutar(
-            [sys.executable, str(_PANEL), *args],
-            lectura=lectura, escritura=escritura,
-            cwd=str(runtime), env=_entorno(runtime), timeout=timeout,
-            stdin=entrada)
+        proc = None
+        if instalado is not None:
+            proc = _consultar_motor(
+                instalado, {'cmd': 'panel', 'argv': args, 'stdin': entrada}, timeout)
+        if proc is None:
+            proc = _aislamiento().ejecutar(
+                [sys.executable, str(_PANEL), *args],
+                lectura=lectura, escritura=escritura,
+                cwd=str(runtime), env=_entorno(runtime), timeout=timeout,
+                stdin=entrada)
     except subprocess.TimeoutExpired:
         raise PanelError('timeout') from None
     salida = proc.stdout.strip()
@@ -380,17 +411,40 @@ def _panel_json(args: list, *, runtime, timeout: int = 90, entrada=None):
     return data
 
 
+def _archivos_corpus(generation: Path):
+    """(ruta relativa a la generación, DirEntry) de cada archivo bajo ``users/``.
+
+    ``os.scandir`` y no ``Path.rglob``: son ~68.000 archivos y esto corre en
+    cada llamada; con pathlib el recorrido costaba más de un segundo.
+    """
+    desde = len(str(generation)) + 1
+    pendientes = [str(generation / 'users')]
+    while pendientes:
+        try:
+            entradas = os.scandir(pendientes.pop())
+        except FileNotFoundError:
+            continue
+        with entradas:
+            for entrada in entradas:
+                if entrada.is_dir(follow_symlinks=False):
+                    pendientes.append(entrada.path)
+                elif entrada.is_file():
+                    yield entrada.path[desde:], entrada
+
+
 def _hash_archivos_corpus(generation: Path) -> dict:
-    return {str(p.relative_to(generation)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in (generation / 'users').rglob('*') if p.is_file()}
+    out = {}
+    for nombre, entrada in _archivos_corpus(generation):
+        with open(entrada.path, 'rb') as archivo:
+            out[nombre] = hashlib.file_digest(archivo, 'sha256').hexdigest()
+    return out
 
 
 def _stat_archivos_corpus(generation: Path) -> dict:
     out = {}
-    for p in (generation / 'users').rglob('*'):
-        if p.is_file():
-            info = p.stat()
-            out[str(p.relative_to(generation))] = [info.st_size, info.st_mtime_ns]
+    for nombre, entrada in _archivos_corpus(generation):
+        info = entrada.stat()
+        out[nombre] = [info.st_size, info.st_mtime_ns]
     return out
 
 
@@ -512,7 +566,11 @@ def _reparar_reubicacion(datos: Path, generation: Path, esperado: str) -> None:
 
 
 def _verificar_generacion(datos: Path, generation: Path, esperado: str) -> dict:
-    """Per-call integrity: stat cache first, full SHA-256 once per process."""
+    """Per-call integrity: stat cache first, full SHA-256 once per process.
+
+    ``firma`` is the digest of the stat record this call found on disk; the
+    hot engine server restarts, and re-verifies everything, when it changes.
+    """
     marker = generation / 'installed.json'
     record = json.loads(marker.read_text())
     if record.get('package_sha256') != esperado:
@@ -520,18 +578,17 @@ def _verificar_generacion(datos: Path, generation: Path, esperado: str) -> dict:
     stat = record.get('stat')
     if isinstance(stat, dict) and _stat_archivos_corpus(generation) == stat:
         key = (str(generation), _stat_digest(stat))
-        if key in _PROC_VERIFIED:
-            return {'generation': str(generation)}
-        if _hash_archivos_corpus(generation) != record.get('files'):
-            raise ValueError('installed corpus integrity mismatch')
-        _PROC_VERIFIED.add(key)
-        return {'generation': str(generation)}
+        if key not in _PROC_VERIFIED:
+            if _hash_archivos_corpus(generation) != record.get('files'):
+                raise ValueError('installed corpus integrity mismatch')
+            _PROC_VERIFIED.add(key)
+        return {'generation': str(generation), 'firma': key[1]}
     # Sin stat (instalación antigua) o stat distinto: chequeo completo ahora.
     if _hash_archivos_corpus(generation) != record.get('files'):
         raise ValueError('installed corpus integrity mismatch')
-    stat = _reescribir_stat(datos, generation)
-    _PROC_VERIFIED.add((str(generation), _stat_digest(stat)))
-    return {'generation': str(generation)}
+    key = (str(generation), _stat_digest(_reescribir_stat(datos, generation)))
+    _PROC_VERIFIED.add(key)
+    return {'generation': str(generation), 'firma': key[1]}
 
 
 def _comprobar_generacion_completa(generation: Path) -> None:
@@ -1247,7 +1304,8 @@ def leer_articulo(args: dict, **kwargs) -> str:
         installed = _asegurar_corpus(datos)
         runtime = Path(installed.get('generation', datos))
         payload = json.dumps({clave: valor}, ensure_ascii=False)
-        data = _panel_json(['grafo', 'leer'], runtime=runtime, entrada=payload)
+        data = _panel_json(['grafo', 'leer'], runtime=runtime, entrada=payload,
+                           instalado=installed)
         base = _alcance_lectura()
         if data.get('resolucion') != 'RESOLVED':
             res = {k: data[k] for k in
@@ -1284,7 +1342,7 @@ def buscar_corpus(args: dict, **kwargs) -> str:
         payload = json.dumps({'q': consulta, 'limite': limite},
                              ensure_ascii=False)
         data = _panel_json(['grafo', 'buscar'], runtime=runtime,
-                           timeout=120, entrada=payload)
+                           timeout=120, entrada=payload, instalado=installed)
         rotulo = 'pista, no cita verificada'
         resultados = [{
             'nodo_id': r.get('nodo_id'),
@@ -1320,8 +1378,11 @@ def _token_articulo(eid: str) -> str:
     return token.replace('-', '_')
 
 
-def _mapa_nodos(datos: Path):
-    """``{gid: nodo_id}`` del corpus; caché en disco y memoria. None si falla."""
+def _mapa_nodos(datos: Path, instalado=None):
+    """``{gid: nodo_id}`` del corpus; caché en disco y memoria. None si falla.
+
+    ``instalado`` es el corpus que quien llama ya aseguró; sin él se asegura aquí.
+    """
     if PACK_HASH in _NODOS_MEM:
         return _NODOS_MEM[PACK_HASH]
     mapa = None
@@ -1336,10 +1397,10 @@ def _mapa_nodos(datos: Path):
         mapa = None
     if mapa is None:
         try:
-            instalado = _asegurar_corpus(datos)
+            instalado = instalado or _asegurar_corpus(datos)
             runtime = Path(instalado.get('generation', datos))
             data = _panel_json(['grafo', 'nodos'], runtime=runtime,
-                               entrada='{}')
+                               entrada='{}', instalado=instalado)
             nodos = data.get('nodos')
             if isinstance(nodos, dict):
                 mapa = nodos
@@ -1383,7 +1444,7 @@ def _nodo_id_para_gid(gid, mapa) -> str | None:
         return None
 
 
-def _enriquecer_nodo_id(c, datos: Path):
+def _enriquecer_nodo_id(c, datos: Path, instalado=None):
     """Añade ``nodo_id`` a cada detalle VERIFICADA; nunca toca el veredicto.
 
     Se aplica tras ``_degradar_cuerpos_en_conflicto`` y solo a detalles
@@ -1395,7 +1456,7 @@ def _enriquecer_nodo_id(c, datos: Path):
         if not any(isinstance(d, dict) and d.get('estado') == 'VERIFICADA'
                    for d in detalles):
             return c
-        mapa = _mapa_nodos(datos)
+        mapa = _mapa_nodos(datos, instalado)
         if not mapa:
             return c
         for d in detalles:
@@ -1417,12 +1478,17 @@ def verificar_citas(args: dict, **kwargs) -> str:
         datos = _carpeta_de_datos().resolve()
         installed = _asegurar_corpus(datos)
         runtime = Path(installed.get('generation', datos))
-        with tempfile.TemporaryDirectory(dir=datos) as tmp:
+        entrada = datos / 'entrada'
+        entrada.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=entrada) as tmp:
             archivo = Path(tmp) / 'escrito.md'
             archivo.write_text(contenido, encoding='utf-8')
-            result = _dike(['constancia', str(archivo), '--as-of', expected_day, '--json'], runtime,
-                           lectura=[runtime, archivo.parent],
-                           escritura=[runtime / 'home', runtime / 'roots_cache'])
+            argv = ['constancia', str(archivo), '--as-of', expected_day, '--json']
+            result = _consultar_motor(
+                installed, {'cmd': 'motor', 'argv': argv, 'as_of': expected_day}, 300)
+            if result is None:
+                result = _dike(argv, runtime, lectura=[runtime, archivo.parent],
+                               escritura=[runtime / 'home', runtime / 'roots_cache'])
         stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
         if returncode not in (0, 1):
             return json.dumps(_error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
@@ -1436,7 +1502,7 @@ def verificar_citas(args: dict, **kwargs) -> str:
             # ya lo había verificado): se recalcula todo y, si difiere, es corrupción.
             _comprobar_generacion_completa(Path(installed['generation']))
         c = _degradar_cuerpos_en_conflicto(c)
-        c = _enriquecer_nodo_id(c, datos)
+        c = _enriquecer_nodo_id(c, datos, installed)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
         return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)

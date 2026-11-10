@@ -117,7 +117,7 @@ def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
         return proc
 
     # Misma forma que __init__._panel_json: parsea y clasifica en PanelError.
-    def fake_panel_json(args, *, runtime, timeout=90, entrada=None):
+    def fake_panel_json(args, *, runtime, timeout=90, entrada=None, instalado=None):
         try:
             proc = subprocess.run(
                 [sys.executable, str(ROOT / 'scripts' / 'panel.py'), *args],

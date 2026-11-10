@@ -129,7 +129,7 @@ def test_enriquecimiento_no_cambia_veredicto_ni_conteos(real):
     # simula un índice hostil: ninguna entrada produce nodo válido
     real._NODOS_MEM.clear()
     mapa_real = real._mapa_nodos
-    real._mapa_nodos = lambda datos: {'cl.norma.ct:art:0161': 'MALO',
+    real._mapa_nodos = lambda datos, instalado=None: {'cl.norma.ct:art:0161': 'MALO',
                                     'cl.norma.ct:art:0162': 42}
     try:
         sin = _json(real.verificar_citas({'texto': demo}))

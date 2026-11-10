@@ -53,9 +53,14 @@ def test_installed_tamper_fails_closed(real):
 
 
 def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(real):
-    """En un proceso que ya verificó el corpus, un byte cambiado con tamaño y fecha
-    intactos pasaba el chequeo por stat y el motor respondía SIN_CORPUS: parecía
-    «no hay corpus». Ahora se recalcula todo y se informa como corrupción."""
+    """Un byte cambiado con tamaño y fecha intactos pasa el chequeo por stat.
+
+    Mientras el motor en caliente sigue vivo, responde desde la copia que ya
+    verificó en memoria: la cita sale con el mismo hash de antes, nunca con el
+    texto cambiado. Cuando el motor vuelve a arrancar revalida el disco, no
+    reconoce el corpus, y el adaptador lo informa como corrupción en vez de
+    «no hay corpus».
+    """
     m, data, _, _ = real
     # Una llamada limpia deja el registro y la caché del proceso al día.
     limpio = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
@@ -71,6 +76,10 @@ def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(real):
         victim.write_bytes(cambiado)
         os.utime(victim, ns=(info.st_atime_ns, info.st_mtime_ns))
         assert victim.stat().st_size == info.st_size
+        en_memoria = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+        assert en_memoria.get('veredicto') == 'TODAS_VERIFICADAS', en_memoria
+        assert en_memoria['detalles'][0]['texto_hash'] == limpio['detalles'][0]['texto_hash']
+        m._aislamiento().cerrar_servidores()
         result = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
         assert result.get('error_code') == 'CORPUS_INTEGRITY_ERROR', result
         assert result['todo_verificado'] is False

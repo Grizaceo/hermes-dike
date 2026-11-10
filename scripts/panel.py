@@ -85,6 +85,32 @@ def _corpus_dirs() -> list[Path]:
     return sorted(p for p in base.glob("*/current") if p.is_dir())
 
 
+# Corpus ya cargado, por conjunto de carpetas. Solo lo llena ``precalentar``
+# (el servidor del motor, antes de bifurcar un hijo por pedido); en un proceso
+# de un solo uso queda vacío y cada op carga el corpus como siempre.
+_CALIENTE: dict = {}
+
+
+def _resolver(dirs=None):
+    """(resolver, buscador BM25) del corpus instalado, o de ``dirs`` en tests."""
+    from lexo_cli.starter.resolver import StarterCorpusResolver
+    from lexo_cli.starter.retrieval import StarterCorpusRetriever
+    clave = tuple(str(d) for d in (_corpus_dirs() if dirs is None else dirs))
+    if clave not in _CALIENTE:
+        resolver = StarterCorpusResolver([Path(d) for d in clave])
+        return resolver, StarterCorpusRetriever(resolver)
+    return _CALIENTE[clave]
+
+
+def precalentar() -> None:
+    """Carga el corpus y su índice de búsqueda una vez, para los hijos del servidor."""
+    clave = tuple(str(d) for d in _corpus_dirs())
+    if clave and clave not in _CALIENTE:
+        resolver, buscador = _resolver()
+        buscador.search("ley", limit=1)  # construye o carga el índice BM25
+        _CALIENTE[clave] = (resolver, buscador)
+
+
 def _read_json(path: Path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -508,8 +534,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
     eso toca el orden ni los puntajes del BM25, y un árbol ausente o inválido
     nunca tumba la búsqueda.
     """
-    from lexo_cli.starter.resolver import StarterCorpusResolver
-    from lexo_cli.starter.retrieval import StarterCorpusRetriever, terminos
+    from lexo_cli.starter.retrieval import terminos
 
     if not isinstance(consulta, str):
         raise ValueError("la consulta debe ser texto.")
@@ -533,8 +558,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
     limite = max(1, min(50, limite))
 
     dirs = [Path(d) for d in (corpus_dirs if corpus_dirs is not None else _corpus_dirs())]
-    resolver = StarterCorpusResolver(dirs)
-    retriever = StarterCorpusRetriever(resolver)
+    resolver, retriever = _resolver(dirs)
     hits = retriever.search(q, limit=limite)
 
     resultados: list[dict] = []
@@ -879,8 +903,7 @@ def leer(payload: dict) -> dict:
     con motivo ``NODO_INEXISTENTE``.
     """
     from lexo_cli.starter.norm_reference import resolve_norm_reference
-    from lexo_cli.starter.resolver import (
-        NormativeResolutionError, StarterCorpusResolver)
+    from lexo_cli.starter.resolver import NormativeResolutionError
 
     if not isinstance(payload, dict):
         raise ValueError("entrada inválida: se esperaba un objeto JSON.")
@@ -892,7 +915,7 @@ def leer(payload: dict) -> dict:
     if not isinstance(valor, str) or not valor.strip():
         raise ValueError(f"{clave} debe ser texto no vacío.")
 
-    resolver = StarterCorpusResolver(_corpus_dirs())
+    resolver, _ = _resolver()
     if clave == "cita":
         res = resolve_norm_reference(valor.strip(), resolver)
         if res.status != "RESOLVED" or not res.gid:
@@ -919,8 +942,7 @@ def leer(payload: dict) -> dict:
 
 def mapa_nodos() -> dict:
     """Mapa ``{gid: nodo_id}`` de todo el corpus (para enriquecer citas)."""
-    from lexo_cli.starter.resolver import StarterCorpusResolver
-    resolver = StarterCorpusResolver(_corpus_dirs())
+    resolver, _ = _resolver()
     return {"nodos": {gid: f"a:{ev.leychile_code}:{ev.eid}"
                      for gid, ev in resolver._by_gid.items()}}
 

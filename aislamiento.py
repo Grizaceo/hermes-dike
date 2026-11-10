@@ -37,6 +37,11 @@ modo degradado se comporte igual):
   lectura). Cada comando declara las suyas; la generación sellada
   (``users/``) queda siempre en solo lectura.
 
+Dos formas de correr un comando: ``ejecutar`` lanza un proceso de un solo uso;
+``consultar`` habla con un servidor del motor que ya verificó el corpus
+(``scripts/motor_servidor.py``), con el mismo perfil de sandbox, y solo para
+pedidos de lectura sobre la generación sellada.
+
 Solo se usan flags presentes en el bubblewrap de Debian 12 (0.8.0) y Ubuntu
 22.04 (0.6.1) o posteriores: ``--unshare-all``, ``--die-with-parent``,
 ``--new-session``, ``--proc``, ``--dev``, ``--tmpfs``, ``--ro-bind``,
@@ -44,12 +49,15 @@ Solo se usan flags presentes en el bubblewrap de Debian 12 (0.8.0) y Ubuntu
 """
 from __future__ import annotations
 
+import atexit
 import importlib.util
+import json
 import os
 import shutil
 import site
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 _RAIZ = Path(__file__).resolve().parent
@@ -347,6 +355,21 @@ def _argumentos_bwrap(argv, *, lectura, escritura, cwd, env):
     return args
 
 
+def _comando(argv, *, lectura, escritura, cwd, env) -> list:
+    """argv final: dentro de bwrap si la sonda pasa; tal cual en modo degradado.
+
+    Con la política ``requerido`` y sin sandbox lanza ``SandboxNoDisponible``.
+    """
+    if _sonda()["ok"]:
+        return _argumentos_bwrap(argv, lectura=lectura, escritura=escritura,
+                                 cwd=cwd, env=env)
+    if _politica() == "requerido":
+        raise SandboxNoDisponible(
+            "sandbox requerido por configuración pero bubblewrap no está "
+            "disponible en este equipo; no se verificó nada")
+    return [str(a) for a in argv]
+
+
 def ejecutar(argv, *, lectura, escritura, cwd, env, timeout, stdin=None):
     """Corre argv dentro del sandbox, o sin él según la sonda y la política.
 
@@ -354,18 +377,141 @@ def ejecutar(argv, *, lectura, escritura, cwd, env, timeout, stdin=None):
     agrega dentro. Mismo argv en ambos modos (sin shell). ``env`` va por
     ``subprocess.run(env=...)``: bwrap lo hereda tal cual.
     """
-    sonda = _sonda()
-    if sonda["ok"]:
-        cmd = _argumentos_bwrap(argv, lectura=lectura, escritura=escritura,
-                                cwd=cwd, env=env)
-    elif _politica() == "requerido":
-        raise SandboxNoDisponible(
-            "sandbox requerido por configuración pero bubblewrap no está "
-            "disponible en este equipo; no se verificó nada")
-    else:
-        cmd = [str(a) for a in argv]
+    cmd = _comando(argv, lectura=lectura, escritura=escritura, cwd=cwd, env=env)
     return subprocess.run(
         cmd, env=env, cwd=str(cwd), input=stdin,
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=timeout,
     )
+
+
+# ── Motor en caliente ───────────────────────────────────────────────────
+# Un servidor por generación sellada (``scripts/motor_servidor.py``): paga
+# una vez la verificación completa que el motor hace al arrancar y atiende
+# los pedidos siguientes en milisegundos. Mismo sandbox y mismo entorno que
+# ``ejecutar``; vive mientras viva este proceso y haya pedidos.
+
+_SERVIDOR = _RAIZ / "scripts" / "motor_servidor.py"
+# Segundos que un pedido espera a que el servidor termine el anterior antes de
+# irse al proceso de un solo uso: casi todos los pedidos tardan menos.
+_ESPERA_SERVIDOR = 5
+
+
+class _Servidor:
+    def __init__(self):
+        self.proc = None
+        self.firma = None
+        self.candado = threading.Lock()
+
+    def cerrar(self) -> None:
+        proc, self.proc = self.proc, None
+        if proc is None:
+            return
+        proc.kill()
+        for tubo in (proc.stdin, proc.stdout):
+            try:
+                tubo.close()
+            except OSError:
+                pass
+        proc.wait()
+
+    def leer(self, timeout) -> dict:
+        """La siguiente línea JSON del servidor; {} si murió o contestó otra cosa.
+
+        Si vence el plazo mata el servidor y lanza ``TimeoutExpired``.
+        """
+        proc = self.proc
+        vencido = threading.Event()
+
+        def matar():
+            vencido.set()
+            proc.kill()
+
+        reloj = threading.Timer(timeout, matar)
+        reloj.start()
+        try:
+            linea = proc.stdout.readline()
+        finally:
+            reloj.cancel()
+        if vencido.is_set():
+            raise subprocess.TimeoutExpired(proc.args, timeout)
+        try:
+            mensaje = json.loads(linea)
+        except ValueError:
+            return {}
+        return mensaje if isinstance(mensaje, dict) else {}
+
+
+_SERVIDORES: dict = {}
+_CANDADO_SERVIDORES = threading.Lock()
+
+
+def consultar(clave, firma, pedido, *, lectura, escritura, cwd, env, timeout):
+    """Manda un pedido de solo lectura al servidor del motor de ``clave``.
+
+    Devuelve un ``CompletedProcess`` como ``ejecutar``, o None cuando hay que
+    usar ``ejecutar``: el servidor sigue ocupado con otro pedido, no arrancó,
+    murió o contestó algo que no es su protocolo. Por eso los pedidos deben
+    poder repetirse sin efecto: solo lecturas sobre la generación sellada.
+
+    ``firma`` identifica el estado del corpus que quien llama acaba de
+    comprobar: si cambia, el servidor se reinicia y el motor vuelve a
+    verificar todo. Un plazo vencido mata el servidor y lanza
+    ``TimeoutExpired``; la política ``requerido`` sin sandbox lanza
+    ``SandboxNoDisponible``, igual que ``ejecutar``.
+    """
+    with _CANDADO_SERVIDORES:
+        servidor = _SERVIDORES.setdefault(str(clave), _Servidor())
+    if not servidor.candado.acquire(timeout=_ESPERA_SERVIDOR):
+        return None
+    try:
+        # La política y la sonda se consultan en cada pedido, como en
+        # ``ejecutar``: un servidor lanzado sin sandbox no sigue contestando
+        # cuando la política pasa a exigirlo.
+        cmd = _comando([sys.executable, str(_SERVIDOR)], lectura=lectura,
+                       escritura=escritura, cwd=cwd, env=env)
+        firma = (firma, _sonda()["ok"])
+        if servidor.proc is not None and (
+                servidor.proc.poll() is not None or servidor.firma != firma):
+            servidor.cerrar()
+        if servidor.proc is None:
+            servidor.proc = subprocess.Popen(
+                cmd, env=env, cwd=str(cwd), stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                text=True, encoding="utf-8", errors="replace")
+            servidor.firma = firma
+            if servidor.leer(timeout).get("listo") is not True:
+                servidor.cerrar()
+                return None
+        try:
+            servidor.proc.stdin.write(json.dumps(pedido) + "\n")
+            servidor.proc.stdin.flush()
+        except OSError:
+            servidor.cerrar()
+            return None
+        respuesta = servidor.leer(timeout)
+        if (type(respuesta.get("rc")) is not int
+                or not isinstance(respuesta.get("out"), str)
+                or not isinstance(respuesta.get("err"), str)):
+            servidor.cerrar()
+            return None
+        return subprocess.CompletedProcess(
+            pedido.get("argv"), respuesta["rc"], respuesta["out"], respuesta["err"])
+    except (subprocess.TimeoutExpired, SandboxNoDisponible):
+        servidor.cerrar()
+        raise
+    finally:
+        servidor.candado.release()
+
+
+def cerrar_servidores() -> None:
+    """Termina los servidores del motor de este proceso (al salir y en tests)."""
+    with _CANDADO_SERVIDORES:
+        servidores = list(_SERVIDORES.values())
+        _SERVIDORES.clear()
+    for servidor in servidores:
+        with servidor.candado:
+            servidor.cerrar()
+
+
+atexit.register(cerrar_servidores)

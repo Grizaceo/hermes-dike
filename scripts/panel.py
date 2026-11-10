@@ -575,10 +575,13 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
         texto = ev.text or ""
         familias_art = _familias_texto(texto)
         unidades = []
+        snippet = ""
         for u in _unidades(texto):
             presentes = _terminos_presentes(
                 consulta_terminos, _familias_texto(u["texto"]))
             if presentes:
+                if not snippet:
+                    snippet = u["texto"]
                 unidades.append({
                     "id": f"{nodo_id}#u{u['orden']:02d}",
                     "etiqueta": u["etiqueta"],
@@ -594,6 +597,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
             "score": hit.score,
             "canal": hit.channel,
             "evidencia": hit.evidence,
+            "snippet": (snippet or texto)[:400],
             "terminos": _terminos_presentes(consulta_terminos, familias_art),
             "unidades": unidades,
             "sha256": ev.text_sha256,
@@ -627,6 +631,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
             "score_rel": rel,
             "canal": r["canal"],
             "evidencia": r["evidencia"],
+            "snippet": r["snippet"],
             "terminos": r["terminos"],
             "unidades": r["unidades"],
             "sha256": r["sha256"],

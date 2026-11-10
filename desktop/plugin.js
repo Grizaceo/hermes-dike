@@ -58,7 +58,7 @@ function mensajeError(e3) {
 import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
 import { useCallback as useCallback8, useEffect as useEffect9, useRef as useRef7, useState as useState9 } from "react";
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
+// node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
 var __defProp2 = Object.defineProperty;
 var __exportAll = (all2, no_symbols) => {
   let target = {};
@@ -70,7 +70,7 @@ var __exportAll = (all2, no_symbols) => {
   return target;
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/orderedmap/dist/index.js
+// node_modules/orderedmap/dist/index.js
 function OrderedMap(content) {
   this.content = content;
 }
@@ -189,7 +189,7 @@ OrderedMap.from = function(value) {
 };
 var dist_default = OrderedMap;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-model/dist/index.js
+// node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a3, b2, pos) {
   for (let i3 = 0; ; i3++) {
     if (i3 == a3.childCount || i3 == b2.childCount)
@@ -3409,7 +3409,7 @@ function renderSpec(doc3, structure, xmlNS, blockArraysIn) {
   return { dom, contentDOM };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-transform/dist/index.js
+// node_modules/prosemirror-transform/dist/index.js
 var lower16 = 65535;
 var factor16 = Math.pow(2, 16);
 function makeRecover(index5, offset) {
@@ -5327,7 +5327,7 @@ var Transform = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-state/dist/index.js
+// node_modules/prosemirror-state/dist/index.js
 var classesById = /* @__PURE__ */ Object.create(null);
 var Selection = class {
   /**
@@ -6253,7 +6253,7 @@ var PluginKey = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-commands/dist/index.js
+// node_modules/prosemirror-commands/dist/index.js
 var deleteSelection = (state, dispatch2) => {
   if (state.selection.empty)
     return false;
@@ -6781,7 +6781,7 @@ for (let key in pcBaseKeymap)
   macBaseKeymap[key] = pcBaseKeymap[key];
 var mac = typeof navigator != "undefined" ? /Mac|iP(hone|[oa]d)/.test(navigator.platform) : typeof os != "undefined" && os.platform ? os.platform() == "darwin" : false;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-schema-list/dist/index.js
+// node_modules/prosemirror-schema-list/dist/index.js
 function wrapInList(listType, attrs = null) {
   return function(state, dispatch2) {
     let { $from, $to } = state.selection;
@@ -6909,7 +6909,7 @@ function sinkListItem(itemType) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-view/dist/index.js
+// node_modules/prosemirror-view/dist/index.js
 var domIndex = function(node) {
   for (var index5 = 0; ; index5++) {
     node = node.previousSibling;
@@ -12293,7 +12293,7 @@ function checkStateComponent(plugin) {
     throw new RangeError("Plugins passed directly to the view must not have a state component");
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/w3c-keyname/index.js
+// node_modules/w3c-keyname/index.js
 var base = {
   8: "Backspace",
   9: "Tab",
@@ -12399,7 +12399,7 @@ function keyName(event) {
   return name;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-keymap/dist/index.js
+// node_modules/prosemirror-keymap/dist/index.js
 var mac4 = typeof navigator != "undefined" && /Mac|iP(hone|[oa]d)/.test(navigator.platform);
 var windows2 = typeof navigator != "undefined" && /Win/.test(navigator.platform);
 function normalizeKeyName(name) {
@@ -12478,7 +12478,7 @@ function keydownHandler(bindings) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/rope-sequence/dist/index.js
+// node_modules/rope-sequence/dist/index.js
 var GOOD_LEAF_SIZE = 200;
 var RopeSequence = function RopeSequence2() {
 };
@@ -12661,7 +12661,7 @@ var Append = /* @__PURE__ */ (function(RopeSequence3) {
 })(RopeSequence);
 var dist_default2 = RopeSequence;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-history/dist/index.js
+// node_modules/prosemirror-history/dist/index.js
 var max_empty_items = 500;
 var Branch = class _Branch {
   constructor(items, eventCount) {
@@ -13021,7 +13021,7 @@ function isHistoryTransaction(tr2) {
   return tr2.getMeta(historyKey) != null;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/index.js
+// node_modules/@tiptap/core/dist/index.js
 function createChainableState(config) {
   const { state, transaction } = config;
   let { selection: selection2 } = transaction;
@@ -18080,7 +18080,7 @@ function markPasteRule(config) {
   });
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
+// node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
 var jsxElements = /* @__PURE__ */ new WeakSet();
 var jsxFragments = /* @__PURE__ */ new WeakSet();
 function createJSXElement(spec) {
@@ -18131,7 +18131,7 @@ function render(tag, attributes) {
 }
 var h = (tag, attributes) => render(tag, attributes);
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-blockquote/dist/index.js
+// node_modules/@tiptap/extension-blockquote/dist/index.js
 var handleBackspace = (editor, type) => {
   var _previous$lastChild;
   const { state } = editor;
@@ -18225,7 +18225,7 @@ ${prefix}
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-bold/dist/index.js
+// node_modules/@tiptap/extension-bold/dist/index.js
 var starInputRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))$/;
 var starPasteRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))/g;
 var underscoreInputRegex = /(?:^|\s)(__(?!\s+__)((?:[^_]+))__(?!\s+__))$/;
@@ -18308,7 +18308,7 @@ var Bold = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-code/dist/index.js
+// node_modules/@tiptap/extension-code/dist/index.js
 var inputRegexMatch = (text) => {
   const match = /`([^`]+)`(?!`)$/.exec(text);
   if (!match) return null;
@@ -18402,7 +18402,7 @@ var Code = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-code-block/dist/index.js
+// node_modules/@tiptap/extension-code-block/dist/index.js
 var DEFAULT_TAB_SIZE = 4;
 var backtickInputRegex = /^```([a-z]+)?[\s\n]$/;
 var tildeInputRegex = /^~~~([a-z]+)?[\s\n]$/;
@@ -18634,7 +18634,7 @@ var CodeBlock = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-document/dist/index.js
+// node_modules/@tiptap/extension-document/dist/index.js
 var Document = Node2.create({
   name: "doc",
   topNode: true,
@@ -18645,7 +18645,7 @@ var Document = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-hard-break/dist/index.js
+// node_modules/@tiptap/extension-hard-break/dist/index.js
 var HardBreak = Node2.create({
   name: "hardBreak",
   markdownTokenName: "br",
@@ -18699,7 +18699,7 @@ var HardBreak = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-heading/dist/index.js
+// node_modules/@tiptap/extension-heading/dist/index.js
 var Heading = Node2.create({
   name: "heading",
   addOptions() {
@@ -18778,7 +18778,7 @@ var Heading = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-horizontal-rule/dist/index.js
+// node_modules/@tiptap/extension-horizontal-rule/dist/index.js
 var HorizontalRule = Node2.create({
   name: "horizontalRule",
   addOptions() {
@@ -18839,7 +18839,7 @@ var HorizontalRule = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-italic/dist/index.js
+// node_modules/@tiptap/extension-italic/dist/index.js
 var starInputRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))$/;
 var starPasteRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))/g;
 var underscoreInputRegex2 = /(?:^|\s)(_(?!\s+_)((?:[^_]+))_(?!\s+_))$/;
@@ -18920,7 +18920,7 @@ var Italic = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/linkifyjs/dist/linkify.mjs
+// node_modules/linkifyjs/dist/linkify.mjs
 var encodedTlds = "aaa1rp3bb0ott3vie4c1le2ogado5udhabi7c0ademy5centure6ountant0s9o1tor4d0s1ult4e0g1ro2tna4f0l1rica5g0akhan5ency5i0g1rbus3force5tel5kdn3l0ibaba4pay4lfinanz6state5y2sace3tom5m0azon4ericanexpress7family11x2fam3ica3sterdam8nalytics7droid5quan4z2o0l2partments8p0le4q0uarelle8r0ab1mco4chi3my2pa2t0e3s0da2ia2sociates9t0hleta5torney7u0ction5di0ble3o3spost5thor3o0s4w0s2x0a2z0ure5ba0by2idu3namex4d1k2r0celona5laycard4s5efoot5gains6seball5ketball8uhaus5yern5b0c1t1va3cg1n2d1e0ats2uty4er2rlin4st0buy5t2f1g1h0arti5i0ble3d1ke2ng0o3o1z2j1lack0friday9ockbuster8g1omberg7ue3m0s1w2n0pparibas9o0ats3ehringer8fa2m1nd2o0k0ing5sch2tik2on4t1utique6x2r0adesco6idgestone9oadway5ker3ther5ussels7s1t1uild0ers6siness6y1zz3v1w1y1z0h3ca0b1fe2l0l1vinklein9m0era3p2non3petown5ital0one8r0avan4ds2e0er0s4s2sa1e1h1ino4t0ering5holic7ba1n1re3c1d1enter4o1rn3f0a1d2g1h0anel2nel4rity4se2t2eap3intai5ristmas6ome4urch5i0priani6rcle4sco3tadel4i0c2y3k1l0aims4eaning6ick2nic1que6othing5ud3ub0med6m1n1o0ach3des3ffee4llege4ogne5m0mbank4unity6pany2re3uter5sec4ndos3struction8ulting7tact3ractors9oking4l1p2rsica5untry4pon0s4rses6pa2r0edit0card4union9icket5own3s1uise0s6u0isinella9v1w1x1y0mru3ou3z2dad1nce3ta1e1ing3sun4y2clk3ds2e0al0er2s3gree4livery5l1oitte5ta3mocrat6ntal2ist5si0gn4v2hl2iamonds6et2gital5rect0ory7scount3ver5h2y2j1k1m1np2o0cs1tor4g1mains5t1wnload7rive4tv2ubai3pont4rban5vag2r2z2earth3t2c0o2deka3u0cation8e1g1mail3erck5nergy4gineer0ing9terprises10pson4quipment8r0icsson6ni3s0q1tate5t1u0rovision8s2vents5xchange6pert3osed4ress5traspace10fage2il1rwinds6th3mily4n0s2rm0ers5shion4t3edex3edback6rrari3ero6i0delity5o2lm2nal1nce1ial7re0stone6mdale6sh0ing5t0ness6j1k1lickr3ghts4r2orist4wers5y2m1o0o0d1tball6rd1ex2sale4um3undation8x2r0ee1senius7l1ogans4ntier7tr2ujitsu5n0d2rniture7tbol5yi3ga0l0lery3o1up4me0s3p1rden4y2b0iz3d0n2e0a1nt0ing5orge5f1g0ee3h1i0ft0s3ves2ing5l0ass3e1obal2o4m0ail3bh2o1x2n1odaddy5ld0point6f2odyear5g0le4p1t1v2p1q1r0ainger5phics5tis4een3ipe3ocery4up4s1t1u0cci3ge2ide2tars5ru3w1y2hair2mburg5ngout5us3bo2dfc0bank7ealth0care8lp1sinki6re1mes5iphop4samitsu7tachi5v2k0t2m1n1ockey4ldings5iday5medepot5goods5s0ense7nda3rse3spital5t0ing5t0els3mail5use3w2r1sbc3t1u0ghes5yatt3undai7ibm2cbc2e1u2d1e0ee3fm2kano4l1m0amat4db2mo0bilien9n0c1dustries8finiti5o2g1k1stitute6urance4e4t0ernational10uit4vestments10o1piranga7q1r0ish4s0maili5t0anbul7t0au2v3jaguar4va3cb2e0ep2tzt3welry6io2ll2m0p2nj2o0bs1urg4t1y2p0morgan6rs3uegos6kaufen5ddi3e0rryhotels6properties14fh2g1h1i0a1ds2m1ndle4tchen5wi3m1n1oeln3matsu5sher5p0mg2n2r0d1ed3uokgroup8w1y0oto4z2la0caixa5mborghini8er3nd0rover6xess5salle5t0ino3robe5w0yer5b1c1ds2ease3clerc5frak4gal2o2xus4gbt3i0dl2fe0insurance9style7ghting6ke2lly3mited4o2ncoln4k2ve1ing5k1lc1p2oan0s3cker3us3l1ndon4tte1o3ve3pl0financial11r1s1t0d0a3u0ndbeck6xe1ury5v1y2ma0drid4if1son4keup4n0agement7go3p1rket0ing3s4riott5shalls7ttel5ba2c0kinsey7d1e0d0ia3et2lbourne7me1orial6n0u2rck0msd7g1h1iami3crosoft7l1ni1t2t0subishi9k1l0b1s2m0a2n1o0bi0le4da2e1i1m1nash3ey2ster5rmon3tgage6scow4to0rcycles9v0ie4p1q1r1s0d2t0n1r2u0seum3ic4v1w1x1y1z2na0b1goya4me2vy3ba2c1e0c1t0bank4flix4work5ustar5w0s2xt0direct7us4f0l2g0o2hk2i0co2ke1on3nja3ssan1y5l1o0kia3rton4w0ruz3tv4p1r0a1w2tt2u1yc2z2obi1server7ffice5kinawa6layan0group9lo3m0ega4ne1g1l0ine5oo2pen3racle3nge4g0anic5igins6saka4tsuka4t2vh3pa0ge2nasonic7ris2s1tners4s1y3y2ccw3e0t2f0izer5g1h0armacy6d1ilips5one2to0graphy6s4ysio5ics1tet2ures6d1n0g1k2oneer5zza4k1l0ace2y0station9umbing5s3m1n0c2ohl2ker3litie5rn2st3r0axi3ess3ime3o0d0uctions8f1gressive8mo2perties3y5tection8u0dential9s1t1ub2w0c2y2qa1pon3uebec3st5racing4dio4e0ad1lestate6tor2y4cipes5d0umbrella9hab3ise0n3t2liance6n0t0als5pair3ort3ublican8st0aurant8view0s5xroth6ich0ardli6oh3l1o1p2o0cks3deo3gers4om3s0vp3u0gby3hr2n2w0e2yukyu6sa0arland6fe0ty4kura4le1on3msclub4ung5ndvik0coromant12ofi4p1rl2s1ve2xo3b0i1s2c0b1haeffler7midt4olarships8ol3ule3warz5ience5ot3d1e0arch3t2cure1ity6ek2lect4ner3rvices6ven3w1x0y3fr2g1h0angrila6rp3ell3ia1ksha5oes2p0ping5uji3w3i0lk2na1gles5te3j1k0i0n2y0pe4l0ing4m0art3ile4n0cf3o0ccer3ial4ftbank4ware6hu2lar2utions7ng1y2y2pa0ce3ort2t3r0l2s1t0ada2ples4r1tebank4farm7c0group6ockholm6rage3e3ream4udio2y3yle4u0cks3pplies3y2ort5rf1gery5zuki5v1watch4iss4x1y0dney4stems6z2tab1ipei4lk2obao4rget4tamotors6r2too4x0i3c0i2d0k2eam2ch0nology8l1masek5nnis4va3f1g1h0d1eater2re6iaa2ckets5enda4ps2res2ol4j0maxx4x2k0maxx5l1m0all4n1o0day3kyo3ols3p1ray3shiba5tal3urs3wn2yota3s3r0ade1ing4ining5vel0ers0insurance16ust3v2t1ube2i1nes3shu4v0s2w1z2ua1bank3s2g1k1nicom3versity8o2ol2ps2s1y1z2va0cations7na1guard7c1e0gas3ntures6risign5m\xF6gensberater2ung14sicherung10t2g1i0ajes4deo3g1king4llas4n1p1rgin4sa1ion4va1o3laanderen9n1odka3lvo3te1ing3o2yage5u2wales2mart4ter4ng0gou5tch0es6eather0channel12b0cam3er2site5d0ding5ibo2r3f1hoswho6ien2ki2lliamhill9n0dows4e1ners6me2oodside6rk0s2ld3w2s1tc1f3xbox3erox4ihuan4n2xx2yz3yachts4hoo3maxun5ndex5e1odobashi7ga2kohama6u0tube6t1un3za0ppos4ra3ero3ip2m1one3uerich6w2";
 var encodedUtlds = "\u03B5\u03BB1\u03C52\u0431\u04331\u0435\u043B3\u0434\u0435\u0442\u04384\u0435\u044E2\u043A\u0430\u0442\u043E\u043B\u0438\u043A6\u043E\u043C3\u043C\u043A\u04342\u043E\u043D1\u0441\u043A\u0432\u04306\u043E\u043D\u043B\u0430\u0439\u043D5\u0440\u04333\u0440\u0443\u04412\u04442\u0441\u0430\u0439\u04423\u0440\u04313\u0443\u043A\u04403\u049B\u0430\u04373\u0570\u0561\u05753\u05D9\u05E9\u05E8\u05D0\u05DC5\u05E7\u05D5\u05DD3\u0627\u0628\u0648\u0638\u0628\u064A5\u0631\u0627\u0645\u0643\u06485\u0644\u0627\u0631\u062F\u06464\u0628\u062D\u0631\u064A\u06465\u062C\u0632\u0627\u0626\u06315\u0633\u0639\u0648\u062F\u064A\u06296\u0639\u0644\u064A\u0627\u06465\u0645\u063A\u0631\u06285\u0645\u0627\u0631\u0627\u062A5\u06CC\u0631\u0627\u06465\u0628\u0627\u0631\u062A2\u0632\u0627\u06314\u064A\u062A\u06433\u06BE\u0627\u0631\u062A5\u062A\u0648\u0646\u06334\u0633\u0648\u062F\u0627\u06463\u0631\u064A\u06295\u0634\u0628\u0643\u06294\u0639\u0631\u0627\u06422\u06282\u0645\u0627\u06464\u0641\u0644\u0633\u0637\u064A\u06466\u0642\u0637\u06313\u0643\u0627\u062B\u0648\u0644\u064A\u06436\u0648\u06453\u0645\u0635\u06312\u0644\u064A\u0633\u064A\u06275\u0648\u0631\u064A\u062A\u0627\u0646\u064A\u06277\u0642\u06394\u0647\u0645\u0631\u0627\u06475\u067E\u0627\u06A9\u0633\u062A\u0627\u06467\u0680\u0627\u0631\u062A4\u0915\u0949\u092E3\u0928\u0947\u091F3\u092D\u093E\u0930\u09240\u092E\u094D3\u094B\u09245\u0938\u0902\u0917\u0920\u09285\u09AC\u09BE\u0982\u09B2\u09BE5\u09AD\u09BE\u09B0\u09A42\u09F0\u09A44\u0A2D\u0A3E\u0A30\u0A244\u0AAD\u0ABE\u0AB0\u0AA44\u0B2D\u0B3E\u0B30\u0B244\u0B87\u0BA8\u0BCD\u0BA4\u0BBF\u0BAF\u0BBE6\u0BB2\u0B99\u0BCD\u0B95\u0BC86\u0B9A\u0BBF\u0B99\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0BC2\u0BB0\u0BCD11\u0C2D\u0C3E\u0C30\u0C24\u0C4D5\u0CAD\u0CBE\u0CB0\u0CA44\u0D2D\u0D3E\u0D30\u0D24\u0D025\u0DBD\u0D82\u0D9A\u0DCF4\u0E04\u0E2D\u0E213\u0E44\u0E17\u0E223\u0EA5\u0EB2\u0EA73\u10D2\u10D42\u307F\u3093\u306A3\u30A2\u30DE\u30BE\u30F34\u30AF\u30E9\u30A6\u30C94\u30B0\u30FC\u30B0\u30EB4\u30B3\u30E02\u30B9\u30C8\u30A23\u30BB\u30FC\u30EB3\u30D5\u30A1\u30C3\u30B7\u30E7\u30F36\u30DD\u30A4\u30F3\u30C84\u4E16\u754C2\u4E2D\u4FE11\u56FD1\u570B1\u6587\u7F513\u4E9A\u9A6C\u900A3\u4F01\u4E1A2\u4F5B\u5C712\u4FE1\u606F2\u5065\u5EB72\u516B\u53662\u516C\u53F81\u76CA2\u53F0\u6E7E1\u70632\u5546\u57CE1\u5E971\u68072\u5609\u91CC0\u5927\u9152\u5E975\u5728\u7EBF2\u5927\u62FF2\u5929\u4E3B\u65593\u5A31\u4E502\u5BB6\u96FB2\u5E7F\u4E1C2\u5FAE\u535A2\u6148\u55842\u6211\u7231\u4F603\u624B\u673A2\u62DB\u80582\u653F\u52A11\u5E9C2\u65B0\u52A0\u57612\u95FB2\u65F6\u5C1A2\u66F8\u7C4D2\u673A\u67842\u6DE1\u9A6C\u95213\u6E38\u620F2\u6FB3\u95802\u70B9\u770B2\u79FB\u52A82\u7EC4\u7EC7\u673A\u67844\u7F51\u57401\u5E971\u7AD91\u7EDC2\u8054\u901A2\u8C37\u6B4C2\u8D2D\u72692\u901A\u8CA92\u96C6\u56E22\u96FB\u8A0A\u76C8\u79D14\u98DE\u5229\u6D663\u98DF\u54C12\u9910\u53852\u9999\u683C\u91CC\u62C93\u6E2F2\uB2F7\uB1371\uCEF42\uC0BC\uC1312\uD55C\uAD6D2";
 var numeric = "numeric";
@@ -20112,7 +20112,7 @@ function find(str, type = null, opts = null) {
   return filtered;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-link/dist/index.js
+// node_modules/@tiptap/extension-link/dist/index.js
 var UNICODE_WHITESPACE_PATTERN = "[\0- \xA0\u1680\u180E\u2000-\u2029\u205F\u3000]";
 var UNICODE_WHITESPACE_REGEX = new RegExp(UNICODE_WHITESPACE_PATTERN);
 var UNICODE_WHITESPACE_REGEX_END = new RegExp(`${UNICODE_WHITESPACE_PATTERN}$`);
@@ -20590,7 +20590,7 @@ var Link = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-list/dist/index.js
+// node_modules/@tiptap/extension-list/dist/index.js
 var ListItemName$1 = "listItem";
 var TextStyleName$1 = "textStyle";
 var bulletListInputRegex = /^\s*([-+*])\s$/;
@@ -21865,7 +21865,7 @@ var ListKit = Extension.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-paragraph/dist/index.js
+// node_modules/@tiptap/extension-paragraph/dist/index.js
 var EMPTY_PARAGRAPH_MARKDOWN = "&nbsp;";
 var NBSP_CHAR = "\xA0";
 var Paragraph = Node2.create({
@@ -21913,7 +21913,7 @@ var Paragraph = Node2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-strike/dist/index.js
+// node_modules/@tiptap/extension-strike/dist/index.js
 var inputRegex3 = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))$/;
 var pasteRegex = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))/g;
 var Strike = Mark2.create({
@@ -21977,7 +21977,7 @@ var Strike = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-text/dist/index.js
+// node_modules/@tiptap/extension-text/dist/index.js
 var Text2 = Node2.create({
   name: "text",
   group: "inline",
@@ -21990,7 +21990,7 @@ var Text2 = Node2.create({
   renderMarkdown: (node) => node.text || ""
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-underline/dist/index.js
+// node_modules/@tiptap/extension-underline/dist/index.js
 var Underline = Mark2.create({
   name: "underline",
   addOptions() {
@@ -22066,7 +22066,7 @@ var Underline = Mark2.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-dropcursor/dist/index.js
+// node_modules/prosemirror-dropcursor/dist/index.js
 function dropCursor(options = {}) {
   return new Plugin({
     view(editorView) {
@@ -22213,7 +22213,7 @@ var DropCursorView = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-gapcursor/dist/index.js
+// node_modules/prosemirror-gapcursor/dist/index.js
 var GapCursor = class _GapCursor extends Selection {
   /**
   Create a gap cursor.
@@ -22427,7 +22427,7 @@ function drawGapCursor(state) {
   return DecorationSet.create(state.doc, [Decoration.widget(state.selection.head, node, { key: "gapcursor" })]);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extensions/dist/index.js
+// node_modules/@tiptap/extensions/dist/index.js
 var CharacterCount = Extension.create({
   name: "characterCount",
   addOptions() {
@@ -22951,7 +22951,7 @@ var UndoRedo = Extension.create({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/starter-kit/dist/index.js
+// node_modules/@tiptap/starter-kit/dist/index.js
 var StarterKit = Extension.create({
   name: "starterKit",
   addExtensions() {
@@ -22995,7 +22995,7 @@ var StarterKit = Extension.create({
 });
 var src_default = StarterKit;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-placeholder/dist/index.js
+// node_modules/@tiptap/extension-placeholder/dist/index.js
 var src_default2 = Placeholder;
 
 // src/escritor/editor.js
@@ -26733,6 +26733,7 @@ function construirNodosPlantilla(plantilla) {
 }
 
 // src/escritor/pizarra.js
+var _vig = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [q2, setQ] = useState5("");
   const [resultados, setResultados] = useState5([]);
@@ -26740,13 +26741,16 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [ocupado, setOcupado] = useState5(false);
   const [error2, setError] = useState5(null);
   const timerRef = useRef4(null);
+  const seqRef = useRef4(0);
   const ejecutar = useCallback5((consulta) => {
     const limpio = (consulta || "").trim();
     if (!limpio) {
+      seqRef.current += 1;
       setResultados([]);
       setArbol(null);
       return;
     }
+    const id = ++seqRef.current;
     setOcupado(true);
     setError(null);
     rest("/grafo/buscar", {
@@ -26754,12 +26758,16 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
       body: { q: limpio, limite: 12 },
       timeoutMs: 12e4
     }).then((d2) => {
+      if (id !== seqRef.current) return;
       setResultados(d2 && d2.resultados || []);
       setArbol(d2 && d2.arbol || null);
     }).catch((e3) => {
+      if (id !== seqRef.current) return;
       setError(e3);
       setResultados([]);
-    }).finally(() => setOcupado(false));
+    }).finally(() => {
+      if (id === seqRef.current) setOcupado(false);
+    });
   }, []);
   const cambiar = (ev) => {
     const v2 = ev.target.value;
@@ -26792,12 +26800,12 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
           children: "\u2715"
         })
       ] }),
-      arbol && arbol.disponible && (arbol.materias || []).length ? jsxs5("div", { className: "flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300", children: [
+      arbol && arbol.disponible && (arbol.clasificacion || []).length ? jsxs5("div", { className: "flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300", children: [
         jsx5("span", { className: "text-slate-400", children: "Materias:" }),
-        ...(arbol.materias || []).slice(0, 3).map((m3, i3) => jsx5("span", {
+        ...(arbol.clasificacion || []).slice(0, 3).map((m3, i3) => jsx5("span", {
           key: i3,
           className: "rounded bg-slate-800 px-1.5 py-0.5 text-sky-300",
-          children: m3.nombre || m3.nodo_id
+          children: m3.nombre || m3.nodo
         }))
       ] }) : null,
       jsxs5("div", { className: "flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5", children: [
@@ -26812,9 +26820,9 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
             jsxs5("div", { className: "min-w-0 flex-1", children: [
               jsxs5("div", { className: "flex items-center gap-1.5", children: [
                 jsx5("span", { className: "truncate text-xs font-semibold text-sky-300", children: r2.cita || r2.label || r2.gid }),
-                r2.vigencia ? jsx5("span", {
-                  className: "rounded px-1 py-0.5 text-[9px] uppercase " + (r2.vigencia === "IN_FORCE" ? "bg-emerald-900/70 text-emerald-300" : "bg-amber-900/70 text-amber-300"),
-                  children: r2.vigencia === "IN_FORCE" ? "vigente" : r2.vigencia
+                _vig(r2.vigencia) ? jsx5("span", {
+                  className: "rounded px-1 py-0.5 text-[9px] uppercase " + (_vig(r2.vigencia) === "IN_FORCE" ? "bg-emerald-900/70 text-emerald-300" : "bg-amber-900/70 text-amber-300"),
+                  children: _vig(r2.vigencia) === "IN_FORCE" ? "vigente" : _vig(r2.vigencia)
                 }) : null
               ] }),
               r2.snippet ? jsx5("div", {
@@ -28295,6 +28303,7 @@ function PanelEscribeClaro({
 // src/escritor/grafos-herramientas.js
 import { jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
 import { useCallback as useCallback7, useEffect as useEffect8, useState as useState8 } from "react";
+var _vig2 = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
 function PanelHerramientasGrafos({
   onLlevarCitaAlEscrito,
   onAgregarAPizarra,
@@ -28413,17 +28422,17 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
       ] }),
       error2 ? jsx8("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
       // Clasificación del Árbol de Derecho IndexO
-      arbol && arbol.disponible && (arbol.materias || []).length > 0 ? jsxs8("div", {
+      arbol && arbol.disponible && (arbol.clasificacion || []).length > 0 ? jsxs8("div", {
         className: "flex flex-col gap-1 rounded border border-sky-200 bg-sky-50/60 p-2",
         children: [
           jsx8("span", { className: "text-[10px] font-bold uppercase tracking-wider text-sky-800", children: "\xC1rbol de materias (IndexO)" }),
           jsxs8("div", {
             className: "flex flex-wrap gap-1",
-            children: (arbol.materias || []).map((m3, i3) => jsxs8("span", {
+            children: (arbol.clasificacion || []).map((m3, i3) => jsxs8("span", {
               key: i3,
               className: "rounded bg-white border border-sky-200 px-1.5 py-0.5 text-[10px] text-sky-900",
               children: [
-                jsx8("b", { children: m3.nombre || m3.nodo_id }),
+                jsx8("b", { children: m3.nombre || m3.nodo }),
                 (m3.terminos || []).length ? " (" + m3.terminos.join(", ") + ")" : ""
               ]
             }))
@@ -28435,7 +28444,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
         className: "flex flex-col gap-2 rounded-md border border-indigo-300 bg-indigo-50/40 p-2.5",
         children: [
           jsxs8("div", { className: "flex items-center justify-between gap-2", children: [
-            jsx8("span", { className: "font-bold text-indigo-900", children: articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
+            jsx8("span", { className: "font-bold text-indigo-900", children: articuloLeido._res && articuloLeido._res.cita || articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
             jsx8("button", {
               type: "button",
               onClick: () => setArticuloLeido(null),
@@ -28457,7 +28466,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
                 children: [
                   jsxs8("div", { className: "flex items-center justify-between gap-1 font-mono text-[10px] text-slate-500", children: [
                     jsx8("span", { children: u2.id }),
-                    u2.modalidad ? jsx8("span", { className: "rounded bg-slate-100 px-1 uppercase", children: u2.modalidad }) : null
+                    u2.modalidad || u2.modalidad_candidata ? jsx8("span", { className: "rounded bg-slate-100 px-1 uppercase", children: u2.modalidad || u2.modalidad_candidata }) : null
                   ] }),
                   jsx8("div", { className: "mt-0.5 text-slate-700", children: u2.texto })
                 ]
@@ -28477,9 +28486,9 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
                 jsx8("div", { className: "font-semibold text-slate-800", children: r2.cita || r2.label || r2.gid }),
                 jsx8("div", { className: "font-mono text-[10px] text-slate-400", children: [r2.nodo_id, r2.gid].filter(Boolean).join(" \xB7 ") })
               ] }),
-              r2.vigencia ? jsx8("span", {
-                className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (r2.vigencia === "IN_FORCE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"),
-                children: r2.vigencia === "IN_FORCE" ? "vigente" : r2.vigencia
+              _vig2(r2.vigencia) ? jsx8("span", {
+                className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (_vig2(r2.vigencia) === "IN_FORCE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"),
+                children: _vig2(r2.vigencia) === "IN_FORCE" ? "vigente" : _vig2(r2.vigencia)
               }) : null
             ] }),
             r2.snippet ? jsx8("div", { className: "text-[11px] text-slate-600 leading-relaxed line-clamp-3", children: String(r2.snippet).slice(0, 260) }) : null,
@@ -28803,7 +28812,7 @@ function SubHerramientaFuentes({ onAbrirGrafo3D }) {
         jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Grafo de Revisi\xF3n Personal (GRE)" }),
         jsx8("div", {
           className: "text-xs text-slate-700",
-          children: `Nodos candidatos: ${(personal.nodes || []).length} \xB7 Aristas: ${(personal.edges || []).length}`
+          children: `Nodos candidatos: ${(personal.candidates || personal.nodes || []).length} \xB7 Aristas: ${(personal.edges || []).length}`
         }),
         jsx8("div", { className: "text-[11px] text-slate-500", children: "Los candidatos del grafo personal viven en plugin-data fuera del corpus sellado." })
       ] }) : null,
@@ -29908,7 +29917,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
   });
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.core.js
+// node_modules/three/build/three.core.js
 var REVISION = "183";
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
 var TOUCH = { ROTATE: 0, PAN: 1, DOLLY_PAN: 2, DOLLY_ROTATE: 3 };
@@ -49593,7 +49602,7 @@ if (typeof window !== "undefined") {
   }
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.module.js
+// node_modules/three/build/three.module.js
 function WebGLAnimation() {
   let context2 = null;
   let isAnimating = false;
@@ -60880,7 +60889,7 @@ var WebGLRenderer = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/DragControls.js
+// node_modules/three/examples/jsm/controls/DragControls.js
 var _plane = new Plane();
 var _pointer = new Vector2();
 var _offset2 = new Vector3();
@@ -61084,7 +61093,7 @@ function findGroup(obj, group = null) {
   return findGroup(obj.parent, group);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/center.js
+// node_modules/d3-force-3d/src/center.js
 function center_default(x3, y3, z3) {
   var nodes, strength = 1;
   if (x3 == null) x3 = 0;
@@ -61126,7 +61135,7 @@ function center_default(x3, y3, z3) {
   return force;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/add.js
+// node_modules/d3-binarytree/src/add.js
 function add_default(d2) {
   const x3 = +this._x.call(null, d2);
   return add(this.cover(x3), x3, d2);
@@ -61168,7 +61177,7 @@ function addAll(data) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/cover.js
+// node_modules/d3-binarytree/src/cover.js
 function cover_default(x3) {
   if (isNaN(x3 = +x3)) return this;
   var x0 = this._x0, x1 = this._x1;
@@ -61195,7 +61204,7 @@ function cover_default(x3) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/data.js
+// node_modules/d3-binarytree/src/data.js
 function data_default() {
   var data = [];
   this.visit(function(node) {
@@ -61206,19 +61215,19 @@ function data_default() {
   return data;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/extent.js
+// node_modules/d3-binarytree/src/extent.js
 function extent_default(_2) {
   return arguments.length ? this.cover(+_2[0][0]).cover(+_2[1][0]) : isNaN(this._x0) ? void 0 : [[this._x0], [this._x1]];
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/half.js
+// node_modules/d3-binarytree/src/half.js
 function half_default(node, x0, x1) {
   this.node = node;
   this.x0 = x0;
   this.x1 = x1;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/find.js
+// node_modules/d3-binarytree/src/find.js
 function find_default(x3, radius) {
   var data, x0 = this._x0, x1, x22, x32 = this._x1, halves = [], node = this._root, q2, i3;
   if (node) halves.push(new half_default(node, x0, x32));
@@ -61253,7 +61262,7 @@ function find_default(x3, radius) {
   return data;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/remove.js
+// node_modules/d3-binarytree/src/remove.js
 function remove_default(d2) {
   if (isNaN(x3 = +this._x.call(null, d2))) return this;
   var parent, node = this._root, retainer, previous, next, x0 = this._x0, x1 = this._x1, x3, xm, right, i3, j2;
@@ -61281,12 +61290,12 @@ function removeAll(data) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/root.js
+// node_modules/d3-binarytree/src/root.js
 function root_default() {
   return this._root;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/size.js
+// node_modules/d3-binarytree/src/size.js
 function size_default() {
   var size = 0;
   this.visit(function(node) {
@@ -61297,7 +61306,7 @@ function size_default() {
   return size;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/visit.js
+// node_modules/d3-binarytree/src/visit.js
 function visit_default(callback) {
   var halves = [], q2, node = this._root, child, x0, x1;
   if (node) halves.push(new half_default(node, this._x0, this._x1));
@@ -61311,7 +61320,7 @@ function visit_default(callback) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/visitAfter.js
+// node_modules/d3-binarytree/src/visitAfter.js
 function visitAfter_default(callback) {
   var halves = [], next = [], q2;
   if (this._root) halves.push(new half_default(this._root, this._x0, this._x1));
@@ -61330,7 +61339,7 @@ function visitAfter_default(callback) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/x.js
+// node_modules/d3-binarytree/src/x.js
 function defaultX(d2) {
   return d2[0];
 }
@@ -61338,7 +61347,7 @@ function x_default(_2) {
   return arguments.length ? (this._x = _2, this) : this._x;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/binarytree.js
+// node_modules/d3-binarytree/src/binarytree.js
 function binarytree(nodes, x3) {
   var tree = new Binarytree(x3 == null ? defaultX : x3, NaN, NaN);
   return nodes == null ? tree : tree.addAll(nodes);
@@ -61384,7 +61393,7 @@ treeProto.visit = visit_default;
 treeProto.visitAfter = visitAfter_default;
 treeProto.x = x_default;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-quadtree/dist/d3-quadtree.mjs
+// node_modules/d3-quadtree/dist/d3-quadtree.mjs
 function tree_add(d2) {
   const x3 = +this._x.call(null, d2), y3 = +this._y.call(null, d2);
   return add2(this.cover(x3, y3), x3, y3, d2);
@@ -61660,7 +61669,7 @@ treeProto2.visitAfter = tree_visitAfter;
 treeProto2.x = tree_x;
 treeProto2.y = tree_y;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/add.js
+// node_modules/d3-octree/src/add.js
 function add_default2(d2) {
   const x3 = +this._x.call(null, d2), y3 = +this._y.call(null, d2), z3 = +this._z.call(null, d2);
   return add3(this.cover(x3, y3, z3), x3, y3, z3, d2);
@@ -61720,7 +61729,7 @@ function addAll3(data) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/cover.js
+// node_modules/d3-octree/src/cover.js
 function cover_default2(x3, y3, z3) {
   if (isNaN(x3 = +x3) || isNaN(y3 = +y3) || isNaN(z3 = +z3)) return this;
   var x0 = this._x0, y0 = this._y0, z0 = this._z0, x1 = this._x1, y1 = this._y1, z1 = this._z1;
@@ -61771,7 +61780,7 @@ function cover_default2(x3, y3, z3) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/data.js
+// node_modules/d3-octree/src/data.js
 function data_default2() {
   var data = [];
   this.visit(function(node) {
@@ -61782,12 +61791,12 @@ function data_default2() {
   return data;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/extent.js
+// node_modules/d3-octree/src/extent.js
 function extent_default2(_2) {
   return arguments.length ? this.cover(+_2[0][0], +_2[0][1], +_2[0][2]).cover(+_2[1][0], +_2[1][1], +_2[1][2]) : isNaN(this._x0) ? void 0 : [[this._x0, this._y0, this._z0], [this._x1, this._y1, this._z1]];
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/octant.js
+// node_modules/d3-octree/src/octant.js
 function octant_default(node, x0, y0, z0, x1, y1, z1) {
   this.node = node;
   this.x0 = x0;
@@ -61798,7 +61807,7 @@ function octant_default(node, x0, y0, z0, x1, y1, z1) {
   this.z1 = z1;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/find.js
+// node_modules/d3-octree/src/find.js
 function find_default2(x3, y3, z3, radius) {
   var data, x0 = this._x0, y0 = this._y0, z0 = this._z0, x1, y1, z1, x22, y22, z22, x32 = this._x1, y32 = this._y1, z32 = this._z1, octs = [], node = this._root, q2, i3;
   if (node) octs.push(new octant_default(node, x0, y0, z0, x32, y32, z32));
@@ -61840,7 +61849,7 @@ function find_default2(x3, y3, z3, radius) {
   return data;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/findAll.js
+// node_modules/d3-octree/src/findAll.js
 var distance = (x1, y1, z1, x22, y22, z22) => Math.sqrt((x1 - x22) ** 2 + (y1 - y22) ** 2 + (z1 - z22) ** 2);
 function findAllWithinRadius(x3, y3, z3, radius) {
   const result = [];
@@ -61864,7 +61873,7 @@ function findAllWithinRadius(x3, y3, z3, radius) {
   return result;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/remove.js
+// node_modules/d3-octree/src/remove.js
 function remove_default2(d2) {
   if (isNaN(x3 = +this._x.call(null, d2)) || isNaN(y3 = +this._y.call(null, d2)) || isNaN(z3 = +this._z.call(null, d2))) return this;
   var parent, node = this._root, retainer, previous, next, x0 = this._x0, y0 = this._y0, z0 = this._z0, x1 = this._x1, y1 = this._y1, z1 = this._z1, x3, y3, z3, xm, ym, zm, right, bottom, deep, i3, j2;
@@ -61896,12 +61905,12 @@ function removeAll3(data) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/root.js
+// node_modules/d3-octree/src/root.js
 function root_default2() {
   return this._root;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/size.js
+// node_modules/d3-octree/src/size.js
 function size_default2() {
   var size = 0;
   this.visit(function(node) {
@@ -61912,7 +61921,7 @@ function size_default2() {
   return size;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/visit.js
+// node_modules/d3-octree/src/visit.js
 function visit_default2(callback) {
   var octs = [], q2, node = this._root, child, x0, y0, z0, x1, y1, z1;
   if (node) octs.push(new octant_default(node, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1));
@@ -61932,7 +61941,7 @@ function visit_default2(callback) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/visitAfter.js
+// node_modules/d3-octree/src/visitAfter.js
 function visitAfter_default2(callback) {
   var octs = [], next = [], q2;
   if (this._root) octs.push(new octant_default(this._root, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1));
@@ -61957,7 +61966,7 @@ function visitAfter_default2(callback) {
   return this;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/x.js
+// node_modules/d3-octree/src/x.js
 function defaultX3(d2) {
   return d2[0];
 }
@@ -61965,7 +61974,7 @@ function x_default2(_2) {
   return arguments.length ? (this._x = _2, this) : this._x;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/y.js
+// node_modules/d3-octree/src/y.js
 function defaultY2(d2) {
   return d2[1];
 }
@@ -61973,7 +61982,7 @@ function y_default(_2) {
   return arguments.length ? (this._y = _2, this) : this._y;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/z.js
+// node_modules/d3-octree/src/z.js
 function defaultZ(d2) {
   return d2[2];
 }
@@ -61981,7 +61990,7 @@ function z_default(_2) {
   return arguments.length ? (this._z = _2, this) : this._z;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/octree.js
+// node_modules/d3-octree/src/octree.js
 function octree(nodes, x3, y3, z3) {
   var tree = new Octree(x3 == null ? defaultX3 : x3, y3 == null ? defaultY2 : y3, z3 == null ? defaultZ : z3, NaN, NaN, NaN, NaN, NaN, NaN);
   return nodes == null ? tree : tree.addAll(nodes);
@@ -62036,19 +62045,19 @@ treeProto3.x = x_default2;
 treeProto3.y = y_default;
 treeProto3.z = z_default;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/constant.js
+// node_modules/d3-force-3d/src/constant.js
 function constant_default(x3) {
   return function() {
     return x3;
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/jiggle.js
+// node_modules/d3-force-3d/src/jiggle.js
 function jiggle_default(random) {
   return (random() - 0.5) * 1e-6;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/link.js
+// node_modules/d3-force-3d/src/link.js
 function index(d2) {
   return d2.index;
 }
@@ -62146,7 +62155,7 @@ function link_default(links) {
   return force;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-dispatch/dist/d3-dispatch.mjs
+// node_modules/d3-dispatch/dist/d3-dispatch.mjs
 var noop2 = { value: () => {
 } };
 function dispatch() {
@@ -62215,7 +62224,7 @@ function set(type, name, callback) {
   return type;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-timer/dist/d3-timer.mjs
+// node_modules/d3-timer/dist/d3-timer.mjs
 var frame = 0;
 var timeout$1 = 0;
 var interval$1 = 0;
@@ -62317,7 +62326,7 @@ function sleep(time) {
   }
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/lcg.js
+// node_modules/d3-force-3d/src/lcg.js
 var a = 1664525;
 var c = 1013904223;
 var m = 4294967296;
@@ -62326,7 +62335,7 @@ function lcg_default() {
   return () => (s2 = (a * s2 + c) % m) / m;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/simulation.js
+// node_modules/d3-force-3d/src/simulation.js
 var MAX_DIMENSIONS = 3;
 function x(d2) {
   return d2.x;
@@ -62467,7 +62476,7 @@ function simulation_default(nodes, numDimensions) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/manyBody.js
+// node_modules/d3-force-3d/src/manyBody.js
 function manyBody_default() {
   var nodes, nDim, node, random, alpha2, strength = constant_default(-30), strengths, distanceMin2 = 1, distanceMax2 = Infinity, theta2 = 0.81;
   function force(_2) {
@@ -62572,7 +62581,7 @@ function manyBody_default() {
   return force;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/radial.js
+// node_modules/d3-force-3d/src/radial.js
 function radial_default(radius, x3, y3, z3) {
   var nodes, nDim, strength = constant_default(0.1), strengths, radiuses;
   if (typeof radius !== "function") radius = constant_default(+radius);
@@ -62629,29 +62638,29 @@ function ngraphNoIncluido() {
   throw new Error("forceEngine 'ngraph' no est\xE1 incluido en este bundle; usa el motor d3");
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isObject.js
+// node_modules/lodash-es/isObject.js
 function isObject(value) {
   var type = typeof value;
   return value != null && (type == "object" || type == "function");
 }
 var isObject_default = isObject;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_freeGlobal.js
+// node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeGlobal_default = freeGlobal;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_root.js
+// node_modules/lodash-es/_root.js
 var freeSelf = typeof self == "object" && self && self.Object === Object && self;
 var root = freeGlobal_default || freeSelf || Function("return this")();
 var root_default3 = root;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/now.js
+// node_modules/lodash-es/now.js
 var now2 = function() {
   return root_default3.Date.now();
 };
 var now_default = now2;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_trimmedEndIndex.js
+// node_modules/lodash-es/_trimmedEndIndex.js
 var reWhitespace = /\s/;
 function trimmedEndIndex(string) {
   var index5 = string.length;
@@ -62661,18 +62670,18 @@ function trimmedEndIndex(string) {
 }
 var trimmedEndIndex_default = trimmedEndIndex;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_baseTrim.js
+// node_modules/lodash-es/_baseTrim.js
 var reTrimStart = /^\s+/;
 function baseTrim(string) {
   return string ? string.slice(0, trimmedEndIndex_default(string) + 1).replace(reTrimStart, "") : string;
 }
 var baseTrim_default = baseTrim;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_Symbol.js
+// node_modules/lodash-es/_Symbol.js
 var Symbol2 = root_default3.Symbol;
 var Symbol_default = Symbol2;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_getRawTag.js
+// node_modules/lodash-es/_getRawTag.js
 var objectProto = Object.prototype;
 var hasOwnProperty = objectProto.hasOwnProperty;
 var nativeObjectToString = objectProto.toString;
@@ -62696,7 +62705,7 @@ function getRawTag(value) {
 }
 var getRawTag_default = getRawTag;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_objectToString.js
+// node_modules/lodash-es/_objectToString.js
 var objectProto2 = Object.prototype;
 var nativeObjectToString2 = objectProto2.toString;
 function objectToString(value) {
@@ -62704,7 +62713,7 @@ function objectToString(value) {
 }
 var objectToString_default = objectToString;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_baseGetTag.js
+// node_modules/lodash-es/_baseGetTag.js
 var nullTag = "[object Null]";
 var undefinedTag = "[object Undefined]";
 var symToStringTag2 = Symbol_default ? Symbol_default.toStringTag : void 0;
@@ -62716,20 +62725,20 @@ function baseGetTag(value) {
 }
 var baseGetTag_default = baseGetTag;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isObjectLike.js
+// node_modules/lodash-es/isObjectLike.js
 function isObjectLike(value) {
   return value != null && typeof value == "object";
 }
 var isObjectLike_default = isObjectLike;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isSymbol.js
+// node_modules/lodash-es/isSymbol.js
 var symbolTag = "[object Symbol]";
 function isSymbol(value) {
   return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
 }
 var isSymbol_default = isSymbol;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/toNumber.js
+// node_modules/lodash-es/toNumber.js
 var NAN = 0 / 0;
 var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
 var reIsBinary = /^0b[01]+$/i;
@@ -62755,7 +62764,7 @@ function toNumber(value) {
 }
 var toNumber_default = toNumber;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/debounce.js
+// node_modules/lodash-es/debounce.js
 var FUNC_ERROR_TEXT = "Expected a function";
 var nativeMax = Math.max;
 var nativeMin = Math.min;
@@ -62842,7 +62851,7 @@ function debounce(func, wait, options) {
 }
 var debounce_default = debounce;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/kapsule/dist/kapsule.mjs
+// node_modules/kapsule/dist/kapsule.mjs
 function _arrayLikeToArray(r2, a3) {
   (null == a3 || a3 > r2.length) && (a3 = r2.length);
   for (var e3 = 0, n2 = Array(a3); e3 < a3; e3++) n2[e3] = r2[e3];
@@ -62988,7 +62997,7 @@ function index2(_ref2) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/accessor-fn/dist/accessor-fn.mjs
+// node_modules/accessor-fn/dist/accessor-fn.mjs
 var index3 = (function(p2) {
   return typeof p2 === "function" ? p2 : typeof p2 === "string" ? function(obj) {
     return obj[p2];
@@ -62997,7 +63006,7 @@ var index3 = (function(p2) {
   };
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-array/dist/d3-array.mjs
+// node_modules/d3-array/dist/d3-array.mjs
 function ascending(a3, b2) {
   return a3 == null || b2 == null ? NaN : a3 < b2 ? -1 : a3 > b2 ? 1 : a3 >= b2 ? 0 : NaN;
 }
@@ -63235,7 +63244,7 @@ function shuffler(random) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/data-bind-mapper/dist/data-bind-mapper.mjs
+// node_modules/data-bind-mapper/dist/data-bind-mapper.mjs
 function _arrayLikeToArray2(r2, a3) {
   (null == a3 || a3 > r2.length) && (a3 = r2.length);
   for (var e3 = 0, n2 = Array(a3); e3 < a3; e3++) n2[e3] = r2[e3];
@@ -63430,7 +63439,7 @@ var DataBindMapper = /* @__PURE__ */ (function() {
   }]);
 })();
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-color/dist/d3-color.mjs
+// node_modules/d3-color/dist/d3-color.mjs
 function define(constructor, factory, prototype) {
   constructor.prototype = factory.prototype = prototype;
   prototype.constructor = constructor;
@@ -63913,7 +63922,7 @@ define(Cubehelix, cubehelix, extend(Color2, {
   }
 }));
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-interpolate/dist/d3-interpolate.mjs
+// node_modules/d3-interpolate/dist/d3-interpolate.mjs
 function basis(t12, v0, v1, v2, v3) {
   var t22 = t12 * t12, t32 = t22 * t12;
   return ((1 - 3 * t12 + 3 * t22 - t32) * v0 + (4 - 6 * t22 + 3 * t32) * v1 + (1 + 3 * t12 + 3 * t22 - 3 * t32) * v2 + t32 * v3) / 6;
@@ -64182,7 +64191,7 @@ function cubehelix2(hue) {
 var cubehelix_default = cubehelix2(hue$1);
 var cubehelixLong = cubehelix2(nogamma);
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-scale/dist/d3-scale.mjs
+// node_modules/d3-scale/dist/d3-scale.mjs
 function initRange(domain2, range2) {
   switch (arguments.length) {
     case 0:
@@ -64229,7 +64238,7 @@ function ordinal() {
   return scale2;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-scale-chromatic/dist/d3-scale-chromatic.mjs
+// node_modules/d3-scale-chromatic/dist/d3-scale-chromatic.mjs
 function colors(specifier) {
   var n2 = specifier.length / 6 | 0, colors2 = new Array(n2), i3 = 0;
   while (i3 < n2) colors2[i3] = "#" + specifier.slice(i3 * 6, ++i3 * 6);
@@ -64553,7 +64562,7 @@ var magma = ramp(colors("00000401000501010601010802010902020b02020d03030f0303120
 var inferno = ramp(colors("00000401000501010601010802010a02020c02020e03021004031204031405041706041907051b08051d09061f0a07220b07240c08260d08290e092b10092d110a30120a32140b34150b37160b39180c3c190c3e1b0c411c0c431e0c451f0c48210c4a230c4c240c4f260c51280b53290b552b0b572d0b592f0a5b310a5c320a5e340a5f3609613809623909633b09643d09653e0966400a67420a68440a68450a69470b6a490b6a4a0c6b4c0c6b4d0d6c4f0d6c510e6c520e6d540f6d550f6d57106e59106e5a116e5c126e5d126e5f136e61136e62146e64156e65156e67166e69166e6a176e6c186e6d186e6f196e71196e721a6e741a6e751b6e771c6d781c6d7a1d6d7c1d6d7d1e6d7f1e6c801f6c82206c84206b85216b87216b88226a8a226a8c23698d23698f24699025689225689326679526679727669827669a28659b29649d29649f2a63a02a63a22b62a32c61a52c60a62d60a82e5fa92e5eab2f5ead305dae305cb0315bb1325ab3325ab43359b63458b73557b93556ba3655bc3754bd3853bf3952c03a51c13a50c33b4fc43c4ec63d4dc73e4cc83f4bca404acb4149cc4248ce4347cf4446d04545d24644d34743d44842d54a41d74b3fd84c3ed94d3dda4e3cdb503bdd513ade5238df5337e05536e15635e25734e35933e45a31e55c30e65d2fe75e2ee8602de9612bea632aeb6429eb6628ec6726ed6925ee6a24ef6c23ef6e21f06f20f1711ff1731df2741cf3761bf37819f47918f57b17f57d15f67e14f68013f78212f78410f8850ff8870ef8890cf98b0bf98c0af98e09fa9008fa9207fa9407fb9606fb9706fb9906fb9b06fb9d07fc9f07fca108fca309fca50afca60cfca80dfcaa0ffcac11fcae12fcb014fcb216fcb418fbb61afbb81dfbba1ffbbc21fbbe23fac026fac228fac42afac62df9c72ff9c932f9cb35f8cd37f8cf3af7d13df7d340f6d543f6d746f5d949f5db4cf4dd4ff4df53f4e156f3e35af3e55df2e661f2e865f2ea69f1ec6df1ed71f1ef75f1f179f2f27df2f482f3f586f3f68af4f88ef5f992f6fa96f8fb9af9fc9dfafda1fcffa4"));
 var plasma = ramp(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/tinycolor2/esm/tinycolor.js
+// node_modules/tinycolor2/esm/tinycolor.js
 function _typeof(obj) {
   "@babel/helpers - typeof";
   return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj2) {
@@ -65518,7 +65527,7 @@ function validateWCAG2Parms(parms) {
   };
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three-forcegraph/dist/three-forcegraph.mjs
+// node_modules/three-forcegraph/dist/three-forcegraph.mjs
 var materialDispose = (material) => {
   if (material instanceof Array) {
     material.forEach(materialDispose);
@@ -66593,7 +66602,7 @@ var three = window.THREE ? window.THREE : {
 };
 var threeForcegraph = fromKapsule(ForceGraph, three.Group, true);
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.webgpu.js
+// node_modules/three/build/three.webgpu.js
 var refreshUniforms = [
   "alphaMap",
   "alphaTest",
@@ -104670,7 +104679,7 @@ var WebGPURenderer = class extends Renderer {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/TrackballControls.js
+// node_modules/three/examples/jsm/controls/TrackballControls.js
 var _changeEvent = { type: "change" };
 var _startEvent = { type: "start" };
 var _endEvent = { type: "end" };
@@ -105174,7 +105183,7 @@ function onTouchEnd(event) {
   this.dispatchEvent(_endEvent);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/OrbitControls.js
+// node_modules/three/examples/jsm/controls/OrbitControls.js
 var _changeEvent2 = { type: "change" };
 var _startEvent2 = { type: "start" };
 var _endEvent2 = { type: "end" };
@@ -106084,7 +106093,7 @@ function interceptControlUp(event) {
   }
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/FlyControls.js
+// node_modules/three/examples/jsm/controls/FlyControls.js
 var _changeEvent3 = { type: "change" };
 var _EPS3 = 1e-6;
 var _tmpQuaternion = new Quaternion();
@@ -106340,7 +106349,7 @@ function onContextMenu4(event) {
   event.preventDefault();
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/shaders/CopyShader.js
+// node_modules/three/examples/jsm/shaders/CopyShader.js
 var CopyShader = {
   name: "CopyShader",
   uniforms: {
@@ -106380,7 +106389,7 @@ var CopyShader = {
   )
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/Pass.js
+// node_modules/three/examples/jsm/postprocessing/Pass.js
 var Pass = class {
   /**
    * Constructs a new pass.
@@ -106471,7 +106480,7 @@ var FullScreenQuad = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/ShaderPass.js
+// node_modules/three/examples/jsm/postprocessing/ShaderPass.js
 var ShaderPass = class extends Pass {
   /**
    * Constructs a new shader pass.
@@ -106536,7 +106545,7 @@ var ShaderPass = class extends Pass {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/MaskPass.js
+// node_modules/three/examples/jsm/postprocessing/MaskPass.js
 var MaskPass = class extends Pass {
   /**
    * Constructs a new mask pass.
@@ -106624,7 +106633,7 @@ var ClearMaskPass = class extends Pass {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/EffectComposer.js
+// node_modules/three/examples/jsm/postprocessing/EffectComposer.js
 var EffectComposer = class {
   /**
    * Constructs a new effect composer.
@@ -106809,7 +106818,7 @@ var EffectComposer = class {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/RenderPass.js
+// node_modules/three/examples/jsm/postprocessing/RenderPass.js
 var RenderPass = class extends Pass {
   /**
    * Constructs a new render pass.
@@ -106882,7 +106891,7 @@ var RenderPass = class extends Pass {
   }
 };
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/extends.js
+// node_modules/@babel/runtime/helpers/esm/extends.js
 function _extends() {
   return _extends = Object.assign ? Object.assign.bind() : function(n2) {
     for (var e3 = 1; e3 < arguments.length; e3++) {
@@ -106893,32 +106902,32 @@ function _extends() {
   }, _extends.apply(null, arguments);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js
+// node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js
 function _assertThisInitialized(e3) {
   if (void 0 === e3) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
   return e3;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js
+// node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js
 function _setPrototypeOf(t4, e3) {
   return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t5, e4) {
     return t5.__proto__ = e4, t5;
   }, _setPrototypeOf(t4, e3);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/inheritsLoose.js
+// node_modules/@babel/runtime/helpers/esm/inheritsLoose.js
 function _inheritsLoose(t4, o2) {
   t4.prototype = Object.create(o2.prototype), t4.prototype.constructor = t4, _setPrototypeOf(t4, o2);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js
+// node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js
 function _getPrototypeOf(t4) {
   return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function(t5) {
     return t5.__proto__ || Object.getPrototypeOf(t5);
   }, _getPrototypeOf(t4);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/isNativeFunction.js
+// node_modules/@babel/runtime/helpers/esm/isNativeFunction.js
 function _isNativeFunction(t4) {
   try {
     return -1 !== Function.toString.call(t4).indexOf("[native code]");
@@ -106927,7 +106936,7 @@ function _isNativeFunction(t4) {
   }
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/isNativeReflectConstruct.js
+// node_modules/@babel/runtime/helpers/esm/isNativeReflectConstruct.js
 function _isNativeReflectConstruct() {
   try {
     var t4 = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {
@@ -106939,7 +106948,7 @@ function _isNativeReflectConstruct() {
   })();
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/construct.js
+// node_modules/@babel/runtime/helpers/esm/construct.js
 function _construct(t4, e3, r2) {
   if (_isNativeReflectConstruct()) return Reflect.construct.apply(null, arguments);
   var o2 = [null];
@@ -106948,7 +106957,7 @@ function _construct(t4, e3, r2) {
   return r2 && _setPrototypeOf(p2, r2.prototype), p2;
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/wrapNativeSuper.js
+// node_modules/@babel/runtime/helpers/esm/wrapNativeSuper.js
 function _wrapNativeSuper(t4) {
   var r2 = "function" == typeof Map ? /* @__PURE__ */ new Map() : void 0;
   return _wrapNativeSuper = function _wrapNativeSuper2(t5) {
@@ -106972,7 +106981,7 @@ function _wrapNativeSuper(t4) {
   }, _wrapNativeSuper(t4);
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/polished/dist/polished.esm.js
+// node_modules/polished/dist/polished.esm.js
 var ERRORS = {
   "1": "Passed invalid arguments to hsl, please pass multiple numbers e.g. hsl(360, 0.75, 0.4) or an object e.g. rgb({ hue: 255, saturation: 0.4, lightness: 0.75 }).\n\n",
   "2": "Passed invalid arguments to hsla, please pass multiple numbers e.g. hsla(360, 0.75, 0.4, 0.7) or an object e.g. rgb({ hue: 255, saturation: 0.4, lightness: 0.75, alpha: 0.7 }).\n\n",
@@ -107683,7 +107692,7 @@ function transparentize(amount, color3) {
 }
 var curriedTransparentize = curry(transparentize);
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tweenjs/tween.js/dist/tween.esm.js
+// node_modules/@tweenjs/tween.js/dist/tween.esm.js
 var Easing = Object.freeze({
   Linear: Object.freeze({
     None: function(amount) {
@@ -108515,7 +108524,7 @@ var add5 = TWEEN.add.bind(TWEEN);
 var remove = TWEEN.remove.bind(TWEEN);
 var update = TWEEN.update.bind(TWEEN);
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-selection/dist/d3-selection.mjs
+// node_modules/d3-selection/dist/d3-selection.mjs
 var xhtml = "http://www.w3.org/1999/xhtml";
 var namespaces = {
   svg: "http://www.w3.org/2000/svg",
@@ -109259,7 +109268,7 @@ function pointer(event, node) {
   return [event.pageX, event.pageY];
 }
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/preact/dist/preact.mjs
+// node_modules/preact/dist/preact.mjs
 var n;
 var t;
 var r;
@@ -109530,7 +109539,7 @@ n = { __e: function(n2, t4, r2, u2) {
   return n2.__v.__b - t4.__v.__b;
 }, e = /* @__PURE__ */ Symbol(), l = /(PointerCapture)$|Capture$/i, c3 = 0, a2 = {}, s = 0;
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/float-tooltip/dist/float-tooltip.mjs
+// node_modules/float-tooltip/dist/float-tooltip.mjs
 var reactElement2VNode = (el) => {
   if (!(typeof el === "object")) return el;
   const res = b(el);
@@ -109645,7 +109654,7 @@ var index4 = index2({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three-render-objects/dist/three-render-objects.mjs
+// node_modules/three-render-objects/dist/three-render-objects.mjs
 function styleInject2(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
@@ -110160,7 +110169,7 @@ var threeRenderObjects = index2({
   }
 });
 
-// ../../hermes-dike-sandbox-terceros/desktop/node_modules/3d-force-graph/dist/3d-force-graph.mjs
+// node_modules/3d-force-graph/dist/3d-force-graph.mjs
 function styleInject3(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;

@@ -10,6 +10,10 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
 import { mensajeError, rest, S } from '../common.js'
 
+// /grafo/buscar emite vigencia como {estado, motivo}; otros endpoints la
+// emiten como string. Normalizar al estado legible antes de pintar.
+const _vig = (v) => (v && typeof v === 'object' ? v.estado : v) || null
+
 export function PanelHerramientasGrafos({
   onLlevarCitaAlEscrito,
   onAgregarAPizarra,
@@ -144,16 +148,16 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
       error ? jsx('div', { className: 'rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700', children: mensajeError(error) }) : null,
 
       // Clasificación del Árbol de Derecho IndexO
-      arbol && arbol.disponible && (arbol.materias || []).length > 0 ? jsxs('div', {
+      arbol && arbol.disponible && (arbol.clasificacion || []).length > 0 ? jsxs('div', {
         className: 'flex flex-col gap-1 rounded border border-sky-200 bg-sky-50/60 p-2',
         children: [
           jsx('span', { className: 'text-[10px] font-bold uppercase tracking-wider text-sky-800', children: 'Árbol de materias (IndexO)' }),
           jsxs('div', { className: 'flex flex-wrap gap-1', children:
-            (arbol.materias || []).map((m, i) => jsxs('span', {
+            (arbol.clasificacion || []).map((m, i) => jsxs('span', {
               key: i,
               className: 'rounded bg-white border border-sky-200 px-1.5 py-0.5 text-[10px] text-sky-900',
               children: [
-                jsx('b', { children: m.nombre || m.nodo_id }),
+                jsx('b', { children: m.nombre || m.nodo }),
                 (m.terminos || []).length ? ' (' + m.terminos.join(', ') + ')' : '',
               ],
             })),
@@ -166,7 +170,9 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
         className: 'flex flex-col gap-2 rounded-md border border-indigo-300 bg-indigo-50/40 p-2.5',
         children: [
           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-            jsx('span', { className: 'font-bold text-indigo-900', children: articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
+            jsx('span', { className: 'font-bold text-indigo-900', children:
+              (articuloLeido._res && articuloLeido._res.cita)
+                || articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
             jsx('button', {
               type: 'button',
               onClick: () => setArticuloLeido(null),
@@ -187,7 +193,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
                 children: [
                   jsxs('div', { className: 'flex items-center justify-between gap-1 font-mono text-[10px] text-slate-500', children: [
                     jsx('span', { children: u.id }),
-                    u.modalidad ? jsx('span', { className: 'rounded bg-slate-100 px-1 uppercase', children: u.modalidad }) : null,
+                    u.modalidad || u.modalidad_candidata ? jsx('span', { className: 'rounded bg-slate-100 px-1 uppercase', children: u.modalidad || u.modalidad_candidata }) : null,
                   ] }),
                   jsx('div', { className: 'mt-0.5 text-slate-700', children: u.texto }),
                 ],
@@ -208,10 +214,10 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
                 jsx('div', { className: 'font-semibold text-slate-800', children: r.cita || r.label || r.gid }),
                 jsx('div', { className: 'font-mono text-[10px] text-slate-400', children: [r.nodo_id, r.gid].filter(Boolean).join(' · ') }),
               ] }),
-              r.vigencia ? jsx('span', {
+              _vig(r.vigencia) ? jsx('span', {
                 className: 'rounded px-1.5 py-0.5 text-[10px] font-medium ' +
-                  (r.vigencia === 'IN_FORCE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'),
-                children: r.vigencia === 'IN_FORCE' ? 'vigente' : r.vigencia,
+                  (_vig(r.vigencia) === 'IN_FORCE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'),
+                children: _vig(r.vigencia) === 'IN_FORCE' ? 'vigente' : _vig(r.vigencia),
               }) : null,
             ] }),
             r.snippet ? jsx('div', { className: 'text-[11px] text-slate-600 leading-relaxed line-clamp-3', children: String(r.snippet).slice(0, 260) }) : null,
@@ -570,7 +576,7 @@ function SubHerramientaFuentes({ onAbrirGrafo3D }) {
         jsx('div', { className: 'text-[10px] font-bold uppercase tracking-wider text-slate-400', children: 'Grafo de Revisión Personal (GRE)' }),
         jsx('div', {
           className: 'text-xs text-slate-700',
-          children: `Nodos candidatos: ${(personal.nodes || []).length} · Aristas: ${(personal.edges || []).length}`,
+          children: `Nodos candidatos: ${(personal.candidates || personal.nodes || []).length} · Aristas: ${(personal.edges || []).length}`,
         }),
         jsx('div', { className: 'text-[11px] text-slate-500', children: 'Los candidatos del grafo personal viven en plugin-data fuera del corpus sellado.' }),
       ] }) : null,

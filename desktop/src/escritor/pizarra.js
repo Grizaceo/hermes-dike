@@ -12,6 +12,10 @@ import {
 
 export { COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla }
 
+// /grafo/buscar emite vigencia como {estado, motivo}; otros endpoints la
+// emiten como string. Normalizar al estado legible antes de pintar.
+const _vig = (v) => (v && typeof v === 'object' ? v.estado : v) || null
+
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [q, setQ] = useState('')
   const [resultados, setResultados] = useState([])
@@ -19,14 +23,17 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState(null)
   const timerRef = useRef(null)
+  const seqRef = useRef(0)
 
   const ejecutar = useCallback((consulta) => {
     const limpio = (consulta || '').trim()
     if (!limpio) {
+      seqRef.current += 1
       setResultados([])
       setArbol(null)
       return
     }
+    const id = ++seqRef.current
     setOcupado(true)
     setError(null)
     rest('/grafo/buscar', {
@@ -34,12 +41,16 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
       body: { q: limpio, limite: 12 },
       timeoutMs: 120000,
     }).then((d) => {
+      if (id !== seqRef.current) return
       setResultados((d && d.resultados) || [])
       setArbol((d && d.arbol) || null)
     }).catch((e) => {
+      if (id !== seqRef.current) return
       setError(e)
       setResultados([])
-    }).finally(() => setOcupado(false))
+    }).finally(() => {
+      if (id === seqRef.current) setOcupado(false)
+    })
   }, [])
 
   const cambiar = (ev) => {
@@ -73,13 +84,13 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
           children: '✕',
         }),
       ] }),
-      arbol && arbol.disponible && (arbol.materias || []).length
+      arbol && arbol.disponible && (arbol.clasificacion || []).length
         ? jsxs('div', { className: 'flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300', children: [
             jsx('span', { className: 'text-slate-400', children: 'Materias:' }),
-            ...(arbol.materias || []).slice(0, 3).map((m, i) => jsx('span', {
+            ...(arbol.clasificacion || []).slice(0, 3).map((m, i) => jsx('span', {
               key: i,
               className: 'rounded bg-slate-800 px-1.5 py-0.5 text-sky-300',
-              children: m.nombre || m.nodo_id,
+              children: m.nombre || m.nodo,
             })),
           ] })
         : null,
@@ -99,10 +110,10 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
             jsxs('div', { className: 'min-w-0 flex-1', children: [
               jsxs('div', { className: 'flex items-center gap-1.5', children: [
                 jsx('span', { className: 'truncate text-xs font-semibold text-sky-300', children: r.cita || r.label || r.gid }),
-                r.vigencia ? jsx('span', {
+                _vig(r.vigencia) ? jsx('span', {
                   className: 'rounded px-1 py-0.5 text-[9px] uppercase ' +
-                    (r.vigencia === 'IN_FORCE' ? 'bg-emerald-900/70 text-emerald-300' : 'bg-amber-900/70 text-amber-300'),
-                  children: r.vigencia === 'IN_FORCE' ? 'vigente' : r.vigencia,
+                    (_vig(r.vigencia) === 'IN_FORCE' ? 'bg-emerald-900/70 text-emerald-300' : 'bg-amber-900/70 text-amber-300'),
+                  children: _vig(r.vigencia) === 'IN_FORCE' ? 'vigente' : _vig(r.vigencia),
                 }) : null,
               ] }),
               r.snippet ? jsx('div', {

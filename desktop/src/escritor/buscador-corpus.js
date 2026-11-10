@@ -1,3 +1,4 @@
+import { etiquetaCodigo } from '../i18n.js'
 // BuscadorCorpus: widget único de búsqueda en el corpus sellado (/grafo/buscar).
 // Lo usan la Pizarra Estratégica (overlay flotante con debounce) y las
 // Herramientas de Grafos (panel fijo con búsqueda manual y lector de
@@ -20,7 +21,7 @@ export function chipVigencia(v) {
   if (!e) return null
   return {
     clase: S.chip + ' ' + (e === 'IN_FORCE' ? S.chipOk : S.chipWarn),
-    texto: e === 'IN_FORCE' ? t('busq.vigente') : e,
+    texto: etiquetaCodigo(e),
   }
 }
 

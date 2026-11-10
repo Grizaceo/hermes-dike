@@ -1,3 +1,5 @@
+import { t } from './i18n.js'
+import { etiquetaCodigo } from './i18n.js'
 // Vista 3D del grafo del corpus (3d-force-graph + three, empaquetados en el
 // bundle). Muestra primero solo los 25 instrumentos; un clic en un
 // instrumento (o el interruptor "mostrar artículos") expande sus artículos.
@@ -326,7 +328,7 @@ function NodoDetalle({ nodo, fuente }) {
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     data.titulo ? jsx('div', { className: S.sub, children: data.titulo }) : null,
     data.vigencia && data.vigencia.estado ? jsx('div', { className: S.sub, children:
-      t('graph.in.force.label') + data.vigencia.estado +
+      t('graph.in.force.label') + etiquetaCodigo(data.vigencia.estado) +
       (data.vigencia.desde ? t('graph.from') + data.vigencia.desde : '') }) : null,
     data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
       children: t('graph.original.source') }) : null,
@@ -372,14 +374,8 @@ function TarjetaArista({ arista, fuente }) {
 // resolver mismo lo advierte: rotular «derogado» a una versión vencida cita mal).
 function etiquetaVigencia(v) {
   const e = v && v.estado
-  if (!e || e === 'IN_FORCE') return null
-  if (e === 'OUT_OF_FORCE') {
-    return v.motivo === 'SUPERSEDED_VERSION'
-      ? { texto: t('graph.superseded.version'), malo: false }
-      : { texto: 'derogado', malo: true }
-  }
-  if (e === 'FUTURE') return { texto: t('graph.not.yet.in.force'), malo: false }
-  return { texto: t('graph.in.force.status.unknown'), malo: false }
+  if (!e) return null
+  return { texto: etiquetaCodigo(e) + (v.motivo ? ' · ' + etiquetaCodigo(v.motivo) : ''), malo: e === 'OUT_OF_FORCE' && v.motivo !== 'SUPERSEDED_VERSION' }
 }
 
 function vigenteDe(v) {
@@ -459,7 +455,7 @@ function NormaDetalle({ data, error }) {
     ...arts.map((a, i) => jsxs('details', { key: i, className: 'text-xs', children: [
       jsx('summary', { className: 'cursor-pointer py-0.5', children:
         'art. ' + (a.label || a.eId) +
-        (a.estado ? ' · ' + a.estado : '') +
+        (a.estado ? ' · ' + etiquetaCodigo(a.estado) : '') +
         (a.vigente_desde ? t('graph.from2') + String(a.vigente_desde).slice(0, 10) : '') }),
       jsx('div', { className: S.sub + ' pl-3 pb-1 whitespace-pre-wrap',
         children: String(a.texto || '').slice(0, 1200) }),
@@ -495,7 +491,7 @@ function NormaRow({ norma }) {
       children: [
         jsx('span', { className: S.sub, children: abierta ? '▾' : '▸' }),
         jsxs('div', { className: 'min-w-0', children: [
-          jsx('div', { children: rotulo + (norma.estado ? ' · ' + norma.estado : '') }),
+          jsx('div', { children: rotulo + (norma.estado ? ' · ' + etiquetaCodigo(norma.estado) : '') }),
           jsx('div', { className: S.sub + ' truncate', children: norma.titulo }),
         ] }),
       ],
@@ -564,7 +560,7 @@ function TextoArticulo({ foco }) {
   if (data.resolucion !== 'RESOLVED') {
     return jsx('div', { className: S.sub, children:
       t('graph.article.could.not.be.resolved.in.the.corpus') +
-      (data.resolucion || '?') + (data.motivo ? ': ' + data.motivo : '') + ').' })
+      etiquetaCodigo(data.resolucion || '?') + (data.motivo ? ': ' + etiquetaCodigo(data.motivo) : '') + ').' })
   }
 
   const texto = data.texto || ''

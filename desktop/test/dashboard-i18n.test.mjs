@@ -44,7 +44,7 @@ test('toda clave de T se usa y toda llamada t() existe', () => {
   for (const m of fueraDeT.matchAll(/\bt\(\s*["']([^"']+)["']/g)) usadas.add(m[1])
   const enT = new Set(Object.keys(T.en))
   for (const k of usadas) assert.ok(enT.has(k), `t('${k}') no existe en T`)
-  for (const k of enT) assert.ok(usadas.has(k), `clave sin uso: ${k}`)
+  for (const k of enT) assert.ok(k.startsWith("codigo.") || usadas.has(k), `clave sin uso: ${k}`)
 })
 
 test('no quedan literales en español fuera de T', () => {

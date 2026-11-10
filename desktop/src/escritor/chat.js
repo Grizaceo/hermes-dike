@@ -1,3 +1,4 @@
+import { etiquetaCodigo } from '../i18n.js'
 // Chat del escrito (F2b): sesión por caso en el perfil del abogado, con el
 // escrito viajando seudonimizado en cada turno. El estado de las citas lo
 // fija Diké, nunca el modelo. Fail-closed: sin perfil con Diké habilitado no
@@ -119,7 +120,7 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
         ? jsx('span', {
             className: S.chip + ' ' + (citaDet.estado === 'VERIFICADA' ? S.chipOk : S.chipOff),
             title: t('chat.estadoMotor'),
-            children: citaDet.estado,
+            children: etiquetaCodigo(citaDet.estado),
           })
         : null,
       jsx('button', {
@@ -615,7 +616,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                             const chip = {
                               key: j,
                               className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                              title: (() => { const e = etiquetaCita(est, d, (m.verif.res.meta || {}), registro); return t(e.codigo, e.datos) + (e.pista ? t('verify.lead') : '') })()
+                              title: (() => { const e = etiquetaCita(est, d, (m.verif.res.meta || {}), registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })()
                                 + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
                               children: d.cita_raw,
                             }

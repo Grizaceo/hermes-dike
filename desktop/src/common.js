@@ -1,3 +1,4 @@
+import { t } from './i18n.js'
 // Compartido entre plugin.src.js y grafo3d.js: nombres de estilo,
 // el error legible y el REST del contexto (ctx.rest del PluginContext: el
 // objeto `host` del SDK no expone REST — solo navigate/request/state).

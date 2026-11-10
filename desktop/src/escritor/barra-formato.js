@@ -1,3 +1,4 @@
+import { t } from '../i18n.js'
 // Barra superior tipo Word del Case Writer (2 filas, inspirada en el Case
 // Writer original de Diké):
 // Fila 1: Menú Archivo · Escribir/Leer · Selector de Documento/Caso + estado

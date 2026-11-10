@@ -1,3 +1,5 @@
+import { t } from '../i18n.js'
+import { etiquetaCodigo } from '../i18n.js'
 // Case Writer (Estudio de Escritos):
 // 1. Barra superior de documento y formato tipo Word (Archivo, Escribir/Leer,
 //    Documento/Caso, Deshacer/Rehacer, Tipografía, Tamaño, Formalismos, Verificar).
@@ -733,7 +735,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               resumenPrueba: ok
                 ? t('writer.replacement.verified.apply.it.then.check.the.brief.again')
                 : t('writer.failedReplacement') +
-                  ((primerFallo && primerFallo.resolucion) || res.veredicto || t('writer.noDetail')),
+                  (etiquetaCodigo((primerFallo && primerFallo.resolucion) || res.veredicto) || t('writer.noDetail')),
             },
           }))
         })
@@ -911,11 +913,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 role: 'status',
                 children: [
                   res.error
-                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + String(res.error) })
+                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + etiquetaCodigo(res.error_code || res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
                     : jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
                         jsx('span', { className: 'font-semibold', children:
                           t('writer.count', { ok: meta.citas_verificadas || 0, total: meta.total_citas || 0 }) +
-                          (res.veredicto ? ` (${res.veredicto})` : '') }),
+                          (res.veredicto ? ` (${etiquetaCodigo(res.veredicto)})` : '') }),
                         jsx('span', { className: 'text-xs opacity-80', children:
                           `corpus ${meta.pack_hash || '?'}` + (meta.as_of ? t('writer.asOf') + meta.as_of : '') }),
                       ] }),
@@ -1010,14 +1012,14 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         className: S.noticeBad,
                         children: [
                           jsx('span', { className: S.chip + ' ' + S.chipBad, children: t('writer.unchecked') }),
-                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + String(res.error) }),
+                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + etiquetaCodigo(res.error_code || res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
                         ],
                       }) : null,
 
                       res && !res.error ? jsxs('div', { className: 'flex flex-col gap-2', children: [
                         jsx('div', { className: 'font-semibold text-(--dk-texto)', children:
                           t('writer.dik') + (meta.citas_verificadas || 0) + t('writer.of') + (meta.total_citas || 0) +
-                          t('writer.verifiedSuffix') + (res.veredicto ? ' (' + res.veredicto + ')' : '') +
+                          t('writer.verifiedSuffix') + (res.veredicto ? ' (' + etiquetaCodigo(res.veredicto) + ')' : '') +
                           ' · corpus ' + (meta.pack_hash || '?') +
                           (meta.as_of ? t('writer.asOf') + meta.as_of : '') }),
                         msgVeredicto ? jsx('div', { className: 'text-xs text-(--dk-texto-2)', children: t(msgVeredicto) }) : null,
@@ -1040,11 +1042,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                       className: S.chip + ' ' + S[es.chip] + ' cursor-pointer',
                                       title: t('writer.open.article.in.corpus.graph'),
                                       onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
-                                      children: es.texto + t('writer.graph'),
+                                      children: etiquetaCodigo(estado) + t('writer.graph'),
                                     })
-                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: es.texto }),
+                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: etiquetaCodigo(estado) }),
                               ] }),
-                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, e.datos) + (e.pista ? t('verify.lead') : '') })() }),
+                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })() }),
                               estado === 'fallo'
                                 ? jsx(AccionesFallo, { detalle: d, acciones: acciones[i], onAccion: (t, val) => accionCita(i, t, val) })
                                 : null,

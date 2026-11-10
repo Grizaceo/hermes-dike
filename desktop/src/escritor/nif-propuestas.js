@@ -1,3 +1,4 @@
+import { etiquetaCodigo } from '../i18n.js'
 // NIF vivo (F3): el modelo propone actualizaciones del NIF a partir del
 // escrito; el abogado acepta, edita o rechaza cada una. Nada entra al NIF
 // sin aceptación humana; las normas quedan "sin verificar" hasta que Diké
@@ -287,7 +288,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
               verifica[keyNorma] ? jsxs('div', { className: 'mt-1 text-xs',
                 children: [
                   t('nifp.normPrefix') + (verifica[keyNorma].label || '') + t('nifp.normSuffix'),
-                  jsx('b', { children: verifica[keyNorma].estado }),
+                  jsx('b', { children: etiquetaCodigo(verifica[keyNorma].estado) }),
                   verifica[keyNorma].estado === 'sin verificar'
                     ? jsx('button', { type: 'button', className: S.button,
                         onClick: () => verificarNorma(

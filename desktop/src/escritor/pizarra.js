@@ -6,6 +6,7 @@
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { S } from '../common.js'
+import { t } from '../i18n.js'
 import { BuscadorCorpus } from './buscador-corpus.js'
 import {
   COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla, crearIdNota as crearId,
@@ -38,32 +39,32 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
       limite: 12,
       debounceMs: 350,
       autoFoco: true,
-      titulo: 'LexO Search · Corpus Diké',
-      placeholder: 'Buscar en las 25 leyes (ej. despido necesidades empresa)…',
-      textoVacio: 'Escribe términos jurídicos para traer normas a la pizarra o al escrito.',
+      titulo: t('piz.tituloBusqueda'),
+      placeholder: t('piz.placeholderBusqueda'),
+      textoVacio: t('piz.vacioBusqueda'),
       onCerrar,
       renderAcciones: (r) => [
         jsx('button', {
           type: 'button',
           className: 'dk-btn dk-btn--borde dk-btn--chico',
-          title: 'Crear tarjeta de norma en la pizarra',
+          title: t('piz.crearNorma'),
           onClick: () => onAgregarNota({
-            titulo: r.cita || r.label || r.gid || 'Norma',
-            tag: 'NORMA',
+            titulo: r.cita || r.label || r.gid || t('piz.normaFallback'),
+            tag: t('piz.tagNorma'),
             color: (COLORES_NOTA.find((c) => c.id === 'azul') || COLORES_NOTA[0]).hex,
             texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 260) : ''),
             nodo_id: r.nodo_id,
             gid: r.gid,
           }),
-          children: '+ Pizarra',
+          children: '+ ' + t('piz.titulo'),
         }),
         r.citable !== false && r.cita && onLlevarAlEscrito
           ? jsx('button', {
               type: 'button',
               className: 'dk-btn dk-btn--borde dk-btn--chico',
-              title: 'Insertar cita canónica en el escrito y verificar',
+              title: t('piz.insertarCita'),
               onClick: () => onLlevarAlEscrito(r),
-              children: '+ Escrito',
+              children: t('piz.escritoBoton'),
             })
           : null,
       ],
@@ -164,8 +165,8 @@ export function PizarraEstrategica({
       y: datos.y != null ? datos.y : 20 + fila * 175,
       w: datos.w || 232,
       h: datos.h || 155,
-      titulo: datos.titulo || 'Nota ' + (idx + 1),
-      tag: datos.tag || 'NOTA',
+      titulo: datos.titulo || t('piz.tituloNota', { n: idx + 1 }),
+      tag: datos.tag || t('piz.tagNota'),
       color: datos.color || colorDefault,
       texto: datos.texto || '',
       nodo_id: datos.nodo_id || null,
@@ -244,7 +245,7 @@ export function PizarraEstrategica({
             className: 'flex items-center gap-1 rounded px-2 py-1 font-medium text-(--dk-texto-2) hover:bg-(--dk-sobre) transition-colors cursor-pointer',
             children: [
               jsx('span', { children: colapsada ? '▾' : '▴' }),
-              jsx('span', { children: 'Pizarra Estratégica' }),
+              jsx('span', { children: t('piz.titulo') }),
               nodos.length > 0
                 ? jsx('span', {
                     className: 'ml-1 rounded-full bg-(--dk-superficie-2) px-1.5 py-0.2 text-xs text-(--dk-texto-2)',
@@ -258,8 +259,8 @@ export function PizarraEstrategica({
             type: 'button',
             onClick: () => agregarNota({}),
             className: 'flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs',
-            title: 'Agregar nota adhesiva a la pizarra',
-            children: ['+ Nota'],
+            title: t('piz.agregarNotaTitulo'),
+            children: [t('piz.botonNota')],
           }),
 
           // Selector de Plantillas
@@ -268,13 +269,13 @@ export function PizarraEstrategica({
               type: 'button',
               onClick: () => setMenuPlantillas((v) => !v),
               className: 'flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs',
-              title: 'Cargar estructura de escrito en la pizarra',
-              children: ['⊞ Plantillas ▾'],
+              title: t('piz.cargarEstructura'),
+              children: ['⊞ ' + t('piz.plantillas') + ' ▾'],
             }),
             menuPlantillas ? jsxs('div', {
               className: 'absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl',
               children: [
-                jsx('div', { className: 'px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--dk-texto-3)', children: 'Estructuras jurídicas' }),
+                jsx('div', { className: 'px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--dk-texto-3)', children: t('piz.estructuras') }),
                 ...PLANTILLAS_PIZARRA.map((pl) => jsxs('button', {
                   key: pl.id,
                   type: 'button',
@@ -298,7 +299,7 @@ export function PizarraEstrategica({
             },
             'aria-pressed': buscadorAbierto,
             className: 'dk-btn',
-            title: 'Buscar normas en el corpus de Diké y agregarlas como tarjetas',
+            title: t('piz.buscarNormas'),
             children: ['LexO Search'],
           }),
 
@@ -306,13 +307,13 @@ export function PizarraEstrategica({
             type: 'button',
             onClick: volcarAlEscrito,
             className: 'dk-btn dk-btn--borde',
-            title: 'Insertar el contenido ordenado de las notas en el escrito',
-            children: ['Llevar notas al escrito'],
+            title: t('piz.llevarNotasTitulo'),
+            children: [t('piz.llevarNotas')],
           }) : null,
 
           conectandoDesde ? jsx('span', {
             className: S.chip + ' ' + S.chipInfo,
-            children: 'Haz clic en otra nota para conectarlas (o en la misma para cancelar)',
+            children: t('piz.conectarHint'),
           }) : null,
 
           // Botón limpiar a la derecha (como el icono de papelera en imagen 2)
@@ -321,8 +322,8 @@ export function PizarraEstrategica({
               type: 'button',
               onClick: () => actualizar({ nodos: [], aristas: [] }),
               className: 'dk-btn dk-btn--borde dk-btn--peligro dk-btn--chico',
-              title: 'Limpiar pizarra',
-              children: 'Limpiar',
+              title: t('piz.limpiarTitulo'),
+              children: t('piz.limpiar'),
             }) : null,
           ] }),
         ],
@@ -357,8 +358,8 @@ export function PizarraEstrategica({
             'data-fondo': '1',
             className: 'pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center',
             children: [
-              jsx('div', { className: 'text-xs font-medium text-(--dk-texto-3)', children: 'Pizarra Estratégica vacía — planifica los bloques de tu escrito antes de redactar' }),
-              jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: 'Usa «+ Nota», elige «Plantillas» (Demanda, Sentencia, Contrato) o abre «LexO Search» para traer artículos.' }),
+              jsx('div', { className: 'text-xs font-medium text-(--dk-texto-3)', children: t('piz.vacio') }),
+              jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: t('piz.vacioAyuda') }),
             ],
           }) : null,
 
@@ -462,19 +463,19 @@ export function PizarraEstrategica({
                       children: [
                         jsx('span', {
                           className: 'rounded bg-(--dk-superficie-2) px-1 py-0.2 text-xs font-bold uppercase tracking-wider text-(--dk-texto-2)',
-                          children: n.tag || 'NOTA',
+                          children: n.tag || t('piz.tagNota'),
                         }),
                         jsx('input', {
                           value: n.titulo || '',
                           onChange: (ev) => editarNodo(n.id, { titulo: ev.target.value }),
                           className: 'min-w-0 flex-1 bg-transparent text-xs font-semibold text-(--dk-texto) outline-none',
-                          placeholder: 'Título…',
+                          placeholder: t('piz.tituloPlaceholder'),
                         }),
                         // Cambiar color
                         jsx('button', {
                           type: 'button',
-                          title: 'Cambiar color de la nota',
-                          'aria-label': 'Cambiar color de la nota',
+                          title: t('piz.colorNota'),
+                          'aria-label': t('piz.colorNota'),
                           onClick: () => {
                             const idx = COLORES_NOTA.findIndex((c) => c.hex === n.color)
                             const sig = COLORES_NOTA[(idx + 1) % COLORES_NOTA.length]
@@ -486,8 +487,8 @@ export function PizarraEstrategica({
                         // Conectar con otra tarjeta
                         jsx('button', {
                           type: 'button',
-                          title: esOrigen ? 'Cancelar conexión' : 'Conectar con otra tarjeta',
-                          'aria-label': esOrigen ? 'Cancelar conexión' : 'Conectar con otra tarjeta',
+                          title: esOrigen ? t('piz.cancelarConexion') : t('piz.conectar'),
+                          'aria-label': esOrigen ? t('piz.cancelarConexion') : t('piz.conectar'),
                           'aria-pressed': esOrigen,
                           onClick: () => clickConectar(n.id),
                           className: 'dk-btn dk-btn--chico',
@@ -496,8 +497,8 @@ export function PizarraEstrategica({
                         // Insertar esta tarjeta en el escrito
                         onInsertarTexto ? jsx('button', {
                           type: 'button',
-                          title: 'Insertar texto de esta nota en el escrito',
-                          'aria-label': 'Insertar texto de esta nota en el escrito',
+                          title: t('piz.insertarTexto'),
+                          'aria-label': t('piz.insertarTexto'),
                           onClick: () => {
                             const txt = (n.texto || n.titulo || '').trim()
                             if (txt) onInsertarTexto(txt)
@@ -508,8 +509,8 @@ export function PizarraEstrategica({
                         // Abrir en el grafo si es tarjeta de norma con nodo_id
                         n.nodo_id && onAbrirGrafo ? jsx('button', {
                           type: 'button',
-                          title: 'Abrir artículo en el grafo',
-                          'aria-label': 'Abrir artículo en el grafo',
+                          title: t('piz.abrirGrafo'),
+                          'aria-label': t('piz.abrirGrafo'),
                           onClick: () => onAbrirGrafo({ nodo_id: n.nodo_id }),
                           className: 'dk-btn dk-btn--chico',
                           children: '◈',
@@ -517,8 +518,8 @@ export function PizarraEstrategica({
                         // Minimizar
                         jsx('button', {
                           type: 'button',
-                          title: n.minimizada ? 'Expandir nota' : 'Minimizar nota',
-                          'aria-label': n.minimizada ? 'Expandir nota' : 'Minimizar nota',
+                          title: n.minimizada ? t('piz.expandir') : t('piz.minimizar'),
+                          'aria-label': n.minimizada ? t('piz.expandir') : t('piz.minimizar'),
                           onClick: () => editarNodo(n.id, { minimizada: !n.minimizada }),
                           className: 'dk-btn dk-btn--chico',
                           children: n.minimizada ? '▢' : '–',
@@ -526,8 +527,8 @@ export function PizarraEstrategica({
                         // Cerrar/Eliminar
                         jsx('button', {
                           type: 'button',
-                          title: 'Eliminar nota',
-                          'aria-label': 'Eliminar nota',
+                          title: t('piz.eliminar'),
+                          'aria-label': t('piz.eliminar'),
                           onClick: () => eliminarNodo(n.id),
                           className: 'dk-btn dk-btn--chico dk-btn--peligro',
                           children: '✕',
@@ -539,7 +540,7 @@ export function PizarraEstrategica({
                     !n.minimizada ? jsx('textarea', {
                       value: n.texto || '',
                       onChange: (ev) => editarNodo(n.id, { texto: ev.target.value }),
-                      placeholder: 'Escribe ideas, hechos o artículos para esta sección…',
+                      placeholder: t('piz.textoPlaceholder'),
                       className: 'flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-(--dk-texto) outline-none',
                     }) : null,
 
@@ -557,7 +558,7 @@ export function PizarraEstrategica({
                           nodosBase: nodos,
                         }
                       },
-                      title: 'Arrastrar para cambiar tamaño',
+                      title: t('piz.redimensionar'),
                       className: 'absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-xs leading-none text-(--dk-texto-3)',
                       children: '◢',
                     }) : null,
@@ -573,7 +574,7 @@ export function PizarraEstrategica({
             children: [
               jsx('button', {
                 type: 'button',
-                title: 'Acercar',
+                title: t('piz.acercar'),
                 onClick: () => {
                   const z = Math.min(1.6, +(zoom + 0.15).toFixed(2))
                   setZoom(z)
@@ -584,7 +585,7 @@ export function PizarraEstrategica({
               }),
               jsx('button', {
                 type: 'button',
-                title: 'Alejar',
+                title: t('piz.alejar'),
                 onClick: () => {
                   const z = Math.max(0.55, +(zoom - 0.15).toFixed(2))
                   setZoom(z)
@@ -595,7 +596,7 @@ export function PizarraEstrategica({
               }),
               jsx('button', {
                 type: 'button',
-                title: 'Restablecer vista',
+                title: t('piz.restablecer'),
                 onClick: () => {
                   setZoom(1)
                   setPan({ x: 0, y: 0 })
@@ -622,7 +623,7 @@ export function PizarraEstrategica({
           ev.preventDefault()
           resizeBarRef.current = { startY: ev.clientY, origAltura: altura }
         },
-        title: 'Arrastra para ajustar la altura de la Pizarra Estratégica',
+        title: t('piz.altura'),
         className: 'flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-(--dk-borde) bg-(--dk-superficie-2) hover:bg-(--dk-sobre)',
         children: jsx('span', { className: 'text-xs tracking-widest text-(--dk-texto-3)', children: '⋮⋮⋮' }),
       }) : null,

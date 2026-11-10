@@ -367,7 +367,7 @@ export function BarraFormato({
               onClick: onVerificar,
               disabled: verificando || estadoDoc === 'cargando',
               className: 'dk-btn dk-btn--primario',
-              children: verificando ? t('format.checking') : t('format.check.citations'),
+              children: verificando ? t('writer.checking') : t('writer.check.citations'),
             }),
 
             jsx('button', {

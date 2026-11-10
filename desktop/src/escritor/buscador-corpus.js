@@ -102,7 +102,7 @@ export function BuscadorCorpus({
         className: 'dk-btn dk-btn--primario dk-btn--chico shrink-0',
         disabled: ocupado || !q.trim(),
         onClick: buscar,
-        children: ocupado ? '…' : t('busq.buscar'),
+        children: ocupado ? '…' : t('graph.search.label'),
       }) : null,
       onCerrar ? jsx('button', {
         type: 'button',

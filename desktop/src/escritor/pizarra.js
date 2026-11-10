@@ -50,7 +50,7 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
           title: t('piz.crearNorma'),
           onClick: () => onAgregarNota({
             titulo: r.cita || r.label || r.gid || t('piz.normaFallback'),
-            tag: t('piz.tagNorma'),
+            tag: t('style.norm'),
             color: (COLORES_NOTA.find((c) => c.id === 'azul') || COLORES_NOTA[0]).hex,
             texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 260) : ''),
             nodo_id: r.nodo_id,
@@ -270,7 +270,7 @@ export function PizarraEstrategica({
               onClick: () => setMenuPlantillas((v) => !v),
               className: 'flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs',
               title: t('piz.cargarEstructura'),
-              children: ['⊞ ' + t('piz.plantillas') + ' ▾'],
+              children: ['⊞ ' + t('pred.l0') + ' ▾'],
             }),
             menuPlantillas ? jsxs('div', {
               className: 'absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl',

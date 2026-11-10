@@ -20,8 +20,8 @@ import PROMPT_NIF from '../../../escritor/nif_propuestas.md'
 
 const TIMEOUT_RPC = 120000
 const ETIQUETAS = {
-  'facts.known': 'nifp.etiqueta.acreditados', 'facts.alleged': 'nif.seccion.factsAlleged',
-  'facts.missing': 'nifp.etiqueta.porConocer', subjects: 'nif.seccion.subjects',
+  'facts.known': 'nif.seccion.factsKnown', 'facts.alleged': 'nif.seccion.factsAlleged',
+  'facts.missing': 'nif.seccion.factsMissing', subjects: 'nif.seccion.subjects',
   norms: 'nif.seccion.norms', hypotheses: 'nif.seccion.hypotheses',
   gaps: 'nif.seccion.gaps', principles: 'nif.seccion.principles',
   conflicts: 'nif.seccion.conflicts',
@@ -316,16 +316,16 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
 // ---------------------------------------------------------------------------
 
 const SECCIONES_TABLERO_NIF = [
-  ['facts.known', 'nif.seccion.factsKnown', 'nifp.tagHecho', '#bbf7d0'],
-  ['facts.alleged', 'nif.seccion.factsAlleged', 'nifp.tagHecho', '#bfdbfe'],
-  ['facts.missing', 'nif.seccion.factsMissing', 'nifp.tagHecho', '#fed7aa'],
-  ['norms', 'nif.seccion.norms', 'piz.tagNorma', '#e9d5ff'],
+  ['facts.known', 'nif.seccion.factsKnown', 'style.fact.label', '#bbf7d0'],
+  ['facts.alleged', 'nif.seccion.factsAlleged', 'style.fact.label', '#bfdbfe'],
+  ['facts.missing', 'nif.seccion.factsMissing', 'style.fact.label', '#fed7aa'],
+  ['norms', 'nif.seccion.norms', 'style.norm', '#e9d5ff'],
   ['subjects', 'nif.seccion.subjects', 'nifp.tagPartes', '#bfdbfe'],
-  ['hypotheses', 'nif.seccion.hypotheses', 'nifp.tagConclusion', '#fef08a'],
-  ['gaps', 'nifp.seccion.gaps', 'nifp.tagPrueba', '#fecaca'],
-  ['conflicts', 'nif.seccion.conflicts', 'piz.tagNorma', '#fecaca'],
-  ['principles', 'nif.seccion.principles', 'piz.tagNorma', '#e9d5ff'],
-  ['deontic_positions', 'nif.seccion.deonticPositions', 'piz.tagNorma', '#bbf7d0'],
+  ['hypotheses', 'nif.seccion.hypotheses', 'style.conclusion', '#fef08a'],
+  ['gaps', 'nif.seccion.gaps', 'style.evidence', '#fecaca'],
+  ['conflicts', 'nif.seccion.conflicts', 'style.norm', '#fecaca'],
+  ['principles', 'nif.seccion.principles', 'style.norm', '#e9d5ff'],
+  ['deontic_positions', 'nif.seccion.deonticPositions', 'style.norm', '#bbf7d0'],
 ]
 
 function formatearItemNif(v) {
@@ -448,13 +448,13 @@ export function NifInteractivoEscritor({
                 setNuevaPregunta('')
               },
               className: 'dk-btn dk-btn--primario',
-              children: t('nifp.crearCaso'),
+              children: t('format.create.case'),
             }),
             onSembrarDemoCaso ? jsx('button', {
               type: 'button',
               onClick: onSembrarDemoCaso,
               className: 'dk-btn dk-btn--borde',
-              children: t('nifp.cargarDemo'),
+              children: t('format.load.demo.case.ct'),
             }) : null,
           ] }),
         ],
@@ -562,7 +562,7 @@ export function NifInteractivoEscritor({
                       onClick: () => agregarItem(campo),
                       disabled: ocupado || !nuevoValor.trim(),
                       className: 'dk-btn dk-btn--primario dk-btn--chico',
-                      children: t('nifp.agregar'),
+                      children: t('nif.agregar'),
                     }),
                   ] }),
                 ] }) : null,

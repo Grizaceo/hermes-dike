@@ -160,7 +160,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
 
   return jsxs('div', { className: S.card, children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-      jsx('div', { className: S.cardTitle, children: t('priv.titulo') }),
+      jsx('div', { className: S.cardTitle, children: t('format.privacy') }),
       jsxs('label', { className: 'flex items-center gap-1.5 text-xs', children: [
         jsx('input', {
           type: 'checkbox', checked: seudOn,
@@ -263,7 +263,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
       jsxs('div', { className: S.sub, children: [
         t('priv.valoresMapa', { n: Object.keys(vistaSalida.mapa || {}).length }),
       ] }),
-      jsx('button', { type: 'button', className: S.link, onClick: () => setVistaSalida(null), children: t('priv.cerrar') }),
+      jsx('button', { type: 'button', className: S.link, onClick: () => setVistaSalida(null), children: t('format.close') }),
     ] }) : vistaSalida === 'cargando' ? jsx('div', { className: S.sub, children: t('priv.preparando') }) : null,
   ] })
 }

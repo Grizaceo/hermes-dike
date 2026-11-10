@@ -104,10 +104,10 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
   const fragTexto = leerMal ? t('extra.could.not.read.the.article')
     : leerRes != null ? 'Nodo inexistente'
     : frag == null ? 'comprobando fragmento…'
-    : frag.ok ? t('extra.passage.found.in.article')
-    : t('extra.passage.not.found.in.this.article') +
-      (frag.motivo === 'corto' ? t('extra.too.short.to.compare')
-        : frag.motivo === 'largo' ? t('extra.too.long') : '')
+    : frag.ok ? t('graph.passage.found.in.article')
+    : t('graph.passage.not.found.in.this.article') +
+      (frag.motivo === 'corto' ? t('graph.too.short.to.compare')
+        : frag.motivo === 'largo' ? t('graph.too.long') : '')
   const abrir = () => onAbrirGrafo &&
     onAbrirGrafo({ nodo_id: nodoId, unidad_id: nota.unidad_id,
       fragmento: nota.fragmento })
@@ -508,7 +508,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
               onClick: () => setMensajes([]),
               className: 'rounded px-1.5 py-0.5 text-xs text-(--dk-texto-3) hover:bg-(--dk-sobre) hover:text-(--dk-texto) cursor-pointer',
               title: t('chat.limpiarTitulo'),
-              children: t('chat.limpiar'),
+              children: t('piz.limpiar'),
             }) : null,
             jsx('button', {
               type: 'button',
@@ -635,7 +635,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                       }),
                       jsx('button', {
                         type: 'button', className: S.link + ' text-left text-xs font-medium pt-0.5',
-                        onClick: () => insertar(m.texto), children: t('chat.insertar'),
+                        onClick: () => insertar(m.texto), children: t('nifp.aEscrito'),
                       }),
                     ] }),
               ],

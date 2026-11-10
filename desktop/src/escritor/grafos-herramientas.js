@@ -168,7 +168,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
             type: 'button',
             onClick: () => onAgregarAPizarra({
               titulo: r.cita || r.label || t('piz.normaFallback'),
-              tag: t('extra.norm'),
+              tag: t('style.norm'),
               color: '#bfdbfe',
               texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 240) : ''),
               nodo_id: r.nodo_id,

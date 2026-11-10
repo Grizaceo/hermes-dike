@@ -42,8 +42,8 @@ test('mismos placeholders {var} por clave', () => {
 
 test('t() resuelve, sustituye vars y cae a la otra lengua', () => {
   fijarIdioma('es')
-  assert.equal(t('shell.pestana.nif'), 'Tablero NIF')
-  assert.equal(t('shell.pestana.nif', {}), 'Tablero NIF')
+  assert.equal(t('shell.pestana.nif'), 'Tablero del caso')
+  assert.equal(t('shell.pestana.nif', {}), 'Tablero del caso')
   assert.equal(t('shell.estado.sinAislamiento', { motivo: 'x' }), 'sin aislamiento: x')
   fijarIdioma('en')
   assert.equal(t('shell.pestana.nif'), 'Case board')

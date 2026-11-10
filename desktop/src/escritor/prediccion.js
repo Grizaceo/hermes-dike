@@ -65,6 +65,11 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
   const [destinoL2, setDestinoL2] = useState(null) // 'local'|'nube'|null
   const mesaRef = useRef(null)
   const cancelarRef = useRef(null)
+  // registro cambia con cada gesto de la pizarra/privacidad/NIF: la mesa de
+  // predictores NO debe reconstruirse por eso (cancelaría la sugerencia en
+  // vuelo). prepararEnvio lee la privacidad vigente por este ref.
+  const registroRef = useRef(registro)
+  registroRef.current = registro
 
   const activo = cfg.activo === true
   const l0on = activo && cfg.l0 !== false
@@ -106,7 +111,7 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
         ruta: sesion && sesion.ruta,
         destino: destinoL2,
         prepararEnvio: ({ texto }) => {
-          const cfgPriv = ((registro || {}).privacidad) || {}
+          const cfgPriv = ((registroRef.current || {}).privacidad) || {}
           return prepararEnvio({
             caseId, texto,
             destino: (sesion && sesion.perfil || 'perfil sin resolver')
@@ -123,7 +128,7 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
     }
     mesaRef.current = crearMesa({ predictores })
     return () => { if (mesaRef.current) mesaRef.current.cancelar() }
-  }, [l0on, l1on, l2on, destinoL2, sesion, caseId, registro])
+  }, [l0on, l1on, l2on, destinoL2, sesion, caseId])
 
   // onUpdate del editor: el editor avisa; aquí se pide la sugerencia.
   const pedir = useCallback((editor) => {

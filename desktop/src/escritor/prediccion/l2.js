@@ -76,10 +76,21 @@ export function crearPredictorModelo(deps) {
       } else if (deps.registrarLocal) {
         await deps.registrarLocal(input)
       }
-      const r = await deps.requestProfile(deps.ruta, 'llm.oneshot', {
-        task: 'dike_prediccion', instructions: INSTRUCCIONES_L2,
-        input: texto, max_tokens: 48, temperature: 0.2,
-      }, 20000)
+      const params = {
+        instructions: INSTRUCCIONES_L2, input: texto,
+        max_tokens: 48, temperature: 0.2,
+      }
+      let r
+      try {
+        // `task` enruta a auxiliary.dike_prediccion. Un backend más viejo que
+        // el plugin puede tener un contrato llm.oneshot sin `task` (params
+        // estrictos → invalid_params): mismo patrón de reintento que
+        // nif-propuestas — sin `task` cae a la tarea auxiliar por defecto.
+        r = await deps.requestProfile(deps.ruta, 'llm.oneshot',
+          { task: 'dike_prediccion', ...params }, 20000)
+      } catch (e1) {
+        r = await deps.requestProfile(deps.ruta, 'llm.oneshot', params, 20000)
+      }
       const cont = r && String(r.text || '').trim()
       if (!cont) return null
       return {

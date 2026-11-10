@@ -6,7 +6,10 @@
 import ForceGraph3D from '3d-force-graph'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { mensajeError, rest, storage, S } from './common.js'
+import {
+  cancelarTarea, mensajeError, programarInterval, programarTimeout,
+  rest, storage, S,
+} from './common.js'
 import { tomarFoco } from './puente.js'
 import { fragmentoEn, rangoFragmento } from './escritor/chat-logica.js'
 
@@ -177,8 +180,12 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
         if (!g) return
         // Un nodo recién expandido tarda un tick en tener posición: reintenta
         // acotado (~2 s) en vez de un timeout fijo que puede llegar tarde.
+        // Si el grafo se desmontó (cambio de pestaña) engine.current ya no es
+        // `g` y el reintento muere en el siguiente tick sin tocar el engine
+        // destruido.
         let intentos = 0
         const intentar = () => {
+          if (engine.current !== g) return
           const n = g.graphData().nodes.find((x) => x.id === id)
           if (n && Number.isFinite(n.x)) {
             g.cameraPosition(
@@ -187,7 +194,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
               600)
           } else if (intentos < 40) {
             intentos += 1
-            setTimeout(intentar, 50)
+            programarTimeout(intentar, 50)
           }
         }
         intentar()
@@ -828,10 +835,10 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   // Órbita lenta para el video; se apaga con cualquier interacción.
   useEffect(() => {
     if (!rotar) return undefined
-    const id = setInterval(() => {
+    const tarea = programarInterval(() => {
       if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita()
     }, 40)
-    return () => clearInterval(id)
+    return () => cancelarTarea(tarea)
   }, [rotar])
 
   const alBuscar = useCallback((id) => {

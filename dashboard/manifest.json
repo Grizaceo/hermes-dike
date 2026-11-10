@@ -1,7 +1,7 @@
 {
   "name": "dike",
   "label": "Diké",
-  "description": "Verifica citas de la ley chilena y edita el NIF del caso contra el corpus local",
+  "description": "Checks Chilean-law citations against the local corpus and keeps the case board",
   "icon": "Shield",
   "version": "0.9.0",
   "tab": {

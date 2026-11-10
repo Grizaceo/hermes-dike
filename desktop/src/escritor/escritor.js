@@ -1,4 +1,4 @@
-import { t } from '../i18n.js'
+import { t, useIdioma } from '../i18n.js'
 import { etiquetaCodigo } from '../i18n.js'
 // Case Writer (Estudio de Escritos):
 // 1. Barra superior de documento y formato tipo Word (Archivo, Escribir/Leer,
@@ -200,6 +200,7 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
 // --- Sección principal del Case Writer ----------------------------------------
 
 export function SeccionEscritor({ onAbrirGrafo }) {
+  const idioma = useIdioma()
   const hostRef = useRef(null)
   const editorRef = useRef(null)
   const revRef = useRef(0)
@@ -258,6 +259,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       }
     }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const ed = editorRef.current
+    if (ed) ed.view.dispatch(ed.state.tr)
+  }, [idioma])
 
   const guardarPrefs = useCallback((parche) => {
     setPrefs((prev) => {
@@ -510,7 +516,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     const ed = montarEditor({
       element: hostRef.current,
       content: '',
-      placeholder: t('writer.start.writing.your.brief.here'),
+      placeholder: () => t('writer.start.writing.your.brief.here'),
       onUpdate: (editor) => {
         const texto = textoDelEditor(editor)
         const estado = estadoRef.current

@@ -36,11 +36,6 @@ const NOMBRE_TIPO = {
   get resolucion() { return t('graph.decision') },
   get unidad() { return t('graph.unit.label') },
 }
-const NOMBRE_ESTADO = {
-  get verificada_estructura() { return t('graph.structure.verified') },
-  candidata: 'candidata',
-  aprobada: 'aprobada',
-}
 // Color de las unidades por modalidad deóntica (candidata, sin validar).
 const COLORES_MODALIDAD = {
   obligacion: '#f59e0b',
@@ -148,7 +143,7 @@ function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
         ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + t('graph.articles')
         : n.label)
       .linkColor((l) => colorAristaResalte(l, resalteRef.current))
-      .linkLabel((l) => l.tipo + ' · ' + (NOMBRE_ESTADO[l.estado] || l.estado))
+      .linkLabel((l) => l.tipo + ' · ' + etiquetaCodigo(l.estado))
       .linkOpacity(0.5)
       .linkWidth((l) => (l.tipo === 'contiene' ? 0.4 : 1.2))
       .linkDirectionalArrowLength((l) => (l.tipo === 'contiene' ? 0 : 2.5))

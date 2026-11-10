@@ -1,16 +1,16 @@
 {
   "artifact": "desktop/plugin.js",
-  "sha256": "af2603a99abee72fcc0aab53f712a67e29baca10382bb9310f81f2e467c32940",
-  "bytes": 4310114,
+  "sha256": "da6e75e0c576e1e8d8d530aaa9e07a9c0809f23e0bf3e34e525022ac55b7d547",
+  "bytes": 4436970,
   "built_with": {
     "esbuild": "0.28.2"
   },
   "bundled": {
-    "3d-force-graph": "1.79.0",
     "@tiptap/core": "3.32.2",
     "@tiptap/extension-placeholder": "3.32.2",
     "@tiptap/pm": "3.32.2",
     "@tiptap/starter-kit": "3.32.2",
+    "3d-force-graph": "1.79.0",
     "three": "0.183.2"
   },
   "external": [

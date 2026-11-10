@@ -11,8 +11,2949 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
 
 // src/plugin.src.js
 import { host as host4, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from "@hermes/plugin-sdk";
-import { jsx as jsx11, jsxs as jsxs11 } from "react/jsx-runtime";
-import { useCallback as useCallback10, useEffect as useEffect11, useState as useState11 } from "react";
+import { jsx as jsx12, jsxs as jsxs12 } from "react/jsx-runtime";
+import { useCallback as useCallback11, useEffect as useEffect12, useState as useState12 } from "react";
+
+// dike:estilos
+var estilos_default = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+@layer properties;
+@layer theme, components, utilities;
+@layer theme {
+  .dike-raiz {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+    --spacing: 0.25rem;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: calc(1 / 0.75);
+    --text-sm: 0.875rem;
+    --text-sm--line-height: calc(1.25 / 0.875);
+    --text-base: 1rem;
+    --text-base--line-height: calc(1.5 / 1);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+    --tracking-tight: -0.025em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+    --leading-relaxed: 1.625;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+@layer components {
+  .dike-raiz {
+    --dk-solido: var(--dt-primary-solid, var(--ui-accent, #2563eb));
+    --dk-sobre-solido: var(--dt-primary-solid-foreground, #fcfcfc);
+    --dk-acento: var(--ui-accent, #2563eb);
+    --dk-ok: var(--ui-success, var(--ui-green, #15803d));
+    --dk-mal: var(--ui-red, #dc2626);
+    --dk-aviso: var(--ui-orange, var(--ui-yellow, #b45309));
+    --dk-info: var(--ui-blue, var(--ui-accent, #2563eb));
+    --dk-texto: var(--ui-text-primary, #1f2328);
+    --dk-texto-2: var(--ui-text-secondary, #4b5563);
+    --dk-texto-3: var(--ui-text-tertiary, #6b7280);
+    --dk-borde: var(--ui-stroke-secondary, rgb(127 127 127 / 0.28));
+    --dk-borde-suave: var(--ui-stroke-tertiary, rgb(127 127 127 / 0.16));
+    --dk-superficie: var(--ui-bg-secondary, rgb(127 127 127 / 0.07));
+    --dk-superficie-2: var(--ui-bg-tertiary, rgb(127 127 127 / 0.11));
+    --dk-elevada: var(--ui-bg-elevated, var(--ui-surface-background, Canvas));
+    --dk-entrada: var(--ui-bg-input, transparent);
+    --dk-sobre: var(--ui-control-hover-background, var(--dk-superficie-2));
+    --dk-activo: var(--ui-row-active-background, var(--dk-superficie-2));
+    --dk-radio: 0.375rem;
+    --dk-alto: 1.75rem;
+    color: var(--dk-texto);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+  .dike-raiz :is(button, a, input, select, textarea, [role='button'], [tabindex]):focus-visible {
+    outline: 2px solid var(--dk-acento);
+    outline-offset: 1px;
+  }
+  .dike-raiz .dk-titulo {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dk-texto);
+  }
+  .dike-raiz .dk-rotulo {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dk-texto-3);
+  }
+  .dike-raiz .dk-meta {
+    font-size: 0.75rem;
+    color: var(--dk-texto-3);
+  }
+  .dike-raiz .dk-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+  }
+  .dike-raiz .dk-enlace {
+    color: var(--dk-acento);
+    cursor: pointer;
+    text-underline-offset: 2px;
+  }
+  .dike-raiz .dk-enlace:hover {
+    text-decoration: underline;
+  }
+  .dike-raiz .dk-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: var(--dk-alto);
+    padding: 0 0.625rem;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    border-radius: var(--dk-radio);
+    background: transparent;
+    color: var(--dk-texto-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 120ms, border-color 120ms, color 120ms;
+  }
+  .dike-raiz .dk-btn:hover:not(:disabled) {
+    background: var(--dk-sobre);
+    color: var(--dk-texto);
+  }
+  .dike-raiz .dk-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .dike-raiz .dk-btn:is([aria-pressed='true'], [aria-selected='true'], [aria-expanded='true']) {
+    background: var(--dk-activo);
+    color: var(--dk-texto);
+  }
+  .dike-raiz .dk-btn--primario {
+    background: var(--dk-solido);
+    color: var(--dk-sobre-solido);
+    font-weight: 600;
+  }
+  .dike-raiz .dk-btn--primario:hover:not(:disabled) {
+    background: var(--dk-solido);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--dk-solido) 88%, var(--dk-texto));
+    }
+    color: var(--dk-sobre-solido);
+  }
+  .dike-raiz .dk-btn--borde {
+    border-color: var(--dk-borde);
+  }
+  .dike-raiz .dk-btn--peligro {
+    color: var(--dk-mal);
+    border-color: var(--dk-mal);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in srgb, var(--dk-mal) 35%, transparent);
+    }
+  }
+  .dike-raiz .dk-btn--peligro:hover:not(:disabled) {
+    background: var(--dk-mal);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--dk-mal) 10%, transparent);
+    }
+    color: var(--dk-mal);
+  }
+  .dike-raiz .dk-btn--icono {
+    width: var(--dk-alto);
+    padding: 0;
+  }
+  .dike-raiz .dk-btn--chico {
+    height: 1.375rem;
+    padding: 0 0.375rem;
+    font-size: 0.6875rem;
+  }
+  .dike-raiz .dk-pestana[aria-selected='true'] {
+    background: var(--dk-solido);
+    color: var(--dk-sobre-solido);
+    font-weight: 600;
+  }
+  .dike-raiz .dk-campo {
+    height: var(--dk-alto);
+    padding: 0 0.5rem;
+    min-width: 0;
+    border: 1px solid var(--dk-borde);
+    border-radius: var(--dk-radio);
+    background: var(--dk-entrada);
+    color: var(--dk-texto);
+    font-size: 0.75rem;
+  }
+  .dike-raiz textarea.dk-campo {
+    height: auto;
+    padding: 0.375rem 0.5rem;
+    line-height: 1.45;
+    resize: vertical;
+  }
+  .dike-raiz .dk-campo::placeholder {
+    color: var(--dk-texto-3);
+  }
+  .dike-raiz .dk-campo:focus {
+    border-color: var(--dk-acento);
+    outline: none;
+  }
+  .dike-raiz .dk-campo:disabled {
+    opacity: 0.6;
+  }
+  .dike-raiz .dk-insignia {
+    --dk-tono: var(--dk-texto-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 0.375rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    border: 1px solid var(--dk-tono);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--dk-tono) 30%, transparent);
+    }
+    border-radius: 0.25rem;
+    background: var(--dk-tono);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--dk-tono) 12%, transparent);
+    }
+    color: var(--dk-tono);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in srgb, var(--dk-tono) 65%, var(--dk-texto));
+    }
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .dike-raiz .dk-insignia--ok {
+    --dk-tono: var(--dk-ok);
+  }
+  .dike-raiz .dk-insignia--mal {
+    --dk-tono: var(--dk-mal);
+  }
+  .dike-raiz .dk-insignia--aviso {
+    --dk-tono: var(--dk-aviso);
+  }
+  .dike-raiz .dk-insignia--info {
+    --dk-tono: var(--dk-info);
+  }
+  .dike-raiz .dk-insignia--acento {
+    --dk-tono: var(--dk-acento);
+  }
+  .dike-raiz .dk-ok {
+    color: var(--dk-ok);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in srgb, var(--dk-ok) 75%, var(--dk-texto));
+    }
+  }
+  .dike-raiz .dk-mal {
+    color: var(--dk-mal);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in srgb, var(--dk-mal) 80%, var(--dk-texto));
+    }
+  }
+  .dike-raiz .dk-aviso-texto {
+    color: var(--dk-aviso);
+    @supports (color: color-mix(in lab, red, red)) {
+      color: color-mix(in srgb, var(--dk-aviso) 75%, var(--dk-texto));
+    }
+  }
+  .dike-raiz .dk-panel {
+    border: 1px solid var(--dk-borde);
+    border-radius: 0.5rem;
+    background: var(--dk-superficie);
+  }
+  .dike-raiz .dk-panel--plano {
+    background: transparent;
+  }
+  .dike-raiz .dk-panel--flotante {
+    background: var(--dk-elevada);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.22), 0 0 0 1px var(--dk-borde-suave);
+  }
+  .dike-raiz .dk-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid var(--dk-borde-suave);
+  }
+  .dike-raiz .dk-separador {
+    width: 1px;
+    align-self: stretch;
+    margin: 0.125rem 0.25rem;
+    background: var(--dk-borde-suave);
+  }
+  .dike-raiz .dk-fila {
+    border-bottom: 1px solid var(--dk-borde-suave);
+  }
+  .dike-raiz .dk-fila:last-child {
+    border-bottom: 0;
+  }
+  .dike-raiz .dk-aviso {
+    --dk-tono: var(--dk-info);
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--dk-tono);
+    @supports (color: color-mix(in lab, red, red)) {
+      border: 1px solid color-mix(in srgb, var(--dk-tono) 30%, transparent);
+    }
+    border-left-width: 3px;
+    border-left-color: var(--dk-tono);
+    border-radius: var(--dk-radio);
+    background: var(--dk-tono);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--dk-tono) 8%, transparent);
+    }
+    color: var(--dk-texto);
+    font-size: 0.75rem;
+  }
+  .dike-raiz .dk-aviso--ok {
+    --dk-tono: var(--dk-ok);
+  }
+  .dike-raiz .dk-aviso--mal {
+    --dk-tono: var(--dk-mal);
+  }
+  .dike-raiz .dk-aviso--aviso {
+    --dk-tono: var(--dk-aviso);
+  }
+  .dike-raiz .dk-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--dk-texto-3);
+    font-size: 0.75rem;
+  }
+  .dike-raiz .dk-vacio > :first-child {
+    color: var(--dk-texto-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dike-raiz .dk-btn {
+      transition: none;
+    }
+  }
+  .dike-raiz .dk-tool-button {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 72px;
+    height: auto;
+    padding: 6px 2px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+  .dike-raiz .dk-tool-drawer {
+    width: 380px;
+    max-width: 45vw;
+  }
+  .dike-raiz .dk-chat-dock {
+    width: 320px;
+  }
+  .dike-raiz .dike-editor-page {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .dike-raiz .dk-writer select {
+    min-width: 0;
+  }
+  @media (max-width: 1300px) {
+    .dike-raiz .dk-writer--tool .dk-chat-dock {
+      display: none;
+    }
+    .dike-raiz .dk-tool-drawer {
+      width: 360px;
+    }
+  }
+  .dike-raiz .dk-tool-drawer {
+    overflow-wrap: anywhere;
+  }
+  .dike-raiz .dk-tool-drawer .dk-rotulo {
+    overflow-wrap: normal;
+  }
+  .dike-raiz .dk-writer .dk-tool-drawer .dk-btn--primario, .dike-raiz .dk-writer .dk-barra .dk-btn--primario {
+    background: var(--dk-elevada);
+    color: var(--dk-texto);
+    border-color: var(--dk-borde);
+  }
+  .dike-raiz .dk-chat-dock {
+    display: flex;
+  }
+  .dike-raiz .dk-tool-button {
+    padding: 4px 2px;
+    min-height: 28px;
+    flex-shrink: 0;
+  }
+  .dike-raiz .dk-rotulo {
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  @media (max-width: 1300px) {
+    .dike-raiz .dk-writer--tool .dk-chat-dock {
+      display: none;
+    }
+  }
+}
+.dike-raiz .pointer-events-none {
+  pointer-events: none;
+}
+.dike-raiz .collapse {
+  visibility: collapse;
+}
+.dike-raiz .visible {
+  visibility: visible;
+}
+.dike-raiz .absolute {
+  position: absolute;
+}
+.dike-raiz .relative {
+  position: relative;
+}
+.dike-raiz .sticky {
+  position: sticky;
+}
+.dike-raiz .inset-0 {
+  inset: 0px;
+}
+.dike-raiz .-top-1 {
+  top: calc(var(--spacing) * -1);
+}
+.dike-raiz .top-2 {
+  top: calc(var(--spacing) * 2);
+}
+.dike-raiz .top-3 {
+  top: calc(var(--spacing) * 3);
+}
+.dike-raiz .top-full {
+  top: 100%;
+}
+.dike-raiz .-right-1 {
+  right: calc(var(--spacing) * -1);
+}
+.dike-raiz .right-0 {
+  right: 0px;
+}
+.dike-raiz .right-3 {
+  right: calc(var(--spacing) * 3);
+}
+.dike-raiz .bottom-0 {
+  bottom: 0px;
+}
+.dike-raiz .bottom-2 {
+  bottom: calc(var(--spacing) * 2);
+}
+.dike-raiz .left-0 {
+  left: 0px;
+}
+.dike-raiz .left-2 {
+  left: calc(var(--spacing) * 2);
+}
+.dike-raiz .left-3 {
+  left: calc(var(--spacing) * 3);
+}
+.dike-raiz .z-20 {
+  z-index: 20;
+}
+.dike-raiz .z-30 {
+  z-index: 30;
+}
+.dike-raiz .z-40 {
+  z-index: 40;
+}
+.dike-raiz .z-50 {
+  z-index: 50;
+}
+.dike-raiz .mx-1 {
+  margin-inline: var(--spacing);
+}
+.dike-raiz .mx-2\\.5 {
+  margin-inline: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .my-1 {
+  margin-block: var(--spacing);
+}
+.dike-raiz .mt-0\\.5 {
+  margin-top: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .mt-1 {
+  margin-top: var(--spacing);
+}
+.dike-raiz .mt-1\\.5 {
+  margin-top: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .mt-2 {
+  margin-top: calc(var(--spacing) * 2);
+}
+.dike-raiz .mb-1 {
+  margin-bottom: var(--spacing);
+}
+.dike-raiz .mb-2 {
+  margin-bottom: calc(var(--spacing) * 2);
+}
+.dike-raiz .mb-4 {
+  margin-bottom: calc(var(--spacing) * 4);
+}
+.dike-raiz .ml-1 {
+  margin-left: var(--spacing);
+}
+.dike-raiz .ml-auto {
+  margin-left: auto;
+}
+.dike-raiz .line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.dike-raiz .block {
+  display: block;
+}
+.dike-raiz .contents {
+  display: contents;
+}
+.dike-raiz .flex {
+  display: flex;
+}
+.dike-raiz .grid {
+  display: grid;
+}
+.dike-raiz .hidden {
+  display: none;
+}
+.dike-raiz .inline {
+  display: inline;
+}
+.dike-raiz .inline-block {
+  display: inline-block;
+}
+.dike-raiz .inline-flex {
+  display: inline-flex;
+}
+.dike-raiz .h-1\\.5 {
+  height: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .h-2 {
+  height: calc(var(--spacing) * 2);
+}
+.dike-raiz .h-2\\.5 {
+  height: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .h-3\\.5 {
+  height: calc(var(--spacing) * 3.5);
+}
+.dike-raiz .h-5 {
+  height: calc(var(--spacing) * 5);
+}
+.dike-raiz .h-7 {
+  height: calc(var(--spacing) * 7);
+}
+.dike-raiz .h-9 {
+  height: calc(var(--spacing) * 9);
+}
+.dike-raiz .h-\\[55vh\\] {
+  height: 55vh;
+}
+.dike-raiz .h-\\[1200px\\] {
+  height: 1200px;
+}
+.dike-raiz .h-full {
+  height: 100%;
+}
+.dike-raiz .h-px {
+  height: 1px;
+}
+.dike-raiz .max-h-40 {
+  max-height: calc(var(--spacing) * 40);
+}
+.dike-raiz .max-h-44 {
+  max-height: calc(var(--spacing) * 44);
+}
+.dike-raiz .max-h-48 {
+  max-height: calc(var(--spacing) * 48);
+}
+.dike-raiz .max-h-72 {
+  max-height: calc(var(--spacing) * 72);
+}
+.dike-raiz .min-h-0 {
+  min-height: 0px;
+}
+.dike-raiz .min-h-16 {
+  min-height: calc(var(--spacing) * 16);
+}
+.dike-raiz .min-h-40 {
+  min-height: calc(var(--spacing) * 40);
+}
+.dike-raiz .min-h-\\[360px\\] {
+  min-height: 360px;
+}
+.dike-raiz .w-2 {
+  width: calc(var(--spacing) * 2);
+}
+.dike-raiz .w-2\\.5 {
+  width: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .w-3\\.5 {
+  width: calc(var(--spacing) * 3.5);
+}
+.dike-raiz .w-4 {
+  width: calc(var(--spacing) * 4);
+}
+.dike-raiz .w-6 {
+  width: calc(var(--spacing) * 6);
+}
+.dike-raiz .w-16 {
+  width: calc(var(--spacing) * 16);
+}
+.dike-raiz .w-20 {
+  width: calc(var(--spacing) * 20);
+}
+.dike-raiz .w-24 {
+  width: calc(var(--spacing) * 24);
+}
+.dike-raiz .w-28 {
+  width: calc(var(--spacing) * 28);
+}
+.dike-raiz .w-32 {
+  width: calc(var(--spacing) * 32);
+}
+.dike-raiz .w-44 {
+  width: calc(var(--spacing) * 44);
+}
+.dike-raiz .w-56 {
+  width: calc(var(--spacing) * 56);
+}
+.dike-raiz .w-64 {
+  width: calc(var(--spacing) * 64);
+}
+.dike-raiz .w-72 {
+  width: calc(var(--spacing) * 72);
+}
+.dike-raiz .w-96 {
+  width: calc(var(--spacing) * 96);
+}
+.dike-raiz .w-\\[2400px\\] {
+  width: 2400px;
+}
+.dike-raiz .w-full {
+  width: 100%;
+}
+.dike-raiz .w-px {
+  width: 1px;
+}
+.dike-raiz .max-w-40 {
+  max-width: calc(var(--spacing) * 40);
+}
+.dike-raiz .max-w-56 {
+  max-width: calc(var(--spacing) * 56);
+}
+.dike-raiz .max-w-\\[90\\%\\] {
+  max-width: 90%;
+}
+.dike-raiz .min-w-0 {
+  min-width: 0px;
+}
+.dike-raiz .min-w-28 {
+  min-width: calc(var(--spacing) * 28);
+}
+.dike-raiz .min-w-36 {
+  min-width: calc(var(--spacing) * 36);
+}
+.dike-raiz .min-w-52 {
+  min-width: calc(var(--spacing) * 52);
+}
+.dike-raiz .flex-1 {
+  flex: 1;
+}
+.dike-raiz .shrink-0 {
+  flex-shrink: 0;
+}
+.dike-raiz .transform {
+  transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+}
+.dike-raiz .cursor-move {
+  cursor: move;
+}
+.dike-raiz .cursor-nwse-resize {
+  cursor: nwse-resize;
+}
+.dike-raiz .cursor-pointer {
+  cursor: pointer;
+}
+.dike-raiz .cursor-row-resize {
+  cursor: row-resize;
+}
+.dike-raiz .resize {
+  resize: both;
+}
+.dike-raiz .resize-none {
+  resize: none;
+}
+.dike-raiz .grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+.dike-raiz .grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.dike-raiz .flex-col {
+  flex-direction: column;
+}
+.dike-raiz .flex-wrap {
+  flex-wrap: wrap;
+}
+.dike-raiz .items-baseline {
+  align-items: baseline;
+}
+.dike-raiz .items-center {
+  align-items: center;
+}
+.dike-raiz .items-start {
+  align-items: flex-start;
+}
+.dike-raiz .justify-between {
+  justify-content: space-between;
+}
+.dike-raiz .justify-center {
+  justify-content: center;
+}
+.dike-raiz .gap-0\\.5 {
+  gap: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .gap-1 {
+  gap: var(--spacing);
+}
+.dike-raiz .gap-1\\.5 {
+  gap: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .gap-2 {
+  gap: calc(var(--spacing) * 2);
+}
+.dike-raiz .gap-2\\.5 {
+  gap: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .gap-3 {
+  gap: calc(var(--spacing) * 3);
+}
+.dike-raiz .gap-4 {
+  gap: calc(var(--spacing) * 4);
+}
+.dike-raiz .gap-x-4 {
+  column-gap: calc(var(--spacing) * 4);
+}
+.dike-raiz .gap-y-1 {
+  row-gap: var(--spacing);
+}
+.dike-raiz .self-center {
+  align-self: center;
+}
+.dike-raiz .self-end {
+  align-self: flex-end;
+}
+.dike-raiz .self-start {
+  align-self: flex-start;
+}
+.dike-raiz .truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dike-raiz .overflow-auto {
+  overflow: auto;
+}
+.dike-raiz .overflow-hidden {
+  overflow: hidden;
+}
+.dike-raiz .overflow-visible {
+  overflow: visible;
+}
+.dike-raiz .overflow-y-auto {
+  overflow-y: auto;
+}
+.dike-raiz .rounded {
+  border-radius: 0.25rem;
+}
+.dike-raiz .rounded-full {
+  border-radius: calc(infinity * 1px);
+}
+.dike-raiz .rounded-lg {
+  border-radius: var(--radius-lg);
+}
+.dike-raiz .rounded-md {
+  border-radius: var(--radius-md);
+}
+.dike-raiz .rounded-sm {
+  border-radius: var(--radius-sm);
+}
+.dike-raiz .border {
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+}
+.dike-raiz .border-t {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 1px;
+}
+.dike-raiz .border-b {
+  border-bottom-style: var(--tw-border-style);
+  border-bottom-width: 1px;
+}
+.dike-raiz .border-l {
+  border-left-style: var(--tw-border-style);
+  border-left-width: 1px;
+}
+.dike-raiz .border-dashed {
+  --tw-border-style: dashed;
+  border-style: dashed;
+}
+.dike-raiz .border-\\(--dk-aviso\\) {
+  border-color: var(--dk-aviso);
+}
+.dike-raiz .border-\\(--dk-borde\\) {
+  border-color: var(--dk-borde);
+}
+.dike-raiz .border-\\(--dk-borde-suave\\) {
+  border-color: var(--dk-borde-suave);
+}
+.dike-raiz .border-\\(--ui-stroke-secondary\\) {
+  border-color: var(--ui-stroke-secondary);
+}
+.dike-raiz .border-\\(--ui-stroke-tertiary\\) {
+  border-color: var(--ui-stroke-tertiary);
+}
+.dike-raiz .bg-\\(--dk-aviso\\) {
+  background-color: var(--dk-aviso);
+}
+.dike-raiz .bg-\\(--dk-elevada\\) {
+  background-color: var(--dk-elevada);
+}
+.dike-raiz .bg-\\(--dk-mal\\) {
+  background-color: var(--dk-mal);
+}
+.dike-raiz .bg-\\(--dk-ok\\) {
+  background-color: var(--dk-ok);
+}
+.dike-raiz .bg-\\(--dk-superficie\\) {
+  background-color: var(--dk-superficie);
+}
+.dike-raiz .bg-\\(--dk-superficie-2\\) {
+  background-color: var(--dk-superficie-2);
+}
+.dike-raiz .bg-\\(--ui-accent\\) {
+  background-color: var(--ui-accent);
+}
+.dike-raiz .bg-\\(--ui-bg-primary\\) {
+  background-color: var(--ui-bg-primary);
+}
+.dike-raiz .bg-\\(--ui-bg-tertiary\\) {
+  background-color: var(--ui-bg-tertiary);
+}
+.dike-raiz .bg-\\[\\#0b1020\\] {
+  background-color: #0b1020;
+}
+.dike-raiz .bg-transparent {
+  background-color: transparent;
+}
+.dike-raiz .p-0\\.5 {
+  padding: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .p-1 {
+  padding: var(--spacing);
+}
+.dike-raiz .p-1\\.5 {
+  padding: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .p-2 {
+  padding: calc(var(--spacing) * 2);
+}
+.dike-raiz .p-2\\.5 {
+  padding: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .p-3 {
+  padding: calc(var(--spacing) * 3);
+}
+.dike-raiz .p-4 {
+  padding: calc(var(--spacing) * 4);
+}
+.dike-raiz .p-5 {
+  padding: calc(var(--spacing) * 5);
+}
+.dike-raiz .px-1 {
+  padding-inline: var(--spacing);
+}
+.dike-raiz .px-1\\.5 {
+  padding-inline: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .px-2 {
+  padding-inline: calc(var(--spacing) * 2);
+}
+.dike-raiz .px-2\\.5 {
+  padding-inline: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .px-3 {
+  padding-inline: calc(var(--spacing) * 3);
+}
+.dike-raiz .px-4 {
+  padding-inline: calc(var(--spacing) * 4);
+}
+.dike-raiz .py-0\\.5 {
+  padding-block: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .py-1 {
+  padding-block: var(--spacing);
+}
+.dike-raiz .py-1\\.5 {
+  padding-block: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .py-2 {
+  padding-block: calc(var(--spacing) * 2);
+}
+.dike-raiz .py-2\\.5 {
+  padding-block: calc(var(--spacing) * 2.5);
+}
+.dike-raiz .py-3 {
+  padding-block: calc(var(--spacing) * 3);
+}
+.dike-raiz .py-4 {
+  padding-block: calc(var(--spacing) * 4);
+}
+.dike-raiz .py-6 {
+  padding-block: calc(var(--spacing) * 6);
+}
+.dike-raiz .pt-0\\.5 {
+  padding-top: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .pt-1 {
+  padding-top: var(--spacing);
+}
+.dike-raiz .pt-2 {
+  padding-top: calc(var(--spacing) * 2);
+}
+.dike-raiz .pr-0\\.5 {
+  padding-right: calc(var(--spacing) * 0.5);
+}
+.dike-raiz .pb-1 {
+  padding-bottom: var(--spacing);
+}
+.dike-raiz .pb-1\\.5 {
+  padding-bottom: calc(var(--spacing) * 1.5);
+}
+.dike-raiz .pb-2 {
+  padding-bottom: calc(var(--spacing) * 2);
+}
+.dike-raiz .pl-3 {
+  padding-left: calc(var(--spacing) * 3);
+}
+.dike-raiz .pl-4 {
+  padding-left: calc(var(--spacing) * 4);
+}
+.dike-raiz .text-center {
+  text-align: center;
+}
+.dike-raiz .text-left {
+  text-align: left;
+}
+.dike-raiz .text-right {
+  text-align: right;
+}
+.dike-raiz .font-mono {
+  font-family: var(--font-mono);
+}
+.dike-raiz .font-sans {
+  font-family: var(--font-sans);
+}
+.dike-raiz .font-serif {
+  font-family: var(--font-serif);
+}
+.dike-raiz .text-3xl {
+  font-size: var(--text-3xl);
+  line-height: var(--tw-leading, var(--text-3xl--line-height));
+}
+.dike-raiz .text-base {
+  font-size: var(--text-base);
+  line-height: var(--tw-leading, var(--text-base--line-height));
+}
+.dike-raiz .text-sm {
+  font-size: var(--text-sm);
+  line-height: var(--tw-leading, var(--text-sm--line-height));
+}
+.dike-raiz .text-xs {
+  font-size: var(--text-xs);
+  line-height: var(--tw-leading, var(--text-xs--line-height));
+}
+.dike-raiz .leading-none {
+  --tw-leading: 1;
+  line-height: 1;
+}
+.dike-raiz .leading-relaxed {
+  --tw-leading: var(--leading-relaxed);
+  line-height: var(--leading-relaxed);
+}
+.dike-raiz .font-black {
+  --tw-font-weight: var(--font-weight-black);
+  font-weight: var(--font-weight-black);
+}
+.dike-raiz .font-bold {
+  --tw-font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-bold);
+}
+.dike-raiz .font-medium {
+  --tw-font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-medium);
+}
+.dike-raiz .font-semibold {
+  --tw-font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
+}
+.dike-raiz .tracking-tight {
+  --tw-tracking: var(--tracking-tight);
+  letter-spacing: var(--tracking-tight);
+}
+.dike-raiz .tracking-wide {
+  --tw-tracking: var(--tracking-wide);
+  letter-spacing: var(--tracking-wide);
+}
+.dike-raiz .tracking-wider {
+  --tw-tracking: var(--tracking-wider);
+  letter-spacing: var(--tracking-wider);
+}
+.dike-raiz .tracking-widest {
+  --tw-tracking: var(--tracking-widest);
+  letter-spacing: var(--tracking-widest);
+}
+.dike-raiz .break-all {
+  word-break: break-all;
+}
+.dike-raiz .whitespace-pre-wrap {
+  white-space: pre-wrap;
+}
+.dike-raiz .text-\\(--dk-acento\\) {
+  color: var(--dk-acento);
+}
+.dike-raiz .text-\\(--dk-sobre-solido\\) {
+  color: var(--dk-sobre-solido);
+}
+.dike-raiz .text-\\(--dk-texto\\) {
+  color: var(--dk-texto);
+}
+.dike-raiz .text-\\(--dk-texto-2\\) {
+  color: var(--dk-texto-2);
+}
+.dike-raiz .text-\\(--dk-texto-3\\) {
+  color: var(--dk-texto-3);
+}
+.dike-raiz .text-\\(--ui-text-secondary\\) {
+  color: var(--ui-text-secondary);
+}
+.dike-raiz .text-\\(--ui-text-tertiary\\) {
+  color: var(--ui-text-tertiary);
+}
+.dike-raiz .lowercase {
+  text-transform: lowercase;
+}
+.dike-raiz .normal-case {
+  text-transform: none;
+}
+.dike-raiz .uppercase {
+  text-transform: uppercase;
+}
+.dike-raiz .italic {
+  font-style: italic;
+}
+.dike-raiz .opacity-40 {
+  opacity: 40%;
+}
+.dike-raiz .opacity-80 {
+  opacity: 80%;
+}
+.dike-raiz .shadow-2xs {
+  --tw-shadow: 0 1px var(--tw-shadow-color, rgb(0 0 0 / 0.05));
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dike-raiz .shadow-sm {
+  --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dike-raiz .shadow-xl {
+  --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 8px 10px -6px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dike-raiz .shadow-xs {
+  --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.05));
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+.dike-raiz .sepia {
+  --tw-sepia: sepia(100%);
+  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+}
+.dike-raiz .transition-all {
+  transition-property: all;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+}
+.dike-raiz .transition-colors {
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+}
+.dike-raiz .transition-shadow {
+  transition-property: box-shadow;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+  transition-duration: var(--tw-duration, var(--default-transition-duration));
+}
+.dike-raiz .outline-none {
+  --tw-outline-style: none;
+  outline-style: none;
+}
+.dike-raiz .select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.dike-raiz .placeholder\\:text-\\(--dk-texto-3\\)::placeholder {
+  color: var(--dk-texto-3);
+}
+.dike-raiz .first\\:border-0:first-child {
+  border-style: var(--tw-border-style);
+  border-width: 0px;
+}
+.dike-raiz .first\\:pt-0:first-child {
+  padding-top: 0px;
+}
+.dike-raiz .last\\:border-0:last-child {
+  border-style: var(--tw-border-style);
+  border-width: 0px;
+}
+@media (hover: hover) {
+  .dike-raiz .hover\\:bg-\\(--dk-sobre\\):hover {
+    background-color: var(--dk-sobre);
+  }
+  .dike-raiz .hover\\:bg-\\(--ui-bg-quaternary\\):hover {
+    background-color: var(--ui-bg-quaternary);
+  }
+  .dike-raiz .hover\\:text-\\(--dk-texto\\):hover {
+    color: var(--dk-texto);
+  }
+  .dike-raiz .hover\\:opacity-80:hover {
+    opacity: 80%;
+  }
+}
+.dike-raiz .focus\\:border-\\(--dk-acento\\):focus {
+  border-color: var(--dk-acento);
+}
+.dike-raiz .disabled\\:opacity-40:disabled {
+  opacity: 40%;
+}
+@media (width >= 40rem) {
+  .dike-raiz .sm\\:inline {
+    display: inline;
+  }
+  .dike-raiz .sm\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width >= 48rem) {
+  .dike-raiz .md\\:inline {
+    display: inline;
+  }
+  .dike-raiz .md\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (width >= 64rem) {
+  .dike-raiz .lg\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dike-raiz .lg\\:grid-cols-\\[minmax\\(0\\,1fr\\)_17rem\\] {
+    grid-template-columns: minmax(0,1fr) 17rem;
+  }
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-leading {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-font-weight {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-tracking {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-inset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-ring-inset {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-offset-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --tw-ring-offset-color {
+  syntax: "*";
+  inherits: false;
+  initial-value: #fff;
+}
+@property --tw-ring-offset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-drop-shadow-size {
+  syntax: "*";
+  inherits: false;
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-leading: initial;
+      --tw-font-weight: initial;
+      --tw-tracking: initial;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-color: initial;
+      --tw-shadow-alpha: 100%;
+      --tw-inset-shadow: 0 0 #0000;
+      --tw-inset-shadow-color: initial;
+      --tw-inset-shadow-alpha: 100%;
+      --tw-ring-color: initial;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-inset-ring-color: initial;
+      --tw-inset-ring-shadow: 0 0 #0000;
+      --tw-ring-inset: initial;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-blur: initial;
+      --tw-brightness: initial;
+      --tw-contrast: initial;
+      --tw-grayscale: initial;
+      --tw-hue-rotate: initial;
+      --tw-invert: initial;
+      --tw-opacity: initial;
+      --tw-saturate: initial;
+      --tw-sepia: initial;
+      --tw-drop-shadow: initial;
+      --tw-drop-shadow-color: initial;
+      --tw-drop-shadow-alpha: 100%;
+      --tw-drop-shadow-size: initial;
+    }
+  }
+}
+`;
+
+// src/i18n.js
+import { useSyncExternalStore } from "react";
+var TEXTOS = {
+  "en": {
+    "busq.buscando": "Searching the sealed corpus\u2026",
+    "busq.cerrar": "Close search",
+    "busq.materias": "Subjects:",
+    "busq.placeholder": "Search the sealed corpus\u2026",
+    "busq.sinResultados": "No results for \u201C{q}\u201D.",
+    "busq.vacio": "Type legal terms to search the corpus.",
+    "chat.abriendo": "opening session\u2026",
+    "chat.antesCuerpo": "Dik\xE9 pseudonymizes personal data (national ID, email, phone, names with context) before sending to the Hermes profile. Citation status is set by Dik\xE9, not the model.",
+    "chat.antesTitulo": "Where your messages go",
+    "chat.comprobando": "checking node\u2026",
+    "chat.configurarPriv": "Configure privacy \u2192",
+    "chat.contexto": "Context",
+    "chat.contextoCaso": "Case: {caso} \xB7 Brief: {largo} characters \xB7 Verified citations: {citas}",
+    "chat.contextoNota": "Dik\xE9 sets citation status. Tool restrictions block terminal and file access.",
+    "chat.contextoPrivOff": "Privacy off by the lawyer\u2019s express confirmation.",
+    "chat.contextoPrivOn": "Privacy on: \xAB{estrategia}\xBB pseudonymization before sending.",
+    "chat.contextoTitulo": "What the agent sees this turn (pseudonymized before leaving)",
+    "chat.contextoTitulo2": "What the model sees this turn",
+    "chat.destino": "Profile destination:",
+    "chat.detener": "Stop generation",
+    "chat.detenerBtn": "Stop",
+    "chat.entendido": "Continue",
+    "chat.enviar": "Send to chat",
+    "chat.errorPaso": "{nombre}: {error}",
+    "chat.errorPerfil": "The brief chat needs a profile with Dik\xE9 enabled: set the plugin\u2019s perfil_chat setting or use the active profile{activo}. Without its hooks the model cannot be kept from using tools.",
+    "chat.errorPrivacidadEnvio": "privacy blocked sending",
+    "chat.estadoMotor": "Status set by the engine for this citation",
+    "chat.hostedModel": "Nous-hosted model",
+    "chat.limpiarTitulo": "Clear conversation view",
+    "chat.nodoInexistente": "The node does not exist in the corpus",
+    "chat.nodoNoExiste": "Node does not exist",
+    "chat.notaInvalida": "Note with unrecognized format: [^{n}]",
+    "chat.notas": "Notes",
+    "chat.perfilActivo": "active",
+    "chat.pertenencia": "Relevance to the case is the model\u2019s reading; you decide.",
+    "chat.placeholder": "Message Hermes\u2026",
+    "chat.privActiva": "On ({estrategia})",
+    "chat.privApagada": "Off by the user",
+    "chat.sessionTitle": "Dik\xE9 \xB7 Brief \xB7 ",
+    "chat.seudonimizacion": "Pseudonymization:",
+    "chat.sinPerfil": "no profile with Dik\xE9",
+    "chat.subtitulo": "Brief chat \xB7 Citation status is set by Dik\xE9, not the model.",
+    "chat.te": "You: ",
+    "chat.verSalida": "See data that leaves",
+    "chat.verifFallo": "Could not verify this reply\u2019s citations: treat them as unverified.",
+    "chat.verificando": "checking citations\u2026",
+    "chat.verificarGrafo": "Review source in graph",
+    "codigo.ADAPTER_ERROR": "Could not run the check. Retry.",
+    "codigo.AMBIGUOUS": "Ambiguous reference",
+    "codigo.CITABLE": "Citable text",
+    "codigo.CONTRACT_OR_INPUT_ERROR": "Invalid engine result or input. Retry.",
+    "codigo.CON_PROBLEMAS": "Citation problems found",
+    "codigo.CORPUS_INTEGRITY_ERROR": "Corpus integrity check failed. Reinstall the corpus.",
+    "codigo.CURRENT_VERSION_APPLIES": "Current version applies",
+    "codigo.DEROGATION": "Repealed",
+    "codigo.DESCONOCIDO": "Unknown",
+    "codigo.ENGINE_EXIT_ERROR": "The engine stopped. Check the installation.",
+    "codigo.ENGINE_JSON_ERROR": "The engine returned unreadable data. Retry.",
+    "codigo.EVIDENCE_UNAVAILABLE": "Evidence unavailable",
+    "codigo.FALLO": "Citation failed",
+    "codigo.FUTURE": "Not yet in force",
+    "codigo.HISTORICAL_TEXT_UNAVAILABLE": "Historical text unavailable",
+    "codigo.INPUT_CONTROL": "Control characters in input",
+    "codigo.INPUT_DOCX": "Could not read the DOCX file",
+    "codigo.INPUT_EMPTY": "No text provided",
+    "codigo.INPUT_ENCODING": "Invalid text encoding",
+    "codigo.INPUT_ERROR": "Input rejected. Check the fields.",
+    "codigo.INPUT_EXTENSION": "Unsupported file type",
+    "codigo.INPUT_FIELDS": "Input fields invalid",
+    "codigo.INPUT_LENGTH": "Invalid input length",
+    "codigo.INPUT_NOT_FOUND": "File not found",
+    "codigo.INPUT_PATH": "Invalid file path",
+    "codigo.INPUT_RANGE": "Input outside allowed range",
+    "codigo.INPUT_RELATIVE": "Use an absolute path",
+    "codigo.INPUT_SYMLINK": "Symbolic links are not allowed",
+    "codigo.INPUT_TOO_LARGE": "Input too large",
+    "codigo.INPUT_TYPE": "Invalid input type",
+    "codigo.IN_FORCE": "In force",
+    "codigo.IO_ERROR": "Could not read or save data. Check disk space and permissions.",
+    "codigo.NOT_CITABLE": "Text cannot be cited",
+    "codigo.NOT_CITABLE_TEXT_DEFECT": "Text cannot be cited",
+    "codigo.NOT_IN_FORCE": "Out of force",
+    "codigo.NOT_VERIFIED": "Not verified",
+    "codigo.OUT_OF_FORCE": "Out of force",
+    "codigo.PANEL_DATA": "Invalid panel data",
+    "codigo.PANEL_ERROR": "Could not load the panel. Retry.",
+    "codigo.PROVENANCE_INCOMPLETE": "Source record incomplete",
+    "codigo.RESOLVED": "Reference found",
+    "codigo.SANDBOX_UNAVAILABLE": "Sandbox unavailable. Check bubblewrap settings.",
+    "codigo.SIN_CITAS": "No article citations parsed",
+    "codigo.SIN_CORPUS": "No corpus available",
+    "codigo.SUPERSEDED_VERSION": "Superseded version",
+    "codigo.TEMPORAL_UNKNOWN": "In-force status unknown",
+    "codigo.TIMEOUT": "The check timed out. Try a smaller input.",
+    "codigo.TODAS_VERIFICADAS": "All parsed citations verified",
+    "codigo.UNKNOWN_BEFORE_SNAPSHOT": "Historical text unavailable",
+    "codigo.UNRESOLVABLE": "Reference not found",
+    "codigo.VERIFICADA": "Verified citation",
+    "codigo.aprobada": "Approved",
+    "codigo.candidata": "Candidate",
+    "codigo.desactualizada": "Text changed; check again",
+    "codigo.escalada": "Sent for human review",
+    "codigo.fallo": "Citation failed",
+    "codigo.retirada": "Removed",
+    "codigo.sin verificar": "Unchecked",
+    "codigo.verificada": "Verified citation",
+    "codigo.verificada_estructura": "Structure verified",
+    "codigo.verificando": "Checking\u2026",
+    "err.ARTICLE_ID_INVALID": "The article ID is invalid. Select an article from the graph.",
+    "err.ARTICLE_NOT_FOUND": "The article was not found in the installed corpus. Select an article from the graph.",
+    "err.BODY_INVALID": "The request body must be a JSON object.",
+    "err.BRIEF_UNREADABLE": "The saved brief could not be read. Restore a valid saved copy.",
+    "err.CASE_ID_INVALID": "The case ID is invalid. Use 1\u201364 letters, digits, dots, hyphens or underscores, starting with a letter or digit.",
+    "err.CONFIDENCE_INVALID": "confidence must be between 0 and 1.",
+    "err.COUNTS_INVALID": "conteos must contain non-negative integer counts by type.",
+    "err.DESTINATION_TOO_LONG": "destino exceeds 200 characters. Use a shorter destination label.",
+    "err.ENGINE_ERROR": "Engine error: {detail}",
+    "err.ENGINE_NO_OUTPUT": "The engine returned no output. Try again or check the plugin installation.",
+    "err.ENGINE_RESPONSE_INVALID": "The engine returned an invalid response. Check the plugin installation.",
+    "err.ENGINE_TIMEOUT": "The engine did not respond in time. Try again.",
+    "err.EVIDENCE_NOT_FOUND": "No evidence was found for this link. Reload the local graph.",
+    "err.EVIDENCE_SOURCE_INVALID": "Link evidence is available only in the local graph. Select ambiental.",
+    "err.FIELD_BOOLEAN_INVALID": "{field} must be a boolean.",
+    "err.FIELD_MISSING": "{field} is missing. Provide a non-empty value.",
+    "err.FIELD_NUMBER_INVALID": "{field} must be a finite number.",
+    "err.FIELD_TYPE_INVALID": "{field} must be {expected}.",
+    "err.FIELD_UNICODE_INVALID": "{field} contains invalid Unicode. Copy it again from the original.",
+    "err.FILENAME_INVALID": "The filename is not allowed: {name}. Use letters, digits, dots, hyphens or underscores and a .txt extension.",
+    "err.FILES_COUNT_INVALID": "textos must contain 1\u201325 files.",
+    "err.FILES_INVALID": "Each textos entry must have a text filename and text content.",
+    "err.FONT_INVALID": "fuente must be text of at most 120 characters.",
+    "err.FONT_SIZE_INVALID": "Choose a supported tamano_fuente: 10, 11, 12, 13, 14, 16, 18 or 20.",
+    "err.GRAPH_SOURCE_INVALID": "Unknown graph source: {source}. Select corpus or ambiental.",
+    "err.HTML_MISSING": "HTML is missing. Provide html.",
+    "err.HTML_TOO_LARGE": "HTML exceeds the 2 MB limit. Use a smaller brief.",
+    "err.INPUT_ERROR": "The input was rejected. Check the fields and try again.",
+    "err.JURISDICTION_INVALID": "jur must contain 2\u20138 lowercase letters, such as ar, pe, es, mx or xx.",
+    "err.LENGTH_INVALID": "largo must be non-negative.",
+    "err.LIMIT_INVALID": "limite must be an integer.",
+    "err.LINK_INVALID": "The link ID is invalid. Select a link from the graph.",
+    "err.LOCAL_GRAPH_MISSING": "The local environmental graph has not been built. Run scripts/construir_red_local.py with an approved anonymized source.",
+    "err.LOCAL_GRAPH_UNREADABLE": "The local environmental graph could not be read: {detail}",
+    "err.LOCAL_NODE_NOT_FOUND": "The node was not found in the local graph. Reload the graph.",
+    "err.LOCAL_UNIT_NOT_FOUND": "The unit was not found in the local graph. Reload the graph.",
+    "err.NIF_FIELD_INVALID": "This NIF field cannot be edited from the page. Select an editable field.",
+    "err.NODE_ID_INVALID": "The node ID is invalid. Select a node from the graph.",
+    "err.NODE_NOT_FOUND": "The node was not found in the installed corpus. Select a node from the graph.",
+    "err.PACK_MISSING": "The pack configuration is missing. Provide a paquete JSON object.",
+    "err.PAGE_WIDTH_INVALID": "ancho_hoja must be a4, carta or ancho.",
+    "err.PANEL_INPUT_ERROR": "The panel rejected this request: {detail}",
+    "err.PAPER_THEME_INVALID": "tema_papel must be clasico, sepia or nocturno.",
+    "err.PRIVACY_ACTION_INVALID": "accion must be conservar, enmascarar or olvidar.",
+    "err.PRIVACY_STRATEGY_INVALID": "estrategia_privacidad must be ligera, media or estricta.",
+    "err.PRIVACY_VALUE_EMPTY": "The value is empty. Select text to keep or mask.",
+    "err.PROFILE_MISSING": "The profile is missing. Provide a perfil JSON object.",
+    "err.QUERY_CONTROL": "q contains control characters. Remove them and try again.",
+    "err.QUERY_LENGTH_INVALID": "q must contain 1\u2013300 characters.",
+    "err.QUERY_MISSING": "Search terms are missing. Provide q.",
+    "err.QUERY_NO_TERMS": "The query has no searchable terms. Enter words from the statute.",
+    "err.QUESTION_MISSING": "The question is missing. Provide pregunta.",
+    "err.REGISTRY_INVALID": "registro must be a JSON object.",
+    "err.REGISTRY_TOO_LARGE": "registro exceeds the 200,000-byte limit. Reduce the saved citation log.",
+    "err.REGISTRY_UNICODE_INVALID": "registro contains invalid Unicode. Copy it again from the original.",
+    "err.REV_BASE_INVALID": "rev_base must be a non-negative integer. Reload the brief and try again.",
+    "err.SANDBOX_UNAVAILABLE": "A sandbox is required but unavailable. Enable bubblewrap or select sandbox: auto.",
+    "err.SEND_LOG_FAILED": "The send could not be logged. Do not send the text; check disk space and permissions.",
+    "err.SHA256_INVALID": "sha256 must contain 64 lowercase hexadecimal characters.",
+    "err.STATUTE_CODE_INVALID": "code must be a numeric Ley Chile identifier.",
+    "err.STATUTE_NOT_FOUND": "Statute {code} is not in the installed corpus. Select a statute from the corpus.",
+    "err.STATUTE_TEXT_TOO_LARGE": "Statute text exceeds 200,000 bytes. Use a smaller source file.",
+    "err.STATUTE_UNICODE_INVALID": "Statute text contains invalid Unicode. Copy it again from the original.",
+    "err.STYLE_CONTEXT_INVALID": "contexto must be text.",
+    "err.STYLE_CONTEXT_OPTION_INVALID": "contexto_estilo must be escrito, demanda, sentencia or general.",
+    "err.STYLE_DETAIL_INVALID": "detallado must be a boolean.",
+    "err.TAIL_EMPTY": "cola is empty. Provide the preceding words.",
+    "err.TAIL_TOO_LONG": "cola exceeds 300 characters. Use fewer preceding words.",
+    "err.TEXT_MISSING": "Text is missing. Provide texto.",
+    "err.TEXT_TOO_LARGE": "Text exceeds the 400,000-byte limit. Use a smaller input.",
+    "err.TEXT_TYPE_INVALID": "texto must be text.",
+    "err.TEXT_UNICODE_INVALID": "The text contains invalid Unicode. Copy it again from the original.",
+    "err.UNIT_ID_INVALID": "The unit ID is invalid. Select a unit from the graph.",
+    "err.UNIT_INDEX_NOT_FOUND": "Unit {unit} does not exist in that article. Select an existing unit.",
+    "err.UNIT_NOT_FOUND": "The unit was not found in the installed corpus. Select a unit from the graph.",
+    "err.VALIDATED_INVALID": "validated must be a boolean.",
+    "err.VALUE_MISSING": "The value is missing. Provide value.",
+    "extra.connecting.brief.chat": "Connecting brief chat\u2026",
+    "extra.could.not.read.the.article": "Could not read the article",
+    "extra.invalid.edited.value": "Invalid edited value: ",
+    "extra.privacy.blocked.sending": "Privacy blocked sending",
+    "extra.profile.valid.under.dike.perfil.ordenamiento.v1": "Profile valid under dike-perfil-ordenamiento-v1",
+    "extra.profileIssues": "{n} profile issues:",
+    "format.1.list": "1. List",
+    "format.active.brief.or.case": "Active brief or case",
+    "format.block.quote": "Block quote",
+    "format.bold.ctrl.b": "Bold (Ctrl+B)",
+    "format.brief.font": "Brief font",
+    "format.brief.label": "Brief",
+    "format.bullet.list": "Bullet list",
+    "format.case.id.e.g.dismissal.case": "case-id (e.g. dismissal-case)",
+    "format.case.s.legal.question": "Case\u2019s legal question\u2026",
+    "format.citationCount": "\u2713 {ok}/{total} citations",
+    "format.clear.brief": "Clear brief",
+    "format.close": "Close",
+    "format.configure.suggestions.and.appearance": "Configure suggestions and appearance",
+    "format.create.case": "Create case",
+    "format.create.or.link.a.case": "Create or link a case",
+    "format.create.or.load.a.case.for.this.brief": "Create or load a case for this brief",
+    "format.default.draft.no.case": "Default \u2014 draft (no case)",
+    "format.default.serif": "Default (serif)",
+    "format.draft.no.case": "Draft (no case)",
+    "format.export.html.html": "Export HTML (.html)",
+    "format.export.markdown.md": "Export Markdown (.md)",
+    "format.export.text.txt": "Export text (.txt)",
+    "format.file": "File \u25BE",
+    "format.font.size.pt": "Font size (pt)",
+    "format.heading.1": "Heading 1",
+    "format.heading.2": "Heading 2",
+    "format.heading.3": "Heading 3",
+    "format.horizontal.rule": "Horizontal rule",
+    "format.insert.a.chilean.pleading.formula": "Insert a Chilean pleading formula",
+    "format.italic.ctrl.i": "Italic (Ctrl+I)",
+    "format.link.a.case": "Link a case:",
+    "format.list": "\u2022 List",
+    "format.load.demo.brief.ct": "Load demo brief (CT)",
+    "format.load.demo.brief.label": "Load demo brief",
+    "format.load.demo.case.ct": "Load demo case (CT)",
+    "format.loading.cases": "Loading cases\u2026",
+    "format.loading.label": "loading\u2026",
+    "format.numbered.list": "Numbered list",
+    "format.open.citation.details": "Open citation details",
+    "format.open.file.md.txt.html": "Open file (.md, .txt, .html)\u2026",
+    "format.open.plain.language.review": "Open plain-language review",
+    "format.open.privacy.settings": "Open privacy settings",
+    "format.paragraph": "Paragraph",
+    "format.pleading.formulas": "Pleading formulas \u25BE",
+    "format.print.save.pdf": "Print / save PDF",
+    "format.privacy": "Privacy",
+    "format.quote": "\u275D Quote",
+    "format.read": "Read",
+    "format.redo.ctrl.y": "Redo (Ctrl+Y)",
+    "format.save.conflict": "save conflict",
+    "format.save.now": "Save now",
+    "format.saved": "saved",
+    "format.saving": "saving\u2026",
+    "format.settings": "Settings",
+    "format.strikethrough": "Strikethrough",
+    "format.style": "Style",
+    "format.undo.ctrl.z": "Undo (Ctrl+Z)",
+    "format.unsaved": "unsaved",
+    "format.words": "{n} words",
+    "format.write": "Write",
+    "format.writer.settings": "Writer settings",
+    "graf.abrir3d": "Open corpus graph",
+    "graf.abrir3dBoton": "Open in 3D",
+    "graf.archivo": "File:",
+    "graf.aristas": "Edges: {n}",
+    "graf.articulos": "Articles: {n}",
+    "graf.busquedaNota": "Local text search. Results are leads; check citations before using them.",
+    "graf.capaLocal": "Local layer on this machine",
+    "graf.capaSellada": "Corpus sealed by hash",
+    "graf.capas": "Available graph layers",
+    "graf.capasCargando": "Loading layers\u2026",
+    "graf.capasVacio": "No graph layers available.",
+    "graf.cargarEditor": "Load in editor",
+    "graf.cerrarLectura": "Close article reading",
+    "graf.construccionDetenida": "\u2717 Build stopped ({etapa}): {error}",
+    "graf.construir": "Build and validate corpus pack",
+    "graf.construyendo": "Building and validating pack\u2026",
+    "graf.corpus": "Corpus",
+    "graf.crearPack": "Create corpus pack",
+    "graf.disponible": "available",
+    "graf.errorJson": "Invalid JSON in profile or pack: {error}",
+    "graf.errorJsonPerfil": "The profile JSON has a syntax error: {error}",
+    "graf.etapaValidacion": "validation",
+    "graf.explorador": "Open 3D explorer",
+    "graf.fuentes": "Sources",
+    "graf.generar": "Generate template",
+    "graf.gre": "Personal review graph",
+    "graf.greConteo": "Candidate nodes: {nodos} \xB7 Edges: {aristas}",
+    "graf.greNota": "Candidates are stored on this device, outside the corpus pack.",
+    "graf.intro": "Build a corpus pack for a legal system from local statute text. Validate the profile and source text before using the pack.",
+    "graf.isoPlaceholder": "ISO code (e.g. ar, pe, es, mx)",
+    "graf.leer": "Read article",
+    "graf.leyendo": "Reading\u2026",
+    "graf.llevar": "+ Send to brief",
+    "graf.llevarTitulo": "Inserts the canonical citation at the end of the brief and runs it through the checker",
+    "graf.noConstruida": "not built",
+    "graf.normaPlaceholder": "Article 1. Text of the first article\u2026\nArticle 2. Text of the second article\u2026",
+    "graf.normas": "Norms: {n}",
+    "graf.packOk": "\u2713 Pack built and validated \u2014 Level reached: {nivel}",
+    "graf.paso1": "1. New country template:",
+    "graf.paso2": "2. Legal-system profile (JSON)",
+    "graf.paso3": "3. Pack configuration and norm text (Build graph)",
+    "graf.perfilErrores": "with errors",
+    "graf.perfilValido": "valid profile",
+    "graf.perfiles": "Included legal-system profiles",
+    "graf.placeholder": "E.g. indemnizaci\xF3n a\xF1os de servicio art\xEDculo 163\u2026",
+    "graf.revisaErrores": "check the errors",
+    "graf.titulo": "Graph tools",
+    "graf.unidades": "Normative units ({n})",
+    "graf.validar": "Validate profile",
+    "graf.vigencias": "Validity windows: {n}",
+    "graph.add.to.brief": "Add to brief",
+    "graph.added.as.an.unchecked.citation.citation.check.runs.next": "Added as an unchecked citation; citation check runs next",
+    "graph.ambiguous.classification": "ambiguous classification",
+    "graph.anchor": "anchor",
+    "graph.article.could.not.be.resolved.in.the.corpus": "Article could not be resolved in the corpus (",
+    "graph.article.label": "Article",
+    "graph.article.sha.256": "Article SHA-256 ",
+    "graph.article.text": "Article text",
+    "graph.articles": " articles",
+    "graph.brief": "brief.",
+    "graph.by.content": "by content",
+    "graph.by.name": "by name",
+    "graph.candidate.label.unvalidated": "Candidate label (unvalidated):",
+    "graph.candidate.label_text": "Candidate",
+    "graph.candidate.relations.unvalidated": "Candidate relations, unvalidated",
+    "graph.candidates": " candidates \xB7 ",
+    "graph.channel": " \xB7 channel ",
+    "graph.citation.check.will.return.fallo.article.out.of.force": "Citation check will return FALLO: article out of force",
+    "graph.corpus.graph": "Corpus graph",
+    "graph.corpus.list.text": "Corpus list (text)",
+    "graph.could.not.read.the.article": "Could not read the article: ",
+    "graph.could.not.start.the.3d.view": "Could not start the 3D view: ",
+    "graph.coverage": " \xB7 coverage ",
+    "graph.dated.copy.check.the.text.in.force.yourself": " \xB7 Dated copy: check the text in force yourself",
+    "graph.decision": "Decision",
+    "graph.dik.corpus.25.laws": "Dik\xE9 corpus (25 laws)",
+    "graph.drawing.graph": "Drawing graph\u2026",
+    "graph.edges": " edges",
+    "graph.evidence.items": " evidence items)",
+    "graph.fit": "Fit graph",
+    "graph.from": " from ",
+    "graph.from2": " \xB7 from ",
+    "graph.graph.source": "Graph source",
+    "graph.hide.articles": "Hide articles",
+    "graph.highlighted.path": "Highlighted path",
+    "graph.highlighted.path2": "Highlighted path \xB7 ",
+    "graph.highlighted.unit": "Highlighted unit: ",
+    "graph.in.force.label": "In force: ",
+    "graph.instrument": "Instrument",
+    "graph.judgment": "Judgment",
+    "graph.level": " \xB7 level ",
+    "graph.loading.article": "Loading article\u2026",
+    "graph.loading.articles": "Loading articles\u2026",
+    "graph.loading.corpus.graph.the.first.load.may.take.a.minute.while.the.c": "Loading corpus graph. The first load may take a minute while the corpus is checked\u2026",
+    "graph.loading.corpus.label": "Loading corpus\u2026",
+    "graph.loading.label": "Loading\u2026",
+    "graph.loading.unit.text": "Loading unit text\u2026",
+    "graph.local.environmental.graph.this.device": "Local environmental graph (this device)",
+    "graph.local.unpublished.pseudonymized.judgments": "Local \u2014 unpublished \xB7 pseudonymized judgments \xB7 ",
+    "graph.mentions": " mentions",
+    "graph.no.candidates.yet.the.personal.review.graph.collects.evidence.fro": "No candidates yet. The personal review graph collects evidence from agents and the ",
+    "graph.no.citation.form.available": "No citation form available",
+    "graph.no.local.text.inferred.from.mentions.in.judgments": "No local text: inferred from mentions in judgments",
+    "graph.no.matches": "No matches.",
+    "graph.no.results": "No results.",
+    "graph.no.terms": "no terms",
+    "graph.nodes": " nodes \xB7 ",
+    "graph.of.the.article": " of the article",
+    "graph.of.the.judgment": " of the judgment",
+    "graph.only.on.this.device.unpublished": "Only on this device \u2014 unpublished",
+    "graph.original.source": "Original source \u2197",
+    "graph.passage.found.in.article": "Passage found in article",
+    "graph.passage.not.found.in.this.article": "Passage not found in this article",
+    "graph.personal.review.graph": "Personal review graph",
+    "graph.query.subjects": "Query subjects",
+    "graph.retry": "Retry",
+    "graph.rotate": "Rotate",
+    "graph.rule": "rule ",
+    "graph.search.article.text": "Search article text\u2026",
+    "graph.search.label": "Search",
+    "graph.search.law.code.or.article": "Search law, code or article\u2026",
+    "graph.search.lead.citation.not.yet.checked": "Search lead \u2014 citation not yet checked",
+    "graph.search.mode": "Search mode",
+    "graph.searching.corpus": "Searching corpus\u2026",
+    "graph.searching.label": "Searching\u2026",
+    "graph.select.or.search.for.a.node.to.see.its.details.select.an.article.": "Select or search for a node to see its details. Select an article to expand its units.",
+    "graph.select.to.expand.collapse": " \xB7 select to expand/collapse",
+    "graph.showing": " (showing ",
+    "graph.source.article": "Source article \u2197",
+    "graph.source.label": "source \u2197",
+    "graph.subject.classification.explains.matches.it.does.not.change.their.": "Subject classification explains matches; it does not change their order",
+    "graph.subject.tree.unavailable": "Subject tree unavailable",
+    "graph.terms": "terms: ",
+    "graph.territory": "territory",
+    "graph.text.search.covers.the.dik.corpus.only": "Text search covers the Dik\xE9 corpus only",
+    "graph.the.3d.graph.needs.webgl.the.list.below.has.the.same.corpus": "The 3D graph needs WebGL. The list below has the same corpus.",
+    "graph.too.long": " (too long)",
+    "graph.too.short.to.compare": " (too short to compare)",
+    "graph.truncated": " \xB7 truncated",
+    "graph.unit.label": "Unit",
+    "graph.unit.sha.256": "Unit SHA-256 ",
+    "graph.unit2": "Unit ",
+    "graph.units": " units",
+    "graph.units2": "units: ",
+    "graph.visible": " visible \xB7 ",
+    "graph.webgl.unavailable.use.the.corpus.list.below": "WebGL unavailable. Use the corpus list below.",
+    "nif.agregar": "+ Add",
+    "nif.cargando": "Loading case board\u2026",
+    "nif.cargarDemo": "Load demo case",
+    "nif.conQue": "Information that fills the gap",
+    "nif.fijarConfianza": "Set confidence",
+    "nif.guardar": "Save",
+    "nif.historial": "Patch history ({n})",
+    "nif.idCaso": "Case ID",
+    "nif.impacto": "impact {impacto}",
+    "nif.llenar": "Fill gap",
+    "nif.marcarValidado": "Mark as reviewed",
+    "nif.nuevoCaso": "New case",
+    "nif.pide": "asked by {quien}",
+    "nif.placeholderJson": 'Item JSON, e.g. {"label": "Employee"}',
+    "nif.placeholderTexto": "Item text",
+    "nif.pregunta": "Legal question",
+    "nif.quien": "who",
+    "nif.quitarValidacion": "Remove validation",
+    "nif.resolverVacios": "Resolve gaps",
+    "nif.seccion.adminActs": "Administrative acts",
+    "nif.seccion.conflicts": "Conflicts",
+    "nif.seccion.deonticPositions": "Rights and duties",
+    "nif.seccion.factsAlleged": "Alleged facts",
+    "nif.seccion.factsKnown": "Known facts",
+    "nif.seccion.factsMissing": "Missing facts",
+    "nif.seccion.gaps": "Gaps",
+    "nif.seccion.hypotheses": "Hypotheses",
+    "nif.seccion.normRelations": "Relations between norms",
+    "nif.seccion.norms": "Norms",
+    "nif.seccion.principles": "Principles",
+    "nif.seccion.relevantFactors": "Relevant factors",
+    "nif.seccion.subjects": "Parties and other people",
+    "nif.sinCasos": "No cases",
+    "nif.sinNif": "This case has no case board yet.",
+    "nif.sinValidar": "not human-validated",
+    "nif.vacio": "No cases yet. Load the demo or create a case with its legal question.",
+    "nif.validado": "validated by a human",
+    "nif.versionConf": "v{version} \xB7 confidence {pct}%",
+    "nifp.aEscrito": "Insert into brief",
+    "nifp.aPizarra": "Send this item to the Strategy board",
+    "nifp.aceptar": "Accept",
+    "nifp.agregarA": "Add to {seccion}\u2026",
+    "nifp.borrador": "Unreviewed case board",
+    "nifp.cancelar": "Cancel",
+    "nifp.descartadas": "{n} rejected by validation",
+    "nifp.deshabilitadoCaso": "Choose or create a case first.",
+    "nifp.deshabilitadoChat": "Open the brief\u2019s chat first: proposals use its model.",
+    "nifp.editar": "Edit",
+    "nifp.errorPrivacidad": "Turn on pseudonymization or confirm in the Privacy module that you accept sending personal data.",
+    "nifp.idCaso": "Case id (e.g. dismissal-case-1)",
+    "nifp.masPizarra": "+ Board",
+    "nifp.modelo": "model",
+    "nifp.normPrefix": "Norm \u201C",
+    "nifp.normSuffix": "\u201D: ",
+    "nifp.onlyAccepted": "Suggested updates enter the case board only when you accept them.",
+    "nifp.pidiendo": "Requesting proposals\u2026",
+    "nifp.pregunta": "Main legal question\u2026",
+    "nifp.proponer": "Suggest board updates",
+    "nifp.rechazar": "Reject",
+    "nifp.seccionVacia": "No items yet. Add an item to start.",
+    "nifp.suggestions": "Suggested board updates",
+    "nifp.tablero": "case board",
+    "nifp.tagPartes": "PARTIES",
+    "nifp.validado": "\u2713 validated by a human",
+    "nifp.verificarNorma": "Check citation",
+    "nifp.vincularAyuda": "Link this draft to a new case or load the demo to start using its case board.",
+    "nifp.vincularTitulo": "Link or create a case",
+    "piz.abrirGrafo": "Open article in the graph",
+    "piz.acercar": "Zoom in",
+    "piz.agregarNotaTitulo": "Add sticky note to the board",
+    "piz.alejar": "Zoom out",
+    "piz.altura": "Drag to adjust the Strategy board height",
+    "piz.botonNota": "+ Note",
+    "piz.buscarNormas": "Search norms in the Dik\xE9 corpus and add them as cards",
+    "piz.cancelarConexion": "Cancel connection",
+    "piz.cargarEstructura": "Load a brief structure onto the board",
+    "piz.colorNota": "Change note color",
+    "piz.conectar": "Connect to another card",
+    "piz.conectarHint": "Click another note to connect them (or the same one to cancel)",
+    "piz.crearNorma": "Create norm card on the board",
+    "piz.eliminar": "Delete note",
+    "piz.escritoBoton": "+ Brief",
+    "piz.estructuras": "Legal structures",
+    "piz.expandir": "Expand note",
+    "piz.insertarCita": "Insert canonical citation into the brief and verify",
+    "piz.insertarTexto": "Insert this note\u2019s text into the brief",
+    "piz.limpiar": "Clear",
+    "piz.limpiarTitulo": "Clear board",
+    "piz.llevarNotas": "Send notes to brief",
+    "piz.llevarNotasTitulo": "Insert the notes in order into the brief",
+    "piz.minimizar": "Minimize note",
+    "piz.normaFallback": "Norm",
+    "piz.placeholderBusqueda": "Search legal terms in Spanish\u2026",
+    "piz.redimensionar": "Drag to resize",
+    "piz.restablecer": "Reset view",
+    "piz.tagNota": "NOTE",
+    "piz.template0": "Complaint / court brief",
+    "piz.template1": "Judgment",
+    "piz.template2": "Contract",
+    "piz.template3": "Administrative decision / appeal",
+    "piz.templateDescription0": "Parties \xB7 Facts \xB7 Legal grounds \xB7 Relief sought",
+    "piz.templateDescription1": "Parties \xB7 Background \xB7 Reasoning \xB7 Decision",
+    "piz.templateDescription2": "Parties \xB7 Subject \xB7 Obligations \xB7 Guarantees and termination",
+    "piz.templateDescription3": "Background \xB7 Legal framework \xB7 Reasons \xB7 Decision",
+    "piz.textoPlaceholder": "Write ideas, facts or articles for this section\u2026",
+    "piz.titulo": "Strategy board",
+    "piz.tituloBusqueda": "Corpus search \xB7 Dik\xE9",
+    "piz.tituloNota": "Note {n}",
+    "piz.tituloPlaceholder": "Title\u2026",
+    "piz.vacio": "Plan your brief here",
+    "piz.vacioAyuda": "Add a note, choose a template or search the corpus to start.",
+    "piz.vacioBusqueda": "Type legal terms to bring norms to the board or the brief.",
+    "pred.aceptoNube": "I agree to send the paragraph to the cloud",
+    "pred.activar": "Enable suggestions",
+    "pred.avisoNube": "Model suggestions send the paragraph to the cloud.",
+    "pred.destinoNube": "cloud",
+    "pred.destinoNubeCorto": " \xB7 prediction \xB7 cloud",
+    "pred.fuenteAcciones": "procedural-action catalog",
+    "pred.fuenteFormalismos": "procedural-form catalog",
+    "pred.l0": "Templates",
+    "pred.l1": "Corpus text",
+    "pred.l2": "Model",
+    "pred.nota": "Suggestions are drafts. Check their citations before using them.",
+    "pred.perfilSinResolver": "unresolved profile",
+    "pred.sinSesion": "no chat session",
+    "pred.telemetria": "Log acceptances (no content)",
+    "pred.titulo": "Suggestions (experimental)",
+    "prefs.a4": "A4 (210 mm)",
+    "prefs.ancho": "Full width",
+    "prefs.ayuda": "Adjust the Case Writer page look, the default privacy strategy and the visible panels.",
+    "prefs.cobertura": "Installed coverage: {leyes} Chilean laws \xB7 {articulos} articles",
+    "prefs.consultando": "Checking status\u2026",
+    "prefs.contextoEstilo": "Plain-language review context",
+    "prefs.ctxDemanda": "Complaint (max 25 words/sentence)",
+    "prefs.ctxEscrito": "Judicial brief (max 30 words/sentence)",
+    "prefs.ctxGeneral": "General (max 25 words/sentence)",
+    "prefs.ctxSentencia": "Judgment (max 20 words/sentence)",
+    "prefs.estadoTitulo": "Environment status",
+    "prefs.estrategia": "Default pseudonymization strategy",
+    "prefs.estricta": "Strict (+ medium and names)",
+    "prefs.fijarPerfil": "To set a dedicated lawyer profile:",
+    "prefs.formatoHoja": "Page format",
+    "prefs.grafosTitulo": "Graphs and legal systems",
+    "prefs.guardadas": "Preferences saved",
+    "prefs.ligera": "Light (critical only: national ID, email, phone)",
+    "prefs.media": "Medium (critical + high)",
+    "prefs.mostrarChat": "Dock Hermes chat on the right",
+    "prefs.mostrarPizarra": "Show Strategy board when opening Case Writer",
+    "prefs.perfilActivo": "(uses the active Hermes profile)",
+    "prefs.perfilChat": "Chat profile: {perfil}",
+    "prefs.temaClasico": "Classic paper (white on gray)",
+    "prefs.temaNocturno": "Dark ink (night mode)",
+    "prefs.temaPapel": "Paper theme",
+    "prefs.temaSepia": "Warm sepia reading",
+    "prefs.versionPack": "Plugin v{version} \xB7 corpus pack {pack}",
+    "priv.conservar": "Keep",
+    "priv.detectando": "detecting\u2026",
+    "priv.detectar": "Detect personal data",
+    "priv.enmascarar": "Mask",
+    "priv.enmascararSeleccion": "Mask selection",
+    "priv.entiendo": "I understand the text will leave with personal data",
+    "priv.error": "Privacy unavailable: {error} \u2014 the text must not leave until this is resolved.",
+    "priv.estrategiaEstricta": "strict (+ medium)",
+    "priv.estrategiaLigera": "light (critical only)",
+    "priv.estrategiaMedia": "medium (critical + high)",
+    "priv.motivo.ancla_causa": "case reference",
+    "priv.motivo.decision_abogado": "lawyer decision",
+    "priv.motivo.institucion": "institution",
+    "priv.motivo.juez": "judge (public)",
+    "priv.motivo.por_estrategia": "under the strategy",
+    "priv.ocultarMarcas": "Hide personal data in the brief",
+    "priv.posiblesPersonas": "{n} possible people",
+    "priv.posiblesSinContexto": "Possible people without context",
+    "priv.preparando": "preparing preview\u2026",
+    "priv.seudonimizar": "Pseudonymize before sending to the model",
+    "priv.sinDeteccion": "No detection yet: edit the brief or press \u201CDetect personal data\u201D.",
+    "priv.valoresMapa": "{n} pseudonymized values \xB7 no destination selected",
+    "priv.verMarcas": "Show personal data in the brief",
+    "priv.vistaSalida": "Preview of what leaves",
+    "proposal.FIELD_NOT_ALLOWED": "Field not allowed",
+    "proposal.FIELD_NOT_PROPOSABLE": "Field cannot be proposed",
+    "proposal.MODEL_PROPOSALS_INVALID": "The model returned no valid proposals. Try again.",
+    "proposal.PROPOSAL_DUPLICATE": "Already in the case board",
+    "proposal.PROPOSAL_INVALID": "Invalid proposal",
+    "proposal.PROPOSAL_LIMIT": "At most 12 proposals",
+    "proposal.PROPOSAL_REJECTED": "Already rejected by you",
+    "proposal.QUOTE_LENGTH_INVALID": "Quote must contain 1\u2013300 characters",
+    "proposal.QUOTE_NOT_IN_BRIEF": "Quote not found in the brief",
+    "proposal.VALUE_INVALID": "Invalid value or option",
+    "shell.estado.aislado": "sandboxed (bubblewrap)",
+    "shell.estado.ayuda": "Enable Dik\xE9 on the active Hermes profile (version 0.4.0 or later).",
+    "shell.estado.cargando": "Checking the corpus\u2026",
+    "shell.estado.corpusNo": "corpus not installed",
+    "shell.estado.corpusOk": "corpus installed",
+    "shell.estado.pack": "corpus pack {pack} \xB7 {leyes} laws \xB7 {articulos} articles{version}",
+    "shell.estado.sinAislamiento": "not sandboxed: {motivo}",
+    "shell.estado.sinBackend": "The Dik\xE9 backend is not responding on the active profile",
+    "shell.idioma": "Interface language",
+    "shell.pestana.escritor": "Case Writer",
+    "shell.pestana.grafo": "Corpus graph",
+    "shell.pestana.nif": "Case board",
+    "shell.pestana.personalizacion": "Legal systems and settings",
+    "shell.subtitulo": "Local legal studio \xB7 Not legal advice",
+    "style.analyze.now": "Analyze now",
+    "style.analyzed": "{n} sentences analyzed",
+    "style.analyzing": "Analyzing\u2026",
+    "style.archaic.and.bureaucratic.wording": "Archaic and bureaucratic wording",
+    "style.archaism": "Archaic wording: \u201C{term}\u201D \u2192 \u201C{replacement}\u201D",
+    "style.argument.coverage": "% argument coverage",
+    "style.argument.structure": "Argument structure",
+    "style.average.words.per.sentence": "Average words per sentence",
+    "style.back.to.summary": "\u2190 Back to summary",
+    "style.brief.metrics": "Brief metrics",
+    "style.complaint.max.25.words.sentence": "Complaint (max. 25 words/sentence)",
+    "style.conclusion": "CONCLUSION",
+    "style.context": "Context:",
+    "style.court.brief.max.30.words.sentence": "Court brief (max. 30 words/sentence)",
+    "style.create.connected.strategy.board.cards.from.the.brief": "Create connected Strategy board cards from the brief",
+    "style.evidence": "EVIDENCE",
+    "style.fact.label": "FACT",
+    "style.fact.norm.conclusion.chain.found": "Fact \u2192 Norm \u2192 Conclusion chain found",
+    "style.general.max.25.words.sentence": "General (max. 25 words/sentence)",
+    "style.judgment.max.20.words.sentence": "Judgment (max. 20 words/sentence)",
+    "style.judicial.writing.pattern.score": "Judicial writing pattern score",
+    "style.judicial.writing.patterns": "Judicial writing patterns",
+    "style.max": "max. ",
+    "style.no.style.issues.found.by.these.rules": "No style issues found by these rules.",
+    "style.nominalization": "Nominalization: {noun} \u2192 {verb}",
+    "style.nominalizations.found": "Nominalizations found",
+    "style.nominalizations.label": "Nominalizations",
+    "style.norm": "NORM",
+    "style.over.the.limit": " (over the limit)",
+    "style.paragraph": "Paragraph ",
+    "style.passive.voice": "Passive voice",
+    "style.periphrastic.passive.voice": "Periphrastic passive voice",
+    "style.plain.language.score": "Plain-language score",
+    "style.readability.and.length": "Readability and length",
+    "style.replace.in.the.brief": "Replace in the brief",
+    "style.replace_text": "Replace \u201C{term}\u201D with \u201C{replacement}\u201D",
+    "style.select.analyze.now.to.find.candidate.facts.norms.evidence.and.con": "Select \u201CAnalyze now\u201D to find candidate facts, norms, evidence and conclusions in the brief.",
+    "style.select.analyze.now.to.review.readability.and.spanish.legal.writin": "Select \u201CAnalyze now\u201D to review readability and Spanish legal writing patterns.",
+    "style.send.structure.to.board": "Send structure to board",
+    "style.sentences.label": "Sentences",
+    "style.sentences.over.the.limit": "Sentences over the limit",
+    "style.sentences_text": "Review sentences ({n}) \u2192",
+    "style.structure.notes": "Structure notes",
+    "style.style.and.clarity": "Style and clarity",
+    "style.suggestions": "Suggestions ({n})",
+    "style.unclassified": "Unclassified",
+    "style.words": " words",
+    "style.writing.pattern.and.format.notes": "Writing pattern and format notes",
+    "verify.SIN_CITAS": "The engine found no article citations it could parse. The brief may still refer to laws.",
+    "verify.SIN_CORPUS": "No corpus was available to check against. This is not a favorable result.",
+    "verify.desactualizada": "Text changed. Check citations again.",
+    "verify.escalada": "Sent for human review: {note}",
+    "verify.fallo": "Citation failed \xB7 {resolution}",
+    "verify.judgment": "Dik\xE9 does not assess whether the norm supports the argument. That requires a lawyer\u2019s judgment.",
+    "verify.lead": " \xB7 added from search (lead)",
+    "verify.retirada": "Removed: {reason}",
+    "verify.verificada": "Verified by Dik\xE9: exists, has citable text and was in force on {date} in corpus pack {pack} \xB7 {source}",
+    "writer.another.process.saved.this.brief": "Another process saved this brief",
+    "writer.apply": "Apply",
+    "writer.asOf": " \xB7 in force on ",
+    "writer.brief.stored.on.this.device.privacy.settings.control.what.is.sent": "Brief stored on this device. Privacy settings control what is sent.",
+    "writer.case.board.and.suggested.updates": "Case board and suggested updates",
+    "writer.case.board.label": "Case board",
+    "writer.check.against.the.25.laws.in.the.corpus.pack": "Check against the 25 laws in the corpus pack.",
+    "writer.check.citations": "Check citations",
+    "writer.checking": "Checking\u2026",
+    "writer.citation.check": "Citation check",
+    "writer.citation.check2": "Citation check",
+    "writer.citation.details.open": "Citation details open",
+    "writer.citation.removed.review.the.sentence.for.missing.text": "Citation removed. Review the sentence for missing text.",
+    "writer.classic.paper": "Classic paper",
+    "writer.close.tool.panel": "Close tool panel",
+    "writer.corpus.graph.and.legal.systems": "Corpus graph and legal systems",
+    "writer.could.not.check.the.brief": "Could not check the brief: ",
+    "writer.count": "Dik\xE9: {ok} of {total} citations verified",
+    "writer.custody": "Check history ({removed} removed \xB7 {review} sent for review)",
+    "writer.dark.ink": "Dark ink",
+    "writer.data": "Data:",
+    "writer.default.privacy.strategy": "Default privacy strategy:",
+    "writer.demo.brief.loaded.select.check.citations.to.try.the.engine": "Demo brief loaded. Select \u201CCheck citations\u201D to try the engine.",
+    "writer.dik": "Dik\xE9: ",
+    "writer.dismiss.error": "Dismiss error",
+    "writer.dismiss.notice": "Dismiss notice",
+    "writer.engine.problems": "Engine problems",
+    "writer.failedReplacement": "Replacement failed: ",
+    "writer.full.width": "Full width",
+    "writer.graph": " \xB7 graph",
+    "writer.graphs.and.legal.systems": "Graphs and legal systems",
+    "writer.hide.hermes.chat": "Hide Hermes chat",
+    "writer.letter.216.mm": "Letter (216 mm)",
+    "writer.light.critical.only": "Light (critical only)",
+    "writer.medium.critical.and.high": "Medium (critical and high)",
+    "writer.noDetail": "No details",
+    "writer.note.for.human.review": "Note for human review",
+    "writer.of": " of ",
+    "writer.open.article.in.corpus.graph": "Open article in corpus graph",
+    "writer.page.format": "Page format:",
+    "writer.paper.label": "Paper:",
+    "writer.paper.theme": "Paper theme:",
+    "writer.plain.language.review": "Plain-language review",
+    "writer.plain.language.review2": "Plain-language review",
+    "writer.privacy.and.pseudonymization.ley.21.719": "Privacy and pseudonymization (Ley 21.719)",
+    "writer.privacy.label": "Privacy",
+    "writer.read.mode.review.the.text.and.citations": "Read mode \u2014 review the text and citations",
+    "writer.reason.for.removal": "Reason for removal",
+    "writer.references.without.an.article.unchecked": "References without an article, unchecked: ",
+    "writer.reload.and.discard.my.changes": "Reload and discard my changes",
+    "writer.remove": "Remove",
+    "writer.removed": "Removed \u2014 ",
+    "writer.replacement.text": "Replacement text",
+    "writer.replacement.verified.apply.it.then.check.the.brief.again": "Replacement verified. Apply it, then check the brief again.",
+    "writer.request.review": "Request review",
+    "writer.return.to.writing": "Return to writing",
+    "writer.review.and.repair.citations": "Review and repair citations",
+    "writer.saved.on.this.device": "Saved on this device",
+    "writer.search.lead.added.checking.the.citation": "Search lead added. Checking the citation\u2026",
+    "writer.select.check.citations.to.check.the.brief.s.article.references": "Select \u201CCheck citations\u201D to check the brief\u2019s article references.",
+    "writer.sent.for.review": "Sent for review \u2014 ",
+    "writer.settings.and.suggestions": "Settings and suggestions",
+    "writer.settings.label": "Settings",
+    "writer.show.hermes.chat": "Show Hermes chat",
+    "writer.show.strategy.board.above.the.brief": "Show Strategy board above the brief",
+    "writer.start.writing.your.brief.here": "Start writing your brief here\u2026",
+    "writer.strict.also.medium.and.names": "Strict (also medium and names)",
+    "writer.test.replacement": "Test replacement",
+    "writer.testing": "testing\u2026",
+    "writer.two.repair.attempts.failed.request.human.review": "Two repair attempts failed. Request human review.",
+    "writer.unchecked": "Unchecked",
+    "writer.unsaved.changes.recovered.retrying.save": "Unsaved changes recovered. Retrying save\u2026",
+    "writer.verifiedSuffix": " citations verified",
+    "writer.warm.sepia": "Warm sepia",
+    "writer.writer.settings": "Writer settings",
+    "rail.citas": "Check",
+    "rail.privacidad": "Privacy",
+    "rail.estilo": "Style",
+    "rail.nif": "Board",
+    "rail.grafos": "Graph",
+    "rail.ajustes": "Settings",
+    "rail.chat": "Chat",
+    "piz.search": "Corpus search",
+    "piz.supports": "supports",
+    "priv.possiblePerson": "Possible person",
+    "mod.obligacion": "obligation",
+    "mod.prohibicion": "prohibition",
+    "mod.permiso": "permission",
+    "mod.potestad": "power",
+    "mod.excepcion": "exception",
+    "mod.sancion": "sanction",
+    "mod.definicion": "definition",
+    "mod.otra": "other",
+    "paper.clasico": "Classic",
+    "paper.sepia": "Sepia",
+    "paper.nocturno": "Dark",
+    "strategy.ligera": "light",
+    "strategy.media": "medium",
+    "strategy.estricta": "strict",
+    "pred.templateSource": "Template (rules)",
+    "pred.corpusSource": "Corpus text; citation unchecked"
+  },
+  "es": {
+    "busq.buscando": "Buscando en el corpus sellado\u2026",
+    "busq.cerrar": "Cerrar buscador",
+    "busq.materias": "Materias:",
+    "busq.placeholder": "Buscar en el corpus sellado\u2026",
+    "busq.sinResultados": "Sin resultados para \xAB{q}\xBB.",
+    "busq.vacio": "Escribe t\xE9rminos jur\xEDdicos para buscar en el corpus.",
+    "chat.abriendo": "abriendo sesi\xF3n\u2026",
+    "chat.antesCuerpo": "Dik\xE9 seudonimiza los datos personales (RUT, correo, tel\xE9fono, nombres con contexto) antes de enviar al perfil de Hermes. El estado de las citas lo fija Dik\xE9, no el modelo.",
+    "chat.antesTitulo": "A d\xF3nde van tus mensajes",
+    "chat.comprobando": "comprobando nodo\u2026",
+    "chat.configurarPriv": "Configurar privacidad \u2192",
+    "chat.contexto": "Contexto",
+    "chat.contextoCaso": "Caso: {caso} \xB7 Escrito: {largo} caracteres \xB7 Citas verificadas: {citas}",
+    "chat.contextoNota": "Dik\xE9 fija el estado de las citas. Las restricciones bloquean el acceso a terminal y archivos.",
+    "chat.contextoPrivOff": "Privacidad desactivada por confirmaci\xF3n expresa del abogado.",
+    "chat.contextoPrivOn": "Privacidad activa: seudonimizaci\xF3n \xAB{estrategia}\xBB antes de enviar.",
+    "chat.contextoTitulo": "Qu\xE9 ve el agente en este turno (seudonimizado antes de salir)",
+    "chat.contextoTitulo2": "Qu\xE9 ve el modelo en este turno",
+    "chat.destino": "Destino del perfil:",
+    "chat.detener": "Detener generaci\xF3n",
+    "chat.detenerBtn": "Detener",
+    "chat.entendido": "Continuar",
+    "chat.enviar": "Enviar al chat",
+    "chat.errorPaso": "{nombre}: {error}",
+    "chat.errorPerfil": "El chat del escrito necesita un perfil con Dik\xE9 habilitado: configura el setting perfil_chat del plugin o usa el perfil activo{activo}. Sin sus hooks no se puede garantizar que el modelo no use herramientas.",
+    "chat.errorPrivacidadEnvio": "privacidad bloque\xF3 el env\xEDo",
+    "chat.estadoMotor": "Estado que fij\xF3 el motor para esta cita",
+    "chat.hostedModel": "Modelo alojado por Nous",
+    "chat.limpiarTitulo": "Limpiar vista de conversaci\xF3n",
+    "chat.nodoInexistente": "El nodo no existe en el corpus",
+    "chat.nodoNoExiste": "Nodo inexistente",
+    "chat.notaInvalida": "Nota con formato no reconocible: [^{n}]",
+    "chat.notas": "Notas",
+    "chat.perfilActivo": "activo",
+    "chat.pertenencia": "La pertinencia para el caso es una lectura del modelo; decides t\xFA.",
+    "chat.placeholder": "Escribe a Hermes\u2026",
+    "chat.privActiva": "Activa ({estrategia})",
+    "chat.privApagada": "Apagada por el usuario",
+    "chat.sessionTitle": "Dik\xE9 \xB7 Escrito \xB7 ",
+    "chat.seudonimizacion": "Seudonimizaci\xF3n:",
+    "chat.sinPerfil": "sin perfil con Dik\xE9",
+    "chat.subtitulo": "Chat del escrito \xB7 El estado de las citas lo fija Dik\xE9, no el modelo.",
+    "chat.te": "T\xFA: ",
+    "chat.verSalida": "Ver datos que salen",
+    "chat.verifFallo": "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas.",
+    "chat.verificando": "verificando citas\u2026",
+    "chat.verificarGrafo": "Revisar fuente en el grafo",
+    "codigo.ADAPTER_ERROR": "No se pudo ejecutar la revisi\xF3n. Reintenta.",
+    "codigo.AMBIGUOUS": "Referencia ambigua",
+    "codigo.CITABLE": "Texto citable",
+    "codigo.CONTRACT_OR_INPUT_ERROR": "Resultado del motor o entrada inv\xE1lidos. Reintenta.",
+    "codigo.CON_PROBLEMAS": "Problemas en las citas",
+    "codigo.CORPUS_INTEGRITY_ERROR": "Fall\xF3 la integridad del corpus. Reinst\xE1lalo.",
+    "codigo.CURRENT_VERSION_APPLIES": "Se aplica la versi\xF3n actual",
+    "codigo.DEROGATION": "Derogada",
+    "codigo.DESCONOCIDO": "Desconocido",
+    "codigo.ENGINE_EXIT_ERROR": "El motor se detuvo. Revisa la instalaci\xF3n.",
+    "codigo.ENGINE_JSON_ERROR": "El motor devolvi\xF3 datos ilegibles. Reintenta.",
+    "codigo.EVIDENCE_UNAVAILABLE": "Evidencia no disponible",
+    "codigo.FALLO": "Cita fallida",
+    "codigo.FUTURE": "A\xFAn no vigente",
+    "codigo.HISTORICAL_TEXT_UNAVAILABLE": "Texto hist\xF3rico no disponible",
+    "codigo.INPUT_CONTROL": "Caracteres de control en la entrada",
+    "codigo.INPUT_DOCX": "No se pudo leer el archivo DOCX",
+    "codigo.INPUT_EMPTY": "No se recibi\xF3 texto",
+    "codigo.INPUT_ENCODING": "Codificaci\xF3n de texto inv\xE1lida",
+    "codigo.INPUT_ERROR": "Entrada rechazada. Revisa los campos.",
+    "codigo.INPUT_EXTENSION": "Tipo de archivo no permitido",
+    "codigo.INPUT_FIELDS": "Campos de entrada inv\xE1lidos",
+    "codigo.INPUT_LENGTH": "Largo de entrada inv\xE1lido",
+    "codigo.INPUT_NOT_FOUND": "Archivo no encontrado",
+    "codigo.INPUT_PATH": "Ruta de archivo inv\xE1lida",
+    "codigo.INPUT_RANGE": "Entrada fuera del rango permitido",
+    "codigo.INPUT_RELATIVE": "Usa una ruta absoluta",
+    "codigo.INPUT_SYMLINK": "No se permiten enlaces simb\xF3licos",
+    "codigo.INPUT_TOO_LARGE": "Entrada demasiado grande",
+    "codigo.INPUT_TYPE": "Tipo de entrada inv\xE1lido",
+    "codigo.IN_FORCE": "Vigente",
+    "codigo.IO_ERROR": "No se pudieron leer o guardar datos. Revisa espacio y permisos.",
+    "codigo.NOT_CITABLE": "Texto no citable",
+    "codigo.NOT_CITABLE_TEXT_DEFECT": "Texto no citable",
+    "codigo.NOT_IN_FORCE": "No vigente",
+    "codigo.NOT_VERIFIED": "Sin verificar",
+    "codigo.OUT_OF_FORCE": "No vigente",
+    "codigo.PANEL_DATA": "Datos del panel inv\xE1lidos",
+    "codigo.PANEL_ERROR": "No se pudo cargar el panel. Reintenta.",
+    "codigo.PROVENANCE_INCOMPLETE": "Registro de fuente incompleto",
+    "codigo.RESOLVED": "Referencia encontrada",
+    "codigo.SANDBOX_UNAVAILABLE": "Aislamiento no disponible. Revisa la configuraci\xF3n de bubblewrap.",
+    "codigo.SIN_CITAS": "Sin citas con art\xEDculo reconocidas",
+    "codigo.SIN_CORPUS": "Sin corpus disponible",
+    "codigo.SUPERSEDED_VERSION": "Versi\xF3n superada",
+    "codigo.TEMPORAL_UNKNOWN": "Vigencia indeterminada",
+    "codigo.TIMEOUT": "La revisi\xF3n agot\xF3 el tiempo. Prueba con menos texto.",
+    "codigo.TODAS_VERIFICADAS": "Todas las citas reconocidas verificadas",
+    "codigo.UNKNOWN_BEFORE_SNAPSHOT": "Texto hist\xF3rico no disponible",
+    "codigo.UNRESOLVABLE": "Referencia no encontrada",
+    "codigo.VERIFICADA": "Cita verificada",
+    "codigo.aprobada": "Aprobada",
+    "codigo.candidata": "Candidata",
+    "codigo.desactualizada": "Texto modificado; verifica de nuevo",
+    "codigo.escalada": "Enviada a revisi\xF3n humana",
+    "codigo.fallo": "Cita fallida",
+    "codigo.retirada": "Retirada",
+    "codigo.sin verificar": "Sin verificar",
+    "codigo.verificada": "Cita verificada",
+    "codigo.verificada_estructura": "Estructura verificada",
+    "codigo.verificando": "Verificando\u2026",
+    "err.ARTICLE_ID_INVALID": "id de art\xEDculo inv\xE1lido.",
+    "err.ARTICLE_NOT_FOUND": "art\xEDculo no encontrado en el corpus instalado.",
+    "err.BODY_INVALID": "body debe ser un objeto JSON.",
+    "err.BRIEF_UNREADABLE": "El escrito guardado est\xE1 ilegible.",
+    "err.CASE_ID_INVALID": "case_id inv\xE1lido.",
+    "err.CONFIDENCE_INVALID": "confidence debe estar entre 0 y 1.",
+    "err.COUNTS_INVALID": "conteos debe contener cantidades enteras no negativas por tipo.",
+    "err.DESTINATION_TOO_LONG": "destino demasiado largo.",
+    "err.ENGINE_ERROR": "motor: {detail}",
+    "err.ENGINE_NO_OUTPUT": "motor: sin salida",
+    "err.ENGINE_RESPONSE_INVALID": "motor: respuesta inv\xE1lida",
+    "err.ENGINE_TIMEOUT": "El motor tard\xF3 demasiado.",
+    "err.EVIDENCE_NOT_FOUND": "evidencia no encontrada.",
+    "err.EVIDENCE_SOURCE_INVALID": "evidencia solo est\xE1 disponible en la capa local.",
+    "err.FIELD_BOOLEAN_INVALID": "{field} debe ser booleano.",
+    "err.FIELD_MISSING": "Falta el campo {field}.",
+    "err.FIELD_NUMBER_INVALID": "{field} debe ser finito.",
+    "err.FIELD_TYPE_INVALID": "{field} debe ser {expected}.",
+    "err.FIELD_UNICODE_INVALID": "{field} trae Unicode inv\xE1lido.",
+    "err.FILENAME_INVALID": "Nombre de archivo no permitido: {name}",
+    "err.FILES_COUNT_INVALID": "textos debe tener entre 1 y 25 archivos.",
+    "err.FILES_INVALID": "textos inv\xE1lidos.",
+    "err.FONT_INVALID": "fuente inv\xE1lida.",
+    "err.FONT_SIZE_INVALID": "tamano_fuente inv\xE1lido.",
+    "err.GRAPH_SOURCE_INVALID": "fuente '{source}' no existe: solo 'corpus' y 'ambiental' est\xE1n implementadas.",
+    "err.HTML_MISSING": "Falta el campo html.",
+    "err.HTML_TOO_LARGE": "El html supera el l\xEDmite permitido.",
+    "err.INPUT_ERROR": "entrada inv\xE1lida",
+    "err.JURISDICTION_INVALID": "jur debe tener entre 2 y 8 letras min\xFAsculas (ej. ar, pe, es, mx, xx).",
+    "err.LENGTH_INVALID": "largo debe ser no negativo.",
+    "err.LIMIT_INVALID": "limite debe ser entero.",
+    "err.LINK_INVALID": "link inv\xE1lido.",
+    "err.LOCAL_GRAPH_MISSING": "la capa ambiental local no est\xE1 construida (scripts/construir_red_local.py).",
+    "err.LOCAL_GRAPH_UNREADABLE": "red ambiental ilegible: {detail}",
+    "err.LOCAL_NODE_NOT_FOUND": "nodo no existe en la capa local.",
+    "err.LOCAL_UNIT_NOT_FOUND": "unidad no existe en la capa local.",
+    "err.NIF_FIELD_INVALID": "field_path no editable desde el panel.",
+    "err.NODE_ID_INVALID": "id inv\xE1lido.",
+    "err.NODE_NOT_FOUND": "nodo no encontrado en el corpus instalado.",
+    "err.PACK_MISSING": "Falta el objeto paquete.",
+    "err.PAGE_WIDTH_INVALID": "ancho_hoja inv\xE1lido.",
+    "err.PANEL_INPUT_ERROR": "Entrada rechazada por el panel: {detail}",
+    "err.PAPER_THEME_INVALID": "tema_papel inv\xE1lido.",
+    "err.PRIVACY_ACTION_INVALID": "accion debe ser conservar, enmascarar u olvidar.",
+    "err.PRIVACY_STRATEGY_INVALID": "estrategia_privacidad inv\xE1lida.",
+    "err.PRIVACY_VALUE_EMPTY": "El valor no puede estar vac\xEDo.",
+    "err.PROFILE_MISSING": "Falta el objeto perfil.",
+    "err.QUERY_CONTROL": "q tiene caracteres de control.",
+    "err.QUERY_LENGTH_INVALID": "q debe tener entre 1 y 300 caracteres.",
+    "err.QUERY_MISSING": "Falta el campo q.",
+    "err.QUERY_NO_TERMS": "la consulta no tiene t\xE9rminos buscables.",
+    "err.QUESTION_MISSING": "Falta el campo pregunta.",
+    "err.REGISTRY_INVALID": "registro debe ser un objeto JSON.",
+    "err.REGISTRY_TOO_LARGE": "El registro supera el l\xEDmite permitido.",
+    "err.REGISTRY_UNICODE_INVALID": "registro trae Unicode inv\xE1lido.",
+    "err.REV_BASE_INVALID": "rev_base debe ser entero >= 0.",
+    "err.SANDBOX_UNAVAILABLE": "sandbox requerido por configuraci\xF3n pero bubblewrap no est\xE1 disponible en este equipo; no se verific\xF3 nada",
+    "err.SEND_LOG_FAILED": "No se pudo registrar el env\xEDo; no env\xEDes el texto.",
+    "err.SHA256_INVALID": "sha256 inv\xE1lido.",
+    "err.STATUTE_CODE_INVALID": "code debe ser el leychileCode num\xE9rico.",
+    "err.STATUTE_NOT_FOUND": "norma {code} no est\xE1 en el corpus instalado.",
+    "err.STATUTE_TEXT_TOO_LARGE": "Texto de norma demasiado grande.",
+    "err.STATUTE_UNICODE_INVALID": "Texto de norma trae Unicode inv\xE1lido.",
+    "err.STYLE_CONTEXT_INVALID": "contexto debe ser string.",
+    "err.STYLE_CONTEXT_OPTION_INVALID": "contexto_estilo inv\xE1lido.",
+    "err.STYLE_DETAIL_INVALID": "detallado debe ser booleano.",
+    "err.TAIL_EMPTY": "cola vac\xEDa.",
+    "err.TAIL_TOO_LONG": "cola demasiado larga.",
+    "err.TEXT_MISSING": "Falta el campo texto.",
+    "err.TEXT_TOO_LARGE": "El texto supera el l\xEDmite permitido.",
+    "err.TEXT_TYPE_INVALID": "El campo texto debe ser un string.",
+    "err.TEXT_UNICODE_INVALID": "El texto trae caracteres Unicode inv\xE1lidos.",
+    "err.UNIT_ID_INVALID": "id de unidad inv\xE1lido.",
+    "err.UNIT_INDEX_NOT_FOUND": "la unidad {unit} no existe en ese art\xEDculo.",
+    "err.UNIT_NOT_FOUND": "unidad no encontrada en el corpus instalado.",
+    "err.VALIDATED_INVALID": "validated debe ser booleano.",
+    "err.VALUE_MISSING": "Falta el campo value.",
+    "extra.connecting.brief.chat": "conectando sesi\xF3n del escrito",
+    "extra.could.not.read.the.article": "No se pudo leer el art\xEDculo",
+    "extra.invalid.edited.value": "Valor editado inv\xE1lido: ",
+    "extra.privacy.blocked.sending": "privacidad bloque\xF3 el env\xEDo",
+    "extra.profile.valid.under.dike.perfil.ordenamiento.v1": "\u2713 Perfil v\xE1lido conforme a dike-perfil-ordenamiento-v1",
+    "extra.profileIssues": "{n} observaciones en el perfil:",
+    "format.1.list": "1. Lista",
+    "format.active.brief.or.case": "Documento o caso activo",
+    "format.block.quote": "Bloque de cita / sangr\xEDa",
+    "format.bold.ctrl.b": "Negrita (Ctrl+B)",
+    "format.brief.font": "Tipograf\xEDa de la hoja del escrito",
+    "format.brief.label": "Documento",
+    "format.bullet.list": "Lista con vi\xF1etas",
+    "format.case.id.e.g.dismissal.case": "id-del-caso (ej. causa-despido)",
+    "format.case.s.legal.question": "Pregunta jur\xEDdica del caso\u2026",
+    "format.citationCount": "\u2713 {ok}/{total} citas",
+    "format.clear.brief": "Vaciar escrito actual",
+    "format.close": "Cerrar",
+    "format.configure.suggestions.and.appearance": "Configurar copilot jur\xEDdico (predicci\xF3n) y personalizaci\xF3n de vista",
+    "format.create.case": "Crear caso",
+    "format.create.or.link.a.case": "Crear o vincular un caso NIF",
+    "format.create.or.load.a.case.for.this.brief": "Crear o sembrar un caso NIF para vincular el escrito",
+    "format.default.draft.no.case": "default \u2014 borrador (sin caso)",
+    "format.default.serif": "Predeterminada (Serif)",
+    "format.draft.no.case": "borrador (sin caso)",
+    "format.export.html.html": "Exportar como HTML (.html)",
+    "format.export.markdown.md": "Exportar como Markdown (.md)",
+    "format.export.text.txt": "Exportar como Texto (.txt)",
+    "format.file": "Archivo \u25BE",
+    "format.font.size.pt": "Tama\xF1o de letra (pt)",
+    "format.heading.1": "T\xEDtulo 1",
+    "format.heading.2": "T\xEDtulo 2",
+    "format.heading.3": "T\xEDtulo 3",
+    "format.horizontal.rule": "L\xEDnea divisoria horizontal",
+    "format.insert.a.chilean.pleading.formula": "Insertar encabezado o f\xF3rmula procesal chilena",
+    "format.italic.ctrl.i": "Cursiva (Ctrl+I)",
+    "format.link.a.case": "Vincular caso NIF:",
+    "format.list": "\u2022 Lista",
+    "format.load.demo.brief.ct": "Cargar escrito de demostraci\xF3n (CT)",
+    "format.load.demo.brief.label": "Cargar escrito demo",
+    "format.load.demo.case.ct": "Cargar caso demo (CT)",
+    "format.loading.cases": "Cargando casos\u2026",
+    "format.loading.label": "cargando\u2026",
+    "format.numbered.list": "Lista numerada",
+    "format.open.citation.details": "Abrir detalle de verificaci\xF3n de citas",
+    "format.open.file.md.txt.html": "Abrir archivo (.md, .txt, .html)\u2026",
+    "format.open.plain.language.review": "Abrir revisi\xF3n de estilo LexO Escribe Claro",
+    "format.open.privacy.settings": "Abrir control de seudonimizaci\xF3n y privacidad",
+    "format.paragraph": "P\xE1rrafo normal",
+    "format.pleading.formulas": "Formalismo \u25BE",
+    "format.print.save.pdf": "Imprimir / Guardar PDF",
+    "format.privacy": "Privacidad",
+    "format.quote": "\u275D Cita",
+    "format.read": "Leer",
+    "format.redo.ctrl.y": "Rehacer (Ctrl+Y)",
+    "format.save.conflict": "conflicto",
+    "format.save.now": "Guardar ahora",
+    "format.saved": "guardado",
+    "format.saving": "guardando\u2026",
+    "format.settings": "Ajustes",
+    "format.strikethrough": "Tachado",
+    "format.style": "Estilo",
+    "format.undo.ctrl.z": "Deshacer (Ctrl+Z)",
+    "format.unsaved": "sin guardar",
+    "format.words": "{n} palabras",
+    "format.write": "Escribir",
+    "format.writer.settings": "Ajustes del escritor",
+    "graf.abrir3d": "Abrir grafo del corpus",
+    "graf.abrir3dBoton": "Abrir en 3D",
+    "graf.archivo": "Archivo:",
+    "graf.aristas": "Aristas: {n}",
+    "graf.articulos": "Art\xEDculos: {n}",
+    "graf.busquedaNota": "B\xFAsqueda local de texto. Los resultados son pistas; verifica las citas antes de usarlas.",
+    "graf.capaLocal": "Capa local en este equipo",
+    "graf.capaSellada": "Corpus sellado por hash",
+    "graf.capas": "Capas de grafo disponibles",
+    "graf.capasCargando": "Cargando capas\u2026",
+    "graf.capasVacio": "No hay capas de grafo disponibles.",
+    "graf.cargarEditor": "Cargar en editor",
+    "graf.cerrarLectura": "Cerrar lectura del art\xEDculo",
+    "graf.construccionDetenida": "\u2717 Construcci\xF3n detenida ({etapa}): {error}",
+    "graf.construir": "Construir y validar corpus",
+    "graf.construyendo": "Construyendo y validando pack\u2026",
+    "graf.corpus": "Corpus",
+    "graf.crearPack": "Crear corpus",
+    "graf.disponible": "disponible",
+    "graf.errorJson": "JSON inv\xE1lido en perfil o paquete: {error}",
+    "graf.errorJsonPerfil": "El JSON del perfil tiene un error de sintaxis: {error}",
+    "graf.etapaValidacion": "validaci\xF3n",
+    "graf.explorador": "Abrir explorador 3D",
+    "graf.fuentes": "Fuentes",
+    "graf.generar": "Generar plantilla",
+    "graf.gre": "Grafo de revisi\xF3n personal",
+    "graf.greConteo": "Nodos candidatos: {nodos} \xB7 Aristas: {aristas}",
+    "graf.greNota": "Los candidatos se guardan en este equipo, fuera del corpus.",
+    "graf.intro": "Construye un corpus para un ordenamiento desde textos locales de normas. Valida el perfil y los textos antes de usarlo.",
+    "graf.isoPlaceholder": "c\xF3digo ISO (ej. ar, pe, es, mx)",
+    "graf.leer": "Leer art\xEDculo",
+    "graf.leyendo": "Leyendo\u2026",
+    "graf.llevar": "+ Llevar al escrito",
+    "graf.llevarTitulo": "Inserta la cita can\xF3nica al final del escrito y la pasa por el verificador",
+    "graf.noConstruida": "no construida",
+    "graf.normaPlaceholder": "Art\xEDculo 1. Texto del primer art\xEDculo\u2026\nArt\xEDculo 2. Texto del segundo art\xEDculo\u2026",
+    "graf.normas": "Normas: {n}",
+    "graf.packOk": "\u2713 Pack construido y validado \u2014 Nivel alcanzado: {nivel}",
+    "graf.paso1": "1. Nueva plantilla de pa\xEDs:",
+    "graf.paso2": "2. Perfil del ordenamiento (JSON)",
+    "graf.paso3": "3. Configuraci\xF3n de paquete y texto de norma (Construir grafo)",
+    "graf.perfilErrores": "con errores",
+    "graf.perfilValido": "perfil v\xE1lido",
+    "graf.perfiles": "Perfiles de ordenamiento incluidos",
+    "graf.placeholder": "Ej. indemnizaci\xF3n a\xF1os de servicio art\xEDculo 163\u2026",
+    "graf.revisaErrores": "revisa los errores",
+    "graf.titulo": "Herramientas de Grafos",
+    "graf.unidades": "Unidades normativas ({n})",
+    "graf.validar": "Validar perfil",
+    "graf.vigencias": "Vigencias: {n}",
+    "graph.add.to.brief": "Llevar al escrito",
+    "graph.added.as.an.unchecked.citation.citation.check.runs.next": "entra como cita sin verificar; el verificador la revisa",
+    "graph.ambiguous.classification": "clasificaci\xF3n ambigua",
+    "graph.anchor": "ancla",
+    "graph.article.could.not.be.resolved.in.the.corpus": "El art\xEDculo no se resolvi\xF3 en el corpus (",
+    "graph.article.label": "Art\xEDculo",
+    "graph.article.sha.256": "sha256 art\xEDculo ",
+    "graph.article.text": "Texto del art\xEDculo",
+    "graph.articles": " art\xEDculos",
+    "graph.brief": "escrito.",
+    "graph.by.content": "por contenido",
+    "graph.by.name": "por nombre",
+    "graph.candidate.label.unvalidated": "Etiqueta candidata (sin validar):",
+    "graph.candidate.label_text": "candidata",
+    "graph.candidate.relations.unvalidated": "relaciones candidatas, sin validar",
+    "graph.candidates": " candidatos \xB7 ",
+    "graph.channel": " \xB7 canal ",
+    "graph.citation.check.will.return.fallo.article.out.of.force": "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente",
+    "graph.corpus.graph": "Grafo del corpus",
+    "graph.corpus.list.text": "Lista del corpus (texto)",
+    "graph.could.not.read.the.article": "No se pudo leer el art\xEDculo: ",
+    "graph.could.not.start.the.3d.view": "No se pudo iniciar el renderizador 3D: ",
+    "graph.coverage": " \xB7 cobertura ",
+    "graph.dated.copy.check.the.text.in.force.yourself": " \xB7 Copia fechada: verifica t\xFA el texto vigente",
+    "graph.decision": "Resoluci\xF3n",
+    "graph.dik.corpus.25.laws": "Corpus Dik\xE9 (25 leyes)",
+    "graph.drawing.graph": "Dibujando el grafo\u2026",
+    "graph.edges": " aristas",
+    "graph.evidence.items": " evidencias)",
+    "graph.fit": "Encajar",
+    "graph.from": " desde ",
+    "graph.from2": " \xB7 desde ",
+    "graph.graph.source": "Fuente del grafo",
+    "graph.hide.articles": "ocultar art\xEDculos",
+    "graph.highlighted.path": "Camino destacado",
+    "graph.highlighted.path2": "Camino destacado \xB7 ",
+    "graph.highlighted.unit": "Unidad resaltada: ",
+    "graph.in.force.label": "Vigencia: ",
+    "graph.instrument": "Instrumento",
+    "graph.judgment": "Sentencia",
+    "graph.level": " \xB7 nivel ",
+    "graph.loading.article": "Leyendo el art\xEDculo\u2026",
+    "graph.loading.articles": "Cargando art\xEDculos\u2026",
+    "graph.loading.corpus.graph.the.first.load.may.take.a.minute.while.the.c": "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026",
+    "graph.loading.corpus.label": "Leyendo el corpus\u2026",
+    "graph.loading.label": "Consultando\u2026",
+    "graph.loading.unit.text": "Cargando el texto de la unidad\u2026",
+    "graph.local.environmental.graph.this.device": "Ambiental local (solo en este equipo)",
+    "graph.local.unpublished.pseudonymized.judgments": "local \u2014 no publicado \xB7 sentencias anonimizadas \xB7 ",
+    "graph.mentions": " menciones",
+    "graph.no.candidates.yet.the.personal.review.graph.collects.evidence.fro": "A\xFAn no hay candidatos. El grafo de revisi\xF3n personal recoge evidencia de agentes y del ",
+    "graph.no.citation.form.available": "sin forma de cita",
+    "graph.no.local.text.inferred.from.mentions.in.judgments": "sin texto local: inferida de menciones en sentencias",
+    "graph.no.matches": "Sin coincidencias.",
+    "graph.no.results": "Sin resultados.",
+    "graph.no.terms": "sin t\xE9rminos",
+    "graph.nodes": " nodos \xB7 ",
+    "graph.of.the.article": " del art\xEDculo",
+    "graph.of.the.judgment": " de la sentencia",
+    "graph.only.on.this.device.unpublished": "solo en este equipo \u2014 no publicada",
+    "graph.original.source": "Fuente original \u2197",
+    "graph.passage.found.in.article": "Fragmento encontrado en el art\xEDculo",
+    "graph.passage.not.found.in.this.article": "El fragmento no est\xE1 en ese art\xEDculo",
+    "graph.personal.review.graph": "Grafo de revisi\xF3n personal",
+    "graph.query.subjects": "Materias de la consulta",
+    "graph.retry": "Reintentar",
+    "graph.rotate": "Rotar",
+    "graph.rule": "regla ",
+    "graph.search.article.text": "Buscar por contenido en los art\xEDculos\u2026",
+    "graph.search.label": "Buscar",
+    "graph.search.law.code.or.article": "Buscar ley, c\xF3digo o art\xEDculo\u2026",
+    "graph.search.lead.citation.not.yet.checked": "Resultado de b\xFAsqueda: es una pista, no una fuente verificada",
+    "graph.search.mode": "Modo de b\xFAsqueda",
+    "graph.searching.corpus": "Buscando en el corpus\u2026",
+    "graph.searching.label": "Buscando\u2026",
+    "graph.select.or.search.for.a.node.to.see.its.details.select.an.article.": "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades.",
+    "graph.select.to.expand.collapse": " \xB7 clic para expandir/plegar",
+    "graph.showing": " (mostrando ",
+    "graph.source.article": "Art\xEDculo fuente \u2197",
+    "graph.source.label": "fuente \u2197",
+    "graph.subject.classification.explains.matches.it.does.not.change.their.": "clasificaci\xF3n l\xE9xica por \xE1rbol de materias: explica, no reordena",
+    "graph.subject.tree.unavailable": "\xE1rbol de materias no disponible",
+    "graph.terms": "t\xE9rminos: ",
+    "graph.territory": "territorio",
+    "graph.text.search.covers.the.dik.corpus.only": "la b\xFAsqueda por contenido cubre solo el corpus Dik\xE9",
+    "graph.the.3d.graph.needs.webgl.the.list.below.has.the.same.corpus": "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.",
+    "graph.too.long": " (demasiado largo)",
+    "graph.too.short.to.compare": " (muy corto para comparar)",
+    "graph.truncated": " \xB7 truncado",
+    "graph.unit.label": "Unidad",
+    "graph.unit.sha.256": "sha256 unidad ",
+    "graph.unit2": "Unidad ",
+    "graph.units": " unidades",
+    "graph.units2": "unidades: ",
+    "graph.visible": " visibles \xB7 ",
+    "graph.webgl.unavailable.use.the.corpus.list.below": "WebGL no est\xE1 disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.",
+    "nif.agregar": "+ Agregar",
+    "nif.cargando": "Cargando tablero del caso\u2026",
+    "nif.cargarDemo": "Cargar caso demo",
+    "nif.conQue": "Informaci\xF3n que completa el vac\xEDo",
+    "nif.fijarConfianza": "Fijar confianza",
+    "nif.guardar": "Guardar",
+    "nif.historial": "Historial de parches ({n})",
+    "nif.idCaso": "ID del caso",
+    "nif.impacto": "impacto {impacto}",
+    "nif.llenar": "Completar vac\xEDo",
+    "nif.marcarValidado": "Marcar como revisado",
+    "nif.nuevoCaso": "Nuevo caso",
+    "nif.pide": "pide {quien}",
+    "nif.placeholderJson": 'JSON del \xEDtem, ej. {"label": "Trabajador"}',
+    "nif.placeholderTexto": "Texto del \xEDtem",
+    "nif.pregunta": "Pregunta jur\xEDdica",
+    "nif.quien": "qui\xE9n",
+    "nif.quitarValidacion": "Retirar validaci\xF3n",
+    "nif.resolverVacios": "Resolver vac\xEDos",
+    "nif.seccion.adminActs": "Actos administrativos",
+    "nif.seccion.conflicts": "Conflictos",
+    "nif.seccion.deonticPositions": "Derechos y deberes",
+    "nif.seccion.factsAlleged": "Hechos alegados",
+    "nif.seccion.factsKnown": "Hechos conocidos",
+    "nif.seccion.factsMissing": "Hechos faltantes",
+    "nif.seccion.gaps": "Vac\xEDos",
+    "nif.seccion.hypotheses": "Hip\xF3tesis",
+    "nif.seccion.normRelations": "Relaciones entre normas",
+    "nif.seccion.norms": "Normas",
+    "nif.seccion.principles": "Principios",
+    "nif.seccion.relevantFactors": "Factores relevantes",
+    "nif.seccion.subjects": "Partes y otras personas",
+    "nif.sinCasos": "Sin casos",
+    "nif.sinNif": "Este caso a\xFAn no tiene tablero.",
+    "nif.sinValidar": "sin validaci\xF3n humana",
+    "nif.vacio": "A\xFAn no hay casos. Carga el demo o crea uno con su pregunta jur\xEDdica.",
+    "nif.validado": "validado por humano",
+    "nif.versionConf": "v{version} \xB7 confianza {pct}%",
+    "nifp.aEscrito": "Insertar en el escrito",
+    "nifp.aPizarra": "Enviar este elemento a la Pizarra estrat\xE9gica",
+    "nifp.aceptar": "Aceptar",
+    "nifp.agregarA": "Agregar a {seccion}\u2026",
+    "nifp.borrador": "Tablero sin revisar",
+    "nifp.cancelar": "Cancelar",
+    "nifp.descartadas": "{n} descartadas por la validaci\xF3n",
+    "nifp.deshabilitadoCaso": "Primero elige o crea un caso.",
+    "nifp.deshabilitadoChat": "Abre primero el chat del escrito: las propuestas usan su modelo.",
+    "nifp.editar": "Editar",
+    "nifp.errorPrivacidad": "Activa la seudonimizaci\xF3n o confirma en el m\xF3dulo Privacidad que aceptas enviar datos personales.",
+    "nifp.idCaso": "ID del caso (ej. causa-despido-1)",
+    "nifp.masPizarra": "+ Pizarra",
+    "nifp.modelo": "modelo",
+    "nifp.normPrefix": "Norma \xAB",
+    "nifp.normSuffix": "\xBB: ",
+    "nifp.onlyAccepted": "Las propuestas entran al tablero del caso solo cuando las aceptas.",
+    "nifp.pidiendo": "Pidiendo propuestas\u2026",
+    "nifp.pregunta": "Pregunta jur\xEDdica principal\u2026",
+    "nifp.proponer": "Proponer cambios al tablero",
+    "nifp.rechazar": "Rechazar",
+    "nifp.seccionVacia": "A\xFAn no hay elementos. Agrega uno para comenzar.",
+    "nifp.suggestions": "Propuestas para el tablero",
+    "nifp.tablero": "tablero del caso",
+    "nifp.tagPartes": "PARTES",
+    "nifp.validado": "\u2713 validado por humano",
+    "nifp.verificarNorma": "Verificar cita",
+    "nifp.vincularAyuda": "Vincula este borrador con un caso nuevo o carga el demo para usar su tablero.",
+    "nifp.vincularTitulo": "Vincular o crear un caso",
+    "piz.abrirGrafo": "Abrir art\xEDculo en el grafo",
+    "piz.acercar": "Acercar",
+    "piz.agregarNotaTitulo": "Agregar nota adhesiva a la pizarra",
+    "piz.alejar": "Alejar",
+    "piz.altura": "Arrastra para ajustar la altura de la Pizarra estrat\xE9gica",
+    "piz.botonNota": "+ Nota",
+    "piz.buscarNormas": "Buscar normas en el corpus de Dik\xE9 y agregarlas como tarjetas",
+    "piz.cancelarConexion": "Cancelar conexi\xF3n",
+    "piz.cargarEstructura": "Cargar estructura de escrito en la pizarra",
+    "piz.colorNota": "Cambiar color de la nota",
+    "piz.conectar": "Conectar con otra tarjeta",
+    "piz.conectarHint": "Haz clic en otra nota para conectarlas (o en la misma para cancelar)",
+    "piz.crearNorma": "Crear tarjeta de norma en la pizarra",
+    "piz.eliminar": "Eliminar nota",
+    "piz.escritoBoton": "+ Escrito",
+    "piz.estructuras": "Estructuras jur\xEDdicas",
+    "piz.expandir": "Expandir nota",
+    "piz.insertarCita": "Insertar cita can\xF3nica en el escrito y verificar",
+    "piz.insertarTexto": "Insertar texto de esta nota en el escrito",
+    "piz.limpiar": "Limpiar",
+    "piz.limpiarTitulo": "Limpiar pizarra",
+    "piz.llevarNotas": "Llevar notas al escrito",
+    "piz.llevarNotasTitulo": "Insertar el contenido ordenado de las notas en el escrito",
+    "piz.minimizar": "Minimizar nota",
+    "piz.normaFallback": "Norma",
+    "piz.placeholderBusqueda": "Busca t\xE9rminos jur\xEDdicos\u2026",
+    "piz.redimensionar": "Arrastrar para cambiar tama\xF1o",
+    "piz.restablecer": "Restablecer vista",
+    "piz.tagNota": "NOTA",
+    "piz.template0": "Demanda / Escrito Judicial",
+    "piz.template1": "Sentencia Judicial",
+    "piz.template2": "Contrato / Convenci\xF3n",
+    "piz.template3": "Resoluci\xF3n / Reclamaci\xF3n Adm.",
+    "piz.templateDescription0": "Partes \xB7 Hechos \xB7 Fundamentos de Derecho \xB7 Petitorio",
+    "piz.templateDescription1": "Partes \xB7 Vistos \xB7 Considerandos \xB7 Por Tanto",
+    "piz.templateDescription2": "Partes \xB7 Objeto \xB7 Obligaciones \xB7 Garant\xEDas y Terminaci\xF3n",
+    "piz.templateDescription3": "Antecedentes \xB7 Marco Normativo \xB7 Motivaci\xF3n \xB7 Resolutivo",
+    "piz.textoPlaceholder": "Escribe ideas, hechos o art\xEDculos para esta secci\xF3n\u2026",
+    "piz.titulo": "Pizarra estrat\xE9gica",
+    "piz.tituloBusqueda": "B\xFAsqueda del corpus \xB7 Dik\xE9",
+    "piz.tituloNota": "Nota {n}",
+    "piz.tituloPlaceholder": "T\xEDtulo\u2026",
+    "piz.vacio": "Planifica tu escrito aqu\xED",
+    "piz.vacioAyuda": "Agrega una nota, elige una plantilla o busca en el corpus para comenzar.",
+    "piz.vacioBusqueda": "Escribe t\xE9rminos jur\xEDdicos para traer normas a la pizarra o al escrito.",
+    "pred.aceptoNube": "Acepto enviar el p\xE1rrafo a la nube",
+    "pred.activar": "Activar sugerencias",
+    "pred.avisoNube": "Las sugerencias del modelo env\xEDan el p\xE1rrafo a la nube.",
+    "pred.destinoNube": "nube",
+    "pred.destinoNubeCorto": " \xB7 predicci\xF3n \xB7 nube",
+    "pred.fuenteAcciones": "cat\xE1logo de acciones procesales",
+    "pred.fuenteFormalismos": "cat\xE1logo de formalismos procesales",
+    "pred.l0": "Plantillas",
+    "pred.l1": "Texto del corpus",
+    "pred.l2": "Modelo",
+    "pred.nota": "Las sugerencias son borradores. Verifica sus citas antes de usarlas.",
+    "pred.perfilSinResolver": "perfil sin resolver",
+    "pred.sinSesion": "sin sesi\xF3n de chat",
+    "pred.telemetria": "Registrar aceptaciones (sin contenido)",
+    "pred.titulo": "Sugerencias (experimental)",
+    "prefs.a4": "A4 (210 mm)",
+    "prefs.ancho": "Ancho completo",
+    "prefs.ayuda": "Ajusta la apariencia de la hoja del Case Writer, la estrategia de privacidad inicial y los paneles visibles.",
+    "prefs.cobertura": "Cobertura instalada: {leyes} leyes chilenas \xB7 {articulos} art\xEDculos",
+    "prefs.consultando": "Consultando estado\u2026",
+    "prefs.contextoEstilo": "Contexto de revisi\xF3n de lenguaje claro",
+    "prefs.ctxDemanda": "Demanda (m\xE1x. 25 pal/oraci\xF3n)",
+    "prefs.ctxEscrito": "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)",
+    "prefs.ctxGeneral": "General (m\xE1x. 25 pal/oraci\xF3n)",
+    "prefs.ctxSentencia": "Sentencia (m\xE1x. 20 pal/oraci\xF3n)",
+    "prefs.estadoTitulo": "Estado del entorno",
+    "prefs.estrategia": "Estrategia de seudonimizaci\xF3n por defecto",
+    "prefs.estricta": "Estricta (+ medios y nombres)",
+    "prefs.fijarPerfil": "Para fijar un perfil dedicado de abogado:",
+    "prefs.formatoHoja": "Formato de hoja",
+    "prefs.grafosTitulo": "Grafos y ordenamientos",
+    "prefs.guardadas": "Preferencias guardadas",
+    "prefs.ligera": "Ligera (solo cr\xEDticos: RUT, correo, fono)",
+    "prefs.media": "Media (cr\xEDticos + altos)",
+    "prefs.mostrarChat": "Anclar Chat Hermes a la derecha",
+    "prefs.mostrarPizarra": "Mostrar pizarra estrat\xE9gica al abrir Case Writer",
+    "prefs.perfilActivo": "(usa el perfil activo de Hermes)",
+    "prefs.perfilChat": "Perfil del chat: {perfil}",
+    "prefs.temaClasico": "Papel cl\xE1sico (blanco sobre gris)",
+    "prefs.temaNocturno": "Tinta oscura (modo noche)",
+    "prefs.temaPapel": "Tema del papel",
+    "prefs.temaSepia": "Sepia lectura c\xE1lida",
+    "prefs.versionPack": "Plugin v{version} \xB7 corpus {pack}",
+    "priv.conservar": "conservar",
+    "priv.detectando": "detectando\u2026",
+    "priv.detectar": "Detectar datos",
+    "priv.enmascarar": "Enmascarar",
+    "priv.enmascararSeleccion": "Enmascarar selecci\xF3n",
+    "priv.entiendo": "Entiendo que el texto saldr\xE1 con datos personales",
+    "priv.error": "Privacidad no disponible: {error} \u2014 el texto no debe salir hasta resolverlo.",
+    "priv.estrategiaEstricta": "estricta (+ medios)",
+    "priv.estrategiaLigera": "ligera (solo cr\xEDticos)",
+    "priv.estrategiaMedia": "media (cr\xEDticos + altos)",
+    "priv.motivo.ancla_causa": "referencia de la causa",
+    "priv.motivo.decision_abogado": "decisi\xF3n del abogado",
+    "priv.motivo.institucion": "instituci\xF3n",
+    "priv.motivo.juez": "juez (p\xFAblico)",
+    "priv.motivo.por_estrategia": "bajo la estrategia",
+    "priv.ocultarMarcas": "Ocultar datos en el escrito",
+    "priv.posiblesPersonas": "{n} posibles personas",
+    "priv.posiblesSinContexto": "Posibles personas sin contexto",
+    "priv.preparando": "preparando vista\u2026",
+    "priv.seudonimizar": "Seudonimizar antes de enviar al modelo",
+    "priv.sinDeteccion": "Sin detecci\xF3n a\xFAn: edita el escrito o pulsa \xABDetectar datos\xBB.",
+    "priv.valoresMapa": "{n} valores seudonimizados \xB7 sin destino seleccionado",
+    "priv.verMarcas": "Ver datos personales en el escrito",
+    "priv.vistaSalida": "Vista de lo que sale",
+    "proposal.FIELD_NOT_ALLOWED": "Campo no permitido",
+    "proposal.FIELD_NOT_PROPOSABLE": "Campo no proponible",
+    "proposal.MODEL_PROPOSALS_INVALID": "El modelo no devolvi\xF3 propuestas v\xE1lidas. Int\xE9ntalo de nuevo.",
+    "proposal.PROPOSAL_DUPLICATE": "Ya est\xE1 en el tablero del caso",
+    "proposal.PROPOSAL_INVALID": "Propuesta inv\xE1lida",
+    "proposal.PROPOSAL_LIMIT": "M\xE1ximo 12 propuestas",
+    "proposal.PROPOSAL_REJECTED": "Ya la rechazaste",
+    "proposal.QUOTE_LENGTH_INVALID": "La cita debe tener entre 1 y 300 caracteres",
+    "proposal.QUOTE_NOT_IN_BRIEF": "Cita no encontrada en el escrito",
+    "proposal.VALUE_INVALID": "Valor u opci\xF3n inv\xE1lidos",
+    "shell.estado.aislado": "aislado (bubblewrap)",
+    "shell.estado.ayuda": "Habilita Dik\xE9 en el perfil activo de Hermes (versi\xF3n 0.4.0 o posterior).",
+    "shell.estado.cargando": "Consultando el corpus\u2026",
+    "shell.estado.corpusNo": "corpus sin instalar",
+    "shell.estado.corpusOk": "corpus instalado",
+    "shell.estado.pack": "corpus {pack} \xB7 {leyes} leyes \xB7 {articulos} art\xEDculos{version}",
+    "shell.estado.sinAislamiento": "sin aislamiento: {motivo}",
+    "shell.estado.sinBackend": "El backend de Dik\xE9 no responde en el perfil activo",
+    "shell.idioma": "Idioma de la interfaz",
+    "shell.pestana.escritor": "Case Writer",
+    "shell.pestana.grafo": "Grafo del corpus",
+    "shell.pestana.nif": "Tablero del caso",
+    "shell.pestana.personalizacion": "Ordenamientos y ajustes",
+    "shell.subtitulo": "Estudio jur\xEDdico local \xB7 No es consejo legal",
+    "style.analyze.now": "Analizar ahora",
+    "style.analyzed": "{n} oraciones analizadas",
+    "style.analyzing": "Analizando\u2026",
+    "style.archaic.and.bureaucratic.wording": "Arca\xEDsmos y f\xF3rmulas burocr\xE1ticas",
+    "style.archaism": "Arca\xEDsmo: \xAB{term}\xBB \u2192 \xAB{replacement}\xBB",
+    "style.argument.coverage": "% cobertura argumentativa",
+    "style.argument.structure": "Estructura Argumentativa",
+    "style.average.words.per.sentence": "Promedio palabras / oraci\xF3n",
+    "style.back.to.summary": "\u2190 Volver al resumen",
+    "style.brief.metrics": "M\xE9tricas del escrito",
+    "style.complaint.max.25.words.sentence": "Demanda (m\xE1x. 25 pal/oraci\xF3n)",
+    "style.conclusion": "CONCLUSI\xD3N",
+    "style.context": "Contexto:",
+    "style.court.brief.max.30.words.sentence": "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)",
+    "style.create.connected.strategy.board.cards.from.the.brief": "Crear tarjetas conectadas en la Pizarra estrat\xE9gica a partir de los p\xE1rrafos del escrito",
+    "style.evidence": "PRUEBA",
+    "style.fact.label": "HECHO",
+    "style.fact.norm.conclusion.chain.found": "\u2713 Cadena Hecho \u2192 Norma \u2192 Conclusi\xF3n",
+    "style.general.max.25.words.sentence": "General (m\xE1x. 25 pal/oraci\xF3n)",
+    "style.judgment.max.20.words.sentence": "Sentencia (m\xE1x. 20 pal/oraci\xF3n)",
+    "style.judicial.writing.pattern.score": "Alineaci\xF3n judicial (\xABcopiabilidad\xBB)",
+    "style.judicial.writing.patterns": "Alineaci\xF3n judicial",
+    "style.max": "m\xE1x. ",
+    "style.no.style.issues.found.by.these.rules": "\u2713 Sin observaciones de estilo \u2014 redacci\xF3n clara y directa.",
+    "style.nominalization": "Nominalizaci\xF3n: {noun} \u2192 {verb}",
+    "style.nominalizations.found": "Nominalizaciones detectadas",
+    "style.nominalizations.label": "Nominalizaciones verbales",
+    "style.norm": "NORMA",
+    "style.over.the.limit": " (excede l\xEDmite)",
+    "style.paragraph": "P\xE1rrafo ",
+    "style.passive.voice": "Voz pasiva",
+    "style.periphrastic.passive.voice": "Voz pasiva perifr\xE1stica",
+    "style.plain.language.score": "Puntaje ScribeClaro de Claridad Jur\xEDdica",
+    "style.readability.and.length": "Legibilidad y extensi\xF3n",
+    "style.replace.in.the.brief": "Clic para reemplazar en el escrito",
+    "style.replace_text": "Reemplazar \xAB{term}\xBB por \xAB{replacement}\xBB",
+    "style.select.analyze.now.to.find.candidate.facts.norms.evidence.and.con": "Pulsa \xABAnalizar ahora\xBB para extraer la cadena argumentativa (Hecho \u2192 Norma \u2192 Prueba \u2192 Conclusi\xF3n) de los p\xE1rrafos del escrito.",
+    "style.select.analyze.now.to.review.readability.and.spanish.legal.writin": "Pulsa \xABAnalizar ahora\xBB para evaluar legibilidad, voz pasiva, nominalizaciones, arca\xEDsmos y alineaci\xF3n judicial con LexO Escribe Claro.",
+    "style.send.structure.to.board": "Enviar estructura a la Pizarra",
+    "style.sentences.label": "Total de oraciones",
+    "style.sentences.over.the.limit": "Oraciones que exceden el l\xEDmite",
+    "style.sentences_text": "Ver oraciones ({n}) \u2192",
+    "style.structure.notes": "Avisos de estructura",
+    "style.style.and.clarity": "Estilo y Claridad",
+    "style.suggestions": "Sugerencias ({n})",
+    "style.unclassified": "SIN TIPO",
+    "style.words": " palabras",
+    "style.writing.pattern.and.format.notes": "Observaciones de alineaci\xF3n y formato",
+    "verify.SIN_CITAS": "El motor no encontr\xF3 citas con art\xEDculo que pudiera reconocer. El escrito puede mencionar normas.",
+    "verify.SIN_CORPUS": "No hab\xEDa corpus con qu\xE9 verificar; no es un resultado favorable.",
+    "verify.desactualizada": "El texto cambi\xF3: verifica de nuevo.",
+    "verify.escalada": "Enviada a revisi\xF3n humana: {note}",
+    "verify.fallo": "Cita fallida \xB7 {resolution}",
+    "verify.judgment": "Dik\xE9 no eval\xFAa si la norma respalda el argumento; eso es juicio del abogado.",
+    "verify.lead": " \xB7 lleg\xF3 desde la b\xFAsqueda (pista)",
+    "verify.retirada": "Retirada: {reason}",
+    "verify.verificada": "Probado por Dik\xE9: existe, tiene texto citable y estaba vigente al {date} en el corpus {pack} \xB7 {source}",
+    "writer.another.process.saved.this.brief": "Otro proceso guard\xF3 este escrito",
+    "writer.apply": "Aplicar",
+    "writer.asOf": " \xB7 vigente al ",
+    "writer.brief.stored.on.this.device.privacy.settings.control.what.is.sent": "Escrito guardado en este equipo. La privacidad controla qu\xE9 se env\xEDa.",
+    "writer.case.board.and.suggested.updates": "Tablero del caso Interactivo y Propuestas",
+    "writer.case.board.label": "NIF Interactivo y NIF Vivo",
+    "writer.check.against.the.25.laws.in.the.corpus.pack": "Verificaci\xF3n determinista contra las 25 leyes del corpus sellado.",
+    "writer.check.citations": "Verificar citas",
+    "writer.checking": "Verificando\u2026",
+    "writer.citation.check": "Verificaci\xF3n de citas",
+    "writer.citation.check2": "Verificaci\xF3n de citas",
+    "writer.citation.details.open": "Viendo detalle en barra derecha",
+    "writer.citation.removed.review.the.sentence.for.missing.text": "Cita retirada del texto: la frase puede quedar rota, rev\xEDsala.",
+    "writer.classic.paper": "Papel cl\xE1sico",
+    "writer.close.tool.panel": "Cerrar panel de herramienta",
+    "writer.corpus.graph.and.legal.systems": "Grafos del Corpus y Constructor de Ordenamientos",
+    "writer.could.not.check.the.brief": "Dik\xE9 no pudo revisar el escrito: ",
+    "writer.count": "Dik\xE9: {ok} de {total} citas verificadas",
+    "writer.custody": "Historial ({removed} retiradas \xB7 {review} a revisi\xF3n)",
+    "writer.dark.ink": "Tinta oscura",
+    "writer.data": "Datos:",
+    "writer.default.privacy.strategy": "Estrategia de privacidad inicial:",
+    "writer.demo.brief.loaded.select.check.citations.to.try.the.engine": "Escrito sint\xE9tico de demostraci\xF3n cargado. Pulsa \xABVerificar citas\xBB para probar el motor.",
+    "writer.dik": "Dik\xE9: ",
+    "writer.dismiss.error": "Cerrar aviso de error",
+    "writer.dismiss.notice": "Cerrar aviso",
+    "writer.engine.problems": "Problemas del motor",
+    "writer.failedReplacement": "FALLO del reemplazo: ",
+    "writer.full.width": "Ancho fluido",
+    "writer.graph": " \xB7 grafo",
+    "writer.graphs.and.legal.systems": "Herramientas de Grafos y Ordenamientos",
+    "writer.hide.hermes.chat": "Ocultar panel de Chat Hermes",
+    "writer.letter.216.mm": "Carta (216 mm)",
+    "writer.light.critical.only": "Ligera (solo cr\xEDticos)",
+    "writer.medium.critical.and.high": "Media (cr\xEDticos + altos)",
+    "writer.noDetail": "Sin detalle",
+    "writer.note.for.human.review": "nota para revisi\xF3n humana",
+    "writer.of": " de ",
+    "writer.open.article.in.corpus.graph": "Abrir el art\xEDculo en el grafo 3D",
+    "writer.page.format": "Formato de p\xE1gina:",
+    "writer.paper.label": "Papel:",
+    "writer.paper.theme": "Tema de la hoja:",
+    "writer.plain.language.review": "Revisi\xF3n de Estilo (LexO Escribe Claro)",
+    "writer.plain.language.review2": "Revisi\xF3n de Estilo \xB7 LexO Escribe Claro",
+    "writer.privacy.and.pseudonymization.ley.21.719": "Seudonimizaci\xF3n y Privacidad (Ley 21.719)",
+    "writer.privacy.label": "Privacidad y Anonimizado",
+    "writer.read.mode.review.the.text.and.citations": "Modo lectura \u2014 edici\xF3n bloqueada para revisar texto y citas",
+    "writer.reason.for.removal": "motivo para retirarla",
+    "writer.references.without.an.article.unchecked": "Menciones sin art\xEDculo, no verificadas: ",
+    "writer.reload.and.discard.my.changes": "descargar y perder mis cambios",
+    "writer.remove": "Retirar",
+    "writer.removed": "Retirada \u2014 ",
+    "writer.replacement.text": "texto de reemplazo",
+    "writer.replacement.verified.apply.it.then.check.the.brief.again": "El motor verific\xF3 el reemplazo: apl\xEDcalo y vuelve a verificar el escrito.",
+    "writer.request.review": "Escalar",
+    "writer.return.to.writing": "Volver a Escribir",
+    "writer.review.and.repair.citations": "Ver detalle y reparar citas",
+    "writer.saved.on.this.device": "Guardado en este equipo",
+    "writer.search.lead.added.checking.the.citation": "Cita tra\xEDda desde la b\xFAsqueda: es una pista; se est\xE1 verificando.",
+    "writer.select.check.citations.to.check.the.brief.s.article.references": "Pulsa \xABVerificar citas\xBB para comprobar todas las referencias normativas del escrito.",
+    "writer.sent.for.review": "Escalada \u2014 ",
+    "writer.settings.and.suggestions": "Personalizaci\xF3n de Estudio y Predicci\xF3n",
+    "writer.settings.label": "Copilot y Personalizaci\xF3n",
+    "writer.show.hermes.chat": "Mostrar panel de Chat Hermes a la derecha",
+    "writer.show.strategy.board.above.the.brief": "Mostrar Pizarra estrat\xE9gica encima del escrito",
+    "writer.start.writing.your.brief.here": "Comience a redactar su escrito aqu\xED\u2026",
+    "writer.strict.also.medium.and.names": "Estricta (+ medios y nombres)",
+    "writer.test.replacement": "Probar reemplazo",
+    "writer.testing": "probando\u2026",
+    "writer.two.repair.attempts.failed.request.human.review": "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar.",
+    "writer.unchecked": "sin revisar",
+    "writer.unsaved.changes.recovered.retrying.save": "Recuper\xE9 cambios que no se hab\xEDan guardado; reintentando el guardado.",
+    "writer.verifiedSuffix": " citas verificadas",
+    "writer.warm.sepia": "Sepia lectura",
+    "writer.writer.settings": "Personalizaci\xF3n del Estudio (Preferencias de Usuario)",
+    "rail.citas": "Citas",
+    "rail.privacidad": "Privacidad",
+    "rail.estilo": "Estilo",
+    "rail.nif": "Tablero",
+    "rail.grafos": "Grafo",
+    "rail.ajustes": "Ajustes",
+    "rail.chat": "Chat",
+    "piz.search": "Buscar corpus",
+    "piz.supports": "apoya",
+    "priv.possiblePerson": "Posible persona",
+    "mod.obligacion": "obligaci\xF3n",
+    "mod.prohibicion": "prohibici\xF3n",
+    "mod.permiso": "permiso",
+    "mod.potestad": "potestad",
+    "mod.excepcion": "excepci\xF3n",
+    "mod.sancion": "sanci\xF3n",
+    "mod.definicion": "definici\xF3n",
+    "mod.otra": "otra",
+    "paper.clasico": "Cl\xE1sico",
+    "paper.sepia": "Sepia",
+    "paper.nocturno": "Oscuro",
+    "strategy.ligera": "ligera",
+    "strategy.media": "media",
+    "strategy.estricta": "estricta",
+    "pred.templateSource": "Plantilla (reglas)",
+    "pred.corpusSource": "Texto del corpus; cita sin verificar"
+  }
+};
+function anidarTextos() {
+  const salida = { en: {}, es: {} };
+  for (const loc of ["en", "es"]) {
+    for (const [k, v2] of Object.entries(TEXTOS[loc])) {
+      const partes = k.split(".");
+      let o2 = salida[loc];
+      for (let i3 = 0; i3 < partes.length - 1; i3++) {
+        o2 = o2[partes[i3]] = o2[partes[i3]] || {};
+      }
+      o2[partes[partes.length - 1]] = v2;
+    }
+  }
+  return salida;
+}
+var idioma = "en";
+var oyentes = /* @__PURE__ */ new Set();
+function fijarIdioma(nuevo) {
+  const v2 = nuevo === "es" ? "es" : "en";
+  if (v2 === idioma) return;
+  idioma = v2;
+  for (const fn of oyentes) fn();
+}
+function idiomaActual() {
+  return idioma;
+}
+function useIdioma() {
+  return useSyncExternalStore(
+    (fn) => {
+      oyentes.add(fn);
+      return () => oyentes.delete(fn);
+    },
+    idiomaActual
+  );
+}
+function t(clave, vars) {
+  const dict = TEXTOS[idioma] || TEXTOS.en;
+  let s2 = dict[clave] ?? TEXTOS.en[clave] ?? TEXTOS.es[clave] ?? clave;
+  if (vars) {
+    for (const [k, v2] of Object.entries(vars)) {
+      s2 = s2.split("{" + k + "}").join(String(v2 ?? ""));
+    }
+  }
+  return s2;
+}
+function etiquetaCodigo(code2) {
+  if (code2 == null) return "";
+  const raw = String(code2);
+  const label2 = TEXTOS[idioma]["codigo." + raw];
+  return label2 ? label2 + " (" + raw + ")" : raw;
+}
 
 // src/common.js
 var rest = null;
@@ -24,39 +2965,168 @@ function setStorage(s2) {
   storage = s2;
 }
 var S = {
-  page: "flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-(--ui-text-primary)",
-  title: "text-base font-semibold",
-  sub: "text-xs text-(--ui-text-tertiary)",
-  card: "flex flex-col gap-2 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) p-3",
-  cardTitle: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)",
-  chip: "inline-flex items-center rounded-sm px-1.5 py-0.5 text-[0.6875rem] font-medium",
-  chipOk: "bg-(--ui-success) text-(--ui-bg-primary)",
-  chipOff: "bg-(--ui-bg-quaternary) text-(--ui-text-secondary)",
-  chipBad: "bg-(--ui-danger) text-(--ui-bg-primary)",
-  textarea: "min-h-40 w-full rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-2 font-mono text-xs text-(--ui-text-primary) outline-none focus:border-(--ui-accent)",
-  input: "rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) px-2 py-1 text-xs text-(--ui-text-primary) outline-none focus:border-(--ui-accent)",
-  button: "self-start rounded-md bg-(--ui-accent) px-3 py-1.5 text-xs font-medium text-(--ui-bg-primary) disabled:opacity-50",
-  ghost: "self-start rounded-md border border-(--ui-stroke-secondary) px-3 py-1.5 text-xs text-(--ui-text-secondary)",
-  link: "text-(--ui-accent) hover:underline cursor-pointer",
-  row: "flex items-start gap-2 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0",
+  page: "flex h-full flex-col gap-3 overflow-y-auto p-4",
+  title: "dk-titulo",
+  sub: "dk-meta",
+  card: "dk-panel flex flex-col gap-2 p-3",
+  cardTitle: "dk-rotulo",
+  // Botones: primario (una acción principal por vista), con borde, plano,
+  // de peligro y de solo icono.
+  button: "dk-btn dk-btn--primario self-start",
+  ghost: "dk-btn dk-btn--borde self-start",
+  btn: "dk-btn",
+  btnPrimary: "dk-btn dk-btn--primario",
+  btnOutline: "dk-btn dk-btn--borde",
+  btnDanger: "dk-btn dk-btn--borde dk-btn--peligro",
+  btnIcon: "dk-btn dk-btn--icono",
+  btnSmall: "dk-btn dk-btn--borde dk-btn--chico",
+  link: "dk-enlace",
+  // Insignias: `S.chip + ' ' + S.chipOk`. chipOff es la neutra.
+  chip: "dk-insignia",
+  chipOk: "dk-insignia--ok",
+  chipOff: "",
+  chipBad: "dk-insignia--mal",
+  chipWarn: "dk-insignia--aviso",
+  chipInfo: "dk-insignia--info",
+  chipAcento: "dk-insignia--acento",
+  textarea: "dk-campo min-h-40 w-full dk-mono",
+  input: "dk-campo",
+  row: "dk-fila flex items-start gap-2 py-1.5",
   mark: "w-4 shrink-0 text-center font-bold",
-  ok: "text-(--ui-success)",
-  bad: "text-(--ui-danger)",
-  meta: "min-w-0 break-all text-xs text-(--ui-text-tertiary)",
+  ok: "dk-ok",
+  bad: "dk-mal",
+  warn: "dk-aviso-texto",
+  meta: "dk-meta min-w-0 break-all",
+  mono: "dk-mono",
   tabs: "flex gap-1 border-b border-(--ui-stroke-secondary)",
-  tab: "px-3 py-1.5 text-xs rounded-t-md cursor-pointer",
-  tabOn: "bg-(--ui-bg-secondary) font-medium text-(--ui-text-primary)",
-  tabOff: "text-(--ui-text-tertiary) hover:text-(--ui-text-primary)",
-  section: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",
-  sectionTitle: "text-[0.6875rem] font-medium uppercase tracking-wide text-(--ui-text-tertiary)"
+  tab: "dk-btn dk-pestana",
+  section: "dk-panel dk-panel--plano flex flex-col gap-1 p-2",
+  sectionTitle: "dk-rotulo",
+  panel: "dk-panel",
+  floating: "dk-panel dk-panel--flotante",
+  toolbar: "dk-barra",
+  divider: "dk-separador",
+  notice: "dk-aviso",
+  noticeOk: "dk-aviso dk-aviso--ok",
+  noticeBad: "dk-aviso dk-aviso--mal",
+  noticeWarn: "dk-aviso dk-aviso--aviso",
+  empty: "dk-vacio"
 };
 function mensajeError(e3) {
-  return e3 && (e3.message || e3.detail || e3.error) || String(e3);
+  let raw = String(e3 && (e3.message || e3.detail || e3.error) || e3);
+  raw = raw.replace(/^\d{3}:\s*/, "");
+  try {
+    const body = JSON.parse(raw);
+    if (body && typeof body.detail === "string") raw = body.detail;
+    else if (body && Array.isArray(body.detail)) return body.detail.map((d2) => d2.msg || JSON.stringify(d2)).join("; ");
+  } catch {
+  }
+  const m3 = /^([A-Z][A-Z0-9_]*): ([\s\S]*)$/.exec(raw);
+  if (!m3) return raw;
+  const key = "err." + m3[1];
+  const template = TEXTOS.en[key];
+  if (!template) return m3[2];
+  const names2 = [];
+  const pattern = template.split(/(\{\w+\})/).map((part) => {
+    if (/^\{\w+\}$/.test(part)) {
+      names2.push(part.slice(1, -1));
+      return "([\\s\\S]*?)";
+    }
+    return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }).join("");
+  const values = new RegExp("^" + pattern + "$").exec(m3[2]);
+  if (names2.length && !values) return m3[2];
+  const vars = Object.fromEntries(names2.map((name, i3) => [name, values[i3 + 1]]));
+  return t(key, vars);
+}
+var nativoTimeout = (fn, ms) => {
+  const id = setTimeout(fn, ms);
+  return () => clearTimeout(id);
+};
+var nativoInterval = (fn, ms) => {
+  const id = setInterval(fn, ms);
+  return () => clearInterval(id);
+};
+var _timeout = nativoTimeout;
+var _interval = nativoInterval;
+function setTimers(ctx) {
+  _timeout = ctx && typeof ctx.setTimeout === "function" ? (fn, ms) => ctx.setTimeout(fn, ms) : nativoTimeout;
+  _interval = ctx && typeof ctx.setInterval === "function" ? (fn, ms) => ctx.setInterval(fn, ms) : nativoInterval;
+}
+function programarTimeout(fn, ms) {
+  return _timeout(fn, ms);
+}
+function programarInterval(fn, ms) {
+  return _interval(fn, ms);
+}
+function cancelarTarea(t5) {
+  if (typeof t5 === "function") t5();
 }
 
 // src/escritor/escritor.js
-import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
-import { useCallback as useCallback8, useEffect as useEffect9, useRef as useRef7, useState as useState9 } from "react";
+import { jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
+import { useCallback as useCallback9, useEffect as useEffect10, useRef as useRef9, useState as useState10 } from "react";
+
+// src/escritor/guardado-logica.js
+function esConflicto(e3) {
+  if (!e3) return false;
+  if (e3.status === 409 || e3.statusCode === 409) return true;
+  if (e3.detail && typeof e3.detail === "object" && "rev_actual" in e3.detail) return true;
+  return /\b409\b|rev_actual/.test(String(e3.message || e3.detail || e3.error || e3));
+}
+async function guardarConReintento(enviar, revActual) {
+  try {
+    return { ok: true, resp: await enviar() };
+  } catch (e3) {
+    if (!esConflicto(e3)) return { ok: false, error: e3 };
+  }
+  const rev = await Promise.resolve().then(() => revActual()).catch(() => null);
+  if (rev == null) return { ok: false, conflicto: true };
+  try {
+    return { ok: true, resp: await enviar(rev), reintentado: true };
+  } catch (e22) {
+    return esConflicto(e22) ? { ok: false, conflicto: true, rev_actual: rev } : { ok: false, error: e22 };
+  }
+}
+var CLAVE_PENDIENTE = (cid) => "escrito.pendiente." + cid;
+function escribirPendiente(p2) {
+  try {
+    if (storage && typeof storage.set === "function" && p2 && p2.case_id) {
+      storage.set(CLAVE_PENDIENTE(p2.case_id), p2);
+    }
+  } catch {
+  }
+}
+function leerPendiente(cid) {
+  try {
+    if (storage && typeof storage.get === "function" && cid) {
+      const p2 = storage.get(CLAVE_PENDIENTE(cid), null);
+      if (p2 && typeof p2 === "object" && p2.case_id === cid && typeof p2.html === "string" && typeof p2.texto === "string") {
+        return p2;
+      }
+    }
+  } catch {
+  }
+  return null;
+}
+function borrarPendiente(cid) {
+  try {
+    if (storage && typeof storage.remove === "function" && cid) {
+      storage.remove(CLAVE_PENDIENTE(cid));
+    }
+  } catch {
+  }
+}
+function pendienteDiff(pendiente, actual) {
+  if (!pendiente || typeof pendiente !== "object" || !actual) return false;
+  if (pendiente.texto !== actual.texto) return true;
+  if (pendiente.html !== actual.html) return true;
+  try {
+    return JSON.stringify(pendiente.registro || null) !== JSON.stringify(actual.registro || null);
+  } catch {
+    return true;
+  }
+}
 
 // node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
 var __defProp2 = Object.defineProperty;
@@ -18939,7 +22009,7 @@ function registerGroup(name, groups) {
   }
   return groups[name];
 }
-function addToGroups(t4, flags, groups) {
+function addToGroups(t5, flags, groups) {
   if (flags[numeric]) {
     flags[asciinumeric] = true;
     flags[alphanumeric] = true;
@@ -18962,15 +22032,15 @@ function addToGroups(t4, flags, groups) {
   }
   for (const k in flags) {
     const group = registerGroup(k, groups);
-    if (group.indexOf(t4) < 0) {
-      group.push(t4);
+    if (group.indexOf(t5) < 0) {
+      group.push(t5);
     }
   }
 }
-function flagsForToken(t4, groups) {
+function flagsForToken(t5, groups) {
   const result = {};
   for (const c4 in groups) {
-    if (groups[c4].indexOf(t4) >= 0) {
+    if (groups[c4].indexOf(t5) >= 0) {
       result[c4] = true;
     }
   }
@@ -19108,7 +22178,7 @@ State.prototype = {
       state.j[input] = next;
       return next;
     }
-    const t4 = next;
+    const t5 = next;
     let nextState, templateState = state.go(input);
     if (templateState) {
       nextState = new State();
@@ -19119,16 +22189,16 @@ State.prototype = {
     } else {
       nextState = new State();
     }
-    if (t4) {
+    if (t5) {
       if (groups) {
         if (nextState.t && typeof nextState.t === "string") {
           const allFlags = Object.assign(flagsForToken(nextState.t, groups), flags);
-          addToGroups(t4, allFlags, groups);
+          addToGroups(t5, allFlags, groups);
         } else if (flags) {
-          addToGroups(t4, flags, groups);
+          addToGroups(t5, flags, groups);
         }
       }
-      nextState.t = t4;
+      nextState.t = t5;
     }
     state.j[input] = nextState;
     return nextState;
@@ -19488,7 +22558,7 @@ function stringToArray(str) {
   }
   return result;
 }
-function fastts(state, input, t4, defaultt, jr) {
+function fastts(state, input, t5, defaultt, jr) {
   let next;
   const len = input.length;
   for (let i3 = 0; i3 < len - 1; i3++) {
@@ -19502,7 +22572,7 @@ function fastts(state, input, t4, defaultt, jr) {
     }
     state = next;
   }
-  next = new State(t4);
+  next = new State(t5);
   next.jr = jr.slice();
   state.j[input[len - 1]] = next;
   return next;
@@ -20182,7 +23252,7 @@ function autolink(options) {
           const lastWordBeforeSpace = wordsBeforeWhitespace[wordsBeforeWhitespace.length - 1];
           const lastWordAndBlockOffset = textBlock.pos + textBeforeWhitespace.lastIndexOf(lastWordBeforeSpace);
           if (!lastWordBeforeSpace) return false;
-          const linksBeforeSpace = tokenize(lastWordBeforeSpace).map((t4) => t4.toObject(options.defaultProtocol));
+          const linksBeforeSpace = tokenize(lastWordBeforeSpace).map((t5) => t5.toObject(options.defaultProtocol));
           if (!isValidLinkStructure(linksBeforeSpace)) return false;
           linksBeforeSpace.filter((link) => link.isLink).map((link) => ({
             ...link,
@@ -20943,7 +24013,7 @@ var ListItem = Node2.create({
           }, ...remainingTokens.length > 0 ? parseBlockChildren(remainingTokens) : []]
         };
       }
-      if (token.tokens.some((t4) => t4.type === "paragraph")) content = parseBlockChildren(token.tokens);
+      if (token.tokens.some((t5) => t5.type === "paragraph")) content = parseBlockChildren(token.tokens);
       else if (firstToken.type === "text" && firstToken.tokens && firstToken.tokens.length > 0) {
         content = [{
           type: "paragraph",
@@ -23003,7 +26073,7 @@ var SEPARADOR = "\n";
 var claveMarcas = new PluginKey("dike-marcas-citas");
 var ESTILOS_MARCA = {
   verificada: "background:rgba(34,197,94,.18);border-bottom:2px solid var(--ui-success,rgb(34,197,94));border-radius:2px",
-  fallo: "background:rgba(239,68,68,.14);border-bottom:2px solid var(--ui-danger,rgb(239,68,68));border-radius:2px",
+  fallo: "background:rgba(239,68,68,.14);border-bottom:2px solid var(--dk-mal,rgb(239,68,68));border-radius:2px",
   desactualizada: "border-bottom:2px dotted var(--ui-stroke-tertiary,rgb(156,163,175));opacity:.7",
   escalada: "border-bottom:2px solid var(--ui-accent,rgb(139,92,246));border-radius:2px"
 };
@@ -23118,10 +26188,10 @@ function pluginPlaceholderVacio(texto) {
           return null;
         }
         const span = document.createElement("span");
-        span.textContent = texto;
+        span.textContent = typeof texto === "function" ? texto() : texto;
         span.setAttribute(
           "style",
-          "color:var(--ui-text-tertiary,#9ca3af);pointer-events:none;user-select:none"
+          "color:inherit;opacity:.6;pointer-events:none;user-select:none"
         );
         return DecorationSet.create(doc3, [
           Decoration.widget(1, span, { side: -1 })
@@ -23199,13 +26269,14 @@ function montarEditor({
   onUpdate,
   onAceptarPrediccion
 }) {
-  const pluginPh = pluginPlaceholderVacio(placeholder);
+  const textoPlaceholder = placeholder || (() => t("writer.start.writing.your.brief.here"));
+  const pluginPh = pluginPlaceholderVacio(textoPlaceholder);
   const pluginGhost = pluginGhostTexto({ onAceptar: onAceptarPrediccion });
   return new Editor({
     element: element2,
     extensions: [
       src_default,
-      src_default2.configure({ placeholder: placeholder || "Escribe el escrito\u2026" }),
+      src_default2.configure({ placeholder: textoPlaceholder }),
       MarcasCitas,
       MarcasPrivacidad,
       Extension.create({
@@ -23233,6 +26304,10 @@ function montarEditor({
 }
 function textoDelEditor(editor) {
   return editor.getText({ blockSeparator: SEPARADOR });
+}
+function insertarHtmlEnCursor(editor, html) {
+  const pos = editor.isEmpty ? editor.state.doc.content.size : editor.state.selection.from;
+  editor.chain().focus().insertContentAt(pos, html).run();
 }
 function reemplazarRangos(editor, rangos, texto) {
   const tr2 = editor.state.tr;
@@ -23291,15 +26366,9 @@ function ultimoRegistro(registro, clave, citaRaw) {
   }
   return null;
 }
-var AVISO_JUICIO = "Dik\xE9 no eval\xFAa si la norma respalda el argumento; eso es juicio del abogado.";
+var AVISO_JUICIO = "verify.judgment";
 function mensajeVeredicto(veredicto) {
-  if (veredicto === "SIN_CITAS") {
-    return "La gram\xE1tica del motor no vio citas con art\xEDculo; no significa que el escrito no cite normas.";
-  }
-  if (veredicto === "SIN_CORPUS") {
-    return "No hab\xEDa corpus con qu\xE9 verificar; no es un resultado favorable.";
-  }
-  return null;
+  return { SIN_CITAS: "verify.SIN_CITAS", SIN_CORPUS: "verify.SIN_CORPUS" }[veredicto] || null;
 }
 function vieneDeBusqueda(citaRaw, registro) {
   const pistas = registro && registro.pistas || [];
@@ -23307,34 +26376,23 @@ function vieneDeBusqueda(citaRaw, registro) {
   if (!raw) return false;
   return pistas.some((p2) => p2 && typeof p2.cita === "string" && (raw === p2.cita || raw.startsWith(p2.cita)));
 }
-function etiquetaCitaBase(estado, detalle, meta, registro) {
-  const d2 = detalle || {};
-  switch (estado) {
-    case "verificada": {
-      const m3 = meta || {};
-      let t4 = "Probado por Dik\xE9: existe, tiene texto citable y estaba vigente al " + (m3.as_of || "?") + " en el corpus " + (m3.pack_hash || "?");
-      const extra = [d2.gid, d2.fuente_url].filter(Boolean).join(" \xB7 ");
-      return extra ? t4 + " \xB7 " + extra : t4;
-    }
-    case "fallo":
-      return "FALLO \xB7 " + (d2.resolucion || "sin resoluci\xF3n");
-    case "desactualizada":
-      return "El texto cambi\xF3: verifica de nuevo";
-    case "retirada": {
-      const r2 = ultimoRegistro(registro, "retiros", d2.cita_raw);
-      return "Retirada: " + (r2 && r2.motivo || "");
-    }
-    case "escalada": {
-      const e3 = ultimoRegistro(registro, "escaladas", d2.cita_raw);
-      return "Escalada para revisi\xF3n humana: " + (e3 && e3.nota || "");
-    }
-    default:
-      return "";
-  }
-}
 function etiquetaCita(estado, detalle, meta, registro) {
-  const base2 = etiquetaCitaBase(estado, detalle, meta, registro);
-  return base2 && vieneDeBusqueda(detalle && detalle.cita_raw, registro) ? base2 + " \xB7 lleg\xF3 desde la b\xFAsqueda (pista)" : base2;
+  const d2 = detalle || {};
+  const m3 = meta || {};
+  const retiro = ultimoRegistro(registro, "retiros", d2.cita_raw);
+  const escalada = ultimoRegistro(registro, "escaladas", d2.cita_raw);
+  return {
+    codigo: { verificada: "verify.verificada", fallo: "verify.fallo", desactualizada: "verify.desactualizada", retirada: "verify.retirada", escalada: "verify.escalada" }[estado] || estado,
+    datos: {
+      date: m3.as_of || "?",
+      pack: m3.pack_hash || "?",
+      source: [d2.gid, d2.fuente_url].filter(Boolean).join(" \xB7 "),
+      resolution: d2.resolucion || "",
+      reason: retiro && retiro.motivo || "",
+      note: escalada && escalada.nota || ""
+    },
+    pista: vieneDeBusqueda(d2.cita_raw, registro)
+  };
 }
 async function sha256Hex(texto) {
   const digest = await globalThis.crypto.subtle.digest(
@@ -23345,15 +26403,15 @@ async function sha256Hex(texto) {
 }
 function segmentosDeDoc(doc3, blockSeparator = SEPARADOR_BLOQUE) {
   const segs = [];
-  let t4 = 0;
+  let t5 = 0;
   doc3.nodesBetween(0, doc3.content.size, (node, pos) => {
     if (node.isBlock && pos > 0) {
-      segs.push({ t0: t4, t1: t4 + blockSeparator.length, p0: pos, p1: pos });
-      t4 += blockSeparator.length;
+      segs.push({ t0: t5, t1: t5 + blockSeparator.length, p0: pos, p1: pos });
+      t5 += blockSeparator.length;
     }
     if (node.isText) {
-      segs.push({ t0: t4, t1: t4 + node.nodeSize, p0: pos, p1: pos + node.nodeSize });
-      t4 += node.nodeSize;
+      segs.push({ t0: t5, t1: t5 + node.nodeSize, p0: pos, p1: pos + node.nodeSize });
+      t5 += node.nodeSize;
     }
   });
   return segs;
@@ -23375,6 +26433,7 @@ function rangoAPos(segmentos, inicio, fin) {
 }
 
 // src/escritor/privacidad.js
+import { memo } from "react";
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -23432,7 +26491,7 @@ function marcasParaEditor(entidades, candidatos, rangoAPos2) {
   }
   for (const c4 of candidatos || []) {
     const r2 = rangoAPos2(c4.inicio, c4.fin);
-    if (r2) marcas.push({ from: r2.from, to: r2.to, clase: "candidato", title: "posible persona" });
+    if (r2) marcas.push({ from: r2.from, to: r2.to, clase: "candidato", title: "POSSIBLE_PERSON" });
   }
   return marcas;
 }
@@ -23440,16 +26499,16 @@ function marcasParaEditor(entidades, candidatos, rangoAPos2) {
 // src/escritor/privacidad.js
 var DEBOUNCE_DETECTAR = 1500;
 var ESTRATEGIAS = [
-  { id: "ligera", texto: "ligera (solo cr\xEDticos)" },
-  { id: "media", texto: "media (cr\xEDticos + altos)" },
-  { id: "estricta", texto: "estricta (+ medios)" }
+  { id: "ligera", texto: "priv.estrategiaLigera" },
+  { id: "media", texto: "priv.estrategiaMedia" },
+  { id: "estricta", texto: "priv.estrategiaEstricta" }
 ];
 var MOTIVOS = {
-  juez: "juez (p\xFAblico)",
-  ancla_causa: "ancla de causa",
-  institucion: "instituci\xF3n",
-  decision_abogado: "decisi\xF3n del abogado",
-  por_estrategia: "bajo la estrategia"
+  juez: "priv.motivo.juez",
+  ancla_causa: "priv.motivo.ancla_causa",
+  institucion: "priv.motivo.institucion",
+  decision_abogado: "priv.motivo.decision_abogado",
+  por_estrategia: "priv.motivo.por_estrategia"
 };
 var _puedeEnviar = true;
 function puedeEnviar() {
@@ -23484,7 +26543,8 @@ function prepararEnvio({ caseId, texto, destino, seudonimizar, estrategia }) {
     }
   }).then(() => ({ texto: r2.texto, mapa: r2.mapa, sha256: r2.sha256 })));
 }
-function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro }) {
+function ModuloPrivacidadImpl({ editorRef, caseId, docInfo, registro, setRegistro }) {
+  useIdioma();
   const cfg = registro && registro.privacidad || {};
   const seudOn = cfg.seudonimizar !== false;
   const confirmo = Boolean(cfg.acepto_datos);
@@ -23520,9 +26580,9 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
   }, [editorRef, caseId, estrategia]);
   useEffect(() => {
     if (!(docInfo && docInfo.hash)) return;
-    clearTimeout(timer2.current);
-    timer2.current = setTimeout(detectar, DEBOUNCE_DETECTAR);
-    return () => clearTimeout(timer2.current);
+    cancelarTarea(timer2.current);
+    timer2.current = programarTimeout(detectar, DEBOUNCE_DETECTAR);
+    return () => cancelarTarea(timer2.current);
   }, [docInfo && docInfo.hash, detectar]);
   useEffect(() => {
     const ed = editorRef.current;
@@ -23536,7 +26596,7 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
       deteccion.entidades,
       deteccion.candidatos,
       (i3, f2) => rangoAPos(segs, i3, f2)
-    ));
+    ).map((m3) => ({ ...m3, title: m3.title === "POSSIBLE_PERSON" ? t("priv.possiblePerson") : m3.title })));
   }, [verMarcas, deteccion, editorRef]);
   const decidir = useCallback((valor, accion, tipo) => {
     rest("/privacidad/decision", {
@@ -23576,7 +26636,7 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
   const candidatos = deteccion && deteccion.candidatos || [];
   return jsxs("div", { className: S.card, children: [
     jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx("div", { className: S.cardTitle, children: "Privacidad" }),
+      jsx("div", { className: S.cardTitle, children: t("format.privacy") }),
       jsxs("label", { className: "flex items-center gap-1.5 text-xs", children: [
         jsx("input", {
           type: "checkbox",
@@ -23590,7 +26650,7 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
             }
           }
         }),
-        "Seudonimizar antes de enviar al modelo"
+        t("priv.seudonimizar")
       ] }),
       jsx("select", {
         className: S.input,
@@ -23599,35 +26659,35 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
           guardarCfg({ estrategia: e3.target.value });
           detectar();
         },
-        children: ESTRATEGIAS.map((o2) => jsx("option", { key: o2.id, value: o2.id, children: o2.texto }))
+        children: ESTRATEGIAS.map((o2) => jsx("option", { key: o2.id, value: o2.id, children: t(o2.texto) }))
       }),
       jsx("button", {
         type: "button",
         className: S.ghost,
         onClick: detectar,
         disabled: ocupado,
-        children: ocupado ? "detectando\u2026" : "Detectar datos"
+        children: ocupado ? t("priv.detectando") : t("priv.detectar")
       }),
       jsx("button", {
         type: "button",
         className: S.ghost,
         onClick: () => setVerMarcas(!verMarcas),
-        children: verMarcas ? "Ocultar datos en el escrito" : "Ver datos personales en el escrito"
+        children: verMarcas ? t("priv.ocultarMarcas") : t("priv.verMarcas")
       }),
       jsx("button", {
         type: "button",
         className: S.ghost,
         onClick: verSalida,
-        children: "Vista de lo que sale"
+        children: t("priv.vistaSalida")
       }),
       jsx("button", {
         type: "button",
         className: S.ghost,
         onClick: enmascararSeleccion,
-        children: "Enmascarar selecci\xF3n"
+        children: t("priv.enmascararSeleccion")
       })
     ] }),
-    confirmarOff ? jsxs("label", { className: "flex items-center gap-1.5 text-xs text-(--ui-danger)", children: [
+    confirmarOff ? jsxs("label", { className: "flex items-center gap-1.5 text-xs dk-mal", children: [
       jsx("input", {
         type: "checkbox",
         checked: confirmo,
@@ -23638,9 +26698,9 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
           }
         }
       }),
-      "Entiendo que el texto saldr\xE1 con datos personales"
+      t("priv.entiendo")
     ] }) : null,
-    error2 ? jsx("div", { className: "text-xs text-(--ui-danger)", children: "Privacidad no disponible: " + mensajeError(error2) + " \u2014 el texto no debe salir hasta resolverlo." }) : null,
+    error2 ? jsx("div", { className: "text-xs dk-mal", children: t("priv.error", { error: mensajeError(error2) }) }) : null,
     deteccion ? jsxs("div", { className: "flex flex-col gap-2", children: [
       jsxs("div", { className: "flex flex-wrap gap-1.5", children: [
         ...Object.entries(conteos).map(([cat, n2]) => jsxs("span", {
@@ -23648,7 +26708,7 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
           className: S.chip + " " + S.chipOff,
           children: [cat + ": " + n2]
         })),
-        candidatos.length ? jsx("span", { className: S.chip + " " + S.chipBad, children: candidatos.length + " posibles personas" }) : null
+        candidatos.length ? jsx("span", { className: S.chip + " " + S.chipBad, children: t("priv.posiblesPersonas", { n: candidatos.length }) }) : null
       ] }),
       grupos.map((g3) => jsxs("div", { key: g3.tipo, className: "flex flex-col gap-1", children: [
         jsx("div", { className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)", children: g3.tipo }),
@@ -23658,15 +26718,15 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
             type: "button",
             className: S.link,
             onClick: () => decidir(e3.valor, e3.accion === "enmascarar" ? "conservar" : "enmascarar", e3.tipo),
-            children: e3.accion === "enmascarar" ? "enmascarar" : "conservar"
+            children: e3.accion === "enmascarar" ? t("priv.enmascarar") : t("priv.conservar")
           }),
-          e3.motivo ? jsx("span", { className: S.sub, children: "(" + (MOTIVOS[e3.motivo] || e3.motivo) + ")" }) : null
+          e3.motivo ? jsx("span", { className: S.sub, children: "(" + (MOTIVOS[e3.motivo] ? t(MOTIVOS[e3.motivo]) : e3.motivo) + ")" }) : null
         ] }))
       ] })),
       candidatos.length ? jsxs("div", { className: "flex flex-col gap-1", children: [
         jsx("div", {
           className: "text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)",
-          children: "Posibles personas sin contexto"
+          children: t("priv.posiblesSinContexto")
         }),
         ...candidatos.map((c4, i3) => jsxs("div", { key: i3, className: "flex items-center gap-2 text-sm", children: [
           jsx("span", { children: c4.valor }),
@@ -23674,12 +26734,12 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
             type: "button",
             className: S.link,
             onClick: () => decidir(c4.valor, "enmascarar", "full_name"),
-            children: "Enmascarar"
+            children: t("priv.enmascarar")
           })
         ] }))
       ] }) : null,
       jsx("div", { className: S.sub, children: deteccion.aviso })
-    ] }) : jsx("div", { className: S.sub, children: "Sin detecci\xF3n a\xFAn: edita el escrito o pulsa \xABDetectar datos\xBB." }),
+    ] }) : jsx("div", { className: S.sub, children: t("priv.sinDeteccion") }),
     vistaSalida && vistaSalida !== "cargando" ? jsxs("div", { className: "flex flex-col gap-1", children: [
       jsx("div", { className: S.cardTitle, children: "Vista de lo que sale" }),
       jsx("pre", {
@@ -23687,14 +26747,16 @@ function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro })
         children: vistaSalida.texto
       }),
       jsxs("div", { className: S.sub, children: [
-        Object.keys(vistaSalida.mapa || {}).length + " valores seudonimizados \xB7 destino: a\xFAn sin destino (el chat llega en la fase siguiente)"
+        t("priv.valoresMapa", { n: Object.keys(vistaSalida.mapa || {}).length })
       ] }),
-      jsx("button", { type: "button", className: S.link, onClick: () => setVistaSalida(null), children: "cerrar" })
-    ] }) : vistaSalida === "cargando" ? jsx("div", { className: S.sub, children: "preparando vista\u2026" }) : null
+      jsx("button", { type: "button", className: S.link, onClick: () => setVistaSalida(null), children: t("format.close") })
+    ] }) : vistaSalida === "cargando" ? jsx("div", { className: S.sub, children: t("priv.preparando") }) : null
   ] });
 }
+var ModuloPrivacidad = memo(ModuloPrivacidadImpl);
 
 // src/escritor/chat.js
+import { memo as memo2 } from "react";
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
 import { useCallback as useCallback2, useEffect as useEffect2, useRef as useRef2, useState as useState2 } from "react";
 import { host } from "@hermes/plugin-sdk";
@@ -23702,10 +26764,10 @@ import { host } from "@hermes/plugin-sdk";
 // src/escritor/chat-logica.js
 var TOPE_ESCRITO = 12e3;
 var UMBRAL_CAMBIOS = 0.4;
-function hashParrafo(t4) {
+function hashParrafo(t5) {
   let h3 = 0;
-  for (let i3 = 0; i3 < t4.length; i3 += 1) {
-    h3 = Math.imul(h3, 31) + t4.charCodeAt(i3) | 0;
+  for (let i3 = 0; i3 < t5.length; i3 += 1) {
+    h3 = Math.imul(h3, 31) + t5.charCodeAt(i3) | 0;
   }
   return (h3 >>> 0).toString(16);
 }
@@ -23872,7 +26934,7 @@ function acumDeltas(deltas) {
 }
 function etiquetaModelo(modelId) {
   if (!modelId) return "?";
-  if (String(modelId).startsWith("stealth/")) return "modelo alojado por Nous";
+  if (String(modelId).startsWith("stealth/")) return "NOUS_HOSTED_MODEL";
   return String(modelId);
 }
 function etiquetaDestino(info) {
@@ -23963,10 +27025,10 @@ function normalizarFragmento(s2) {
 }
 function fragmentoEn(fragmento, texto) {
   const f2 = normalizarFragmento(fragmento);
-  const t4 = normalizarFragmento(texto);
+  const t5 = normalizarFragmento(texto);
   if (f2.length < 20) return { ok: false, motivo: "corto" };
   if (f2.length > 400) return { ok: false, motivo: "largo" };
-  const ok = t4.includes(f2);
+  const ok = t5.includes(f2);
   return { ok, motivo: ok ? null : "ausente" };
 }
 function rangoFragmento(texto, fragmento) {
@@ -23982,7 +27044,7 @@ function rangoFragmento(texto, fragmento) {
 // src/escritor/chat.js
 var TIMEOUT_RPC = 6e4;
 function tituloSesion(caseId) {
-  return "Dik\xE9 \xB7 Escrito \xB7 " + caseId;
+  return t("chat.sessionTitle") + caseId;
 }
 var ESTILOS_ESTADO_RESP = {
   verificada: "chipOk",
@@ -24062,7 +27124,7 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
     setCitaDet(c4 ? detalles.find((d2) => (d2.cita_raw || "").trim() === c4) : void 0);
   }, [nota.cita, verif]);
   const nodoInexistente = nodoOk === false || leerRes != null;
-  const fragTexto = leerMal ? "No se pudo leer el art\xEDculo" : leerRes != null ? "Nodo inexistente" : frag == null ? "comprobando fragmento\u2026" : frag.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (frag.motivo === "corto" ? " (muy corto para comparar)" : frag.motivo === "largo" ? " (demasiado largo)" : "");
+  const fragTexto = leerMal ? t("extra.could.not.read.the.article") : leerRes != null ? "Nodo inexistente" : frag == null ? "comprobando fragmento\u2026" : frag.ok ? t("graph.passage.found.in.article") : t("graph.passage.not.found.in.this.article") + (frag.motivo === "corto" ? t("graph.too.short.to.compare") : frag.motivo === "largo" ? t("graph.too.long") : "");
   const abrir = () => onAbrirGrafo && onAbrirGrafo({
     nodo_id: nodoId,
     unidad_id: nota.unidad_id,
@@ -24074,20 +27136,20 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
       jsx2("code", { className: S.sub, children: nodoId + (nota.unidad_id ? " " + nota.unidad_id.split("#")[1] : "") }),
       citaDet ? jsx2("span", {
         className: S.chip + " " + (citaDet.estado === "VERIFICADA" ? S.chipOk : S.chipOff),
-        title: "Estado que fij\xF3 el motor para esta cita",
-        children: citaDet.estado
+        title: t("chat.estadoMotor"),
+        children: etiquetaCodigo(citaDet.estado)
       }) : null,
       jsx2("button", {
         type: "button",
         className: S.link,
         disabled: nodoInexistente,
-        title: nodoInexistente ? "El nodo no existe en el corpus" : "Verif\xEDcalo t\xFA: abrir en el grafo",
+        title: nodoInexistente ? t("chat.nodoInexistente") : t("chat.verificarGrafo"),
         onClick: abrir,
-        children: "Verif\xEDcalo t\xFA: abrir en el grafo"
+        children: t("chat.verificarGrafo")
       })
     ] }),
     jsxs2("div", { className: S.sub, children: [
-      nodoOk === null ? "comprobando nodo\u2026" : nodoInexistente ? "Nodo inexistente" : null,
+      nodoOk === null ? t("chat.comprobando") : nodoInexistente ? t("chat.nodoNoExiste") : null,
       nodoOk === true ? jsx2("span", { children: (nodoOk === true ? " \xB7 " : "") + fragTexto }) : null
     ] })
   ] });
@@ -24095,7 +27157,7 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
 function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
   if (!notas.length && !invalidas.length) return null;
   return jsxs2("div", { className: "flex flex-col gap-1 rounded border border-(--ui-stroke-secondary) p-2", children: [
-    jsx2("div", { className: S.cardTitle, children: "Notas" }),
+    jsx2("div", { className: S.cardTitle, children: t("chat.notas") }),
     ...notas.map((n2) => jsx2(NotaItem, {
       key: n2.n,
       nota: n2,
@@ -24105,14 +27167,14 @@ function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
     ...invalidas.map(
       (iv) => jsx2("div", {
         key: "inv" + iv.n,
-        className: "text-xs text-(--ui-danger)",
-        children: "Nota con formato no reconocible: [^" + iv.n + "]"
+        className: "text-xs " + S.bad,
+        children: t("chat.notaInvalida", { n: iv.n })
       })
     ),
-    jsx2("div", { className: S.sub, children: "La pertinencia para el caso es una lectura del modelo; decides t\xFA." })
+    jsx2("div", { className: S.sub, children: t("chat.pertenencia") })
   ] });
 }
-function ChatEscritor({
+function ChatEscritorImpl({
   editorRef,
   caseId,
   docInfo,
@@ -24126,6 +27188,7 @@ function ChatEscritor({
   onAbrirPrivacidad,
   modoDock = true
 }) {
+  useIdioma();
   const [perfilOk, setPerfilOk] = useState2(null);
   const [perfilElegido, setPerfilElegido] = useState2(null);
   const perfilRef = useRef2(null);
@@ -24172,7 +27235,7 @@ function ChatEscritor({
           try {
             return await fn();
           } catch (e3) {
-            throw new Error(nombre + ": " + mensajeError(e3));
+            throw new Error(t("chat.errorPaso", { nombre, error: mensajeError(e3) }));
           }
         };
         const tieneDike = async (r2, objetivo) => {
@@ -24211,7 +27274,9 @@ function ChatEscritor({
           }
         }
         if (!ruta) {
-          throw new Error("El chat del escrito necesita un perfil con Dik\xE9 habilitado: configura el setting perfil_chat del plugin o usa el perfil activo" + (activo ? " (\xAB" + activo + "\xBB)" : "") + ". Sin sus hooks no se puede garantizar que el modelo no use herramientas.");
+          throw new Error(t("chat.errorPerfil", {
+            activo: activo ? " (\xAB" + activo + "\xBB)" : ""
+          }));
         }
         const perfil = perfilObjetivo;
         setPerfilElegido(perfil);
@@ -24367,11 +27432,11 @@ function ChatEscritor({
       caseId: cid,
       hashActual: hashP
     });
-    const destino = (perfilRef.current || "perfil sin resolver") + " \xB7 " + etiquetaModelo(modelo && modelo.id);
+    const destino = (perfilRef.current || "perfil sin resolver") + " \xB7 " + nombreModelo(modelo && modelo.id);
     const cfgPriv2 = registro && registro.privacidad || {};
     const seudonimizar = cfgPriv2.seudonimizar !== false;
     if (!seudonimizar && cfgPriv2.acepto_datos !== true) {
-      setError(new Error("Activa la seudonimizaci\xF3n o confirma en el m\xF3dulo Privacidad que aceptas enviar datos personales."));
+      setError(new Error(t("nifp.errorPrivacidad")));
       setOcupado(false);
       return;
     }
@@ -24382,7 +27447,7 @@ function ChatEscritor({
       seudonimizar,
       estrategia: cfgPriv2.estrategia || "media"
     }).then((envio) => {
-      if (!puedeEnviar()) throw new Error("privacidad bloque\xF3 el env\xEDo");
+      if (!puedeEnviar()) throw new Error(t("chat.errorPrivacidadEnvio"));
       return host.requestProfile(
         rutaRef.current,
         "prompt.submit",
@@ -24434,8 +27499,9 @@ function ChatEscritor({
     ed.chain().focus().insertContentAt(from2, rehid).run();
   }, [editorRef, registro]);
   useEffect2(() => {
-    if (endRef.current && typeof endRef.current.scrollIntoView === "function") {
-      endRef.current.scrollIntoView({ behavior: "smooth" });
+    const panel = endRef.current && endRef.current.parentElement;
+    if (panel && (mensajes.length || ocupado || stream)) {
+      panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
     }
   }, [mensajes.length, ocupado, stream]);
   const cfgPriv = registro && registro.privacidad || {};
@@ -24445,15 +27511,15 @@ function ChatEscritor({
   const numCitasVerif = (verificacion && verificacion.resultado && verificacion.resultado.meta || {}).citas_verificadas || 0;
   if (perfilOk && perfilOk.error) {
     return jsxs2("div", {
-      className: modoDock ? "flex h-full w-full flex-col border-l border-slate-200 bg-white text-slate-800" : S.card,
+      className: modoDock ? "flex h-full w-full flex-col border-l border-(--dk-borde) bg-(--dk-elevada) text-(--dk-texto)" : S.card,
       children: [
-        jsxs2("div", { className: "flex items-center gap-2 border-b border-slate-200 px-3 py-2 text-xs", children: [
-          jsx2("span", { className: "font-semibold text-slate-800", children: "Hermes" }),
-          jsx2("span", { className: "h-2 w-2 rounded-full bg-amber-500", title: "sin perfil con Dik\xE9" })
+        jsxs2("div", { className: "flex items-center gap-2 border-b border-(--dk-borde) px-3 py-2 text-xs", children: [
+          jsx2("span", { className: "font-semibold text-(--dk-texto)", children: "Hermes" }),
+          jsx2("span", { className: "h-2 w-2 rounded-full bg-(--dk-aviso)", title: t("chat.sinPerfil") })
         ] }),
         jsxs2("div", { className: "p-3 flex flex-col gap-2", children: [
           jsx2("div", {
-            className: "rounded border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 leading-relaxed",
+            className: S.noticeWarn + " leading-relaxed",
             children: mensajeError(perfilOk.error)
           })
         ] })
@@ -24461,58 +27527,59 @@ function ChatEscritor({
     });
   }
   return jsxs2("div", {
-    className: modoDock ? "flex h-full w-full flex-col bg-white text-slate-800 overflow-hidden" : S.card,
+    className: modoDock ? "flex h-full w-full flex-col bg-(--dk-elevada) text-(--dk-texto) overflow-hidden" : S.card,
     children: [
       // Cabecera superior estilo Hermes Chat (imagen 2)
       jsxs2("div", {
-        className: "flex items-center gap-2 border-b border-slate-200 px-3 h-9 text-xs shrink-0 bg-slate-50/60",
+        className: "flex items-center gap-2 border-b border-(--dk-borde) px-3 h-9 text-xs shrink-0 bg-(--dk-superficie)",
         children: [
-          jsx2("span", { className: "font-semibold text-slate-800", children: "Hermes" }),
+          jsx2("span", { className: "font-semibold text-(--dk-texto)", children: "Hermes" }),
           jsx2("span", {
-            className: "text-slate-500 truncate",
-            children: perfilElegido || "abriendo\u2026"
+            className: "text-(--dk-texto-3) truncate",
+            children: perfilElegido || t("chat.abriendo")
           }),
           jsx2("span", {
-            className: "h-2 w-2 rounded-full shrink-0 " + (perfilOk === true ? "bg-emerald-500" : "bg-slate-300"),
-            title: modelo ? etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino : "conectando sesi\xF3n del escrito"
+            className: "h-2 w-2 rounded-full shrink-0 " + (perfilOk === true ? "bg-(--dk-ok)" : "bg-(--dk-superficie-2)"),
+            title: modelo ? nombreModelo(modelo.id) + " \xB7 " + (modelo.destino === "nube" ? t("pred.destinoNube") : "local") : t("extra.connecting.brief.chat")
           }),
           modelo ? jsx2("span", {
-            className: "text-[10px] text-slate-400 truncate",
-            children: etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino
+            className: "text-xs text-(--dk-texto-3) truncate",
+            children: nombreModelo(modelo.id) + " \xB7 " + (modelo.destino === "nube" ? t("pred.destinoNube") : "local")
           }) : null,
           jsxs2("div", { className: "ml-auto flex items-center gap-1", children: [
             mensajes.length > 0 ? jsx2("button", {
               type: "button",
               onClick: () => setMensajes([]),
-              className: "rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 cursor-pointer",
-              title: "Limpiar vista de conversaci\xF3n",
-              children: "Limpiar"
+              className: "rounded px-1.5 py-0.5 text-xs text-(--dk-texto-3) hover:bg-(--dk-sobre) hover:text-(--dk-texto) cursor-pointer",
+              title: t("chat.limpiarTitulo"),
+              children: t("piz.limpiar")
             }) : null,
             jsx2("button", {
               type: "button",
               onClick: () => setVerContexto((v2) => !v2),
-              className: "rounded p-1 text-xs cursor-pointer " + (verContexto ? "bg-indigo-100 text-indigo-700" : "text-slate-500 hover:bg-slate-200/70 hover:text-slate-800"),
-              title: "Qu\xE9 ve el agente en este turno (seudonimizado antes de salir)",
-              children: "\u{1F441}"
+              "aria-pressed": verContexto,
+              className: "dk-btn dk-btn--chico",
+              title: t("chat.contextoTitulo"),
+              children: t("chat.contexto")
             })
           ] })
         ]
       }),
       // Inspector de transparencia: qué viaja en el sobre <dike-escritor v="1">
       verContexto ? jsxs2("div", {
-        className: "border-b border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 flex flex-col gap-1 shrink-0",
+        className: "border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-2 text-xs text-(--dk-texto-2) flex flex-col gap-1 shrink-0",
         children: [
-          jsx2("div", { className: "font-semibold text-slate-800", children: 'Lo que ve el agente en este turno (sobre <dike-escritor v="1">)' }),
-          jsx2("div", { children: `Caso: ${caseId} \xB7 Escrito: ${largoEscrito} caracteres \xB7 Citas verificadas: ${numCitasVerif}` }),
+          jsx2("div", { className: "font-semibold text-(--dk-texto)", children: t("chat.contextoTitulo2") }),
+          jsx2("div", { children: t("chat.contextoCaso", { caso: caseId, largo: largoEscrito, citas: numCitasVerif }) }),
           jsx2("div", {
-            children: seudOn ? `Privacidad activa: seudonimizaci\xF3n \xAB${estrategiaActiva}\xBB antes de enviar.` : "Privacidad desactivada por confirmaci\xF3n expresa del abogado."
+            children: seudOn ? t("chat.contextoPrivOn", { estrategia: t("strategy." + estrategiaActiva) }) : t("chat.contextoPrivOff")
           }),
-          jsx2("div", { className: "text-[10px] text-slate-500", children: "El estado de las citas lo fija Dik\xE9, no el modelo. Hooks fail-closed bloquean herramientas de terminal y archivos." }),
+          jsx2("div", { className: "text-xs text-(--dk-texto-3)", children: t("chat.contextoNota") }),
           onAbrirPrivacidad ? jsx2("button", {
             type: "button",
             onClick: onAbrirPrivacidad,
-            className: "self-start text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer",
-            children: "Configurar reglas de seudonimizaci\xF3n \u2192"
+            className: S.link + " self-start dk-meta",
+            children: t("chat.configurarPriv")
           }) : null
         ]
       }) : null,
@@ -24522,20 +27589,20 @@ function ChatEscritor({
         children: [
           // Tarjeta informativa de privacidad y destino (inspirada en la imagen 2)
           !avisoCerrado && mensajes.length === 0 ? jsxs2("div", {
-            className: "rounded-md border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 flex flex-col gap-2",
+            className: "rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3 text-xs text-(--dk-texto-2) flex flex-col gap-2",
             children: [
-              jsx2("div", { className: "font-semibold text-slate-900", children: "Antes de escribir: \xBFa d\xF3nde va lo que escribas?" }),
-              jsx2("div", { className: "leading-relaxed text-slate-600 text-[11px]", children: "Dik\xE9 seudonimiza los datos personales (RUT, correo, tel\xE9fono, nombres con contexto) antes de enviar al perfil de Hermes. El estado de las citas lo fija Dik\xE9, no el modelo." }),
-              jsxs2("div", { className: "flex flex-col gap-1 rounded border border-slate-200 bg-white p-2 text-[11px]", children: [
+              jsx2("div", { className: "font-semibold text-(--dk-texto)", children: t("chat.antesTitulo") }),
+              jsx2("div", { className: "leading-relaxed text-(--dk-texto-2) text-xs", children: t("chat.antesCuerpo") }),
+              jsxs2("div", { className: "flex flex-col gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2 text-xs", children: [
                 jsxs2("div", { className: "flex items-center justify-between", children: [
-                  jsx2("span", { className: "font-medium text-slate-800", children: "Destino del perfil:" }),
-                  jsx2("span", { className: "font-mono text-slate-600", children: (perfilElegido || "activo") + (modelo ? " \xB7 " + modelo.destino : "") })
+                  jsx2("span", { className: "font-medium text-(--dk-texto)", children: t("chat.destino") }),
+                  jsx2("span", { className: "font-mono text-(--dk-texto-2)", children: (perfilElegido || t("chat.perfilActivo")) + (modelo ? " \xB7 " + (modelo.destino === "nube" ? t("pred.destinoNube") : "local") : "") })
                 ] }),
                 jsxs2("div", { className: "flex items-center justify-between", children: [
-                  jsx2("span", { className: "font-medium text-slate-800", children: "Seudonimizaci\xF3n:" }),
+                  jsx2("span", { className: "font-medium text-(--dk-texto)", children: t("chat.seudonimizacion") }),
                   jsx2("span", {
-                    className: seudOn ? "font-semibold text-emerald-700" : "font-semibold text-amber-700",
-                    children: seudOn ? `Activa (${estrategiaActiva})` : "Apagada por el usuario"
+                    className: "font-semibold " + (seudOn ? S.ok : S.warn),
+                    children: seudOn ? t("chat.privActiva", { estrategia: t("strategy." + estrategiaActiva) }) : t("chat.privApagada")
                   })
                 ] })
               ] }),
@@ -24543,47 +27610,50 @@ function ChatEscritor({
                 jsx2("button", {
                   type: "button",
                   onClick: () => setAvisoCerrado(true),
-                  className: "rounded bg-slate-700 hover:bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
-                  children: "Entendido, continuar"
+                  className: "dk-btn dk-btn--borde dk-btn--chico",
+                  children: t("chat.entendido")
                 }),
                 onAbrirPrivacidad ? jsx2("button", {
                   type: "button",
                   onClick: onAbrirPrivacidad,
-                  className: "text-[11px] text-indigo-600 hover:underline cursor-pointer",
-                  children: "Ver datos que salen"
+                  className: S.link + " dk-meta",
+                  children: t("chat.verSalida")
                 }) : null
               ] })
             ]
           }) : jsx2("div", {
-            className: "text-[11px] text-slate-400",
-            children: "Chat del escrito \xB7 El estado de las citas lo fija Dik\xE9, no el modelo."
+            className: "text-xs text-(--dk-texto-3)",
+            children: t("chat.subtitulo")
           }),
-          perfilOk === null ? jsx2("div", { className: S.sub, children: "abriendo sesi\xF3n\u2026" }) : null,
+          perfilOk === null ? jsx2("div", { className: S.sub, children: t("chat.abriendo") }) : null,
           ...mensajes.map((m3, i3) => {
             const notas = m3.rol === "assistant" ? parsearNotas(m3.texto) : { cuerpo: m3.texto, notas: [], invalidas: [] };
             return jsxs2("div", {
               key: i3,
-              className: m3.rol === "user" ? "self-end max-w-[90%] rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-xs text-slate-800" : "rounded-lg border border-slate-200 bg-slate-50/70 p-2.5 text-xs text-slate-800",
+              className: m3.rol === "user" ? "self-end max-w-[90%] rounded-lg border border-(--dk-borde-suave) bg-(--dk-superficie-2) px-2.5 py-1.5 text-xs text-(--dk-texto)" : "rounded-lg border border-(--dk-borde) bg-(--dk-superficie) p-2.5 text-xs text-(--dk-texto)",
               children: [
-                m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { className: "text-indigo-900", children: "T\xFA: " }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1.5", children: [
+                m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { children: t("chat.te") }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1.5", children: [
                   jsx2("div", { className: "whitespace-pre-wrap leading-relaxed", children: rehidratar(
                     notas.cuerpo,
                     registro && registro.chat && registro.chat.mapa || {}
                   ) }),
                   m3.verificando ? jsx2("span", {
                     className: S.chip + " " + S.chipOff,
-                    children: "verificando citas\u2026"
+                    children: t("chat.verificando")
                   }) : null,
                   m3.verif && m3.verif.fallo ? jsx2("div", {
-                    className: "text-xs text-(--ui-danger)",
-                    children: "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas."
+                    className: "text-xs " + S.bad,
+                    children: t("chat.verifFallo")
                   }) : null,
                   m3.verif && m3.verif.res ? jsxs2("div", { className: "flex flex-wrap gap-1", children: (m3.verif.res.detalles || []).map((d2, j2) => {
                     const est = estadoCita(d2, m3.verif.hash, m3.verif.hash, registro);
                     const chip = {
                       key: j2,
                       className: S.chip + " " + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                      title: etiquetaCita(est, d2, m3.verif.res.meta || {}, registro) + (d2.nodo_id ? " \xB7 clic para abrir en el grafo" : ""),
+                      title: (() => {
+                        const e3 = etiquetaCita(est, d2, m3.verif.res.meta || {}, registro);
+                        return t(e3.codigo, { ...e3.datos, resolution: etiquetaCodigo(e3.datos.resolution) }) + (e3.pista ? t("verify.lead") : "");
+                      })() + (d2.nodo_id ? " \xB7 " + t("chat.verificarGrafo") : ""),
                       children: d2.cita_raw
                     };
                     return est === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx2("button", {
@@ -24602,30 +27672,30 @@ function ChatEscritor({
                   }),
                   jsx2("button", {
                     type: "button",
-                    className: S.link + " text-left text-[11px] font-medium pt-0.5",
+                    className: S.link + " text-left text-xs font-medium pt-0.5",
                     onClick: () => insertar(m3.texto),
-                    children: "\u21B3 Insertar en el escrito"
+                    children: t("nifp.aEscrito")
                   })
                 ] })
               ]
             });
           }),
           stream ? jsx2("div", {
-            className: "rounded-lg border border-indigo-200 bg-indigo-50/30 p-2.5 text-xs whitespace-pre-wrap text-slate-800",
+            className: "rounded-lg border border-(--dk-borde) bg-(--dk-superficie) p-2.5 text-xs whitespace-pre-wrap text-(--dk-texto)",
             children: stream
           }) : null,
           jsx2("div", { ref: endRef })
         ]
       }),
-      error2 ? jsx2("div", { className: "border-t border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      error2 ? jsx2("div", { className: S.noticeBad + " shrink-0", children: mensajeError(error2) }) : null,
       // Barra de entrada inferior estilo imagen 2 («Escribe a Hermes…»)
       jsxs2("div", {
-        className: "flex items-center gap-1.5 border-t border-slate-200 bg-white p-2 shrink-0",
+        className: "flex items-center gap-1.5 border-t border-(--dk-borde) bg-(--dk-elevada) p-2 shrink-0",
         children: [
           jsx2("input", {
-            className: "flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100",
+            className: S.input + " flex-1",
             value: pregunta,
-            placeholder: "Escribe a Hermes\u2026",
+            placeholder: t("chat.placeholder"),
             disabled: !sesion || ocupado,
             onChange: (e3) => setPregunta(e3.target.value),
             onKeyDown: (e3) => {
@@ -24636,25 +27706,32 @@ function ChatEscritor({
             type: "button",
             onClick: enviar,
             disabled: !sesion || ocupado || !pregunta.trim(),
-            title: "Enviar mensaje a Hermes (seudonimizado)",
-            className: "flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 hover:bg-slate-900 disabled:opacity-35 text-white text-xs cursor-pointer shrink-0",
+            "aria-label": t("chat.enviar"),
+            title: t("chat.enviar"),
+            className: "dk-btn dk-btn--borde dk-btn--icono shrink-0",
             children: "\u27A4"
           }) : jsx2("button", {
             type: "button",
             onClick: detener,
-            title: "Detener generaci\xF3n",
-            className: "rounded-md border border-red-300 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 cursor-pointer shrink-0",
-            children: "Detener"
+            title: t("chat.detener"),
+            className: S.btnDanger + " shrink-0",
+            children: t("chat.detenerBtn")
           })
         ]
       })
     ]
   });
 }
+function nombreModelo(id) {
+  const code2 = etiquetaModelo(id);
+  return code2 === "NOUS_HOSTED_MODEL" ? t("chat.hostedModel") : code2;
+}
+var ChatEscritor = memo2(ChatEscritorImpl);
 
 // src/escritor/nif-propuestas.js
+import { memo as memo3 } from "react";
 import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
-import { useCallback as useCallback3, useEffect as useEffect3, useState as useState3 } from "react";
+import { useCallback as useCallback3, useEffect as useEffect3, useRef as useRef3, useState as useState3 } from "react";
 import { host as host2 } from "@hermes/plugin-sdk";
 
 // src/escritor/nif-propuestas-logica.js
@@ -24714,16 +27791,16 @@ function extraerJSON(texto) {
   const ini = limpio.indexOf("{");
   const fin = limpio.lastIndexOf("}");
   if (ini < 0 || fin <= ini) {
-    throw new Error("La respuesta del modelo no trae propuestas v\xE1lidas.");
+    throw new Error("MODEL_PROPOSALS_INVALID");
   }
   let obj;
   try {
     obj = JSON.parse(limpio.slice(ini, fin + 1));
   } catch {
-    throw new Error("La respuesta del modelo no trae propuestas v\xE1lidas.");
+    throw new Error("MODEL_PROPOSALS_INVALID");
   }
   if (!obj || !Array.isArray(obj.propuestas)) {
-    throw new Error("La respuesta del modelo no trae propuestas v\xE1lidas.");
+    throw new Error("MODEL_PROPOSALS_INVALID");
   }
   return obj.propuestas;
 }
@@ -24770,25 +27847,25 @@ function hashPropuesta(p2) {
   return p2.field_path + "|" + normalizar(JSON.stringify(p2.value)) + "|" + normalizar(p2.cita_del_escrito);
 }
 function validarPropuesta(p2, { textoEnviado, nifActual, rechazadas } = {}) {
-  if (!p2 || typeof p2 !== "object") return { ok: false, motivo: "propuesta inv\xE1lida" };
+  if (!p2 || typeof p2 !== "object") return { ok: false, motivo: "PROPOSAL_INVALID" };
   const fp = p2.field_path;
   if (!SECCIONES.includes(fp)) {
-    return { ok: false, motivo: "field_path no permitido: " + String(fp) };
+    return { ok: false, motivo: "FIELD_NOT_ALLOWED", dato: String(fp) };
   }
   const prohibido = camposProhibidos(p2);
   if (prohibido) {
-    return { ok: false, motivo: "campo no proponible: " + prohibido };
+    return { ok: false, motivo: "FIELD_NOT_PROPOSABLE", dato: prohibido };
   }
   if (!formaValida(fp, p2.value)) {
-    return { ok: false, motivo: "forma o enum inv\xE1lido en value" };
+    return { ok: false, motivo: "VALUE_INVALID" };
   }
   const cita = String(p2.cita_del_escrito || "").trim();
   if (!cita || cita.length > 300) {
-    return { ok: false, motivo: "cita_del_escrito vac\xEDa o > 300 caracteres" };
+    return { ok: false, motivo: "QUOTE_LENGTH_INVALID" };
   }
   const enviado = colapsar(textoEnviado);
   if (!enviado.includes(colapsar(cita))) {
-    return { ok: false, motivo: "sin respaldo literal en el escrito" };
+    return { ok: false, motivo: "QUOTE_NOT_IN_BRIEF" };
   }
   const seccion = nifActual && (nifActual[fp] || fp.startsWith("facts.") && nifActual.facts && nifActual.facts[fp.split(".")[1]]) || [];
   const textoNuevo = normalizar(
@@ -24796,11 +27873,11 @@ function validarPropuesta(p2, { textoEnviado, nifActual, rechazadas } = {}) {
   );
   for (const item of seccion) {
     if (textoNuevo && normalizar(textoExistente(fp, item)) === textoNuevo) {
-      return { ok: false, motivo: "duplicada: ya est\xE1 en el NIF" };
+      return { ok: false, motivo: "PROPOSAL_DUPLICATE" };
     }
   }
   if (rechazadas && rechazadas.includes(hashPropuesta(p2))) {
-    return { ok: false, motivo: "ya rechazada por el abogado" };
+    return { ok: false, motivo: "PROPOSAL_REJECTED" };
   }
   return { ok: true, motivo: "" };
 }
@@ -24808,7 +27885,7 @@ function validarLote(lista, ctx) {
   const aceptadas = [];
   const descartadas = [];
   for (const p2 of lista || []) {
-    const v2 = aceptadas.length >= MAX_PROPUESTAS ? { ok: false, motivo: "m\xE1ximo " + MAX_PROPUESTAS + " propuestas" } : validarPropuesta(p2, ctx);
+    const v2 = aceptadas.length >= MAX_PROPUESTAS ? { ok: false, motivo: "PROPOSAL_LIMIT" } : validarPropuesta(p2, ctx);
     (v2.ok ? aceptadas : descartadas).push({ ...p2, motivo: v2.motivo });
   }
   return { aceptadas, descartadas };
@@ -24843,15 +27920,15 @@ var nif_propuestas_default = 'Eres el asistente que propone actualizaciones del 
 // src/escritor/nif-propuestas.js
 var TIMEOUT_RPC2 = 12e4;
 var ETIQUETAS = {
-  "facts.known": "Hechos acreditados",
-  "facts.alleged": "Hechos alegados",
-  "facts.missing": "Hechos por conocer",
-  subjects: "Sujetos",
-  norms: "Normas",
-  hypotheses: "Hip\xF3tesis",
-  gaps: "Vac\xEDos",
-  principles: "Principios",
-  conflicts: "Conflictos"
+  "facts.known": "nif.seccion.factsKnown",
+  "facts.alleged": "nif.seccion.factsAlleged",
+  "facts.missing": "nif.seccion.factsMissing",
+  subjects: "nif.seccion.subjects",
+  norms: "nif.seccion.norms",
+  hypotheses: "nif.seccion.hypotheses",
+  gaps: "nif.seccion.gaps",
+  principles: "nif.seccion.principles",
+  conflicts: "nif.seccion.conflicts"
 };
 var ORDEN = [
   "facts.known",
@@ -24866,7 +27943,7 @@ var ORDEN = [
 ];
 function ChipSeccion({ fp, n: n2 }) {
   return jsxs3("span", { className: S.chip + " " + S.chipOff, children: [
-    ETIQUETAS[fp] || fp,
+    ETIQUETAS[fp] ? t(ETIQUETAS[fp]) : fp,
     " \xB7 ",
     n2
   ] });
@@ -24899,14 +27976,19 @@ function NifPropuestas({
   const [textoEdit, setTextoEdit] = useState3("");
   const rechazadas = registro && registro.nif_rechazadas || [];
   const mapa = registro && registro.chat && registro.chat.mapa || {};
-  const deshabilitado = !tieneNif ? "Elige o crea un caso con NIF." : !sesion ? "Abre primero el chat del escrito: las propuestas usan su modelo." : null;
+  const deshabilitado = !tieneNif ? t("nifp.deshabilitadoCaso") : !sesion ? t("nifp.deshabilitadoChat") : null;
+  const snapSeq = useRef3(0);
   const cargarSnapshot = useCallback3(() => {
-    if (!tieneNif) return Promise.resolve(null);
+    if (!tieneNif) {
+      setSnapshot(null);
+      return Promise.resolve(null);
+    }
+    const seq = ++snapSeq.current;
     return rest("/nif/snapshot?case_id=" + encodeURIComponent(caseId), {}).then((s2) => {
-      setSnapshot(s2);
+      if (seq === snapSeq.current) setSnapshot(s2);
       return s2;
     }).catch(() => {
-      setSnapshot(null);
+      if (seq === snapSeq.current) setSnapshot(null);
       return null;
     });
   }, [caseId, tieneNif]);
@@ -24934,16 +28016,16 @@ function NifPropuestas({
       const cfgPriv = registro && registro.privacidad || {};
       const seudonimizar = cfgPriv.seudonimizar !== false;
       if (!seudonimizar && cfgPriv.acepto_datos !== true) {
-        throw new Error("Activa la seudonimizaci\xF3n o confirma en el m\xF3dulo Privacidad que aceptas enviar datos personales.");
+        throw new Error(t("nifp.errorPrivacidad"));
       }
       const envio = await prepararEnvio({
         caseId,
         texto: input,
-        destino: (sesion.perfil || "perfil sin resolver") + " \xB7 " + (modeloLabel || "modelo") + " \xB7 NIF",
+        destino: (sesion.perfil || t("pred.perfilSinResolver")) + " \xB7 " + (modeloLabel || t("nifp.modelo")) + " \xB7 " + t("nifp.tablero"),
         seudonimizar,
         estrategia: cfgPriv.estrategia || "media"
       });
-      if (!puedeEnviar()) throw new Error("privacidad bloque\xF3 el env\xEDo");
+      if (!puedeEnviar()) throw new Error(t("extra.privacy.blocked.sending"));
       const params = {
         instructions: nif_propuestas_default,
         input: envio.texto,
@@ -25032,8 +28114,8 @@ function NifPropuestas({
         rechazadas: []
       }
     );
-    if (!forma.ok && forma.motivo === "forma o enum inv\xE1lido en value") {
-      setError(new Error("Valor editado inv\xE1lido: " + forma.motivo));
+    if (!forma.ok && forma.motivo === "VALUE_INVALID") {
+      setError(new Error(t("extra.invalid.edited.value") + t("proposal." + forma.motivo)));
       return;
     }
     setPropuestas((ps) => (ps || []).map((x3, i3) => i3 === idx ? { ...x3, value: v2 } : x3));
@@ -25048,32 +28130,32 @@ function NifPropuestas({
     }).then((r2) => {
       const ok = (r2.detalles || []).some((d2) => d2.estado === "VERIFICADA");
       setVerifica((v2) => ({ ...v2, [key]: {
-        estado: ok ? "verificada" : "no verificada",
+        estado: ok ? "VERIFICADA" : "NOT_VERIFIED",
         label: label2
       } }));
     }).catch(() => setVerifica((v2) => ({ ...v2, [key]: {
-      estado: "no verificada",
+      estado: "NOT_VERIFIED",
       label: label2
     } })));
   }, []);
   if (!tieneNif) {
     return jsxs3("div", { className: S.card, children: [
-      jsx3("div", { className: S.cardTitle, children: "NIF vivo" }),
+      jsx3("div", { className: S.cardTitle, children: t("nifp.suggestions") }),
       jsx3("div", { className: "text-xs text-(--ui-text-secondary)", children: "Elige o crea un caso con NIF." }),
-      jsx3("div", { className: "text-xs", children: "El modelo propone; nada entra al NIF sin tu aceptaci\xF3n." })
+      jsx3("div", { className: "text-xs", children: t("nifp.onlyAccepted") })
     ] });
   }
   return jsxs3("div", { className: S.card, children: [
     jsxs3("div", { className: "flex items-center gap-2", children: [
-      jsx3("div", { className: S.cardTitle, children: "NIF vivo" }),
-      jsx3("div", { className: "text-xs text-(--ui-text-secondary)", children: "El modelo propone; nada entra al NIF sin tu aceptaci\xF3n." }),
+      jsx3("div", { className: S.cardTitle, children: t("nifp.suggestions") }),
+      jsx3("div", { className: "text-xs text-(--ui-text-secondary)", children: t("nifp.onlyAccepted") }),
       jsx3("button", {
         type: "button",
         className: S.button,
         disabled: Boolean(deshabilitado) || ocupado,
         title: deshabilitado || "",
         onClick: proponer,
-        children: ocupado ? "Pidiendo propuestas\u2026" : "Proponer NIF desde el escrito"
+        children: ocupado ? t("nifp.pidiendo") : t("nifp.proponer")
       })
     ] }),
     deshabilitado && tieneNif ? jsx3("div", {
@@ -25081,8 +28163,8 @@ function NifPropuestas({
       children: deshabilitado
     }) : null,
     error2 ? jsx3("div", {
-      className: "text-xs text-(--ui-danger)",
-      children: mensajeError(error2)
+      className: "text-xs dk-mal",
+      children: mensajePropuesta(error2)
     }) : null,
     propuestas && !propuestas.length && !descartadas.length ? jsx3("div", { className: "text-sm", children: "Sin propuestas nuevas y fundadas." }) : null,
     propuestas && propuestas.length ? jsxs3("div", {
@@ -25103,7 +28185,7 @@ function NifPropuestas({
               jsxs3("div", { className: "flex items-center gap-2", children: [
                 jsx3("span", {
                   className: S.chip + " " + S.chipOff,
-                  children: ETIQUETAS[p2.field_path] || p2.field_path
+                  children: ETIQUETAS[p2.field_path] ? t(ETIQUETAS[p2.field_path]) : p2.field_path
                 }),
                 editando === idx ? jsxs3("div", { className: "flex flex-col gap-1", children: [
                   jsx3("textarea", {
@@ -25117,13 +28199,13 @@ function NifPropuestas({
                       type: "button",
                       className: S.button,
                       onClick: () => guardarEdicion(p2, idx),
-                      children: "Guardar"
+                      children: t("nif.guardar")
                     }),
                     jsx3("button", {
                       type: "button",
                       className: S.button,
                       onClick: () => setEditando(null),
-                      children: "Cancelar"
+                      children: t("nifp.cancelar")
                     })
                   ] })
                 ] }) : jsxs3("div", { className: "flex-1", children: [
@@ -25149,7 +28231,7 @@ function NifPropuestas({
                     type: "button",
                     className: S.button,
                     onClick: () => aceptar(p2, idx),
-                    children: "Aceptar"
+                    children: t("nifp.aceptar")
                   }),
                   jsx3("button", {
                     type: "button",
@@ -25158,21 +28240,21 @@ function NifPropuestas({
                       setEditando(idx);
                       setTextoEdit(typeof p2.value === "string" ? p2.value : JSON.stringify(p2.value));
                     },
-                    children: "Editar"
+                    children: t("nifp.editar")
                   }),
                   jsx3("button", {
                     type: "button",
                     className: S.button,
                     onClick: () => rechazar(p2, idx),
-                    children: "Rechazar"
+                    children: t("nifp.rechazar")
                   })
                 ]
               }) : null,
               verifica[keyNorma] ? jsxs3("div", {
                 className: "mt-1 text-xs",
                 children: [
-                  "Norma \xAB" + (verifica[keyNorma].label || "") + "\xBB: ",
-                  jsx3("b", { children: verifica[keyNorma].estado }),
+                  t("nifp.normPrefix") + (verifica[keyNorma].label || "") + t("nifp.normSuffix"),
+                  jsx3("b", { children: etiquetaCodigo(verifica[keyNorma].estado) }),
                   verifica[keyNorma].estado === "sin verificar" ? jsx3("button", {
                     type: "button",
                     className: S.button,
@@ -25180,7 +28262,7 @@ function NifPropuestas({
                       verifica[keyNorma].label,
                       keyNorma
                     ),
-                    children: "Verificar norma"
+                    children: t("nifp.verificarNorma")
                   }) : null
                 ]
               }) : null
@@ -25191,26 +28273,25 @@ function NifPropuestas({
     }) : null,
     descartadas.length ? jsxs3("details", { className: "text-xs", children: [
       jsxs3("summary", { children: [
-        descartadas.length,
-        " descartadas por la validaci\xF3n"
+        t("nifp.descartadas", { n: descartadas.length })
       ] }),
       descartadas.map((d2, i3) => jsxs3("div", { key: i3, children: [
-        (d2.field_path || "?") + ": " + (d2.motivo || "")
+        (d2.field_path || "?") + ": " + t("proposal." + d2.motivo)
       ] }))
     ] }) : null
   ] });
 }
 var SECCIONES_TABLERO_NIF = [
-  ["facts.known", "Hechos conocidos", "HECHO", "#bbf7d0"],
-  ["facts.alleged", "Hechos alegados", "HECHO", "#bfdbfe"],
-  ["facts.missing", "Hechos faltantes", "HECHO", "#fed7aa"],
-  ["norms", "Normas", "NORMA", "#e9d5ff"],
-  ["subjects", "Sujetos", "PARTES", "#bfdbfe"],
-  ["hypotheses", "Hip\xF3tesis", "CONCLUSI\xD3N", "#fef08a"],
-  ["gaps", "Vac\xEDos probatorios/normativos", "PRUEBA", "#fecaca"],
-  ["conflicts", "Conflictos", "NORMA", "#fecaca"],
-  ["principles", "Principios", "NORMA", "#e9d5ff"],
-  ["deontic_positions", "Posiciones de\xF3nticas", "NORMA", "#bbf7d0"]
+  ["facts.known", "nif.seccion.factsKnown", "style.fact.label", "#bbf7d0"],
+  ["facts.alleged", "nif.seccion.factsAlleged", "style.fact.label", "#bfdbfe"],
+  ["facts.missing", "nif.seccion.factsMissing", "style.fact.label", "#fed7aa"],
+  ["norms", "nif.seccion.norms", "style.norm", "#e9d5ff"],
+  ["subjects", "nif.seccion.subjects", "nifp.tagPartes", "#bfdbfe"],
+  ["hypotheses", "nif.seccion.hypotheses", "style.conclusion", "#fef08a"],
+  ["gaps", "nif.seccion.gaps", "style.evidence", "#fecaca"],
+  ["conflicts", "nif.seccion.conflicts", "style.norm", "#fecaca"],
+  ["principles", "nif.seccion.principles", "style.norm", "#e9d5ff"],
+  ["deontic_positions", "nif.seccion.deonticPositions", "style.norm", "#bbf7d0"]
 ];
 function formatearItemNif(v2) {
   if (typeof v2 === "string") return v2;
@@ -25219,7 +28300,7 @@ function formatearItemNif(v2) {
   }
   return JSON.stringify(v2);
 }
-function NifInteractivoEscritor({
+function NifInteractivoEscritorImpl({
   editorRef,
   caseId,
   registro,
@@ -25231,6 +28312,7 @@ function NifInteractivoEscritor({
   onAgregarAPizarra,
   onInsertarTexto
 }) {
+  useIdioma();
   const [data, setData] = useState3(null);
   const [error2, setError] = useState3(null);
   const [ocupado, setOcupado] = useState3(false);
@@ -25284,7 +28366,7 @@ function NifInteractivoEscritor({
   const snap = data && data.snapshot || {};
   const nif = snap.nif || null;
   return jsxs3("div", {
-    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+    className: "flex flex-col gap-3 p-3 text-xs text-(--dk-texto)",
     children: [
       // 1. Propuestas de NIF Vivo desde el escrito
       jsx3(NifPropuestas, {
@@ -25297,21 +28379,21 @@ function NifInteractivoEscritor({
       }),
       // 2. Si está en borrador sin caso NIF, permitir crear o sembrar caso aquí mismo
       !tieneNif ? jsxs3("div", {
-        className: "flex flex-col gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 p-3",
+        className: S.notice + " flex flex-col gap-2",
         children: [
-          jsx3("div", { className: "font-bold text-indigo-900", children: "Vincular o crear Tablero NIF" }),
-          jsx3("div", { className: "text-[11px] text-indigo-800", children: "El documento actual est\xE1 en \xABborrador\xBB. Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo." }),
+          jsx3("div", { className: "font-bold", children: t("nifp.vincularTitulo") }),
+          jsx3("div", { className: "dk-meta", children: t("nifp.vincularAyuda") }),
           jsx3("input", {
             value: nuevoId,
             onChange: (e3) => setNuevoId(e3.target.value),
-            placeholder: "ID del caso (ej. causa-despido-1)",
-            className: "rounded border border-indigo-200 bg-white px-2 py-1 text-xs"
+            placeholder: t("nifp.idCaso"),
+            className: S.input
           }),
           jsx3("input", {
             value: nuevaPregunta,
             onChange: (e3) => setNuevaPregunta(e3.target.value),
-            placeholder: "Pregunta jur\xEDdica principal\u2026",
-            className: "rounded border border-indigo-200 bg-white px-2 py-1 text-xs"
+            placeholder: t("nifp.pregunta"),
+            className: S.input
           }),
           jsxs3("div", { className: "flex flex-wrap gap-1.5", children: [
             jsx3("button", {
@@ -25322,92 +28404,94 @@ function NifInteractivoEscritor({
                 setNuevoId("");
                 setNuevaPregunta("");
               },
-              className: "rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-xs font-semibold text-white cursor-pointer",
-              children: "Crear caso NIF"
+              className: "dk-btn dk-btn--primario",
+              children: t("format.create.case")
             }),
             onSembrarDemoCaso ? jsx3("button", {
               type: "button",
               onClick: onSembrarDemoCaso,
-              className: "rounded border border-indigo-300 bg-white hover:bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 cursor-pointer",
-              children: "Cargar caso demo (CT)"
+              className: "dk-btn dk-btn--borde",
+              children: t("format.load.demo.case.ct")
             }) : null
           ] })
         ]
       }) : null,
-      error2 ? jsx3("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      error2 ? jsx3("div", { className: S.noticeBad, children: mensajePropuesta(error2) }) : null,
       // 3. Tablero NIF interactivo del caso activo
       tieneNif && nif ? jsxs3("div", {
-        className: "flex flex-col gap-2.5 rounded-md border border-slate-200 bg-white p-2.5",
+        className: "flex flex-col gap-2.5 rounded-md border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
         children: [
-          jsxs3("div", { className: "flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2", children: [
+          jsxs3("div", { className: "flex flex-wrap items-center justify-between gap-1.5 border-b border-(--dk-borde-suave) pb-2", children: [
             jsxs3("div", { className: "flex items-center gap-1.5", children: [
               jsx3("span", {
-                className: "rounded px-1.5 py-0.5 text-[10px] font-semibold " + (nif.validated_by_human ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"),
-                children: nif.validated_by_human ? "\u2713 validado por humano" : "borrador NIF"
+                className: S.chip + " " + (nif.validated_by_human ? S.chipOk : S.chipOff),
+                children: nif.validated_by_human ? t("nifp.validado") : t("nifp.borrador")
               }),
               jsx3("span", {
-                className: "text-[10px] text-slate-500",
-                children: `v${snap.version || 1} \xB7 confianza ${Math.round((nif.confidence || 0) * 100)}%`
+                className: "dk-meta",
+                children: t("nif.versionConf", { version: snap.version || 1, pct: Math.round((nif.confidence || 0) * 100) })
               })
             ] }),
             jsx3("button", {
               type: "button",
               onClick: () => alternarValidacion(nif.validated_by_human),
-              className: "text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer",
-              children: nif.validated_by_human ? "Retirar validaci\xF3n" : "Marcar validado"
+              className: S.link,
+              children: nif.validated_by_human ? t("nif.quitarValidacion") : t("nif.marcarValidado")
             })
           ] }),
           nif.legal_question ? jsx3("div", {
-            className: "rounded bg-slate-50 p-2 text-xs font-medium text-slate-800 border border-slate-200/80",
+            className: "rounded bg-(--dk-superficie) p-2 text-xs font-medium text-(--dk-texto) border border-(--dk-borde)",
             children: nif.legal_question
           }) : null,
           // Acordeón interactivo de secciones del NIF
-          ...SECCIONES_TABLERO_NIF.map(([campo, titulo, tagPizarra, colorPizarra]) => {
+          ...SECCIONES_TABLERO_NIF.map(([campo, claveTitulo, claveTag, colorPizarra]) => {
+            const titulo = t(claveTitulo);
+            const tagPizarra = t(claveTag);
             const lista = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
             const abierta = seccionAbierta === campo;
             return jsxs3("div", {
               key: campo,
-              className: "rounded border border-slate-200 overflow-hidden",
+              className: "rounded border border-(--dk-borde) overflow-hidden",
               children: [
                 jsxs3("button", {
                   type: "button",
                   onClick: () => setSeccionAbierta(abierta ? null : campo),
-                  className: "flex w-full items-center justify-between bg-slate-50 px-2.5 py-1.5 text-left hover:bg-slate-100 cursor-pointer",
+                  className: "flex w-full items-center justify-between bg-(--dk-superficie) px-2.5 py-1.5 text-left hover:bg-(--dk-sobre) cursor-pointer",
                   children: [
-                    jsx3("span", { className: "text-[11px] font-semibold text-slate-700", children: titulo }),
+                    jsx3("span", { className: "text-xs font-semibold text-(--dk-texto-2)", children: titulo }),
                     jsx3("span", {
-                      className: "rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700",
+                      className: "rounded-full bg-(--dk-superficie-2) px-1.5 py-0.2 text-xs font-bold text-(--dk-texto-2)",
                       children: String(lista.length)
                     })
                   ]
                 }),
-                abierta ? jsxs3("div", { className: "flex flex-col gap-1.5 p-2 bg-white", children: [
-                  lista.length === 0 ? jsx3("div", { className: "text-[11px] text-slate-400 italic", children: "Sin elementos registrados en esta secci\xF3n." }) : lista.map((item, idx) => {
+                abierta ? jsxs3("div", { className: "flex flex-col gap-1.5 p-2 bg-(--dk-elevada)", children: [
+                  lista.length === 0 ? jsx3("div", { className: "text-xs text-(--dk-texto-3) italic", children: t("nifp.seccionVacia") }) : lista.map((item, idx) => {
                     const txt = formatearItemNif(item);
                     return jsxs3("div", {
                       key: idx,
-                      className: "flex items-start justify-between gap-1.5 border-b border-slate-100 pb-1.5 last:border-0",
+                      className: "flex items-start justify-between gap-1.5 border-b border-(--dk-borde-suave) pb-1.5 last:border-0",
                       children: [
-                        jsx3("div", { className: "flex-1 text-[11px] text-slate-700 leading-relaxed whitespace-pre-wrap", children: txt }),
+                        jsx3("div", { className: "flex-1 text-xs text-(--dk-texto-2) leading-relaxed whitespace-pre-wrap", children: txt }),
                         jsxs3("div", { className: "flex items-center gap-1 shrink-0", children: [
                           onAgregarAPizarra ? jsx3("button", {
                             type: "button",
-                            title: "Enviar este elemento a la Pizarra Estrat\xE9gica",
+                            title: t("nifp.aPizarra"),
                             onClick: () => onAgregarAPizarra({
                               titulo,
                               tag: tagPizarra,
                               color: colorPizarra,
                               texto: txt
                             }),
-                            className: "rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 cursor-pointer",
-                            children: "+ Pizarra"
+                            className: "rounded border border-(--dk-borde) bg-(--dk-superficie) hover:bg-(--dk-sobre) px-1.5 py-0.5 text-xs text-(--dk-texto-2) cursor-pointer",
+                            children: t("nifp.masPizarra")
                           }) : null,
                           onInsertarTexto ? jsx3("button", {
                             type: "button",
-                            title: "Insertar en el escrito",
+                            title: t("nifp.aEscrito"),
                             onClick: () => onInsertarTexto(txt),
-                            className: "rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700 cursor-pointer",
-                            children: "\u21B3"
+                            className: "dk-btn dk-btn--borde dk-btn--chico",
+                            children: t("piz.escritoBoton")
                           }) : null
                         ] })
                       ]
@@ -25421,15 +28505,15 @@ function NifInteractivoEscritor({
                       onKeyDown: (e3) => {
                         if (e3.key === "Enter") agregarItem(campo);
                       },
-                      placeholder: "Agregar a " + titulo.toLowerCase() + "\u2026",
-                      className: "flex-1 rounded border border-slate-300 px-2 py-1 text-[11px] text-slate-800 outline-none"
+                      placeholder: t("nifp.agregarA", { seccion: titulo.toLowerCase() }),
+                      className: "flex-1 rounded border border-(--dk-borde) px-2 py-1 text-xs text-(--dk-texto) outline-none"
                     }),
                     jsx3("button", {
                       type: "button",
                       onClick: () => agregarItem(campo),
                       disabled: ocupado || !nuevoValor.trim(),
-                      className: "rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
-                      children: "+ Agregar"
+                      className: "dk-btn dk-btn--primario dk-btn--chico",
+                      children: t("nif.agregar")
                     })
                   ] })
                 ] }) : null
@@ -25441,10 +28525,17 @@ function NifInteractivoEscritor({
     ]
   });
 }
+function mensajePropuesta(error2) {
+  const code2 = error2 && error2.message;
+  const key = "proposal." + code2;
+  return t(key) === key ? mensajeError(error2) : t(key);
+}
+var NifInteractivoEscritor = memo3(NifInteractivoEscritorImpl);
 
 // src/escritor/prediccion.js
+import { memo as memo4 } from "react";
 import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
-import { useCallback as useCallback4, useEffect as useEffect4, useRef as useRef3, useState as useState4 } from "react";
+import { useCallback as useCallback4, useEffect as useEffect4, useRef as useRef4, useState as useState4 } from "react";
 import { host as host3 } from "@hermes/plugin-sdk";
 
 // src/escritor/prediccion/mesa.js
@@ -25463,7 +28554,7 @@ function crearMesa({ predictores = [], debounceMs = DEBOUNCE_MS } = {}) {
   let abort = null;
   function cancelar() {
     if (timer2) {
-      clearTimeout(timer2);
+      cancelarTarea(timer2);
       timer2 = null;
     }
     if (abort) {
@@ -25514,7 +28605,7 @@ function crearMesa({ predictores = [], debounceMs = DEBOUNCE_MS } = {}) {
     }
     const async_ = vivos.filter((x3) => x3.capa !== "L0");
     if (async_.length) {
-      timer2 = setTimeout(() => {
+      timer2 = programarTimeout(() => {
         abort = new AbortController();
         const sig = abort.signal;
         for (const p2 of async_) {
@@ -25615,7 +28706,7 @@ function contieneClave(texto, clave) {
     desde = i3 + 1;
   }
 }
-var palabrasDe = (t4) => t4.split(/[^a-z0-9]+/).filter(Boolean);
+var palabrasDe = (t5) => t5.split(/[^a-z0-9]+/).filter(Boolean);
 var frasesCache = /* @__PURE__ */ new Map();
 function fraseFija(bruto) {
   let v2 = frasesCache.get(bruto);
@@ -25647,11 +28738,11 @@ function distanciaPalabras(a3, la, b2, lb) {
 }
 function sufijoPendiente(completo, tecleado) {
   const c4 = completo.normalize("NFC");
-  const t4 = tecleado.normalize("NFC");
+  const t5 = tecleado.normalize("NFC");
   let i3 = 0;
   let j2 = 0;
-  while (j2 < t4.length) {
-    if (/\s/.test(t4[j2])) {
+  while (j2 < t5.length) {
+    if (/\s/.test(t5[j2])) {
       if (i3 < c4.length && /\s/.test(c4[i3])) i3++;
       j2++;
       continue;
@@ -26189,9 +29280,9 @@ function predictFormalismo(prefijo, { alInicioDoc = false } = {}) {
   };
 }
 function puntuarAcciones(texto) {
-  const t4 = normClave(segmentoActual(texto));
-  if (!t4) return [];
-  const palabras = palabrasDe(t4);
+  const t5 = normClave(segmentoActual(texto));
+  if (!t5) return [];
+  const palabras = palabrasDe(t5);
   const enunciado = palabras.length <= PALABRAS_ENUNCIADO;
   const disparadores = [];
   if (!enunciado) {
@@ -26209,11 +29300,11 @@ function puntuarAcciones(texto) {
   for (const accion of ACCIONES) {
     const { texto: nombre, palabras: nombrePalabras } = fraseFija(accion.nombre);
     let score = 0;
-    if (t4.length >= LARGO_PREFIJO_NOMBRE && nombre.startsWith(t4)) score += 3;
-    if (contieneClave(t4, nombre)) score += nombrePalabras.length * 2;
+    if (t5.length >= LARGO_PREFIJO_NOMBRE && nombre.startsWith(t5)) score += 3;
+    if (contieneClave(t5, nombre)) score += nombrePalabras.length * 2;
     for (const clave of accion.claves) {
       const { texto: c4, palabras: frase } = fraseFija(textoClave(clave));
-      if (!contieneClave(t4, c4)) continue;
+      if (!contieneClave(t5, c4)) continue;
       const apariciones = indicesDeFrase(palabras, frase);
       if (!apariciones.some((i3) => habilitada(i3, frase.length))) continue;
       score += esGenerica(clave) ? 0.5 : frase.length * 2;
@@ -26275,12 +29366,13 @@ function crearPredictorCorpus() {
     capa: "L1",
     etiqueta: "texto del corpus, sin verificar como cita",
     disponible: () => true,
-    async predecir({ segmento, signal }) {
-      const cola2 = String(segmento || "").trim().split(/\s+/).slice(-4).join(" ");
+    async predecir({ segmento }) {
+      const cola2 = String(segmento || "").trim().split(/\s+/).slice(-4).join(" ").slice(-300);
       if (cola2.length < 8) return null;
       const t02 = Date.now();
-      const r2 = await rest("/prediccion/corpus?cola=" + encodeURIComponent(cola2), {
-        signal: signal && signal.abort,
+      const r2 = await rest("/prediccion/corpus", {
+        method: "POST",
+        body: { cola: cola2 },
         timeoutMs: 5e3
       }).catch(() => null);
       if (!r2 || !r2.continuacion) return null;
@@ -26352,13 +29444,23 @@ function crearPredictorModelo(deps) {
       } else if (deps.registrarLocal) {
         await deps.registrarLocal(input);
       }
-      const r2 = await deps.requestProfile(deps.ruta, "llm.oneshot", {
-        task: "dike_prediccion",
+      const params = {
         instructions: INSTRUCCIONES_L2,
         input: texto,
         max_tokens: 48,
         temperature: 0.2
-      }, 2e4);
+      };
+      let r2;
+      try {
+        r2 = await deps.requestProfile(
+          deps.ruta,
+          "llm.oneshot",
+          { task: "dike_prediccion", ...params },
+          2e4
+        );
+      } catch (e1) {
+        r2 = await deps.requestProfile(deps.ruta, "llm.oneshot", params, 2e4);
+      }
       const cont = r2 && String(r2.text || "").trim();
       if (!cont) return null;
       return {
@@ -26379,9 +29481,15 @@ function cfgDe(registro) {
   return registro && registro.prediccion || {};
 }
 var ETIQUETA_CAPA = {
-  L0: "formalismo procesal (determinista)",
-  L1: "texto del corpus, sin verificar como cita",
-  L2: "modelo"
+  get L0() {
+    return t("pred.templateSource");
+  },
+  get L1() {
+    return t("pred.corpusSource");
+  },
+  get L2() {
+    return t("pred.l2");
+  }
 };
 function predictorL0() {
   return {
@@ -26398,7 +29506,7 @@ function predictorL0() {
           capa: "L0",
           procedencia: {
             tipo: "formalismo",
-            fuente: "cat\xE1logo de formalismos procesales",
+            fuente: t("pred.fuenteFormalismos"),
             ref: r1.ghost.id,
             anclaLen: segmento.length
           },
@@ -26412,7 +29520,7 @@ function predictorL0() {
           capa: "L0",
           procedencia: {
             tipo: "formalismo",
-            fuente: "cat\xE1logo de acciones procesales",
+            fuente: t("pred.fuenteAcciones"),
             ref: r2.accion.id,
             anclaLen: segmento.length
           },
@@ -26423,7 +29531,7 @@ function predictorL0() {
     }
   };
 }
-function PrediccionPanel({
+function PrediccionPanelImpl({
   editorRef,
   caseId,
   docInfo,
@@ -26432,10 +29540,13 @@ function PrediccionPanel({
   setRegistro,
   sesion
 }) {
+  useIdioma();
   const cfg = cfgDe(registro);
   const [destinoL2, setDestinoL2] = useState4(null);
-  const mesaRef = useRef3(null);
-  const cancelarRef = useRef3(null);
+  const mesaRef = useRef4(null);
+  const cancelarRef = useRef4(null);
+  const registroRef = useRef4(registro);
+  registroRef.current = registro;
   const activo = cfg.activo === true;
   const l0on = activo && cfg.l0 !== false;
   const l1on = activo && cfg.l1 !== false;
@@ -26478,11 +29589,11 @@ function PrediccionPanel({
         ruta: sesion && sesion.ruta,
         destino: destinoL2,
         prepararEnvio: ({ texto }) => {
-          const cfgPriv = (registro || {}).privacidad || {};
+          const cfgPriv = (registroRef.current || {}).privacidad || {};
           return prepararEnvio({
             caseId,
             texto,
-            destino: (sesion && sesion.perfil || "perfil sin resolver") + " \xB7 predicci\xF3n \xB7 nube",
+            destino: (sesion && sesion.perfil || t("pred.perfilSinResolver")) + t("pred.destinoNubeCorto"),
             seudonimizar: cfgPriv.seudonimizar !== false,
             estrategia: cfgPriv.estrategia || "media"
           });
@@ -26503,7 +29614,7 @@ function PrediccionPanel({
     return () => {
       if (mesaRef.current) mesaRef.current.cancelar();
     };
-  }, [l0on, l1on, l2on, destinoL2, sesion, caseId, registro]);
+  }, [l0on, l1on, l2on, destinoL2, sesion, caseId]);
   const pedir = useCallback4((editor) => {
     if (!activo || !editor) return;
     const sel = editor.view.state.selection;
@@ -26561,14 +29672,14 @@ function PrediccionPanel({
   }, [editorRef, pedir, registrarEvento]);
   return jsxs4("div", { className: S.card, children: [
     jsxs4("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx4("div", { className: S.cardTitle, children: "Predicci\xF3n (experimental)" }),
+      jsx4("div", { className: S.cardTitle, children: t("pred.titulo") }),
       jsxs4("label", { className: "flex items-center gap-1 text-sm", children: [
         jsx4("input", {
           type: "checkbox",
           checked: activo,
           onChange: (e3) => fijarCfg({ activo: e3.target.checked })
         }),
-        "Activar sugerencias"
+        t("pred.activar")
       ] }),
       activo ? jsxs4("label", {
         className: "flex items-center gap-1 text-xs",
@@ -26578,7 +29689,7 @@ function PrediccionPanel({
             checked: cfg.l0 !== false,
             onChange: (e3) => fijarCfg({ l0: e3.target.checked })
           }),
-          "L0 formalismos"
+          t("pred.l0")
         ]
       }) : null,
       activo ? jsxs4("label", {
@@ -26589,7 +29700,7 @@ function PrediccionPanel({
             checked: cfg.l1 !== false,
             onChange: (e3) => fijarCfg({ l1: e3.target.checked })
           }),
-          "L1 corpus local"
+          t("pred.l1")
         ]
       }) : null,
       activo ? jsxs4("label", {
@@ -26606,8 +29717,8 @@ function PrediccionPanel({
               fijarCfg({ l2: e3.target.checked });
             }
           }),
-          "L2 modelo ",
-          destinoL2 ? "(" + (destinoL2 === "local" ? "local" : "nube") + ")" : "(sin sesi\xF3n de chat)"
+          t("pred.l2") + " ",
+          destinoL2 ? "(" + (destinoL2 === "local" ? "local" : t("pred.destinoNube")) + ")" : "(" + t("pred.sinSesion") + ")"
         ]
       }) : null,
       activo ? jsxs4("label", {
@@ -26618,26 +29729,167 @@ function PrediccionPanel({
             checked: cfg.telemetria === true,
             onChange: (e3) => fijarCfg({ telemetria: e3.target.checked })
           }),
-          "Registrar aceptaciones (sin contenido)"
+          t("pred.telemetria")
         ]
       }) : null
     ] }),
     cfg.l2 && destinoL2 === "nube" && cfg.l2_optin !== true ? jsxs4("div", { className: "flex items-center gap-2 text-xs", children: [
-      "La predicci\xF3n con modelo enviar\xEDa el p\xE1rrafo a la nube.",
+      t("pred.avisoNube"),
       jsx4("button", {
         type: "button",
         className: S.button,
         onClick: () => fijarCfg({ l2_optin: true }),
-        children: "Acepto enviar el p\xE1rrafo a la nube"
+        children: t("pred.aceptoNube")
       })
     ] }) : null,
-    jsx4("div", { className: "text-xs text-(--ui-text-secondary)", children: "Las sugerencias son propuestas: el modelo y el corpus no verifican citas. Ajuste fino de un modelo propio: planeado, limitado por fondos." })
+    jsx4("div", { className: "text-xs text-(--ui-text-secondary)", children: t("pred.nota") })
   ] });
 }
+var PrediccionPanel = memo4(PrediccionPanelImpl);
 
 // src/escritor/pizarra.js
+import { memo as memo5 } from "react";
+import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
+import { useCallback as useCallback6, useEffect as useEffect6, useRef as useRef6, useState as useState6 } from "react";
+
+// src/escritor/buscador-corpus.js
 import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
-import { useCallback as useCallback5, useEffect as useEffect5, useRef as useRef4, useState as useState5 } from "react";
+import { useCallback as useCallback5, useEffect as useEffect5, useRef as useRef5, useState as useState5 } from "react";
+var vigenciaEstado = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
+function chipVigencia(v2) {
+  const e3 = vigenciaEstado(v2);
+  if (!e3) return null;
+  return {
+    clase: S.chip + " " + (e3 === "IN_FORCE" ? S.chipOk : S.chipWarn),
+    texto: etiquetaCodigo(e3)
+  };
+}
+function BuscadorCorpus({
+  limite = 12,
+  debounceMs = 0,
+  autoFoco = false,
+  titulo = null,
+  placeholder = t("busq.placeholder"),
+  textoVacio = t("busq.vacio"),
+  onCerrar = null,
+  mostrarBuscar = false,
+  children: children2 = null,
+  renderAcciones = null
+}) {
+  const [q2, setQ] = useState5("");
+  const [resultados, setResultados] = useState5([]);
+  const [arbol, setArbol] = useState5(null);
+  const [ocupado, setOcupado] = useState5(false);
+  const [error2, setError] = useState5(null);
+  const timerRef = useRef5(null);
+  const seqRef = useRef5(0);
+  const ejecutar = useCallback5((consulta) => {
+    const limpio = (consulta || "").trim();
+    if (!limpio) {
+      seqRef.current += 1;
+      setResultados([]);
+      setArbol(null);
+      setOcupado(false);
+      return;
+    }
+    const id = ++seqRef.current;
+    setOcupado(true);
+    setError(null);
+    rest("/grafo/buscar", {
+      method: "POST",
+      body: { q: limpio, limite },
+      timeoutMs: 12e4
+    }).then((d2) => {
+      if (id !== seqRef.current) return;
+      setResultados(d2 && d2.resultados || []);
+      setArbol(d2 && d2.arbol || null);
+    }).catch((e3) => {
+      if (id !== seqRef.current) return;
+      setError(e3);
+      setResultados([]);
+    }).finally(() => {
+      if (id === seqRef.current) setOcupado(false);
+    });
+  }, [limite]);
+  const buscar = useCallback5(() => ejecutar(q2), [ejecutar, q2]);
+  const cambiar = (ev) => {
+    const v2 = ev.target.value;
+    setQ(v2);
+    if (!debounceMs) return;
+    cancelarTarea(timerRef.current);
+    timerRef.current = programarTimeout(() => ejecutar(v2), debounceMs);
+  };
+  useEffect5(() => () => cancelarTarea(timerRef.current), []);
+  return jsxs5("div", { className: "flex min-h-0 flex-1 flex-col", children: [
+    jsxs5("div", { className: "flex items-center gap-2 border-b border-(--dk-borde) px-3 py-2", children: [
+      titulo ? jsx5("span", { className: "shrink-0 text-xs font-semibold text-(--dk-texto)", children: titulo }) : null,
+      jsx5("input", {
+        className: "min-w-0 flex-1 bg-transparent text-xs text-(--dk-texto) outline-none placeholder:text-(--dk-texto-3)",
+        placeholder,
+        value: q2,
+        autoFocus: autoFoco,
+        onChange: cambiar,
+        onKeyDown: (e3) => {
+          if (e3.key === "Enter") buscar();
+        }
+      }),
+      mostrarBuscar ? jsx5("button", {
+        type: "button",
+        className: "dk-btn dk-btn--primario dk-btn--chico shrink-0",
+        disabled: ocupado || !q2.trim(),
+        onClick: buscar,
+        children: ocupado ? "\u2026" : t("graph.search.label")
+      }) : null,
+      onCerrar ? jsx5("button", {
+        type: "button",
+        "aria-label": t("busq.cerrar"),
+        className: "dk-btn dk-btn--icono dk-btn--chico shrink-0",
+        onClick: onCerrar,
+        title: t("busq.cerrar"),
+        children: "\u2715"
+      }) : null
+    ] }),
+    arbol && arbol.disponible && (arbol.clasificacion || []).length ? jsxs5("div", { className: "flex flex-wrap gap-1 border-b border-(--dk-borde-suave) px-3 py-1 text-xs text-(--dk-texto-2)", children: [
+      jsx5("span", { className: "text-(--dk-texto-3)", children: t("busq.materias") }),
+      ...(arbol.clasificacion || []).map((m3, i3) => jsx5("span", {
+        key: i3,
+        className: S.chip,
+        children: m3.nombre || m3.nodo
+      }))
+    ] }) : null,
+    children2,
+    jsxs5("div", { className: "flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5", children: [
+      ocupado ? jsx5("div", { className: "py-4 text-center text-xs text-(--dk-texto-3)", children: t("busq.buscando") }) : null,
+      error2 ? jsx5("div", { className: S.noticeBad, children: mensajeError(error2) }) : null,
+      !ocupado && !error2 && resultados.length === 0 && q2.trim() ? jsx5("div", { className: "py-4 text-center text-xs text-(--dk-texto-3)", children: t("busq.sinResultados", { q: q2.trim() }) }) : null,
+      !ocupado && !q2.trim() ? jsx5("div", { className: "py-3 text-center text-xs text-(--dk-texto-3)", children: textoVacio }) : null,
+      ...resultados.map((r2, i3) => {
+        const vig = chipVigencia(r2.vigencia);
+        return jsxs5("div", {
+          key: r2.nodo_id || i3,
+          className: "flex flex-col gap-1.5 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
+          children: [
+            jsxs5("div", { className: "flex items-start justify-between gap-2", children: [
+              jsxs5("div", { className: "min-w-0 flex-1", children: [
+                jsx5("div", { className: "font-semibold text-(--dk-texto)", children: r2.cita || r2.label || r2.gid }),
+                jsx5("div", { className: "dk-mono text-(--dk-texto-3)", children: [r2.nodo_id, r2.gid].filter(Boolean).join(" \xB7 ") })
+              ] }),
+              vig ? jsx5("span", { className: vig.clase, children: vig.texto }) : null
+            ] }),
+            r2.snippet ? jsx5("div", {
+              className: "text-xs text-(--dk-texto-2) leading-relaxed line-clamp-3",
+              children: String(r2.snippet).slice(0, 260)
+            }) : null,
+            renderAcciones ? jsx5("div", {
+              className: "flex flex-wrap items-center gap-1.5 pt-1",
+              children: renderAcciones(r2)
+            }) : null
+          ]
+        });
+      })
+    ] })
+  ] });
+}
 
 // src/escritor/pizarra-logica.js
 var COLORES_NOTA = [
@@ -26651,8 +29903,8 @@ var COLORES_NOTA = [
 var PLANTILLAS_PIZARRA = [
   {
     id: "demanda",
-    label: "Demanda / Escrito Judicial",
-    descripcion: "Partes \xB7 Hechos \xB7 Fundamentos de Derecho \xB7 Petitorio",
+    label: "piz.template0",
+    descripcion: "piz.templateDescription0",
     columnas: [
       { titulo: "Partes y Comparecencia", tag: "PARTES", color: "#bfdbfe", texto: "Individualizaci\xF3n del demandante, demandado y representaci\xF3n procesal." },
       { titulo: "Hechos de la Causa", tag: "HECHO", color: "#bbf7d0", texto: "Relaci\xF3n cronol\xF3gica de hechos acreditados y circunstancias relevantes." },
@@ -26663,8 +29915,8 @@ var PLANTILLAS_PIZARRA = [
   },
   {
     id: "sentencia",
-    label: "Sentencia Judicial",
-    descripcion: "Partes \xB7 Vistos \xB7 Considerandos \xB7 Por Tanto",
+    label: "piz.template1",
+    descripcion: "piz.templateDescription1",
     columnas: [
       { titulo: "Vistos y Partes", tag: "PARTES", color: "#bfdbfe", texto: "Identificaci\xF3n del proceso, pretensiones y defensas de las partes." },
       { titulo: "Hechos Acreditados", tag: "HECHO", color: "#bbf7d0", texto: "Hechos probados y valoraci\xF3n de la prueba rendida en el expediente." },
@@ -26675,8 +29927,8 @@ var PLANTILLAS_PIZARRA = [
   },
   {
     id: "contrato",
-    label: "Contrato / Convenci\xF3n",
-    descripcion: "Partes \xB7 Objeto \xB7 Obligaciones \xB7 Garant\xEDas y Terminaci\xF3n",
+    label: "piz.template2",
+    descripcion: "piz.templateDescription2",
     columnas: [
       { titulo: "Comparecientes", tag: "PARTES", color: "#bfdbfe", texto: "Partes contratantes, personer\xEDas y domicilios." },
       { titulo: "Objeto y Precio", tag: "HECHO", color: "#bbf7d0", texto: "Prestaci\xF3n principal, contraprestaci\xF3n, plazos y forma de pago." },
@@ -26687,8 +29939,8 @@ var PLANTILLAS_PIZARRA = [
   },
   {
     id: "resolucion",
-    label: "Resoluci\xF3n / Reclamaci\xF3n Adm.",
-    descripcion: "Antecedentes \xB7 Marco Normativo \xB7 Motivaci\xF3n \xB7 Resolutivo",
+    label: "piz.template3",
+    descripcion: "piz.templateDescription3",
     columnas: [
       { titulo: "Antecedentes de Hecho", tag: "HECHO", color: "#bfdbfe", texto: "Acto administrativo impugnado, fiscalizaci\xF3n o expediente." },
       { titulo: "Marco Normativo", tag: "NORMA", color: "#bbf7d0", texto: "Potestades legales, requisitos procedimentales y normas t\xE9cnicas." },
@@ -26733,7 +29985,6 @@ function construirNodosPlantilla(plantilla) {
 }
 
 // src/escritor/pizarra.js
-var _vig = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
 var zoomDeEstado = (e3) => {
   const z3 = Number(e3 && e3.zoom);
   return Number.isFinite(z3) && z3 >= 0.4 && z3 <= 2.5 ? z3 : 1;
@@ -26743,158 +29994,72 @@ var panDeEstado = (e3) => {
   return p2 && Number.isFinite(p2.x) && Number.isFinite(p2.y) ? { x: Math.round(p2.x), y: Math.round(p2.y) } : { x: 0, y: 0 };
 };
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
-  const [q2, setQ] = useState5("");
-  const [resultados, setResultados] = useState5([]);
-  const [arbol, setArbol] = useState5(null);
-  const [ocupado, setOcupado] = useState5(false);
-  const [error2, setError] = useState5(null);
-  const timerRef = useRef4(null);
-  const seqRef = useRef4(0);
-  const ejecutar = useCallback5((consulta) => {
-    const limpio = (consulta || "").trim();
-    if (!limpio) {
-      seqRef.current += 1;
-      setResultados([]);
-      setArbol(null);
-      return;
-    }
-    const id = ++seqRef.current;
-    setOcupado(true);
-    setError(null);
-    rest("/grafo/buscar", {
-      method: "POST",
-      body: { q: limpio, limite: 12 },
-      timeoutMs: 12e4
-    }).then((d2) => {
-      if (id !== seqRef.current) return;
-      setResultados(d2 && d2.resultados || []);
-      setArbol(d2 && d2.arbol || null);
-    }).catch((e3) => {
-      if (id !== seqRef.current) return;
-      setError(e3);
-      setResultados([]);
-    }).finally(() => {
-      if (id === seqRef.current) setOcupado(false);
-    });
-  }, []);
-  const cambiar = (ev) => {
-    const v2 = ev.target.value;
-    setQ(v2);
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => ejecutar(v2), 350);
-  };
-  useEffect5(() => () => clearTimeout(timerRef.current), []);
-  return jsxs5("div", {
-    className: "absolute top-2 right-3 z-30 flex w-96 flex-col rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl",
+  return jsx6("div", {
+    className: "absolute top-2 right-3 z-30 flex w-96 flex-col " + S.floating,
     style: { maxHeight: "260px" },
-    children: [
-      jsxs5("div", { className: "flex items-center gap-2 border-b border-slate-700 px-3 py-2", children: [
-        jsx5("span", { className: "text-xs font-semibold text-sky-400", children: "LexO Search \xB7 Corpus Dik\xE9" }),
-        jsx5("input", {
-          className: "flex-1 bg-transparent text-xs text-slate-100 outline-none placeholder-slate-400",
-          placeholder: "Buscar en las 25 leyes (ej. despido necesidades empresa)\u2026",
-          value: q2,
-          autoFocus: true,
-          onChange: cambiar,
-          onKeyDown: (e3) => {
-            if (e3.key === "Enter") ejecutar(q2);
-          }
-        }),
-        jsx5("button", {
+    children: jsx6(BuscadorCorpus, {
+      limite: 12,
+      debounceMs: 350,
+      autoFoco: true,
+      titulo: t("piz.tituloBusqueda"),
+      placeholder: t("piz.placeholderBusqueda"),
+      textoVacio: t("piz.vacioBusqueda"),
+      onCerrar,
+      renderAcciones: (r2) => [
+        jsx6("button", {
           type: "button",
-          className: "text-xs text-slate-400 hover:text-white px-1",
-          onClick: onCerrar,
-          title: "Cerrar buscador",
-          children: "\u2715"
-        })
-      ] }),
-      arbol && arbol.disponible && (arbol.clasificacion || []).length ? jsxs5("div", { className: "flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300", children: [
-        jsx5("span", { className: "text-slate-400", children: "Materias:" }),
-        ...(arbol.clasificacion || []).slice(0, 3).map((m3, i3) => jsx5("span", {
-          key: i3,
-          className: "rounded bg-slate-800 px-1.5 py-0.5 text-sky-300",
-          children: m3.nombre || m3.nodo
-        }))
-      ] }) : null,
-      jsxs5("div", { className: "flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5", children: [
-        ocupado ? jsx5("div", { className: "py-4 text-center text-xs text-slate-400", children: "Buscando en el corpus sellado (BM25)\u2026" }) : null,
-        error2 ? jsx5("div", { className: "rounded bg-red-950/60 p-2 text-xs text-red-300", children: mensajeError(error2) }) : null,
-        !ocupado && !error2 && resultados.length === 0 && q2.trim() ? jsx5("div", { className: "py-4 text-center text-xs text-slate-400", children: "Sin resultados para \xAB" + q2.trim() + "\xBB." }) : null,
-        !ocupado && !q2.trim() ? jsx5("div", { className: "py-3 text-center text-[11px] text-slate-400", children: "Escribe t\xE9rminos jur\xEDdicos para traer normas a la pizarra o al escrito." }) : null,
-        ...resultados.map((r2, i3) => jsxs5("div", {
-          key: r2.nodo_id || i3,
-          className: "flex items-start justify-between gap-2 rounded border border-slate-800 bg-slate-800/60 p-2 hover:border-slate-600",
-          children: [
-            jsxs5("div", { className: "min-w-0 flex-1", children: [
-              jsxs5("div", { className: "flex items-center gap-1.5", children: [
-                jsx5("span", { className: "truncate text-xs font-semibold text-sky-300", children: r2.cita || r2.label || r2.gid }),
-                _vig(r2.vigencia) ? jsx5("span", {
-                  className: "rounded px-1 py-0.5 text-[9px] uppercase " + (_vig(r2.vigencia) === "IN_FORCE" ? "bg-emerald-900/70 text-emerald-300" : "bg-amber-900/70 text-amber-300"),
-                  children: _vig(r2.vigencia) === "IN_FORCE" ? "vigente" : _vig(r2.vigencia)
-                }) : null
-              ] }),
-              r2.snippet ? jsx5("div", {
-                className: "mt-0.5 line-clamp-2 text-[11px] text-slate-300",
-                children: String(r2.snippet).slice(0, 180)
-              }) : null
-            ] }),
-            jsxs5("div", { className: "flex flex-col gap-1 shrink-0", children: [
-              jsx5("button", {
-                type: "button",
-                className: "rounded bg-sky-600 hover:bg-sky-500 px-2 py-0.5 text-[10px] font-medium text-white",
-                title: "Crear tarjeta de norma en la pizarra",
-                onClick: () => onAgregarNota({
-                  titulo: r2.cita || r2.label || r2.gid || "Norma",
-                  tag: "NORMA",
-                  color: "#bfdbfe",
-                  texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 260) : ""),
-                  nodo_id: r2.nodo_id,
-                  gid: r2.gid
-                }),
-                children: "+ Pizarra"
-              }),
-              r2.citable !== false && r2.cita && onLlevarAlEscrito ? jsx5("button", {
-                type: "button",
-                className: "rounded border border-slate-600 hover:bg-slate-700 px-2 py-0.5 text-[10px] text-slate-200",
-                title: "Insertar cita can\xF3nica en el escrito y verificar",
-                onClick: () => onLlevarAlEscrito(r2),
-                children: "+ Escrito"
-              }) : null
-            ] })
-          ]
-        }))
-      ] })
-    ]
+          className: "dk-btn dk-btn--borde dk-btn--chico",
+          title: t("piz.crearNorma"),
+          onClick: () => onAgregarNota({
+            titulo: r2.cita || r2.label || r2.gid || t("piz.normaFallback"),
+            tag: t("style.norm"),
+            color: (COLORES_NOTA.find((c4) => c4.id === "azul") || COLORES_NOTA[0]).hex,
+            texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 260) : ""),
+            nodo_id: r2.nodo_id,
+            gid: r2.gid
+          }),
+          children: "+ " + t("piz.titulo")
+        }),
+        r2.citable !== false && r2.cita && onLlevarAlEscrito ? jsx6("button", {
+          type: "button",
+          className: "dk-btn dk-btn--borde dk-btn--chico",
+          title: t("piz.insertarCita"),
+          onClick: () => onLlevarAlEscrito(r2),
+          children: t("piz.escritoBoton")
+        }) : null
+      ]
+    })
   });
 }
-function PizarraEstrategica({
+function PizarraEstrategicaImpl({
   pizarra,
   onChange: onChange3,
   onInsertarTexto,
   onLlevarCitaAlEscrito,
   onAbrirGrafo
 }) {
+  useIdioma();
   const estado = pizarra || {};
   const nodos = Array.isArray(estado.nodos) ? estado.nodos : [];
   const aristas = Array.isArray(estado.aristas) ? estado.aristas : [];
   const colapsada = Boolean(estado.colapsada);
   const altura = Number(estado.altura) || 235;
-  const [menuPlantillas, setMenuPlantillas] = useState5(false);
-  const [buscadorAbierto, setBuscadorAbierto] = useState5(false);
-  const [conectandoDesde, setConectandoDesde] = useState5(null);
-  const [zoom2, setZoom] = useState5(() => zoomDeEstado(estado));
-  const [pan, setPan] = useState5(() => panDeEstado(estado));
-  const dragRef = useRef4(null);
-  const resizeBarRef = useRef4(null);
-  const canvasRef = useRef4(null);
-  const actualizar = useCallback5((parche) => {
+  const [menuPlantillas, setMenuPlantillas] = useState6(false);
+  const [buscadorAbierto, setBuscadorAbierto] = useState6(false);
+  const [conectandoDesde, setConectandoDesde] = useState6(null);
+  const [zoom2, setZoom] = useState6(() => zoomDeEstado(estado));
+  const [pan, setPan] = useState6(() => panDeEstado(estado));
+  const dragRef = useRef6(null);
+  const resizeBarRef = useRef6(null);
+  const canvasRef = useRef6(null);
+  const actualizar = useCallback6((parche) => {
     if (onChange3) onChange3({ ...estado, nodos, aristas, colapsada, altura, ...parche });
   }, [estado, nodos, aristas, colapsada, altura, onChange3]);
-  useEffect5(() => {
+  useEffect6(() => {
     setZoom(zoomDeEstado(estado));
     setPan(panDeEstado(estado));
   }, [estado.zoom, estado.pan]);
-  useEffect5(() => {
+  useEffect6(() => {
     const onMove = (ev) => {
       if (dragRef.current) {
         const d2 = dragRef.current;
@@ -26936,7 +30101,7 @@ function PizarraEstrategica({
       window.removeEventListener("mouseup", onUp);
     };
   }, [zoom2, actualizar]);
-  const agregarNota = useCallback5((datos = {}) => {
+  const agregarNota = useCallback6((datos = {}) => {
     const idx = nodos.length;
     const col = idx % 4;
     const fila = Math.floor(idx / 4);
@@ -26947,8 +30112,8 @@ function PizarraEstrategica({
       y: datos.y != null ? datos.y : 20 + fila * 175,
       w: datos.w || 232,
       h: datos.h || 155,
-      titulo: datos.titulo || "Nota " + (idx + 1),
-      tag: datos.tag || "NOTA",
+      titulo: datos.titulo || t("piz.tituloNota", { n: idx + 1 }),
+      tag: datos.tag || t("piz.tagNota"),
       color: datos.color || colorDefault,
       texto: datos.texto || "",
       nodo_id: datos.nodo_id || null,
@@ -26957,26 +30122,26 @@ function PizarraEstrategica({
     };
     actualizar({ nodos: [...nodos, nueva], colapsada: false });
   }, [nodos, actualizar]);
-  const aplicarPlantilla = useCallback5((pl) => {
+  const aplicarPlantilla = useCallback6((pl) => {
     const { nodos: ns, aristas: as } = construirNodosPlantilla(pl);
     setPan({ x: 0, y: 0 });
     setZoom(1);
     actualizar({ nodos: ns, aristas: as, colapsada: false, zoom: 1, pan: { x: 0, y: 0 } });
     setMenuPlantillas(false);
   }, [actualizar]);
-  const editarNodo = useCallback5((id, parche) => {
+  const editarNodo = useCallback6((id, parche) => {
     actualizar({
       nodos: nodos.map((n2) => n2.id === id ? { ...n2, ...parche } : n2)
     });
   }, [nodos, actualizar]);
-  const eliminarNodo = useCallback5((id) => {
+  const eliminarNodo = useCallback6((id) => {
     actualizar({
       nodos: nodos.filter((n2) => n2.id !== id),
       aristas: aristas.filter((e3) => e3.from !== id && e3.to !== id)
     });
     if (conectandoDesde === id) setConectandoDesde(null);
   }, [nodos, aristas, conectandoDesde, actualizar]);
-  const clickConectar = useCallback5((id) => {
+  const clickConectar = useCallback6((id) => {
     if (!conectandoDesde) {
       setConectandoDesde(id);
       return;
@@ -26988,12 +30153,12 @@ function PizarraEstrategica({
     const yaExiste = aristas.some((a3) => a3.from === conectandoDesde && a3.to === id);
     if (!yaExiste) {
       actualizar({
-        aristas: [...aristas, { id: crearIdNota("arista"), from: conectandoDesde, to: id, label: "apoya" }]
+        aristas: [...aristas, { id: crearIdNota("arista"), from: conectandoDesde, to: id, label: t("piz.supports") }]
       });
     }
     setConectandoDesde(null);
   }, [conectandoDesde, aristas, actualizar]);
-  const volcarAlEscrito = useCallback5(() => {
+  const volcarAlEscrito = useCallback6(() => {
     if (!onInsertarTexto || !nodos.length) return;
     const ordenados = [...nodos].sort((a3, b2) => a3.y - b2.y || a3.x - b2.x);
     const bloques = ordenados.map((n2) => {
@@ -27005,95 +30170,96 @@ function PizarraEstrategica({
     if (bloques.length) onInsertarTexto(bloques.join("\n\n"));
   }, [nodos, onInsertarTexto]);
   const mapaNodos = new Map(nodos.map((n2) => [n2.id, n2]));
-  return jsxs5("div", {
-    className: "flex flex-col border-b border-slate-300 bg-white select-none shrink-0",
+  return jsxs6("div", {
+    className: "flex flex-col border-b border-(--dk-borde) bg-(--dk-elevada) select-none shrink-0",
     children: [
       // Barra superior de la Pizarra Estratégica (estilo imagen 2)
-      jsxs5("div", {
-        className: "flex flex-wrap items-center gap-1.5 border-b border-slate-200 bg-slate-50 px-3 py-1 text-xs",
+      jsxs6("div", {
+        className: "flex flex-wrap items-center gap-1.5 border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-1 text-xs",
         children: [
-          jsx5("button", {
+          jsx6("button", {
             type: "button",
             onClick: () => actualizar({ colapsada: !colapsada }),
-            className: "flex items-center gap-1 rounded px-2 py-1 font-medium text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer",
+            className: "flex items-center gap-1 rounded px-2 py-1 font-medium text-(--dk-texto-2) hover:bg-(--dk-sobre) transition-colors cursor-pointer",
             children: [
-              jsx5("span", { children: colapsada ? "\u25BE" : "\u25B4" }),
-              jsx5("span", { children: "Pizarra Estrat\xE9gica" }),
-              nodos.length > 0 ? jsx5("span", {
-                className: "ml-1 rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] text-slate-600",
+              jsx6("span", { children: colapsada ? "\u25BE" : "\u25B4" }),
+              jsx6("span", { children: t("piz.titulo") }),
+              nodos.length > 0 ? jsx6("span", {
+                className: "ml-1 rounded-full bg-(--dk-superficie-2) px-1.5 py-0.2 text-xs text-(--dk-texto-2)",
                 children: String(nodos.length)
               }) : null
             ]
           }),
-          jsx5("button", {
+          jsx6("button", {
             type: "button",
             onClick: () => agregarNota({}),
-            className: "flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs",
-            title: "Agregar nota adhesiva a la pizarra",
-            children: ["+ Nota"]
+            className: "flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs",
+            title: t("piz.agregarNotaTitulo"),
+            children: [t("piz.botonNota")]
           }),
           // Selector de Plantillas
-          jsxs5("div", { className: "relative", children: [
-            jsx5("button", {
+          jsxs6("div", { className: "relative", children: [
+            jsx6("button", {
               type: "button",
               onClick: () => setMenuPlantillas((v2) => !v2),
-              className: "flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs",
-              title: "Cargar estructura de escrito en la pizarra",
-              children: ["\u229E Plantillas \u25BE"]
+              className: "flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs",
+              title: t("piz.cargarEstructura"),
+              children: ["\u229E " + t("pred.l0") + " \u25BE"]
             }),
-            menuPlantillas ? jsxs5("div", {
-              className: "absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-slate-200 bg-white py-1 shadow-xl",
+            menuPlantillas ? jsxs6("div", {
+              className: "absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl",
               children: [
-                jsx5("div", { className: "px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400", children: "Estructuras jur\xEDdicas" }),
-                ...PLANTILLAS_PIZARRA.map((pl) => jsxs5("button", {
+                jsx6("div", { className: "px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--dk-texto-3)", children: t("piz.estructuras") }),
+                ...PLANTILLAS_PIZARRA.map((pl) => jsxs6("button", {
                   key: pl.id,
                   type: "button",
                   onClick: () => aplicarPlantilla(pl),
-                  className: "flex w-full flex-col px-3 py-1.5 text-left hover:bg-slate-100",
+                  className: "flex w-full flex-col px-3 py-1.5 text-left hover:bg-(--dk-sobre)",
                   children: [
-                    jsx5("span", { className: "text-xs font-semibold text-slate-800", children: pl.label }),
-                    jsx5("span", { className: "text-[10px] text-slate-500", children: pl.descripcion })
+                    jsx6("span", { className: "text-xs font-semibold text-(--dk-texto)", children: t(pl.label) }),
+                    jsx6("span", { className: "text-xs text-(--dk-texto-3)", children: t(pl.descripcion) })
                   ]
                 }))
               ]
             }) : null
           ] }),
           // Botón LexO Search (conectado al corpus sellado BM25)
-          jsx5("button", {
+          jsx6("button", {
             type: "button",
             onClick: () => {
               if (colapsada) actualizar({ colapsada: false });
               setBuscadorAbierto((v2) => !v2);
             },
-            className: "flex items-center gap-1 rounded border px-2 py-0.5 text-xs cursor-pointer transition-colors " + (buscadorAbierto ? "border-sky-500 bg-sky-50 text-sky-700 font-medium" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"),
-            title: "Buscar normas en el corpus de Dik\xE9 y agregarlas como tarjetas",
-            children: ["\u{1F50D} LexO Search"]
+            "aria-pressed": buscadorAbierto,
+            className: "dk-btn",
+            title: t("piz.buscarNormas"),
+            children: [t("piz.search")]
           }),
-          nodos.length > 0 ? jsx5("button", {
+          nodos.length > 0 ? jsx6("button", {
             type: "button",
             onClick: volcarAlEscrito,
-            className: "flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 hover:bg-emerald-100 cursor-pointer",
-            title: "Insertar el contenido ordenado de las notas en el escrito",
-            children: ["\u21B3 Llevar notas al escrito"]
+            className: "dk-btn dk-btn--borde",
+            title: t("piz.llevarNotasTitulo"),
+            children: [t("piz.llevarNotas")]
           }) : null,
-          conectandoDesde ? jsx5("span", {
-            className: "rounded bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700",
-            children: "Haz clic en otra nota para conectarlas (o en la misma para cancelar)"
+          conectandoDesde ? jsx6("span", {
+            className: S.chip + " " + S.chipInfo,
+            children: t("piz.conectarHint")
           }) : null,
           // Botón limpiar a la derecha (como el icono de papelera en imagen 2)
-          jsxs5("div", { className: "ml-auto flex items-center gap-1", children: [
-            nodos.length > 0 ? jsx5("button", {
+          jsxs6("div", { className: "ml-auto flex items-center gap-1", children: [
+            nodos.length > 0 ? jsx6("button", {
               type: "button",
               onClick: () => actualizar({ nodos: [], aristas: [] }),
-              className: "rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer",
-              title: "Limpiar pizarra",
-              children: "\u{1F5D1}"
+              className: "dk-btn dk-btn--borde dk-btn--peligro dk-btn--chico",
+              title: t("piz.limpiarTitulo"),
+              children: t("piz.limpiar")
             }) : null
           ] })
         ]
       }),
       // Lienzo interactivo con grilla punteada (solo cuando no está colapsada)
-      !colapsada ? jsxs5("div", {
+      !colapsada ? jsxs6("div", {
         ref: canvasRef,
         onMouseDown: (ev) => {
           if (ev.target === canvasRef.current || ev.target.getAttribute("data-fondo") === "1") {
@@ -27110,23 +30276,23 @@ function PizarraEstrategica({
         className: "relative w-full overflow-hidden",
         style: {
           height: altura + "px",
-          backgroundColor: "#fafafa",
-          backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
+          backgroundColor: "var(--dk-superficie)",
+          backgroundImage: "radial-gradient(var(--dk-borde) 1px, transparent 1px)",
           backgroundSize: "16px 16px",
           cursor: "grab"
         },
         children: [
           // Estado vacío con invitación rápida
-          nodos.length === 0 ? jsxs5("div", {
+          nodos.length === 0 ? jsxs6("div", {
             "data-fondo": "1",
             className: "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center",
             children: [
-              jsx5("div", { className: "text-xs font-medium text-slate-400", children: "Pizarra Estrat\xE9gica vac\xEDa \u2014 planifica los bloques de tu escrito antes de redactar" }),
-              jsx5("div", { className: "text-[11px] text-slate-400", children: "Usa \xAB+ Nota\xBB, elige \xABPlantillas\xBB (Demanda, Sentencia, Contrato) o abre \xABLexO Search\xBB para traer art\xEDculos." })
+              jsx6("div", { className: "text-xs font-medium text-(--dk-texto-3)", children: t("piz.vacio") }),
+              jsx6("div", { className: "text-xs text-(--dk-texto-3)", children: t("piz.vacioAyuda") })
             ]
           }) : null,
           // Capa transformada por pan/zoom
-          jsxs5("div", {
+          jsxs6("div", {
             "data-fondo": "1",
             style: {
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom2})`,
@@ -27137,11 +30303,11 @@ function PizarraEstrategica({
             },
             children: [
               // Aristas dirigidas SVG entre tarjetas
-              jsx5("svg", {
+              jsx6("svg", {
                 className: "pointer-events-none absolute inset-0 h-[1200px] w-[2400px] overflow-visible",
                 children: [
-                  jsx5("defs", {
-                    children: jsx5("marker", {
+                  jsx6("defs", {
+                    children: jsx6("marker", {
                       id: "dike-arrow",
                       viewBox: "0 0 10 10",
                       refX: "8",
@@ -27149,7 +30315,7 @@ function PizarraEstrategica({
                       markerWidth: "6",
                       markerHeight: "6",
                       orient: "auto-start-reverse",
-                      children: jsx5("path", { d: "M 0 1 L 10 5 L 0 9 z", fill: "#6366f1" })
+                      children: jsx6("path", { d: "M 0 1 L 10 5 L 0 9 z", fill: "#6366f1" })
                     })
                   }),
                   ...aristas.map((ar) => {
@@ -27165,8 +30331,8 @@ function PizarraEstrategica({
                     const d2 = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y22}, ${x22} ${y22}`;
                     const mx = (x1 + x22) / 2;
                     const my = (y1 + y22) / 2 - 6;
-                    return jsxs5("g", { key: ar.id, children: [
-                      jsx5("path", {
+                    return jsxs6("g", { key: ar.id, children: [
+                      jsx6("path", {
                         d: d2,
                         fill: "none",
                         stroke: "#6366f1",
@@ -27174,7 +30340,7 @@ function PizarraEstrategica({
                         strokeDasharray: "4 2",
                         markerEnd: "url(#dike-arrow)"
                       }),
-                      ar.label ? jsx5("text", {
+                      ar.label ? jsx6("text", {
                         x: mx,
                         y: my,
                         textAnchor: "middle",
@@ -27190,7 +30356,7 @@ function PizarraEstrategica({
               // Notas / Tarjetas en el lienzo
               ...nodos.map((n2) => {
                 const esOrigen = conectandoDesde === n2.id;
-                return jsxs5("div", {
+                return jsxs6("div", {
                   key: n2.id,
                   style: {
                     position: "absolute",
@@ -27201,10 +30367,10 @@ function PizarraEstrategica({
                     backgroundColor: n2.color || "#fef08a",
                     boxShadow: esOrigen ? "0 0 0 2px #4f46e5, 0 4px 12px rgba(0,0,0,0.12)" : "0 2px 6px rgba(0,0,0,0.10)"
                   },
-                  className: "flex flex-col rounded-md border border-slate-300/90 text-slate-800 transition-shadow",
+                  className: "flex flex-col rounded-md border border-(--dk-borde) text-(--dk-texto) transition-shadow",
                   children: [
                     // Cabecera arrastrable de la tarjeta
-                    jsxs5("div", {
+                    jsxs6("div", {
                       onMouseDown: (ev) => {
                         if (ev.target.tagName === "BUTTON" || ev.target.tagName === "INPUT") return;
                         ev.stopPropagation();
@@ -27218,84 +30384,91 @@ function PizarraEstrategica({
                           nodosBase: nodos
                         };
                       },
-                      className: "flex items-center gap-1 border-b border-black/10 px-2 py-1 cursor-move",
+                      className: "flex items-center gap-1 border-b border-(--dk-borde-suave) px-2 py-1 cursor-move",
                       children: [
-                        jsx5("span", {
-                          className: "rounded bg-black/10 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider text-slate-700",
-                          children: n2.tag || "NOTA"
+                        jsx6("span", {
+                          className: "rounded bg-(--dk-superficie-2) px-1 py-0.2 text-xs font-bold uppercase tracking-wider text-(--dk-texto-2)",
+                          children: n2.tag || t("piz.tagNota")
                         }),
-                        jsx5("input", {
+                        jsx6("input", {
                           value: n2.titulo || "",
                           onChange: (ev) => editarNodo(n2.id, { titulo: ev.target.value }),
-                          className: "min-w-0 flex-1 bg-transparent text-xs font-semibold text-slate-800 outline-none",
-                          placeholder: "T\xEDtulo\u2026"
+                          className: "min-w-0 flex-1 bg-transparent text-xs font-semibold text-(--dk-texto) outline-none",
+                          placeholder: t("piz.tituloPlaceholder")
                         }),
                         // Cambiar color
-                        jsx5("button", {
+                        jsx6("button", {
                           type: "button",
-                          title: "Cambiar color de la nota",
+                          title: t("piz.colorNota"),
+                          "aria-label": t("piz.colorNota"),
                           onClick: () => {
                             const idx = COLORES_NOTA.findIndex((c4) => c4.hex === n2.color);
                             const sig = COLORES_NOTA[(idx + 1) % COLORES_NOTA.length];
                             editarNodo(n2.id, { color: sig.hex });
                           },
-                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-black/10",
-                          children: "\u{1F3A8}"
+                          className: "dk-btn dk-btn--chico",
+                          children: "\u25D0"
                         }),
                         // Conectar con otra tarjeta
-                        jsx5("button", {
+                        jsx6("button", {
                           type: "button",
-                          title: esOrigen ? "Cancelar conexi\xF3n" : "Conectar con otra tarjeta",
+                          title: esOrigen ? t("piz.cancelarConexion") : t("piz.conectar"),
+                          "aria-label": esOrigen ? t("piz.cancelarConexion") : t("piz.conectar"),
+                          "aria-pressed": esOrigen,
                           onClick: () => clickConectar(n2.id),
-                          className: "rounded px-1 text-[10px] " + (esOrigen ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-black/10"),
-                          children: "\u{1F517}"
+                          className: "dk-btn dk-btn--chico",
+                          children: "\u2194"
                         }),
                         // Insertar esta tarjeta en el escrito
-                        onInsertarTexto ? jsx5("button", {
+                        onInsertarTexto ? jsx6("button", {
                           type: "button",
-                          title: "Insertar texto de esta nota en el escrito",
+                          title: t("piz.insertarTexto"),
+                          "aria-label": t("piz.insertarTexto"),
                           onClick: () => {
                             const txt = (n2.texto || n2.titulo || "").trim();
                             if (txt) onInsertarTexto(txt);
                           },
-                          className: "rounded px-1 text-[10px] font-bold text-emerald-800 hover:bg-black/10",
-                          children: "\u21B3"
+                          className: "dk-btn dk-btn--chico",
+                          children: "\xB6"
                         }) : null,
                         // Abrir en el grafo si es tarjeta de norma con nodo_id
-                        n2.nodo_id && onAbrirGrafo ? jsx5("button", {
+                        n2.nodo_id && onAbrirGrafo ? jsx6("button", {
                           type: "button",
-                          title: "Abrir art\xEDculo en el grafo 3D",
+                          title: t("piz.abrirGrafo"),
+                          "aria-label": t("piz.abrirGrafo"),
                           onClick: () => onAbrirGrafo({ nodo_id: n2.nodo_id }),
-                          className: "rounded px-1 text-[10px] text-sky-800 hover:bg-black/10",
+                          className: "dk-btn dk-btn--chico",
                           children: "\u25C8"
                         }) : null,
                         // Minimizar
-                        jsx5("button", {
+                        jsx6("button", {
                           type: "button",
-                          title: n2.minimizada ? "Expandir nota" : "Minimizar nota",
+                          title: n2.minimizada ? t("piz.expandir") : t("piz.minimizar"),
+                          "aria-label": n2.minimizada ? t("piz.expandir") : t("piz.minimizar"),
                           onClick: () => editarNodo(n2.id, { minimizada: !n2.minimizada }),
-                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-black/10",
+                          className: "dk-btn dk-btn--chico",
                           children: n2.minimizada ? "\u25A2" : "\u2013"
                         }),
                         // Cerrar/Eliminar
-                        jsx5("button", {
+                        jsx6("button", {
                           type: "button",
-                          title: "Eliminar nota",
+                          title: t("piz.eliminar"),
+                          "aria-label": t("piz.eliminar"),
                           onClick: () => eliminarNodo(n2.id),
-                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-red-200 hover:text-red-700",
+                          className: "dk-btn dk-btn--chico dk-btn--peligro",
                           children: "\u2715"
                         })
                       ]
                     }),
                     // Cuerpo de texto de la tarjeta
-                    !n2.minimizada ? jsx5("textarea", {
+                    !n2.minimizada ? jsx6("textarea", {
                       value: n2.texto || "",
                       onChange: (ev) => editarNodo(n2.id, { texto: ev.target.value }),
-                      placeholder: "Escribe ideas, hechos o art\xEDculos para esta secci\xF3n\u2026",
-                      className: "flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-slate-800 outline-none"
+                      placeholder: t("piz.textoPlaceholder"),
+                      className: "flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-(--dk-texto) outline-none"
                     }) : null,
                     // Esquina de redimensionado de tarjeta
-                    !n2.minimizada ? jsx5("div", {
+                    !n2.minimizada ? jsx6("div", {
                       onMouseDown: (ev) => {
                         ev.stopPropagation();
                         dragRef.current = {
@@ -27308,8 +30481,8 @@ function PizarraEstrategica({
                           nodosBase: nodos
                         };
                       },
-                      title: "Arrastrar para cambiar tama\xF1o",
-                      className: "absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-[9px] leading-none text-slate-500/70",
+                      title: t("piz.redimensionar"),
+                      className: "absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-xs leading-none text-(--dk-texto-3)",
                       children: "\u25E2"
                     }) : null
                   ]
@@ -27318,46 +30491,46 @@ function PizarraEstrategica({
             ]
           }),
           // Controles de zoom abajo a la izquierda (exactamente como en la imagen 2)
-          jsxs5("div", {
-            className: "absolute bottom-2 left-2 z-20 flex flex-col overflow-hidden rounded border border-slate-300 bg-white shadow-sm",
+          jsxs6("div", {
+            className: "absolute bottom-2 left-2 z-20 flex flex-col overflow-hidden rounded border border-(--dk-borde) bg-(--dk-elevada) shadow-sm",
             children: [
-              jsx5("button", {
+              jsx6("button", {
                 type: "button",
-                title: "Acercar",
+                title: t("piz.acercar"),
                 onClick: () => {
                   const z3 = Math.min(1.6, +(zoom2 + 0.15).toFixed(2));
                   setZoom(z3);
                   actualizar({ zoom: z3 });
                 },
-                className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
+                className: "border-b border-(--dk-borde) px-2 py-1 text-xs font-bold text-(--dk-texto-2) hover:bg-(--dk-sobre)",
                 children: "+"
               }),
-              jsx5("button", {
+              jsx6("button", {
                 type: "button",
-                title: "Alejar",
+                title: t("piz.alejar"),
                 onClick: () => {
                   const z3 = Math.max(0.55, +(zoom2 - 0.15).toFixed(2));
                   setZoom(z3);
                   actualizar({ zoom: z3 });
                 },
-                className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
+                className: "border-b border-(--dk-borde) px-2 py-1 text-xs font-bold text-(--dk-texto-2) hover:bg-(--dk-sobre)",
                 children: "\u2212"
               }),
-              jsx5("button", {
+              jsx6("button", {
                 type: "button",
-                title: "Restablecer vista",
+                title: t("piz.restablecer"),
                 onClick: () => {
                   setZoom(1);
                   setPan({ x: 0, y: 0 });
                   actualizar({ zoom: 1, pan: { x: 0, y: 0 } });
                 },
-                className: "px-2 py-1 text-[10px] text-slate-700 hover:bg-slate-100",
+                className: "px-2 py-1 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre)",
                 children: "\u26F6"
               })
             ]
           }),
           // Panel flotante LexO Search
-          buscadorAbierto ? jsx5(BuscadorCorpusPizarra, {
+          buscadorAbierto ? jsx6(BuscadorCorpusPizarra, {
             onAgregarNota: (item) => agregarNota(item),
             onLlevarAlEscrito: onLlevarCitaAlEscrito,
             onCerrar: () => setBuscadorAbierto(false)
@@ -27365,24 +30538,28 @@ function PizarraEstrategica({
         ]
       }) : null,
       // Tirador inferior para redimensionar la altura de la pizarra (estilo imagen 2)
-      !colapsada ? jsx5("div", {
+      !colapsada ? jsx6("div", {
         onMouseDown: (ev) => {
           ev.preventDefault();
           resizeBarRef.current = { startY: ev.clientY, origAltura: altura };
         },
-        title: "Arrastra para ajustar la altura de la Pizarra Estrat\xE9gica",
-        className: "flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-slate-200 bg-slate-100 hover:bg-slate-200",
-        children: jsx5("span", { className: "text-[10px] tracking-widest text-slate-400", children: "\u22EE\u22EE\u22EE" })
+        title: t("piz.altura"),
+        className: "flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-(--dk-borde) bg-(--dk-superficie-2) hover:bg-(--dk-sobre)",
+        children: jsx6("span", { className: "text-xs tracking-widest text-(--dk-texto-3)", children: "\u22EE\u22EE\u22EE" })
       }) : null
     ]
   });
 }
+var PizarraEstrategica = memo5(PizarraEstrategicaImpl);
 
 // src/escritor/barra-formato.js
-import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
-import { useEffect as useEffect6, useRef as useRef5, useState as useState6 } from "react";
+import { memo as memo6 } from "react";
+import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
+import { useEffect as useEffect7, useRef as useRef7, useState as useState7 } from "react";
 var FUENTES = [
-  { label: "Predeterminada (Serif)", value: "Georgia, 'Times New Roman', serif" },
+  { get label() {
+    return t("format.default.serif");
+  }, value: "Georgia, 'Times New Roman', serif" },
   { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
   { label: "Georgia", value: "Georgia, serif" },
   { label: "Arial / Sans", value: "Arial, Helvetica, sans-serif" },
@@ -27400,26 +30577,39 @@ var FORMALISMOS_RAPIDOS = [
   { label: "POR TANTO,", texto: "POR TANTO,\nEn m\xE9rito de lo expuesto y de lo dispuesto en las normas citadas, RUEGO A US.: " }
 ];
 var TEXTO_GUARDADO = {
-  cargando: { label: "cargando\u2026", cls: "bg-slate-100 text-slate-500" },
-  guardado: { label: "guardado", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-  guardando: { label: "guardando\u2026", cls: "bg-sky-50 text-sky-700 border border-sky-200" },
-  "sin-guardar": { label: "sin guardar", cls: "bg-amber-50 text-amber-700 border border-amber-200" },
-  conflicto: { label: "conflicto", cls: "bg-red-50 text-red-700 border border-red-200" }
+  cargando: { get label() {
+    return t("format.loading.label");
+  }, cls: S.chip + " " + S.chipOff },
+  guardado: { get label() {
+    return t("format.saved");
+  }, cls: S.chip + " " + S.chipOk },
+  guardando: { get label() {
+    return t("format.saving");
+  }, cls: S.chip + " " + S.chipInfo },
+  "sin-guardar": { get label() {
+    return t("format.unsaved");
+  }, cls: S.chip + " " + S.chipWarn },
+  conflicto: { get label() {
+    return t("format.save.conflict");
+  }, cls: S.chip + " " + S.chipBad }
 };
 function Separador() {
-  return jsx6("div", { className: "mx-1 h-5 w-px self-center bg-slate-300" });
+  return jsx7("div", { className: "mx-1 h-5 w-px self-center bg-(--dk-superficie-2)" });
 }
 function BotonBarra({ onClick, activo, disabled, title, children: children2 }) {
-  return jsx6("button", {
+  return jsx7("button", {
     type: "button",
     onClick,
     disabled,
     title,
-    className: "flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed " + (activo ? "bg-indigo-100 text-indigo-700 font-semibold" : "text-slate-700 hover:bg-slate-200/80"),
+    // aria-pressed solo en botones de alternancia; las acciones (↶, ―…)
+    // no lo llevan. dk-btn toma el estado activo de aria-pressed.
+    "aria-pressed": activo === void 0 ? void 0 : Boolean(activo),
+    className: "dk-btn",
     children: children2
   });
 }
-function BarraFormato({
+function BarraFormatoImpl({
   editorRef,
   caseId,
   casos,
@@ -27439,16 +30629,17 @@ function BarraFormato({
   docInfo,
   onAbrirHerramienta
 }) {
-  const [menuArchivo, setMenuArchivo] = useState6(false);
-  const [menuFormalismos, setMenuFormalismos] = useState6(false);
-  const [modalNuevoCaso, setModalNuevoCaso] = useState6(false);
-  const [nuevoCaseId, setNuevoCaseId] = useState6("");
-  const [nuevaPregunta, setNuevaPregunta] = useState6("");
-  const [, setTick] = useState6(0);
-  const refArchivo = useRef5(null);
-  const refFormalismo = useRef5(null);
+  useIdioma();
+  const [menuArchivo, setMenuArchivo] = useState7(false);
+  const [menuFormalismos, setMenuFormalismos] = useState7(false);
+  const [modalNuevoCaso, setModalNuevoCaso] = useState7(false);
+  const [nuevoCaseId, setNuevoCaseId] = useState7("");
+  const [nuevaPregunta, setNuevaPregunta] = useState7("");
+  const [, setTick] = useState7(0);
+  const refArchivo = useRef7(null);
+  const refFormalismo = useRef7(null);
   const ed = editorRef && editorRef.current;
-  useEffect6(() => {
+  useEffect7(() => {
     const cerrar = (ev) => {
       if (refArchivo.current && !refArchivo.current.contains(ev.target)) {
         setMenuArchivo(false);
@@ -27464,7 +30655,7 @@ function BarraFormato({
     const editor = editorRef && editorRef.current;
     if (!editor) return;
     fn(editor);
-    setTick((t4) => t4 + 1);
+    setTick((t5) => t5 + 1);
   };
   const exportarArchivo = (ext, mime, contenido) => {
     const blob = new Blob([contenido], { type: mime + ";charset=utf-8" });
@@ -27503,224 +30694,231 @@ function BarraFormato({
     input.click();
     setMenuArchivo(false);
   };
-  const opcionesCaso = [{ case_id: "borrador", legal_question: "borrador (sin caso)" }].concat(casos || []);
-  const infoGuardado = TEXTO_GUARDADO[estadoDoc] || { label: estadoDoc, cls: "bg-slate-100 text-slate-600" };
+  const opcionesCaso = [{ case_id: "borrador", legal_question: t("format.draft.no.case") }].concat(casos || []);
+  const infoGuardado = TEXTO_GUARDADO[estadoDoc] || { label: estadoDoc, cls: "bg-(--dk-superficie-2) text-(--dk-texto-2)" };
   const textoPlano = docInfo && docInfo.texto || (ed ? textoDelEditor(ed) : "");
   const numPalabras = textoPlano.trim() ? textoPlano.trim().split(/\s+/).length : 0;
   const metaVerif = verificacion && verificacion.resultado && verificacion.resultado.meta || null;
-  return jsxs6("div", {
-    className: "flex flex-col border-b border-slate-300 bg-white text-slate-800 select-none shrink-0",
+  return jsxs7("div", {
+    className: "flex flex-col border-b border-(--dk-borde) bg-(--dk-elevada) text-(--dk-texto) select-none shrink-0",
     children: [
       // ── FILA 1: Archivo · Escribir/Leer · Documento/Caso · Fuente/Tamaño · Verificar ──
-      jsxs6("div", {
-        className: "flex flex-wrap items-center gap-1 border-b border-slate-100 px-3 py-1",
+      jsxs7("div", {
+        className: "flex flex-wrap items-center gap-1 border-b border-(--dk-borde-suave) px-3 py-1",
         children: [
           // Menú Archivo
-          jsxs6("div", { ref: refArchivo, className: "relative", children: [
-            jsx6("button", {
+          jsxs7("div", { ref: refArchivo, className: "relative", children: [
+            jsx7("button", {
               type: "button",
               onClick: () => setMenuArchivo((v2) => !v2),
-              className: "flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 cursor-pointer",
-              children: ["\u{1F4C4} Archivo \u25BE"]
+              "aria-expanded": menuArchivo,
+              className: "dk-btn",
+              children: [t("format.file")]
             }),
-            menuArchivo ? jsxs6("div", {
-              className: "absolute left-0 top-full z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white py-1 shadow-xl text-xs",
+            menuArchivo ? jsxs7("div", {
+              className: "absolute left-0 top-full z-50 mt-1 w-64 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl text-xs",
               children: [
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     if (onCargarEscritoDemo) onCargarEscritoDemo();
                     setMenuArchivo(false);
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u2728 Cargar escrito de demostraci\xF3n (CT)"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.load.demo.brief.ct")]
                 }),
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: importarArchivoLocal,
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u{1F4C2} Abrir archivo (.md, .txt, .html)\u2026"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.open.file.md.txt.html")]
                 }),
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     if (onGuardarAhora) onGuardarAhora();
                     setMenuArchivo(false);
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u{1F4BE} Guardar ahora"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.save.now")]
                 }),
-                jsx6("div", { className: "my-1 h-px bg-slate-200" }),
-                jsx6("button", {
+                jsx7("div", { className: "my-1 h-px bg-(--dk-superficie-2)" }),
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     const editor = editorRef && editorRef.current;
                     if (editor) exportarArchivo("md", "text/markdown", textoDelEditor(editor));
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u2B07 Exportar como Markdown (.md)"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.export.markdown.md")]
                 }),
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     const editor = editorRef && editorRef.current;
                     if (editor) exportarArchivo("txt", "text/plain", textoDelEditor(editor));
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u2B07 Exportar como Texto (.txt)"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.export.text.txt")]
                 }),
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     const editor = editorRef && editorRef.current;
                     if (editor) exportarArchivo("html", "text/html", editor.getHTML());
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u2B07 Exportar como HTML (.html)"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.export.html.html")]
                 }),
-                jsx6("div", { className: "my-1 h-px bg-slate-200" }),
-                jsx6("button", {
+                jsx7("div", { className: "my-1 h-px bg-(--dk-superficie-2)" }),
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     const editor = editorRef && editorRef.current;
                     if (editor) editor.commands.setContent("<p></p>");
                     setMenuArchivo(false);
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-red-600 hover:bg-red-50",
-                  children: ["\u{1F9F9} Vaciar escrito actual"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left " + S.bad + " hover:bg-(--dk-sobre)",
+                  children: [t("format.clear.brief")]
                 }),
-                jsx6("button", {
+                jsx7("button", {
                   type: "button",
                   onClick: () => {
                     setMenuArchivo(false);
                     window.print();
                   },
-                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
-                  children: ["\u{1F5A8} Imprimir / Guardar PDF"]
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)",
+                  children: [t("format.print.save.pdf")]
                 })
               ]
             }) : null
           ] }),
           // Toggle Escribir | Leer (exactamente como en imagen 2)
-          jsxs6("div", {
-            className: "flex items-center gap-0.5 rounded-md bg-slate-100 p-0.5 border border-slate-200",
+          jsxs7("div", {
+            className: "flex items-center gap-0.5 rounded-md bg-(--dk-superficie-2) p-0.5 border border-(--dk-borde)",
             children: [
-              jsx6("button", {
+              jsx7("button", {
                 type: "button",
                 onClick: () => onCambiarModoVista && onCambiarModoVista("write"),
-                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista !== "read" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"),
-                children: ["\u270E Escribir"]
+                "aria-pressed": modoVista !== "read",
+                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista !== "read" ? "bg-(--dk-elevada) text-(--dk-texto) shadow-2xs" : "text-(--dk-texto-3) hover:text-(--dk-texto)"),
+                children: [t("format.write")]
               }),
-              jsx6("button", {
+              jsx7("button", {
                 type: "button",
                 onClick: () => onCambiarModoVista && onCambiarModoVista("read"),
-                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista === "read" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"),
-                children: ["\u{1F4D6} Leer"]
+                "aria-pressed": modoVista === "read",
+                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista === "read" ? "bg-(--dk-elevada) text-(--dk-texto) shadow-2xs" : "text-(--dk-texto-3) hover:text-(--dk-texto)"),
+                children: [t("format.read")]
               })
             ]
           }),
-          jsx6(Separador, {}),
+          jsx7(Separador, {}),
           // Selector de Documento / Caso + Crear caso
-          jsxs6("div", { className: "flex items-center gap-1.5", children: [
-            jsx6("span", { className: "text-xs text-slate-500", children: "Documento" }),
-            jsx6("select", {
+          jsxs7("div", { className: "flex items-center gap-1.5", children: [
+            jsx7("span", { className: "text-xs text-(--dk-texto-3)", children: t("format.brief.label") }),
+            jsx7("select", {
               value: caseId,
               onChange: (e3) => onCambiarCaso && onCambiarCaso(e3.target.value),
-              ariaLabel: "Documento o caso activo",
-              className: "h-7 max-w-56 rounded border border-slate-300 bg-white px-2 text-xs text-slate-800 outline-none focus:border-indigo-500",
-              children: casos === null ? jsx6("option", { value: caseId, children: "Cargando casos\u2026" }) : opcionesCaso.map((c4) => jsx6("option", {
+              "aria-label": t("format.active.brief.or.case"),
+              className: "h-7 max-w-56 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 text-xs text-(--dk-texto) outline-none focus:border-(--dk-acento)",
+              children: casos === null ? jsx7("option", { value: caseId, children: t("format.loading.cases") }) : opcionesCaso.map((c4) => jsx7("option", {
                 key: c4.case_id,
                 value: c4.case_id,
-                children: c4.case_id === "borrador" ? "default \u2014 borrador (sin caso)" : c4.case_id + (c4.legal_question ? " \u2014 " + String(c4.legal_question).slice(0, 48) : "")
+                children: c4.case_id === "borrador" ? t("format.default.draft.no.case") : c4.case_id + (c4.legal_question ? " \u2014 " + String(c4.legal_question).slice(0, 48) : "")
               }))
             }),
-            jsx6("button", {
+            jsx7("button", {
               type: "button",
               onClick: () => setModalNuevoCaso((v2) => !v2),
-              title: "Crear o sembrar un caso NIF para vincular el escrito",
-              className: "flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-700 hover:bg-slate-100 cursor-pointer",
+              title: t("format.create.or.load.a.case.for.this.brief"),
+              className: "dk-btn dk-btn--icono",
+              "aria-label": t("format.create.or.link.a.case"),
               children: "+"
             }),
-            jsx6("span", {
-              className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + infoGuardado.cls,
+            jsx7("span", {
+              role: "status",
+              className: infoGuardado.cls,
               children: infoGuardado.label
             })
           ] }),
-          jsx6(Separador, {}),
+          jsx7(Separador, {}),
           // Deshacer / Rehacer
-          jsx6(BotonBarra, {
-            title: "Deshacer (Ctrl+Z)",
+          jsx7(BotonBarra, {
+            title: t("format.undo.ctrl.z"),
             disabled: !ed || !ed.can().undo(),
             onClick: () => comando((e3) => e3.chain().focus().undo().run()),
             children: "\u21B6"
           }),
-          jsx6(BotonBarra, {
-            title: "Rehacer (Ctrl+Y)",
+          jsx7(BotonBarra, {
+            title: t("format.redo.ctrl.y"),
             disabled: !ed || !ed.can().redo(),
             onClick: () => comando((e3) => e3.chain().focus().redo().run()),
             children: "\u21B7"
           }),
-          jsx6(Separador, {}),
+          jsx7(Separador, {}),
           // Selector de fuente del papel
-          jsx6("select", {
+          jsx7("select", {
             value: prefs && prefs.fuente || FUENTES[0].value,
             onChange: (e3) => onCambiarPrefs && onCambiarPrefs({ fuente: e3.target.value }),
-            title: "Tipograf\xEDa de la hoja del escrito",
-            className: "h-7 max-w-40 rounded border border-slate-300 bg-white px-1.5 text-xs text-slate-700 cursor-pointer",
-            children: FUENTES.map((f2) => jsx6("option", { key: f2.label, value: f2.value, children: f2.label }))
+            title: t("format.brief.font"),
+            className: "h-7 max-w-40 rounded border border-(--dk-borde) bg-(--dk-elevada) px-1.5 text-xs text-(--dk-texto-2) cursor-pointer",
+            children: FUENTES.map((f2) => jsx7("option", { key: f2.label, value: f2.value, children: f2.label }))
           }),
           // Selector de tamaño de fuente
-          jsx6("select", {
+          jsx7("select", {
             value: prefs && prefs.tamano_fuente || "12",
             onChange: (e3) => onCambiarPrefs && onCambiarPrefs({ tamano_fuente: e3.target.value }),
-            title: "Tama\xF1o de letra (pt)",
-            className: "h-7 w-16 rounded border border-slate-300 bg-white px-1 text-xs text-slate-700 cursor-pointer",
-            children: TAMANOS.map((t4) => jsx6("option", { key: t4, value: t4, children: t4 + " pt" }))
+            title: t("format.font.size.pt"),
+            className: "h-7 w-16 rounded border border-(--dk-borde) bg-(--dk-elevada) px-1 text-xs text-(--dk-texto-2) cursor-pointer",
+            children: TAMANOS.map((t5) => jsx7("option", { key: t5, value: t5, children: t5 + " pt" }))
           }),
           // Acciones rápidas a la derecha de la fila 1
-          jsxs6("div", { className: "ml-auto flex items-center gap-1.5", children: [
-            metaVerif ? jsx6("button", {
+          jsxs7("div", { className: "ml-auto flex items-center gap-1.5", children: [
+            metaVerif ? jsx7("button", {
               type: "button",
               onClick: () => onAbrirHerramienta && onAbrirHerramienta("citas"),
-              title: "Abrir detalle de verificaci\xF3n de citas",
-              className: "rounded px-2 py-1 text-[11px] font-medium cursor-pointer " + ((metaVerif.citas_fallidas || 0) > 0 ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"),
-              children: `\u2713 ${metaVerif.citas_verificadas || 0}/${metaVerif.total_citas || 0} citas`
+              title: t("format.open.citation.details"),
+              className: S.chip + " " + ((metaVerif.citas_fallidas || 0) > 0 ? S.chipBad : S.chipOk) + " cursor-pointer",
+              children: t("format.citationCount", { ok: metaVerif.citas_verificadas || 0, total: metaVerif.total_citas || 0 })
             }) : null,
-            jsx6("button", {
+            jsx7("button", {
               type: "button",
               onClick: onVerificar,
+              "data-dike-check": true,
               disabled: verificando || estadoDoc === "cargando",
-              className: "rounded-md bg-teal-700 hover:bg-teal-800 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white shadow-2xs cursor-pointer transition-colors",
-              children: verificando ? "Verificando\u2026" : "Verificar citas"
+              className: "dk-btn dk-btn--primario",
+              children: verificando ? t("writer.checking") : t("writer.check.citations")
             }),
-            jsx6("button", {
+            jsx7("button", {
               type: "button",
               onClick: () => onAbrirHerramienta && onAbrirHerramienta("ajustes"),
-              title: "Configurar copilot jur\xEDdico (predicci\xF3n) y personalizaci\xF3n de vista",
-              className: "flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer",
-              children: "\u2699"
+              title: t("format.configure.suggestions.and.appearance"),
+              "aria-label": t("format.writer.settings"),
+              className: "dk-btn dk-btn--chico",
+              children: t("format.settings")
             })
           ] })
         ]
       }),
       // Modal inline para crear o sembrar un caso NIF desde la barra
-      modalNuevoCaso ? jsxs6("div", {
-        className: "flex flex-wrap items-center gap-2 border-b border-indigo-100 bg-indigo-50/70 px-3 py-1.5 text-xs",
+      modalNuevoCaso ? jsxs7("div", {
+        className: "flex flex-wrap items-center gap-2 border-b border-(--dk-borde-suave) bg-(--dk-superficie) px-3 py-1.5 text-xs",
         children: [
-          jsx6("span", { className: "font-semibold text-indigo-800", children: "Vincular caso NIF:" }),
-          jsx6("input", {
+          jsx7("span", { className: "font-semibold text-(--dk-texto)", children: t("format.link.a.case") }),
+          jsx7("input", {
             value: nuevoCaseId,
             onChange: (e3) => setNuevoCaseId(e3.target.value),
-            placeholder: "id-del-caso (ej. causa-despido)",
-            className: "h-7 w-44 rounded border border-indigo-200 bg-white px-2 text-xs text-slate-800 outline-none"
+            placeholder: t("format.case.id.e.g.dismissal.case"),
+            className: "dk-campo w-44"
           }),
-          jsx6("input", {
+          jsx7("input", {
             value: nuevaPregunta,
             onChange: (e3) => setNuevaPregunta(e3.target.value),
-            placeholder: "Pregunta jur\xEDdica del caso\u2026",
-            className: "h-7 flex-1 min-w-52 rounded border border-indigo-200 bg-white px-2 text-xs text-slate-800 outline-none"
+            placeholder: t("format.case.s.legal.question"),
+            className: "dk-campo flex-1 min-w-52"
           }),
-          jsx6("button", {
+          jsx7("button", {
             type: "button",
             disabled: !nuevoCaseId.trim() || !nuevaPregunta.trim(),
             onClick: () => {
@@ -27730,146 +30928,148 @@ function BarraFormato({
               setNuevaPregunta("");
               setModalNuevoCaso(false);
             },
-            className: "rounded bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-40 cursor-pointer",
-            children: "Crear caso"
+            className: "dk-btn dk-btn--primario",
+            children: t("format.create.case")
           }),
-          onSembrarDemoCaso ? jsx6("button", {
+          onSembrarDemoCaso ? jsx7("button", {
             type: "button",
             onClick: () => {
               onSembrarDemoCaso();
               setModalNuevoCaso(false);
             },
-            className: "rounded border border-indigo-300 bg-white px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100 cursor-pointer",
-            children: "Cargar caso demo (CT)"
+            className: "dk-btn dk-btn--borde",
+            children: t("format.load.demo.case.ct")
           }) : null,
-          jsx6("button", {
+          jsx7("button", {
             type: "button",
             onClick: () => setModalNuevoCaso(false),
-            className: "ml-auto text-slate-500 hover:text-slate-800 px-1",
+            "aria-label": t("format.close"),
+            className: "dk-btn dk-btn--icono ml-auto",
             children: "\u2715"
           })
         ]
       }) : null,
       // ── FILA 2: Formato de texto + Formalismos + Estadísticas rápidas ──
-      jsxs6("div", {
-        className: "flex flex-wrap items-center gap-0.5 px-3 py-1 bg-slate-50/50",
+      jsxs7("div", {
+        className: "flex flex-wrap items-center gap-0.5 px-3 py-1 bg-(--dk-superficie)",
         children: [
-          jsx6(BotonBarra, {
-            title: "Negrita (Ctrl+B)",
+          jsx7(BotonBarra, {
+            title: t("format.bold.ctrl.b"),
             activo: ed && ed.isActive("bold"),
             onClick: () => comando((e3) => e3.chain().focus().toggleBold().run()),
-            children: jsx6("b", { className: "font-serif text-sm", children: "B" })
+            children: jsx7("b", { className: "font-serif text-sm", children: "B" })
           }),
-          jsx6(BotonBarra, {
-            title: "Cursiva (Ctrl+I)",
+          jsx7(BotonBarra, {
+            title: t("format.italic.ctrl.i"),
             activo: ed && ed.isActive("italic"),
             onClick: () => comando((e3) => e3.chain().focus().toggleItalic().run()),
-            children: jsx6("i", { className: "font-serif text-sm", children: "I" })
+            children: jsx7("i", { className: "font-serif text-sm", children: "I" })
           }),
-          jsx6(BotonBarra, {
-            title: "Tachado",
+          jsx7(BotonBarra, {
+            title: t("format.strikethrough"),
             activo: ed && ed.isActive("strike"),
             onClick: () => comando((e3) => e3.chain().focus().toggleStrike().run()),
-            children: jsx6("s", { className: "font-serif text-sm", children: "S" })
+            children: jsx7("s", { className: "font-serif text-sm", children: "S" })
           }),
-          jsx6(Separador, {}),
-          jsx6(BotonBarra, {
-            title: "T\xEDtulo 1",
+          jsx7(Separador, {}),
+          jsx7(BotonBarra, {
+            title: t("format.heading.1"),
             activo: ed && ed.isActive("heading", { level: 1 }),
             onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 1 }).run()),
             children: "H\u2081"
           }),
-          jsx6(BotonBarra, {
-            title: "T\xEDtulo 2",
+          jsx7(BotonBarra, {
+            title: t("format.heading.2"),
             activo: ed && ed.isActive("heading", { level: 2 }),
             onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 2 }).run()),
             children: "H\u2082"
           }),
-          jsx6(BotonBarra, {
-            title: "T\xEDtulo 3",
+          jsx7(BotonBarra, {
+            title: t("format.heading.3"),
             activo: ed && ed.isActive("heading", { level: 3 }),
             onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 3 }).run()),
             children: "H\u2083"
           }),
-          jsx6(BotonBarra, {
-            title: "P\xE1rrafo normal",
+          jsx7(BotonBarra, {
+            title: t("format.paragraph"),
             activo: ed && ed.isActive("paragraph"),
             onClick: () => comando((e3) => e3.chain().focus().setParagraph().run()),
             children: "\xB6"
           }),
-          jsx6(Separador, {}),
-          jsx6(BotonBarra, {
-            title: "Lista con vi\xF1etas",
+          jsx7(Separador, {}),
+          jsx7(BotonBarra, {
+            title: t("format.bullet.list"),
             activo: ed && ed.isActive("bulletList"),
             onClick: () => comando((e3) => e3.chain().focus().toggleBulletList().run()),
-            children: "\u2022 Lista"
+            children: t("format.list")
           }),
-          jsx6(BotonBarra, {
-            title: "Lista numerada",
+          jsx7(BotonBarra, {
+            title: t("format.numbered.list"),
             activo: ed && ed.isActive("orderedList"),
             onClick: () => comando((e3) => e3.chain().focus().toggleOrderedList().run()),
-            children: "1. Lista"
+            children: t("format.1.list")
           }),
-          jsx6(BotonBarra, {
-            title: "Bloque de cita / sangr\xEDa",
+          jsx7(BotonBarra, {
+            title: t("format.block.quote"),
             activo: ed && ed.isActive("blockquote"),
             onClick: () => comando((e3) => e3.chain().focus().toggleBlockquote().run()),
-            children: "\u275D Cita"
+            children: t("format.quote")
           }),
-          jsx6(BotonBarra, {
-            title: "L\xEDnea divisoria horizontal",
+          jsx7(BotonBarra, {
+            title: t("format.horizontal.rule"),
             onClick: () => comando((e3) => e3.chain().focus().setHorizontalRule().run()),
             children: "\u2015"
           }),
-          jsx6(Separador, {}),
+          jsx7(Separador, {}),
           // Menú de inserción rápida de formalismos procesales
-          jsxs6("div", { ref: refFormalismo, className: "relative", children: [
-            jsx6("button", {
+          jsxs7("div", { ref: refFormalismo, className: "relative", children: [
+            jsx7("button", {
               type: "button",
               onClick: () => setMenuFormalismos((v2) => !v2),
-              className: "flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-700 hover:bg-slate-100 cursor-pointer",
-              title: "Insertar encabezado o f\xF3rmula procesal chilena",
-              children: ["\xA7 Formalismo \u25BE"]
+              "aria-expanded": menuFormalismos,
+              className: "dk-btn dk-btn--borde",
+              title: t("format.insert.a.chilean.pleading.formula"),
+              children: [t("format.pleading.formulas")]
             }),
-            menuFormalismos ? jsxs6("div", {
-              className: "absolute left-0 top-full z-40 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-xl text-xs",
-              children: FORMALISMOS_RAPIDOS.map((f2) => jsx6("button", {
+            menuFormalismos ? jsxs7("div", {
+              className: "absolute left-0 top-full z-40 mt-1 w-56 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl text-xs",
+              children: FORMALISMOS_RAPIDOS.map((f2) => jsx7("button", {
                 key: f2.label,
                 type: "button",
                 onClick: () => {
                   comando((e3) => e3.chain().focus().insertContent(f2.texto).run());
                   setMenuFormalismos(false);
                 },
-                className: "flex w-full items-center px-3 py-1.5 text-left font-mono text-[11px] text-slate-700 hover:bg-slate-100",
+                className: "flex w-full items-center px-3 py-1.5 text-left font-mono text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre)",
                 children: f2.label
               }))
             }) : null
           ] }),
           // Cargar escrito demo rápido si el documento está vacío
-          numPalabras === 0 && onCargarEscritoDemo ? jsx6("button", {
+          numPalabras === 0 && onCargarEscritoDemo ? jsx7("button", {
             type: "button",
             onClick: onCargarEscritoDemo,
-            className: "ml-1 rounded border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100 cursor-pointer",
-            children: "\u2728 Cargar escrito demo"
+            className: "dk-btn dk-btn--borde dk-btn--chico ml-1",
+            children: t("format.load.demo.brief.label")
           }) : null,
           // Resumen rápido a la derecha de la fila 2
-          jsxs6("div", {
-            className: "ml-auto flex items-center gap-3 text-[11px] text-slate-500",
+          jsxs7("div", {
+            className: "ml-auto flex items-center gap-3 text-xs text-(--dk-texto-3)",
             children: [
-              jsx6("span", { children: `${numPalabras} palabras` }),
-              jsx6("button", {
+              jsx7("span", { children: t("format.words", { n: numPalabras }) }),
+              jsx7("button", {
                 type: "button",
                 onClick: () => onAbrirHerramienta && onAbrirHerramienta("estilo"),
-                className: "text-teal-700 hover:underline cursor-pointer font-medium",
-                title: "Abrir revisi\xF3n de estilo LexO Escribe Claro",
-                children: "\u270D Escribe Claro"
+                className: S.link + " font-medium",
+                title: t("format.open.plain.language.review"),
+                children: t("format.style")
               }),
-              jsx6("button", {
+              jsx7("button", {
                 type: "button",
                 onClick: () => onAbrirHerramienta && onAbrirHerramienta("privacidad"),
-                className: "text-amber-700 hover:underline cursor-pointer font-medium",
-                title: "Abrir control de seudonimizaci\xF3n y privacidad",
-                children: "\u{1F6E1} Privacidad"
+                className: S.link + " font-medium",
+                title: t("format.open.privacy.settings"),
+                children: t("format.privacy")
               })
             ]
           })
@@ -27878,63 +31078,91 @@ function BarraFormato({
     ]
   });
 }
+var BarraFormato = memo6(BarraFormatoImpl);
 
 // src/escritor/escribe-claro-panel.js
-import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
-import { useCallback as useCallback6, useEffect as useEffect7, useRef as useRef6, useState as useState7 } from "react";
+import { memo as memo7 } from "react";
+import { jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
+import { useCallback as useCallback7, useEffect as useEffect8, useRef as useRef8, useState as useState8 } from "react";
 var ETIQUETA_CAT = {
-  arcaismo: "Arca\xEDsmos y f\xF3rmulas burocr\xE1ticas",
-  nominalizacion: "Nominalizaciones verbales",
-  legibilidad: "Legibilidad y extensi\xF3n",
-  voz_pasiva: "Voz pasiva",
-  alineacion_judicial: "Alineaci\xF3n judicial"
+  get arcaismo() {
+    return t("style.archaic.and.bureaucratic.wording");
+  },
+  get nominalizacion() {
+    return t("style.nominalizations.label");
+  },
+  get legibilidad() {
+    return t("style.readability.and.length");
+  },
+  get voz_pasiva() {
+    return t("style.passive.voice");
+  },
+  get alineacion_judicial() {
+    return t("style.judicial.writing.patterns");
+  }
+};
+var colorNota = (id) => {
+  const c4 = COLORES_NOTA.find((x3) => x3.id === id);
+  return c4 ? c4.hex : null;
 };
 var META_NODO_ARG = {
-  hecho: { label: "HECHO", corto: "H", color: "#bbf7d0", badge: "bg-emerald-100 text-emerald-800 border-emerald-300" },
-  norma: { label: "NORMA", corto: "N", color: "#bfdbfe", badge: "bg-sky-100 text-sky-800 border-sky-300" },
-  prueba: { label: "PRUEBA", corto: "P", color: "#fed7aa", badge: "bg-amber-100 text-amber-800 border-amber-300" },
-  conclusion: { label: "CONCLUSI\xD3N", corto: "C", color: "#fef08a", badge: "bg-violet-100 text-violet-800 border-violet-300" },
-  orphan: { label: "SIN TIPO", corto: "?", color: "#f1f5f9", badge: "bg-slate-100 text-slate-600 border-slate-300" }
+  hecho: { get label() {
+    return t("style.fact.label");
+  }, corto: "H", color: colorNota("verde"), badge: S.chip + " " + S.chipOk },
+  norma: { get label() {
+    return t("style.norm");
+  }, corto: "N", color: colorNota("azul"), badge: S.chip + " " + S.chipInfo },
+  prueba: { get label() {
+    return t("style.evidence");
+  }, corto: "P", color: colorNota("naranja"), badge: S.chip + " " + S.chipWarn },
+  conclusion: { get label() {
+    return t("style.conclusion");
+  }, corto: "C", color: colorNota("amarillo"), badge: S.chip + " " + S.chipAcento },
+  orphan: { get label() {
+    return t("style.unclassified");
+  }, corto: "?", color: null, badge: S.chip + " " + S.chipOff }
 };
 function colorPuntaje(score) {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-red-600";
+  if (score >= 75) return S.ok;
+  if (score >= 50) return S.warn;
+  return S.bad;
 }
 function barraPuntaje(score) {
-  if (score >= 75) return "bg-emerald-500";
-  if (score >= 50) return "bg-amber-500";
-  return "bg-red-500";
+  if (score >= 75) return "bg-(--dk-ok)";
+  if (score >= 50) return "bg-(--dk-aviso)";
+  return "bg-(--dk-mal)";
 }
 function FilaMetrica({ label: label2, valor, sub: sub2, claseValor }) {
-  return jsxs7("div", {
-    className: "flex items-center justify-between border-b border-slate-100 py-1.5 text-xs last:border-0",
+  return jsxs8("div", {
+    className: "flex items-center justify-between border-b border-(--dk-borde-suave) py-1.5 text-xs last:border-0",
     children: [
-      jsx7("span", { className: "text-slate-600", children: label2 }),
-      jsxs7("div", { className: "flex items-center gap-1.5", children: [
-        sub2 ? jsx7("span", { className: "text-[10px] text-slate-400", children: sub2 }) : null,
-        jsx7("span", { className: "font-semibold " + (claseValor || "text-slate-800"), children: String(valor) })
+      jsx8("span", { className: "text-(--dk-texto-2)", children: label2 }),
+      jsxs8("div", { className: "flex items-center gap-1.5", children: [
+        sub2 ? jsx8("span", { className: "text-xs text-(--dk-texto-3)", children: sub2 }) : null,
+        jsx8("span", { className: "font-semibold " + (claseValor || "text-(--dk-texto)"), children: String(valor) })
       ] })
     ]
   });
 }
-function PanelEscribeClaro({
+function PanelEscribeClaroImpl({
   editorRef,
   docInfo,
   contextoInicial,
   autoAnalizarInicial,
   onEnviarAPizarra
 }) {
-  const [subTab, setSubTab] = useState7("estilo");
-  const [contexto, setContexto] = useState7(contextoInicial || "escrito");
-  const [autoAnalizar, setAutoAnalizar] = useState7(Boolean(autoAnalizarInicial));
-  const [vistaOraciones, setVistaOraciones] = useState7(false);
-  const [resultado, setResultado] = useState7(null);
-  const [grafoArg, setGrafoArg] = useState7(null);
-  const [ocupado, setOcupado] = useState7(false);
-  const [error2, setError] = useState7(null);
-  const timerRef = useRef6(null);
-  const ejecutarAnalisis = useCallback6((ctx = contexto) => {
+  useIdioma();
+  const [subTab, setSubTab] = useState8("estilo");
+  const [contexto, setContexto] = useState8(contextoInicial || "escrito");
+  const [autoAnalizar, setAutoAnalizar] = useState8(Boolean(autoAnalizarInicial));
+  const [vistaOraciones, setVistaOraciones] = useState8(false);
+  const [resultado, setResultado] = useState8(null);
+  const [grafoArg, setGrafoArg] = useState8(null);
+  const [ocupado, setOcupado] = useState8(false);
+  const [error2, setError] = useState8(null);
+  const timerRef = useRef8(null);
+  const analisisSeq = useRef8(0);
+  const ejecutarAnalisis = useCallback7((ctx = contexto) => {
     const ed = editorRef && editorRef.current;
     if (!ed) return;
     const texto = textoDelEditor(ed).trim();
@@ -27943,6 +31171,7 @@ function PanelEscribeClaro({
       setGrafoArg(null);
       return;
     }
+    const seq = ++analisisSeq.current;
     setOcupado(true);
     setError(null);
     Promise.all([
@@ -27955,20 +31184,24 @@ function PanelEscribeClaro({
         body: { texto }
       })
     ]).then(([resEstilo, resGrafo]) => {
+      if (seq !== analisisSeq.current) return;
       setResultado(resEstilo);
       setGrafoArg(resGrafo);
     }).catch((e3) => {
+      if (seq !== analisisSeq.current) return;
       setError(e3);
-    }).finally(() => setOcupado(false));
+    }).finally(() => {
+      if (seq === analisisSeq.current) setOcupado(false);
+    });
   }, [editorRef, contexto]);
-  useEffect7(() => {
+  useEffect8(() => {
     if (!autoAnalizar) return;
     if (!(docInfo && docInfo.texto && docInfo.texto.trim())) return;
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => ejecutarAnalisis(contexto), 1200);
-    return () => clearTimeout(timerRef.current);
+    cancelarTarea(timerRef.current);
+    timerRef.current = programarTimeout(() => ejecutarAnalisis(contexto), 1200);
+    return () => cancelarTarea(timerRef.current);
   }, [autoAnalizar, docInfo && docInfo.texto, contexto, ejecutarAnalisis]);
-  const reemplazarTermino = useCallback6((termino, reemplazo) => {
+  const reemplazarTermino = useCallback7((termino, reemplazo) => {
     const ed = editorRef && editorRef.current;
     if (!ed || !termino || !reemplazo) return;
     const texto = textoDelEditor(ed);
@@ -27981,9 +31214,9 @@ function PanelEscribeClaro({
     const original = texto.slice(primero.inicio, primero.fin);
     const textoFinal = original[0] && original[0] === original[0].toUpperCase() && original[0] !== original[0].toLowerCase() ? reemplazo.charAt(0).toUpperCase() + reemplazo.slice(1) : reemplazo;
     reemplazarRangos(ed, [rango], textoFinal);
-    setTimeout(() => ejecutarAnalisis(contexto), 250);
+    programarTimeout(() => ejecutarAnalisis(contexto), 250);
   }, [editorRef, contexto, ejecutarAnalisis]);
-  const volcarGrafoAPizarra = useCallback6(() => {
+  const volcarGrafoAPizarra = useCallback7(() => {
     if (!grafoArg || !onEnviarAPizarra) return;
     const nodosOrig = grafoArg.nodes || [];
     if (!nodosOrig.length) return;
@@ -28016,84 +31249,86 @@ function PanelEscribeClaro({
   const sugerencias = resultado && resultado.suggestions || [];
   const oraciones = resultado && resultado.sentences || [];
   const categorias = Array.from(new Set(sugerencias.map((s2) => s2.category)));
-  return jsxs7("div", {
-    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+  return jsxs8("div", {
+    className: "flex flex-col gap-3 p-3 text-xs text-(--dk-texto)",
     children: [
       // Selector de sub-pestaña: Estilo y Claridad vs Teoría del Caso (Argumentos)
-      jsxs7("div", {
-        className: "flex items-center gap-1 rounded-md bg-slate-100 p-1 border border-slate-200",
+      jsxs8("div", {
+        className: "flex items-center gap-1 rounded-md bg-(--dk-superficie-2) p-1 border border-(--dk-borde)",
         children: [
-          jsx7("button", {
+          jsx8("button", {
             type: "button",
             onClick: () => setSubTab("estilo"),
-            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "estilo" ? "bg-teal-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"),
-            children: "\u270D Estilo y Claridad"
+            "aria-pressed": subTab === "estilo",
+            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "estilo" ? "bg-(--dk-elevada) text-(--dk-texto) shadow-2xs" : "text-(--dk-texto-2) hover:text-(--dk-texto)"),
+            children: t("style.style.and.clarity")
           }),
-          jsx7("button", {
+          jsx8("button", {
             type: "button",
             onClick: () => setSubTab("argumentos"),
-            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "argumentos" ? "bg-violet-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"),
-            children: "\u25C8 Estructura Argumentativa"
+            "aria-pressed": subTab === "argumentos",
+            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "argumentos" ? "bg-(--dk-elevada) text-(--dk-texto) shadow-2xs" : "text-(--dk-texto-2) hover:text-(--dk-texto)"),
+            children: t("style.argument.structure")
           })
         ]
       }),
       // Controles de análisis
-      jsxs7("div", {
-        className: "flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-2",
+      jsxs8("div", {
+        className: "flex flex-wrap items-center gap-2 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-2",
         children: [
-          jsx7("label", { className: "text-[11px] font-medium text-slate-600", children: "Contexto:" }),
-          jsx7("select", {
+          jsx8("label", { className: "text-xs font-medium text-(--dk-texto-2)", children: t("style.context") }),
+          jsx8("select", {
             value: contexto,
             onChange: (e3) => {
               const nuevo = e3.target.value;
               setContexto(nuevo);
               ejecutarAnalisis(nuevo);
             },
-            className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700",
+            className: "rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto-2)",
             children: [
-              jsx7("option", { key: "escrito", value: "escrito", children: "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)" }),
-              jsx7("option", { key: "demanda", value: "demanda", children: "Demanda (m\xE1x. 25 pal/oraci\xF3n)" }),
-              jsx7("option", { key: "sentencia", value: "sentencia", children: "Sentencia (m\xE1x. 20 pal/oraci\xF3n)" }),
-              jsx7("option", { key: "general", value: "general", children: "General (m\xE1x. 25 pal/oraci\xF3n)" })
+              jsx8("option", { key: "escrito", value: "escrito", children: t("style.court.brief.max.30.words.sentence") }),
+              jsx8("option", { key: "demanda", value: "demanda", children: t("style.complaint.max.25.words.sentence") }),
+              jsx8("option", { key: "sentencia", value: "sentencia", children: t("style.judgment.max.20.words.sentence") }),
+              jsx8("option", { key: "general", value: "general", children: t("style.general.max.25.words.sentence") })
             ]
           }),
-          jsxs7("label", { className: "flex items-center gap-1 text-[11px] text-slate-600 ml-auto", children: [
-            jsx7("input", {
+          jsxs8("label", { className: "flex items-center gap-1 text-xs text-(--dk-texto-2) ml-auto", children: [
+            jsx8("input", {
               type: "checkbox",
               checked: autoAnalizar,
               onChange: (e3) => setAutoAnalizar(e3.target.checked)
             }),
             "Auto"
           ] }),
-          jsx7("button", {
+          jsx8("button", {
             type: "button",
             onClick: () => ejecutarAnalisis(contexto),
             disabled: ocupado,
-            className: "rounded bg-teal-600 hover:bg-teal-700 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white cursor-pointer",
-            children: ocupado ? "Analizando\u2026" : "Analizar ahora"
+            className: "dk-btn dk-btn--borde",
+            children: ocupado ? t("style.analyzing") : t("style.analyze.now")
           })
         ]
       }),
-      error2 ? jsx7("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      error2 ? jsx8("div", { className: S.noticeBad, children: mensajeError(error2) }) : null,
       // ── VISTA 1: ESTILO Y CLARIDAD ──
-      subTab === "estilo" ? jsxs7("div", { className: "flex flex-col gap-3", children: [
-        !resultado && !ocupado ? jsx7("div", {
-          className: "rounded-md border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500",
-          children: "Pulsa \xABAnalizar ahora\xBB para evaluar legibilidad, voz pasiva, nominalizaciones, arca\xEDsmos y alineaci\xF3n judicial con LexO Escribe Claro."
+      subTab === "estilo" ? jsxs8("div", { className: "flex flex-col gap-3", children: [
+        !resultado && !ocupado ? jsx8("div", {
+          className: "rounded-md border border-dashed border-(--dk-borde) p-5 text-center text-xs text-(--dk-texto-3)",
+          children: t("style.select.analyze.now.to.review.readability.and.spanish.legal.writin")
         }) : null,
-        resultado && !vistaOraciones ? jsxs7("div", { className: "flex flex-col gap-3", children: [
+        resultado && !vistaOraciones ? jsxs8("div", { className: "flex flex-col gap-3", children: [
           // Medidor de puntaje global
-          jsxs7("div", {
-            className: "flex flex-col items-center rounded-md border border-slate-200 bg-slate-50/70 p-3",
+          jsxs8("div", {
+            className: "flex flex-col items-center rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3",
             children: [
-              jsxs7("div", { className: "flex items-baseline gap-1", children: [
-                jsx7("span", { className: "text-3xl font-black " + colorPuntaje(resultado.score), children: String(resultado.score) }),
-                jsx7("span", { className: "text-xs text-slate-400", children: "/ 100" })
+              jsxs8("div", { className: "flex items-baseline gap-1", children: [
+                jsx8("span", { className: "text-3xl font-black " + colorPuntaje(resultado.score), children: String(resultado.score) }),
+                jsx8("span", { className: "text-xs text-(--dk-texto-3)", children: "/ 100" })
               ] }),
-              jsx7("span", { className: "text-[10px] uppercase tracking-wider text-slate-500 mt-0.5", children: "Puntaje ScribeClaro de Claridad Jur\xEDdica" }),
-              jsx7("div", {
-                className: "mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200",
-                children: jsx7("div", {
+              jsx8("span", { className: "text-xs uppercase tracking-wider text-(--dk-texto-3) mt-0.5", children: t("style.plain.language.score") }),
+              jsx8("div", {
+                className: "mt-2 h-2 w-full overflow-hidden rounded-full bg-(--dk-superficie-2)",
+                children: jsx8("div", {
                   className: "h-full rounded-full transition-all " + barraPuntaje(resultado.score),
                   style: { width: Math.max(4, Math.min(100, resultado.score)) + "%" }
                 })
@@ -28101,78 +31336,78 @@ function PanelEscribeClaro({
             ]
           }),
           // Métricas globales
-          stats ? jsxs7("div", {
-            className: "rounded-md border border-slate-200 bg-white px-3 py-2",
+          stats ? jsxs8("div", {
+            className: "rounded-md border border-(--dk-borde) bg-(--dk-elevada) px-3 py-2",
             children: [
-              jsx7("div", { className: "pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "M\xE9tricas del escrito" }),
-              jsx7(FilaMetrica, { label: "Total de oraciones", valor: stats.total_sentences, sub: stats.total_words + " palabras" }),
-              jsx7(FilaMetrica, {
-                label: "Promedio palabras / oraci\xF3n",
+              jsx8("div", { className: "pb-1 dk-rotulo", children: t("style.brief.metrics") }),
+              jsx8(FilaMetrica, { label: t("style.sentences.label"), valor: stats.total_sentences, sub: stats.total_words + t("style.words") }),
+              jsx8(FilaMetrica, {
+                label: t("style.average.words.per.sentence"),
                 valor: stats.avg_words_per_sentence,
-                sub: "m\xE1x. " + stats.max_words_per_sentence,
-                claseValor: stats.avg_words_per_sentence > stats.max_words_per_sentence ? "text-amber-600" : "text-emerald-600"
+                sub: t("style.max") + stats.max_words_per_sentence,
+                claseValor: stats.avg_words_per_sentence > stats.max_words_per_sentence ? S.warn : S.ok
               }),
-              jsx7(FilaMetrica, {
-                label: "Oraciones que exceden el l\xEDmite",
+              jsx8(FilaMetrica, {
+                label: t("style.sentences.over.the.limit"),
                 valor: stats.sentences_exceeding_limit,
-                claseValor: stats.sentences_exceeding_limit > 0 ? "text-amber-600" : "text-emerald-600"
+                claseValor: stats.sentences_exceeding_limit > 0 ? S.warn : S.ok
               }),
-              jsx7(FilaMetrica, {
-                label: "Voz pasiva perifr\xE1stica",
+              jsx8(FilaMetrica, {
+                label: t("style.periphrastic.passive.voice"),
                 valor: Math.round((stats.passive_ratio || 0) * 100) + "%",
-                claseValor: (stats.passive_ratio || 0) > 0.15 ? "text-amber-600" : "text-emerald-600"
+                claseValor: (stats.passive_ratio || 0) > 0.15 ? S.warn : S.ok
               }),
-              jsx7(FilaMetrica, {
-                label: "Nominalizaciones detectadas",
+              jsx8(FilaMetrica, {
+                label: t("style.nominalizations.found"),
                 valor: stats.nominalization_count,
-                claseValor: stats.nominalization_count > 0 ? "text-amber-600" : "text-emerald-600"
+                claseValor: stats.nominalization_count > 0 ? S.warn : S.ok
               }),
-              jsx7(FilaMetrica, {
-                label: "Arca\xEDsmos y f\xF3rmulas burocr\xE1ticas",
+              jsx8(FilaMetrica, {
+                label: t("style.archaic.and.bureaucratic.wording"),
                 valor: stats.archaism_count,
-                claseValor: stats.archaism_count > 0 ? "text-red-600" : "text-emerald-600"
+                claseValor: stats.archaism_count > 0 ? S.bad : S.ok
               }),
-              jsx7(FilaMetrica, {
-                label: "Alineaci\xF3n judicial (\xABcopiabilidad\xBB)",
+              jsx8(FilaMetrica, {
+                label: t("style.judicial.writing.pattern.score"),
                 valor: stats.judicial_alignment_score + "/100",
                 claseValor: colorPuntaje(stats.judicial_alignment_score)
               })
             ]
           }) : null,
           // Sugerencias accionables con reemplazo en 1 clic
-          jsxs7("div", {
-            className: "flex flex-col gap-2 rounded-md border border-slate-200 bg-white p-2.5",
+          jsxs8("div", {
+            className: "flex flex-col gap-2 rounded-md border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
             children: [
-              jsxs7("div", { className: "flex items-center justify-between", children: [
-                jsx7("span", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: `Sugerencias (${sugerencias.length})` }),
-                oraciones.length > 0 ? jsx7("button", {
+              jsxs8("div", { className: "flex items-center justify-between", children: [
+                jsx8("span", { className: "dk-rotulo", children: t("style.suggestions", { n: sugerencias.length }) }),
+                oraciones.length > 0 ? jsx8("button", {
                   type: "button",
                   onClick: () => setVistaOraciones(true),
-                  className: "text-[11px] font-medium text-teal-700 hover:underline cursor-pointer",
-                  children: `Ver desglose por oraci\xF3n (${oraciones.length}) \u2192`
+                  className: S.link + " font-medium",
+                  children: t("style.sentences_text", { n: oraciones.length })
                 }) : null
               ] }),
-              sugerencias.length === 0 ? jsx7("div", { className: "py-2 text-center text-xs text-emerald-600 font-medium", children: "\u2713 Sin observaciones de estilo \u2014 redacci\xF3n clara y directa." }) : categorias.map((cat) => {
+              sugerencias.length === 0 ? jsx8("div", { className: "py-2 text-center text-xs " + S.ok + " font-medium", children: t("style.no.style.issues.found.by.these.rules") }) : categorias.map((cat) => {
                 const lista = sugerencias.filter((s2) => s2.category === cat);
-                return jsxs7("div", {
+                return jsxs8("div", {
                   key: cat,
-                  className: "flex flex-col gap-1 border-t border-slate-100 pt-2 first:border-0 first:pt-0",
+                  className: "flex flex-col gap-1 border-t border-(--dk-borde-suave) pt-2 first:border-0 first:pt-0",
                   children: [
-                    jsxs7("div", { className: "flex items-center gap-1.5", children: [
-                      jsx7("span", { className: "rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-bold text-teal-800 border border-teal-200", children: String(lista.length) }),
-                      jsx7("span", { className: "text-xs font-semibold text-slate-700", children: ETIQUETA_CAT[cat] || cat })
+                    jsxs8("div", { className: "flex items-center gap-1.5", children: [
+                      jsx8("span", { className: S.chip, children: String(lista.length) }),
+                      jsx8("span", { className: "text-xs font-semibold text-(--dk-texto-2)", children: ETIQUETA_CAT[cat] || cat })
                     ] }),
-                    ...lista.map((s2, idx) => jsxs7("div", {
+                    ...lista.map((s2, idx) => jsxs8("div", {
                       key: idx,
-                      className: "flex flex-col gap-1 rounded border border-slate-200 bg-slate-50/70 p-2 text-[11px]",
+                      className: "flex flex-col gap-1 rounded border border-(--dk-borde) bg-(--dk-superficie) p-2 text-xs",
                       children: [
-                        jsx7("div", { className: "text-slate-700 leading-relaxed", children: s2.message }),
-                        s2.term && s2.replacement ? jsxs7("div", { className: "flex items-center gap-2 mt-0.5", children: [
-                          jsx7("button", {
+                        jsx8("div", { className: "text-(--dk-texto-2) leading-relaxed", children: s2.message }),
+                        s2.term && s2.replacement ? jsxs8("div", { className: "flex items-center gap-2 mt-0.5", children: [
+                          jsx8("button", {
                             type: "button",
                             onClick: () => reemplazarTermino(s2.term, s2.replacement),
-                            className: "rounded bg-teal-600 hover:bg-teal-700 px-2 py-0.5 text-[10px] font-medium text-white cursor-pointer",
-                            children: `Reemplazar \xAB${s2.term}\xBB por \xAB${s2.replacement}\xBB`
+                            className: "dk-btn dk-btn--borde dk-btn--chico",
+                            children: t("style.replace_text", { term: s2.term, replacement: s2.replacement })
                           })
                         ] }) : null
                       ]
@@ -28183,60 +31418,60 @@ function PanelEscribeClaro({
             ]
           }),
           // Avisos de coherencia / formato de citas
-          (resultado.coherence_warnings || []).length > 0 ? jsxs7("div", {
-            className: "flex flex-col gap-1 rounded-md border border-amber-200 bg-amber-50 p-2.5",
+          (resultado.coherence_warnings || []).length > 0 ? jsxs8("div", {
+            className: S.noticeWarn + " flex flex-col gap-1",
             children: [
-              jsx7("div", { className: "text-[10px] font-bold uppercase tracking-wider text-amber-800", children: "Observaciones de alineaci\xF3n y formato" }),
-              ...(resultado.coherence_warnings || []).map((w4, i3) => jsx7("div", {
+              jsx8("div", { className: "dk-rotulo", children: t("style.writing.pattern.and.format.notes") }),
+              ...(resultado.coherence_warnings || []).map((w4, i3) => jsx8("div", {
                 key: i3,
-                className: "text-[11px] text-amber-900 leading-relaxed",
+                className: "leading-relaxed",
                 children: "\u2022 " + w4
               }))
             ]
           }) : null
         ] }) : null,
         // Vista detallada por oración
-        resultado && vistaOraciones ? jsxs7("div", { className: "flex flex-col gap-2", children: [
-          jsxs7("div", { className: "flex items-center justify-between border-b border-slate-200 pb-1.5", children: [
-            jsx7("button", {
+        resultado && vistaOraciones ? jsxs8("div", { className: "flex flex-col gap-2", children: [
+          jsxs8("div", { className: "flex items-center justify-between border-b border-(--dk-borde) pb-1.5", children: [
+            jsx8("button", {
               type: "button",
               onClick: () => setVistaOraciones(false),
-              className: "text-xs font-semibold text-teal-700 hover:underline cursor-pointer",
-              children: "\u2190 Volver al resumen"
+              className: S.link + " font-semibold",
+              children: t("style.back.to.summary")
             }),
-            jsx7("span", { className: "text-[11px] text-slate-500", children: `${oraciones.length} oraciones analizadas` })
+            jsx8("span", { className: "text-xs text-(--dk-texto-3)", children: t("style.analyzed", { n: oraciones.length }) })
           ] }),
           ...oraciones.map((o2, idx) => {
             const tieneObs = o2.exceeds_limit || o2.is_passive || (o2.nominalizations || []).length > 0 || (o2.archaisms || []).length > 0;
-            return jsxs7("div", {
+            return jsxs8("div", {
               key: idx,
-              className: "rounded border p-2 text-[11px] " + (tieneObs ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-white"),
+              className: "rounded border p-2 text-xs " + (tieneObs ? "border-(--dk-aviso) bg-(--dk-superficie)" : "border-(--dk-borde) bg-(--dk-elevada)"),
               children: [
-                jsxs7("div", { className: "flex items-start gap-1.5", children: [
-                  jsx7("span", { className: "font-mono text-[10px] text-slate-400 shrink-0", children: "#" + (idx + 1) }),
-                  jsx7("div", { className: "flex-1 text-slate-800 leading-relaxed", children: o2.text })
+                jsxs8("div", { className: "flex items-start gap-1.5", children: [
+                  jsx8("span", { className: "font-mono text-xs text-(--dk-texto-3) shrink-0", children: "#" + (idx + 1) }),
+                  jsx8("div", { className: "flex-1 text-(--dk-texto) leading-relaxed", children: o2.text })
                 ] }),
-                jsxs7("div", { className: "mt-1.5 flex flex-wrap gap-1", children: [
-                  jsx7("span", {
-                    className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (o2.exceeds_limit ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-700"),
-                    children: o2.word_count + " palabras" + (o2.exceeds_limit ? " (excede l\xEDmite)" : "")
+                jsxs8("div", { className: "mt-1.5 flex flex-wrap gap-1", children: [
+                  jsx8("span", {
+                    className: S.chip + " " + (o2.exceeds_limit ? S.chipWarn : S.chipOk),
+                    children: o2.word_count + t("style.words") + (o2.exceeds_limit ? t("style.over.the.limit") : "")
                   }),
-                  o2.is_passive ? jsx7("span", {
-                    className: "rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800",
-                    children: "Voz pasiva"
+                  o2.is_passive ? jsx8("span", {
+                    className: S.chip + " " + S.chipInfo,
+                    children: t("style.passive.voice")
                   }) : null,
-                  ...(o2.nominalizations || []).map((n2, ni) => jsx7("span", {
+                  ...(o2.nominalizations || []).map((n2, ni) => jsx8("span", {
                     key: "n" + ni,
-                    className: "rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800",
-                    children: `nominalizaci\xF3n: ${n2.noun_phrase} \u2192 ${n2.suggested_verb}`
+                    className: S.chip + " " + S.chipAcento,
+                    children: t("style.nominalization", { noun: n2.noun_phrase, verb: n2.suggested_verb })
                   })),
-                  ...(o2.archaisms || []).map((a3, ai) => jsx7("button", {
+                  ...(o2.archaisms || []).map((a3, ai) => jsx8("button", {
                     key: "a" + ai,
                     type: "button",
                     onClick: () => reemplazarTermino(a3.term, a3.replacement),
-                    className: "rounded bg-red-100 hover:bg-red-200 px-1.5 py-0.5 text-[10px] font-medium text-red-800 cursor-pointer",
-                    title: "Clic para reemplazar en el escrito",
-                    children: `arca\xEDsmo: \xAB${a3.term}\xBB \u2192 \xAB${a3.replacement}\xBB`
+                    className: S.chip + " " + S.chipBad + " cursor-pointer",
+                    title: t("style.replace.in.the.brief"),
+                    children: t("style.archaism", { term: a3.term, replacement: a3.replacement })
                   }))
                 ] })
               ]
@@ -28245,63 +31480,63 @@ function PanelEscribeClaro({
         ] }) : null
       ] }) : null,
       // ── VISTA 2: TEORÍA DEL CASO / ESTRUCTURA ARGUMENTATIVA ──
-      subTab === "argumentos" ? jsxs7("div", { className: "flex flex-col gap-3", children: [
-        !grafoArg && !ocupado ? jsx7("div", {
-          className: "rounded-md border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500",
-          children: "Pulsa \xABAnalizar ahora\xBB para extraer la cadena argumentativa (Hecho \u2192 Norma \u2192 Prueba \u2192 Conclusi\xF3n) de los p\xE1rrafos del escrito."
+      subTab === "argumentos" ? jsxs8("div", { className: "flex flex-col gap-3", children: [
+        !grafoArg && !ocupado ? jsx8("div", {
+          className: "rounded-md border border-dashed border-(--dk-borde) p-5 text-center text-xs text-(--dk-texto-3)",
+          children: t("style.select.analyze.now.to.find.candidate.facts.norms.evidence.and.con")
         }) : null,
-        grafoArg ? jsxs7("div", { className: "flex flex-col gap-2.5", children: [
-          jsxs7("div", { className: "flex flex-wrap items-center justify-between gap-2 rounded-md border border-violet-200 bg-violet-50/70 p-2.5", children: [
-            jsxs7("div", { className: "flex items-center gap-2", children: [
-              jsx7("span", {
-                className: "rounded px-2 py-0.5 text-xs font-bold " + (grafoArg.coverage_ratio >= 0.7 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"),
-                children: Math.round((grafoArg.coverage_ratio || 0) * 100) + "% cobertura argumentativa"
+        grafoArg ? jsxs8("div", { className: "flex flex-col gap-2.5", children: [
+          jsxs8("div", { className: "flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-2.5", children: [
+            jsxs8("div", { className: "flex items-center gap-2", children: [
+              jsx8("span", {
+                className: S.chip + " " + (grafoArg.coverage_ratio >= 0.7 ? S.chipOk : S.chipWarn),
+                children: Math.round((grafoArg.coverage_ratio || 0) * 100) + t("style.argument.coverage")
               }),
-              grafoArg.has_complete_chain ? jsx7("span", {
-                className: "rounded bg-violet-600 px-2 py-0.5 text-[10px] font-semibold text-white",
-                children: "\u2713 Cadena Hecho \u2192 Norma \u2192 Conclusi\xF3n"
+              grafoArg.has_complete_chain ? jsx8("span", {
+                className: S.chip + " " + S.chipOk,
+                children: t("style.fact.norm.conclusion.chain.found")
               }) : null
             ] }),
-            onEnviarAPizarra && (grafoArg.nodes || []).length > 0 ? jsx7("button", {
+            onEnviarAPizarra && (grafoArg.nodes || []).length > 0 ? jsx8("button", {
               type: "button",
               onClick: volcarGrafoAPizarra,
-              className: "rounded bg-violet-700 hover:bg-violet-800 px-2.5 py-1 text-[11px] font-semibold text-white cursor-pointer",
-              title: "Crear tarjetas conectadas en la Pizarra Estrat\xE9gica a partir de los p\xE1rrafos del escrito",
-              children: "\u21B3 Enviar estructura a la Pizarra"
+              className: "dk-btn dk-btn--borde",
+              title: t("style.create.connected.strategy.board.cards.from.the.brief"),
+              children: t("style.send.structure.to.board")
             }) : null
           ] }),
           // Contadores por tipo
-          jsxs7("div", {
+          jsxs8("div", {
             className: "flex flex-wrap gap-1.5",
-            children: ["hecho", "norma", "prueba", "conclusion", "orphan"].map((t4) => {
-              const meta = META_NODO_ARG[t4];
-              const n2 = grafoArg.counts && grafoArg.counts[t4] || 0;
-              return jsx7("span", {
-                key: t4,
-                className: "rounded border px-2 py-0.5 text-[10px] font-semibold " + meta.badge,
+            children: ["hecho", "norma", "prueba", "conclusion", "orphan"].map((t5) => {
+              const meta = META_NODO_ARG[t5];
+              const n2 = grafoArg.counts && grafoArg.counts[t5] || 0;
+              return jsx8("span", {
+                key: t5,
+                className: "rounded border px-2 py-0.5 text-xs font-semibold " + meta.badge,
                 children: `${meta.corto} \xB7 ${meta.label}: ${n2}`
               });
             })
           }),
           // Lista de bloques clasificados
-          jsxs7("div", {
+          jsxs8("div", {
             className: "flex flex-col gap-1.5",
             children: (grafoArg.nodes || []).map((n2) => {
               const meta = META_NODO_ARG[n2.node_type] || META_NODO_ARG.orphan;
-              return jsxs7("div", {
+              return jsxs8("div", {
                 key: n2.id,
-                className: "rounded border border-slate-200 bg-white p-2 text-[11px]",
+                className: "rounded border border-(--dk-borde) bg-(--dk-elevada) p-2 text-xs",
                 children: [
-                  jsxs7("div", { className: "flex items-center justify-between gap-2 mb-1", children: [
-                    jsx7("span", { className: "rounded border px-1.5 py-0.2 text-[9px] font-bold " + meta.badge, children: meta.label }),
-                    jsx7("span", { className: "text-[10px] text-slate-400", children: "P\xE1rrafo " + (n2.paragraph_index + 1) })
+                  jsxs8("div", { className: "flex items-center justify-between gap-2 mb-1", children: [
+                    jsx8("span", { className: "rounded border px-1.5 py-0.2 text-xs font-bold " + meta.badge, children: meta.label }),
+                    jsx8("span", { className: "text-xs text-(--dk-texto-3)", children: t("style.paragraph") + (n2.paragraph_index + 1) })
                   ] }),
-                  jsx7("div", { className: "text-slate-700 leading-relaxed", children: n2.text }),
-                  (n2.markers_found || []).length > 0 ? jsxs7("div", {
+                  jsx8("div", { className: "text-(--dk-texto-2) leading-relaxed", children: n2.text }),
+                  (n2.markers_found || []).length > 0 ? jsxs8("div", {
                     className: "mt-1 flex flex-wrap gap-1",
-                    children: n2.markers_found.map((m3, mi) => jsx7("span", {
+                    children: n2.markers_found.map((m3, mi) => jsx8("span", {
                       key: mi,
-                      className: "rounded bg-slate-100 px-1.5 py-0.2 font-mono text-[9px] text-slate-600",
+                      className: "rounded bg-(--dk-superficie-2) px-1.5 py-0.2 font-mono text-xs text-(--dk-texto-2)",
                       children: "\xAB" + m3 + "\xBB"
                     }))
                   }) : null
@@ -28310,13 +31545,12 @@ function PanelEscribeClaro({
             })
           }),
           // Avisos de coherencia argumentativa
-          (grafoArg.coherence_warnings || []).length > 0 ? jsxs7("div", {
-            className: "flex flex-col gap-1 rounded border border-amber-200 bg-amber-50 p-2",
+          (grafoArg.coherence_warnings || []).length > 0 ? jsxs8("div", {
+            className: S.noticeWarn + " flex flex-col gap-1",
             children: [
-              jsx7("div", { className: "text-[10px] font-bold uppercase text-amber-800", children: "Avisos de estructura" }),
-              ...(grafoArg.coherence_warnings || []).map((w4, i3) => jsx7("div", {
+              jsx8("div", { className: "dk-rotulo", children: t("style.structure.notes") }),
+              ...(grafoArg.coherence_warnings || []).map((w4, i3) => jsx8("div", {
                 key: i3,
-                className: "text-[11px] text-amber-900",
                 children: "\u2022 " + (w4.message || w4)
               }))
             ]
@@ -28326,87 +31560,71 @@ function PanelEscribeClaro({
     ]
   });
 }
+var PanelEscribeClaro = memo7(PanelEscribeClaroImpl);
 
 // src/escritor/grafos-herramientas.js
-import { jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
-import { useCallback as useCallback7, useEffect as useEffect8, useState as useState8 } from "react";
-var _vig2 = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
-function PanelHerramientasGrafos({
+import { memo as memo8 } from "react";
+import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
+import { useCallback as useCallback8, useEffect as useEffect9, useState as useState9 } from "react";
+function PanelHerramientasGrafosImpl({
   onLlevarCitaAlEscrito,
   onAgregarAPizarra,
   onAbrirGrafo3D
 }) {
-  const [herramienta, setHerramienta] = useState8("corpus");
-  return jsxs8("div", {
-    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+  useIdioma();
+  const [herramienta, setHerramienta] = useState9("corpus");
+  return jsxs9("div", {
+    className: "flex flex-col gap-3 p-3 text-xs text-(--dk-texto)",
     children: [
       // Selector de herramientas diferenciadas de grafos
-      jsxs8("div", {
-        className: "flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-1.5",
+      jsxs9("div", {
+        className: "flex flex-col gap-1 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-1.5",
         children: [
-          jsx8("div", { className: "px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Herramientas de Grafos" }),
-          jsxs8("div", { className: "flex gap-1", children: [
-            jsx8("button", {
+          jsx9("div", { className: "px-1 dk-rotulo", children: t("graf.titulo") }),
+          jsxs9("div", { className: "flex gap-1", children: [
+            jsx9("button", {
               type: "button",
               onClick: () => setHerramienta("corpus"),
-              className: "flex-1 rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "corpus" ? "bg-sky-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
-              children: "\u{1F50D} Grafo del Corpus"
+              "aria-pressed": herramienta === "corpus",
+              className: "dk-btn dk-btn--borde flex-1",
+              children: t("graf.corpus")
             }),
-            jsx8("button", {
+            jsx9("button", {
               type: "button",
               onClick: () => setHerramienta("constructor"),
-              className: "flex-1 rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "constructor" ? "bg-indigo-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
-              children: "\u{1F3D7} Crear Grafo (Pack)"
+              "aria-pressed": herramienta === "constructor",
+              className: "dk-btn dk-btn--borde flex-1",
+              children: t("graf.crearPack")
             }),
-            jsx8("button", {
+            jsx9("button", {
               type: "button",
               onClick: () => setHerramienta("fuentes"),
-              className: "rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "fuentes" ? "bg-emerald-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
-              children: "\u25C8 Capas / 3D"
+              "aria-pressed": herramienta === "fuentes",
+              className: "dk-btn dk-btn--borde flex-1",
+              children: t("graf.fuentes")
             })
           ] })
         ]
       }),
-      herramienta === "corpus" ? jsx8(SubHerramientaCorpus, {
+      herramienta === "corpus" ? jsx9(SubHerramientaCorpus, {
         onLlevarCitaAlEscrito,
         onAgregarAPizarra,
         onAbrirGrafo3D
       }) : null,
-      herramienta === "constructor" ? jsx8(SubHerramientaConstructorOrdenamiento, {}) : null,
-      herramienta === "fuentes" ? jsx8(SubHerramientaFuentes, { onAbrirGrafo3D }) : null
+      herramienta === "constructor" ? jsx9(SubHerramientaConstructorOrdenamiento, {}) : null,
+      herramienta === "fuentes" ? jsx9(SubHerramientaFuentes, { onAbrirGrafo3D }) : null
     ]
   });
 }
 function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbrirGrafo3D }) {
-  const [q2, setQ] = useState8("");
-  const [resultados, setResultados] = useState8([]);
-  const [arbol, setArbol] = useState8(null);
-  const [ocupado, setOcupado] = useState8(false);
-  const [error2, setError] = useState8(null);
-  const [articuloLeido, setArticuloLeido] = useState8(null);
-  const [leyendoId, setLeyendoId] = useState8(null);
-  const buscar = useCallback7(() => {
-    const limpio = q2.trim();
-    if (!limpio || ocupado) return;
-    setOcupado(true);
-    setError(null);
-    setArticuloLeido(null);
-    rest("/grafo/buscar", {
-      method: "POST",
-      body: { q: limpio, limite: 15 },
-      timeoutMs: 12e4
-    }).then((d2) => {
-      setResultados(d2 && d2.resultados || []);
-      setArbol(d2 && d2.arbol || null);
-    }).catch((e3) => {
-      setError(e3);
-      setResultados([]);
-    }).finally(() => setOcupado(false));
-  }, [q2, ocupado]);
-  const leerNodo = useCallback7((r2) => {
+  const [articuloLeido, setArticuloLeido] = useState9(null);
+  const [leyendoId, setLeyendoId] = useState9(null);
+  const [errorLector, setErrorLector] = useState9(null);
+  const leerNodo = useCallback8((r2) => {
     const nid = r2.nodo_id;
     if (!nid) return;
     setLeyendoId(nid);
+    setErrorLector(null);
     rest("/grafo/leer", {
       method: "POST",
       body: { nodo_id: nid },
@@ -28414,164 +31632,115 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
     }).then((d2) => {
       setArticuloLeido({ ...d2, _res: r2 });
     }).catch((e3) => {
-      setError(e3);
+      setErrorLector(e3);
     }).finally(() => setLeyendoId(null));
   }, []);
-  return jsxs8("div", {
+  return jsxs9("div", {
     className: "flex flex-col gap-2.5",
     children: [
-      jsxs8("div", { className: "flex items-center justify-between", children: [
-        jsx8("span", { className: "text-[11px] text-slate-500", children: "B\xFAsqueda l\xE9xica BM25 + \xE1rbol de materias IndexO (sin modelo)" }),
-        onAbrirGrafo3D ? jsx8("button", {
+      jsxs9("div", { className: "flex items-center justify-between", children: [
+        jsx9("span", { className: "text-xs text-(--dk-texto-3)", children: t("graf.busquedaNota") }),
+        onAbrirGrafo3D ? jsx9("button", {
           type: "button",
           onClick: () => onAbrirGrafo3D(null),
-          className: "rounded border border-sky-300 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 hover:bg-sky-100 cursor-pointer",
-          children: "Abrir lienzo Grafo 3D \u2192"
+          className: "dk-btn dk-btn--borde dk-btn--chico",
+          children: t("graf.abrir3d")
         }) : null
       ] }),
-      jsxs8("div", { className: "flex gap-1.5", children: [
-        jsx8("input", {
-          value: q2,
-          onChange: (e3) => setQ(e3.target.value),
-          onKeyDown: (e3) => {
-            if (e3.key === "Enter") buscar();
-          },
-          placeholder: "Ej. indemnizaci\xF3n a\xF1os de servicio art\xEDculo 163\u2026",
-          className: "flex-1 rounded border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-sky-500"
-        }),
-        jsx8("button", {
-          type: "button",
-          onClick: buscar,
-          disabled: ocupado || !q2.trim(),
-          className: "rounded bg-sky-600 hover:bg-sky-700 disabled:opacity-50 px-3 py-1.5 text-xs font-semibold text-white cursor-pointer",
-          children: ocupado ? "\u2026" : "Buscar"
-        })
-      ] }),
-      error2 ? jsx8("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
-      // Clasificación del Árbol de Derecho IndexO
-      arbol && arbol.disponible && (arbol.clasificacion || []).length > 0 ? jsxs8("div", {
-        className: "flex flex-col gap-1 rounded border border-sky-200 bg-sky-50/60 p-2",
-        children: [
-          jsx8("span", { className: "text-[10px] font-bold uppercase tracking-wider text-sky-800", children: "\xC1rbol de materias (IndexO)" }),
-          jsxs8("div", {
-            className: "flex flex-wrap gap-1",
-            children: (arbol.clasificacion || []).map((m3, i3) => jsxs8("span", {
-              key: i3,
-              className: "rounded bg-white border border-sky-200 px-1.5 py-0.5 text-[10px] text-sky-900",
-              children: [
-                jsx8("b", { children: m3.nombre || m3.nodo }),
-                (m3.terminos || []).length ? " (" + m3.terminos.join(", ") + ")" : ""
-              ]
-            }))
-          })
-        ]
-      }) : null,
-      // Visor del artículo leído y sus unidades normativas
-      articuloLeido ? jsxs8("div", {
-        className: "flex flex-col gap-2 rounded-md border border-indigo-300 bg-indigo-50/40 p-2.5",
-        children: [
-          jsxs8("div", { className: "flex items-center justify-between gap-2", children: [
-            jsx8("span", { className: "font-bold text-indigo-900", children: articuloLeido._res && articuloLeido._res.cita || articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
-            jsx8("button", {
-              type: "button",
-              onClick: () => setArticuloLeido(null),
-              className: "text-xs text-slate-500 hover:text-slate-800",
-              children: "\u2715 cerrar lectura"
-            })
-          ] }),
-          jsx8("div", {
-            className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-slate-200 bg-white p-2 font-serif text-xs leading-relaxed text-slate-800",
-            children: articuloLeido.texto || "(sin texto disponible)"
-          }),
-          (articuloLeido.unidades || []).length > 0 ? jsxs8("details", { className: "text-[11px]", children: [
-            jsx8("summary", { className: "cursor-pointer font-medium text-indigo-800", children: `Unidades normativas m\xEDnimas (${articuloLeido.unidades.length})` }),
-            jsxs8("div", {
-              className: "mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto",
-              children: articuloLeido.unidades.map((u2, ui) => jsxs8("div", {
-                key: u2.id || ui,
-                className: "rounded border border-slate-200 bg-white p-1.5 text-[11px]",
-                children: [
-                  jsxs8("div", { className: "flex items-center justify-between gap-1 font-mono text-[10px] text-slate-500", children: [
-                    jsx8("span", { children: u2.id }),
-                    u2.modalidad || u2.modalidad_candidata ? jsx8("span", { className: "rounded bg-slate-100 px-1 uppercase", children: u2.modalidad || u2.modalidad_candidata }) : null
-                  ] }),
-                  jsx8("div", { className: "mt-0.5 text-slate-700", children: u2.texto })
-                ]
-              }))
-            })
-          ] }) : null
-        ]
-      }) : null,
-      // Lista de resultados
-      jsxs8("div", { className: "flex flex-col gap-1.5", children: [
-        resultados.map((r2, i3) => jsxs8("div", {
-          key: r2.nodo_id || i3,
-          className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
-          children: [
-            jsxs8("div", { className: "flex items-start justify-between gap-2", children: [
-              jsxs8("div", { className: "min-w-0 flex-1", children: [
-                jsx8("div", { className: "font-semibold text-slate-800", children: r2.cita || r2.label || r2.gid }),
-                jsx8("div", { className: "font-mono text-[10px] text-slate-400", children: [r2.nodo_id, r2.gid].filter(Boolean).join(" \xB7 ") })
+      jsx9(BuscadorCorpus, {
+        limite: 15,
+        mostrarBuscar: true,
+        placeholder: t("graf.placeholder"),
+        children: jsxs9("div", { className: "contents", children: [
+          articuloLeido ? jsxs9("div", {
+            className: S.panel + " mx-2.5 mt-1.5 flex flex-col gap-2",
+            children: [
+              jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
+                jsx9("span", { className: "font-bold text-(--dk-texto)", children: articuloLeido._res && articuloLeido._res.cita || articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
+                jsx9("button", {
+                  type: "button",
+                  onClick: () => setArticuloLeido(null),
+                  "aria-label": t("graf.cerrarLectura"),
+                  className: "dk-btn dk-btn--icono dk-btn--chico",
+                  children: "\u2715"
+                })
               ] }),
-              _vig2(r2.vigencia) ? jsx8("span", {
-                className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (_vig2(r2.vigencia) === "IN_FORCE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"),
-                children: _vig2(r2.vigencia) === "IN_FORCE" ? "vigente" : _vig2(r2.vigencia)
-              }) : null
-            ] }),
-            r2.snippet ? jsx8("div", { className: "text-[11px] text-slate-600 leading-relaxed line-clamp-3", children: String(r2.snippet).slice(0, 260) }) : null,
-            jsxs8("div", { className: "flex flex-wrap items-center gap-1.5 pt-1", children: [
-              jsx8("button", {
-                type: "button",
-                onClick: () => leerNodo(r2),
-                disabled: leyendoId === r2.nodo_id,
-                className: "rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700 cursor-pointer",
-                children: leyendoId === r2.nodo_id ? "Leyendo\u2026" : "\u{1F4D6} Leer art\xEDculo"
+              jsx9("div", {
+                className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--dk-borde) bg-(--dk-elevada) p-2 font-serif text-xs leading-relaxed text-(--dk-texto)",
+                children: articuloLeido.texto || "(sin texto disponible)"
               }),
-              r2.citable !== false && r2.cita && onLlevarCitaAlEscrito ? jsx8("button", {
-                type: "button",
-                onClick: () => onLlevarCitaAlEscrito(r2),
-                className: "rounded bg-teal-600 hover:bg-teal-700 px-2 py-0.5 text-[11px] font-medium text-white cursor-pointer",
-                title: "Inserta la cita can\xF3nica al final del escrito y la pasa por el verificador",
-                children: "+ Llevar al escrito"
-              }) : null,
-              onAgregarAPizarra ? jsx8("button", {
-                type: "button",
-                onClick: () => onAgregarAPizarra({
-                  titulo: r2.cita || r2.label || "Norma",
-                  tag: "NORMA",
-                  color: "#bfdbfe",
-                  texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 240) : ""),
-                  nodo_id: r2.nodo_id,
-                  gid: r2.gid
-                }),
-                className: "rounded border border-sky-300 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 text-[11px] text-sky-800 cursor-pointer",
-                children: "+ Pizarra"
-              }) : null,
-              r2.nodo_id && onAbrirGrafo3D ? jsx8("button", {
-                type: "button",
-                onClick: () => onAbrirGrafo3D({ nodo_id: r2.nodo_id }),
-                className: "rounded border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 text-[11px] text-indigo-700 cursor-pointer",
-                children: "\u25C8 Abrir en 3D"
-              }) : null
-            ] })
-          ]
-        }))
-      ] })
+              (articuloLeido.unidades || []).length > 0 ? jsxs9("details", { className: "text-xs", children: [
+                jsx9("summary", { className: "cursor-pointer font-medium text-(--dk-acento)", children: t("graf.unidades", { n: articuloLeido.unidades.length }) }),
+                jsxs9("div", {
+                  className: "mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto",
+                  children: articuloLeido.unidades.map((u2, ui) => jsxs9("div", {
+                    key: u2.id || ui,
+                    className: "rounded border border-(--dk-borde) bg-(--dk-elevada) p-1.5 text-xs",
+                    children: [
+                      jsxs9("div", { className: "flex items-center justify-between gap-1 dk-mono text-(--dk-texto-3)", children: [
+                        jsx9("span", { children: u2.id }),
+                        u2.modalidad || u2.modalidad_candidata ? jsx9("span", { className: "rounded bg-(--dk-superficie-2) px-1 uppercase", children: u2.modalidad || u2.modalidad_candidata }) : null
+                      ] }),
+                      jsx9("div", { className: "mt-0.5 text-(--dk-texto-2)", children: u2.texto })
+                    ]
+                  }))
+                })
+              ] }) : null
+            ]
+          }) : null,
+          errorLector ? jsx9("div", { className: "mx-2.5 mt-1.5 " + S.noticeBad, children: mensajeError(errorLector) }) : null
+        ] }),
+        renderAcciones: (r2) => [
+          jsx9("button", {
+            type: "button",
+            onClick: () => leerNodo(r2),
+            disabled: leyendoId === r2.nodo_id,
+            className: "dk-btn dk-btn--borde dk-btn--chico",
+            children: leyendoId === r2.nodo_id ? t("graf.leyendo") : t("graf.leer")
+          }),
+          r2.citable !== false && r2.cita && onLlevarCitaAlEscrito ? jsx9("button", {
+            type: "button",
+            onClick: () => onLlevarCitaAlEscrito(r2),
+            className: "dk-btn dk-btn--borde dk-btn--chico",
+            title: t("graf.llevarTitulo"),
+            children: t("graf.llevar")
+          }) : null,
+          onAgregarAPizarra ? jsx9("button", {
+            type: "button",
+            onClick: () => onAgregarAPizarra({
+              titulo: r2.cita || r2.label || t("piz.normaFallback"),
+              tag: t("style.norm"),
+              color: "#bfdbfe",
+              texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 240) : ""),
+              nodo_id: r2.nodo_id,
+              gid: r2.gid
+            }),
+            className: "dk-btn dk-btn--borde dk-btn--chico",
+            children: t("nifp.masPizarra")
+          }) : null,
+          r2.nodo_id && onAbrirGrafo3D ? jsx9("button", {
+            type: "button",
+            onClick: () => onAbrirGrafo3D({ nodo_id: r2.nodo_id }),
+            className: "dk-btn dk-btn--borde dk-btn--chico",
+            children: t("graf.abrir3dBoton")
+          }) : null
+        ]
+      })
     ]
   });
 }
 function SubHerramientaConstructorOrdenamiento() {
-  const [catalogo, setCatalogo] = useState8(null);
-  const [jurInput, setJurInput] = useState8("ar");
-  const [perfilJson, setPerfilJson] = useState8("");
-  const [paqueteJson, setPaqueteJson] = useState8("");
-  const [textoNormaNombre, setTextoNormaNombre] = useState8("xx-ley-1.txt");
-  const [textoNormaContenido, setTextoNormaContenido] = useState8("");
-  const [validacion, setValidacion] = useState8(null);
-  const [resultadoBuild, setResultadoBuild] = useState8(null);
-  const [ocupado, setOcupado] = useState8(false);
-  const [error2, setError] = useState8(null);
-  useEffect8(() => {
+  const [catalogo, setCatalogo] = useState9(null);
+  const [jurInput, setJurInput] = useState9("ar");
+  const [perfilJson, setPerfilJson] = useState9("");
+  const [paqueteJson, setPaqueteJson] = useState9("");
+  const [textoNormaNombre, setTextoNormaNombre] = useState9("xx-ley-1.txt");
+  const [textoNormaContenido, setTextoNormaContenido] = useState9("");
+  const [validacion, setValidacion] = useState9(null);
+  const [resultadoBuild, setResultadoBuild] = useState9(null);
+  const [ocupado, setOcupado] = useState9(false);
+  const [error2, setError] = useState9(null);
+  useEffect9(() => {
     rest("/ordenamiento/perfiles").then((d2) => {
       setCatalogo(d2);
       const xx = (d2 && d2.perfiles || []).find((p2) => p2.jurisdiccion === "xx") || d2 && d2.perfiles && d2.perfiles[0];
@@ -28588,7 +31757,7 @@ function SubHerramientaConstructorOrdenamiento() {
       }
     }).catch(setError);
   }, []);
-  const generarPlantilla = useCallback7(() => {
+  const generarPlantilla = useCallback8(() => {
     setOcupado(true);
     setError(null);
     setValidacion(null);
@@ -28601,14 +31770,14 @@ function SubHerramientaConstructorOrdenamiento() {
       setPaqueteJson(JSON.stringify(d2.paquete, null, 2));
     }).catch(setError).finally(() => setOcupado(false));
   }, [jurInput]);
-  const validarPerfilActual = useCallback7(() => {
+  const validarPerfilActual = useCallback8(() => {
     setError(null);
     setValidacion(null);
     let obj;
     try {
       obj = JSON.parse(perfilJson);
     } catch (e3) {
-      setError(new Error("El JSON del perfil tiene un error de sintaxis: " + e3.message));
+      setError(new Error(t("graf.errorJsonPerfil", { error: e3.message })));
       return;
     }
     setOcupado(true);
@@ -28617,7 +31786,7 @@ function SubHerramientaConstructorOrdenamiento() {
       body: { perfil: obj }
     }).then(setValidacion).catch(setError).finally(() => setOcupado(false));
   }, [perfilJson]);
-  const construirYValidarPack = useCallback7(() => {
+  const construirYValidarPack = useCallback8(() => {
     setError(null);
     setResultadoBuild(null);
     let objPerfil;
@@ -28626,7 +31795,7 @@ function SubHerramientaConstructorOrdenamiento() {
       objPerfil = JSON.parse(perfilJson);
       objPaquete = JSON.parse(paqueteJson);
     } catch (e3) {
-      setError(new Error("JSON inv\xE1lido en perfil o paquete: " + e3.message));
+      setError(new Error(t("graf.errorJson", { error: e3.message })));
       return;
     }
     const textos = {};
@@ -28643,99 +31812,99 @@ function SubHerramientaConstructorOrdenamiento() {
     }).then(setResultadoBuild).catch(setError).finally(() => setOcupado(false));
   }, [perfilJson, paqueteJson, textoNormaNombre, textoNormaContenido, catalogo]);
   const perfiles = catalogo && catalogo.perfiles || [];
-  return jsxs8("div", {
+  return jsxs9("div", {
     className: "flex flex-col gap-3",
     children: [
-      jsx8("div", {
-        className: "rounded border border-indigo-200 bg-indigo-50/70 p-2.5 text-[11px] text-indigo-950 leading-relaxed",
-        children: "Crea y valida paquetes de grafos normativos (dike-ordenamiento-pack-v1) para cualquier pa\xEDs o sistema jur\xEDdico. Todo corre offline con el detector de privacidad integrado."
+      jsx9("div", {
+        className: S.notice,
+        children: t("graf.intro")
       }),
       // Perfiles instalados
-      perfiles.length > 0 ? jsxs8("div", {
-        className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
+      perfiles.length > 0 ? jsxs9("div", {
+        className: "flex flex-col gap-1.5 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
         children: [
-          jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Perfiles de ordenamiento incluidos" }),
-          ...perfiles.map((p2) => jsxs8("div", {
+          jsx9("div", { className: "dk-rotulo", children: t("graf.perfiles") }),
+          ...perfiles.map((p2) => jsxs9("div", {
             key: p2.id,
-            className: "flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0",
+            className: "flex items-center justify-between gap-2 border-b border-(--dk-borde-suave) py-1.5 last:border-0",
             children: [
-              jsxs8("div", { className: "min-w-0", children: [
-                jsxs8("div", { className: "flex items-center gap-1.5", children: [
-                  jsx8("span", { className: "font-bold text-slate-800", children: `${p2.nombre} (${p2.jurisdiccion})` }),
-                  jsx8("span", {
-                    className: "rounded px-1.5 py-0.2 text-[9px] font-semibold " + (p2.valido ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"),
-                    children: p2.valido ? "perfil v\xE1lido" : "con errores"
+              jsxs9("div", { className: "min-w-0", children: [
+                jsxs9("div", { className: "flex items-center gap-1.5", children: [
+                  jsx9("span", { className: "font-bold text-(--dk-texto)", children: `${p2.nombre} (${p2.jurisdiccion})` }),
+                  jsx9("span", {
+                    className: S.chip + " " + (p2.valido ? S.chipOk : S.chipWarn),
+                    children: p2.valido ? t("graf.perfilValido") : t("graf.perfilErrores")
                   })
                 ] }),
-                jsx8("div", {
-                  className: "text-[10px] text-slate-500",
-                  children: (p2.tipos_norma || []).map((t4) => t4.etiqueta || t4.id).join(" \xB7 ")
+                jsx9("div", {
+                  className: "text-xs text-(--dk-texto-3)",
+                  children: (p2.tipos_norma || []).map((t5) => t5.etiqueta || t5.id).join(" \xB7 ")
                 })
               ] }),
-              jsx8("button", {
+              jsx9("button", {
                 type: "button",
                 onClick: () => {
                   setPerfilJson(JSON.stringify(p2.perfil, null, 2));
                   setValidacion(null);
                   setResultadoBuild(null);
                 },
-                className: "rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 cursor-pointer shrink-0",
-                children: "Cargar en editor"
+                className: "dk-btn dk-btn--borde dk-btn--chico shrink-0",
+                children: t("graf.cargarEditor")
               })
             ]
           }))
         ]
       }) : null,
       // Paso 1: Generar plantilla para nuevo país
-      jsxs8("div", {
-        className: "flex flex-wrap items-center gap-1.5 rounded border border-slate-200 bg-white p-2",
+      jsxs9("div", {
+        className: "flex flex-wrap items-center gap-1.5 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2",
         children: [
-          jsx8("span", { className: "text-[11px] font-semibold text-slate-700", children: "1. Nueva plantilla de pa\xEDs:" }),
-          jsx8("input", {
+          jsx9("span", { className: "text-xs font-semibold text-(--dk-texto-2)", children: t("graf.paso1") }),
+          jsx9("input", {
             value: jurInput,
             onChange: (e3) => setJurInput(e3.target.value),
-            placeholder: "c\xF3digo ISO (ej. ar, pe, es, mx)",
-            className: "w-24 rounded border border-slate-300 px-2 py-1 font-mono text-xs text-slate-800"
+            placeholder: t("graf.isoPlaceholder"),
+            className: "w-24 rounded border border-(--dk-borde) px-2 py-1 font-mono text-xs text-(--dk-texto)"
           }),
-          jsx8("button", {
+          jsx9("button", {
             type: "button",
             onClick: generarPlantilla,
             disabled: ocupado || !jurInput.trim(),
-            className: "rounded bg-slate-800 hover:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
-            children: "Generar plantilla"
+            className: "dk-btn",
+            children: t("graf.generar")
           })
         ]
       }),
       // Paso 2: Editor de perfil JSON y validación
-      jsxs8("div", {
-        className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
+      jsxs9("div", {
+        className: "flex flex-col gap-1.5 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
         children: [
-          jsxs8("div", { className: "flex items-center justify-between", children: [
-            jsx8("span", { className: "text-[11px] font-semibold text-slate-700", children: "2. Perfil del ordenamiento (JSON)" }),
-            jsx8("button", {
+          jsxs9("div", { className: "flex items-center justify-between", children: [
+            jsx9("span", { className: "text-xs font-semibold text-(--dk-texto-2)", children: t("graf.paso2") }),
+            jsx9("button", {
               type: "button",
               onClick: validarPerfilActual,
               disabled: ocupado || !perfilJson.trim(),
-              className: "rounded border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 cursor-pointer",
-              children: "Validar perfil"
+              className: "dk-btn dk-btn--borde dk-btn--chico",
+              children: t("graf.validar")
             })
           ] }),
-          jsx8("textarea", {
+          jsx9("textarea", {
             value: perfilJson,
             onChange: (e3) => setPerfilJson(e3.target.value),
             rows: 6,
-            className: "w-full rounded border border-slate-300 bg-slate-50 p-2 font-mono text-[11px] text-slate-800 outline-none focus:border-indigo-500"
+            className: "w-full rounded border border-(--dk-borde) bg-(--dk-superficie) p-2 font-mono text-xs text-(--dk-texto) outline-none focus:border-(--dk-acento)"
           }),
-          validacion ? jsxs8("div", {
-            className: "rounded p-2 text-[11px] " + (validacion.ok ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-amber-50 text-amber-900 border border-amber-200"),
+          validacion ? jsxs9("div", {
+            className: (validacion.ok ? S.noticeOk : S.noticeWarn) + " text-xs",
             children: [
-              jsx8("div", {
+              jsx9("div", {
                 className: "font-bold",
-                children: validacion.ok ? "\u2713 Perfil v\xE1lido conforme a dike-perfil-ordenamiento-v1" : `\u2717 ${validacion.errores.length} observaci\xF3n(es) en el perfil:`
+                children: validacion.ok ? t("extra.profile.valid.under.dike.perfil.ordenamiento.v1") : t("extra.profileIssues", { n: validacion.errores.length })
               }),
-              ...(validacion.errores || []).slice(0, 6).map((er, i3) => jsx8("div", {
+              ...(validacion.errores || []).slice(0, 6).map((er, i3) => jsx9("div", {
                 key: i3,
-                className: "mt-0.5 font-mono text-[10px]",
+                className: "mt-0.5 font-mono text-xs",
                 children: `[${er.codigo}] ${er.ruta}: ${er.explicacion}`
               }))
             ]
@@ -28743,115 +31912,126 @@ function SubHerramientaConstructorOrdenamiento() {
         ]
       }),
       // Paso 3: Construir y validar pack C0-C3
-      jsxs8("details", {
-        className: "rounded border border-slate-200 bg-white p-2.5",
+      jsxs9("details", {
+        className: "rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5",
         children: [
-          jsx8("summary", { className: "cursor-pointer text-[11px] font-semibold text-slate-700", children: "3. Configuraci\xF3n de paquete y texto de norma (Construir grafo)" }),
-          jsxs8("div", { className: "mt-2 flex flex-col gap-2", children: [
-            jsx8("div", { className: "text-[10px] font-semibold uppercase text-slate-400", children: "paquete.json" }),
-            jsx8("textarea", {
+          jsx9("summary", { className: "cursor-pointer text-xs font-semibold text-(--dk-texto-2)", children: t("graf.paso3") }),
+          jsxs9("div", { className: "mt-2 flex flex-col gap-2", children: [
+            jsx9("div", { className: "dk-rotulo", children: "paquete.json" }),
+            jsx9("textarea", {
               value: paqueteJson,
               onChange: (e3) => setPaqueteJson(e3.target.value),
               rows: 4,
-              className: "w-full rounded border border-slate-300 bg-slate-50 p-1.5 font-mono text-[10px] text-slate-800"
+              className: "w-full rounded border border-(--dk-borde) bg-(--dk-superficie) p-1.5 font-mono text-xs text-(--dk-texto)"
             }),
-            jsxs8("div", { className: "flex items-center gap-2", children: [
-              jsx8("span", { className: "text-[10px] text-slate-500", children: "Archivo:" }),
-              jsx8("input", {
+            jsxs9("div", { className: "flex items-center gap-2", children: [
+              jsx9("span", { className: "text-xs text-(--dk-texto-3)", children: t("graf.archivo") }),
+              jsx9("input", {
                 value: textoNormaNombre,
                 onChange: (e3) => setTextoNormaNombre(e3.target.value),
-                className: "rounded border border-slate-300 px-2 py-0.5 font-mono text-[11px]"
+                className: "rounded border border-(--dk-borde) px-2 py-0.5 font-mono text-xs"
               })
             ] }),
-            jsx8("textarea", {
+            jsx9("textarea", {
               value: textoNormaContenido,
               onChange: (e3) => setTextoNormaContenido(e3.target.value),
               rows: 4,
-              placeholder: "Art\xEDculo 1. Texto del primer art\xEDculo\u2026\nArt\xEDculo 2. Texto del segundo art\xEDculo\u2026",
-              className: "w-full rounded border border-slate-300 bg-slate-50 p-1.5 font-mono text-[10px] text-slate-800"
+              placeholder: t("graf.normaPlaceholder"),
+              className: "w-full rounded border border-(--dk-borde) bg-(--dk-superficie) p-1.5 font-mono text-xs text-(--dk-texto)"
             })
           ] })
         ]
       }),
-      jsx8("button", {
+      jsx9("button", {
         type: "button",
         onClick: construirYValidarPack,
         disabled: ocupado || !perfilJson.trim() || !paqueteJson.trim(),
-        className: "rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 py-2 px-3 text-xs font-semibold text-white cursor-pointer shadow-2xs",
-        children: ocupado ? "Construyendo y validando pack\u2026" : "\u{1F3D7} Construir pack de grafo y validar niveles C0\u2013C3"
+        className: "dk-btn dk-btn--primario",
+        children: ocupado ? t("graf.construyendo") : t("graf.construir")
       }),
-      error2 ? jsx8("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
-      resultadoBuild ? jsxs8("div", {
-        className: "flex flex-col gap-1.5 rounded-md border p-2.5 text-[11px] " + (resultadoBuild.ok ? "border-emerald-300 bg-emerald-50/70 text-emerald-950" : "border-amber-300 bg-amber-50 text-amber-950"),
+      error2 ? jsx9("div", { className: S.noticeBad, children: mensajeError(error2) }) : null,
+      resultadoBuild ? jsxs9("div", {
+        className: (resultadoBuild.ok ? S.noticeOk : S.noticeWarn) + " flex flex-col gap-1.5 text-xs",
         children: [
-          jsx8("div", {
+          jsx9("div", {
             className: "font-bold",
-            children: resultadoBuild.ok ? `\u2713 Pack construido y validado \u2014 Nivel alcanzado: ${resultadoBuild.compatibilidad.nivelAlcanzado}` : `\u2717 Construcci\xF3n detenida (${resultadoBuild.etapa || "validaci\xF3n"}): ${resultadoBuild.error || "revisa los errores"}`
+            children: resultadoBuild.ok ? t("graf.packOk", { nivel: resultadoBuild.compatibilidad.nivelAlcanzado }) : t("graf.construccionDetenida", { etapa: resultadoBuild.etapa || t("graf.etapaValidacion"), error: resultadoBuild.error || t("graf.revisaErrores") })
           }),
-          resultadoBuild.construccion ? jsxs8("div", { className: "grid grid-cols-2 gap-1 text-[11px] mt-1", children: [
-            jsx8("div", { children: `Normas: ${resultadoBuild.construccion.normas}` }),
-            jsx8("div", { children: `Art\xEDculos acu\xF1ados: ${resultadoBuild.construccion.articulos}` }),
-            jsx8("div", { children: `Aristas: ${resultadoBuild.construccion.aristas}` }),
-            jsx8("div", { children: `Vigencias: ${resultadoBuild.construccion.ventanasVigencia}` })
+          resultadoBuild.construccion ? jsxs9("div", { className: "grid grid-cols-2 gap-1 text-xs mt-1", children: [
+            jsx9("div", { children: t("graf.normas", { n: resultadoBuild.construccion.normas }) }),
+            jsx9("div", { children: t("graf.articulos", { n: resultadoBuild.construccion.articulos }) }),
+            jsx9("div", { children: t("graf.aristas", { n: resultadoBuild.construccion.aristas }) }),
+            jsx9("div", { children: t("graf.vigencias", { n: resultadoBuild.construccion.ventanasVigencia }) })
           ] }) : null,
-          resultadoBuild.construccion && resultadoBuild.construccion.manifestCoreSha256 ? jsx8("div", { className: "font-mono text-[10px] text-slate-600 break-all", children: "manifestCoreSha256: " + resultadoBuild.construccion.manifestCoreSha256 }) : null
+          resultadoBuild.construccion && resultadoBuild.construccion.manifestCoreSha256 ? jsx9("div", { className: "font-mono text-xs text-(--dk-texto-2) break-all", children: "manifestCoreSha256: " + resultadoBuild.construccion.manifestCoreSha256 }) : null
         ]
       }) : null
     ]
   });
 }
 function SubHerramientaFuentes({ onAbrirGrafo3D }) {
-  const [fuentes, setFuentes] = useState8([]);
-  const [personal, setPersonal] = useState8(null);
-  const [error2, setError] = useState8(null);
-  useEffect8(() => {
+  const [fuentes, setFuentes] = useState9(null);
+  const [personal, setPersonal] = useState9(null);
+  const [error2, setError] = useState9(null);
+  useEffect9(() => {
     rest("/grafo/fuentes").then(setFuentes).catch(setError);
     rest("/grafo/personal").then(setPersonal).catch(() => {
     });
   }, []);
-  return jsxs8("div", {
+  return jsxs9("div", {
     className: "flex flex-col gap-2.5",
     children: [
-      jsxs8("div", { className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5", children: [
-        jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Capas de grafo disponibles" }),
-        ...(fuentes || []).map((f2) => jsxs8("div", {
+      jsxs9("div", { className: "flex flex-col gap-1.5 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5", children: [
+        jsx9("div", { className: "dk-rotulo", children: t("graf.capas") }),
+        fuentes === null && !error2 ? jsx9("div", {
+          className: "py-2 text-center text-xs text-(--dk-texto-3)",
+          children: t("graf.capasCargando")
+        }) : null,
+        Array.isArray(fuentes) && !fuentes.length && !error2 ? jsx9("div", {
+          className: "py-2 text-center text-xs text-(--dk-texto-3)",
+          children: t("graf.capasVacio")
+        }) : null,
+        ...(fuentes || []).map((f2) => jsxs9("div", {
           key: f2.id,
-          className: "flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0",
+          className: "flex items-center justify-between gap-2 border-b border-(--dk-borde-suave) py-1.5 last:border-0",
           children: [
-            jsxs8("div", { children: [
-              jsx8("div", { className: "font-semibold text-slate-800", children: f2.label }),
-              jsx8("div", { className: "text-[10px] text-slate-500", children: f2.local_only ? "Capa local en este equipo" : "Corpus sellado por hash" })
+            jsxs9("div", { children: [
+              jsx9("div", { className: "font-semibold text-(--dk-texto)", children: f2.label }),
+              jsx9("div", { className: "text-xs text-(--dk-texto-3)", children: f2.local_only ? t("graf.capaLocal") : t("graf.capaSellada") })
             ] }),
-            jsx8("span", {
-              className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (f2.disponible ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"),
-              children: f2.disponible ? "disponible" : "no construida"
+            jsx9("span", {
+              className: S.chip + " " + (f2.disponible ? S.chipOk : S.chipOff),
+              children: f2.disponible ? t("graf.disponible") : t("graf.noConstruida")
             })
           ]
         })),
-        onAbrirGrafo3D ? jsx8("button", {
+        onAbrirGrafo3D ? jsx9("button", {
           type: "button",
           onClick: () => onAbrirGrafo3D(null),
-          className: "mt-1 rounded bg-emerald-600 hover:bg-emerald-700 py-1.5 px-3 text-xs font-semibold text-white cursor-pointer",
-          children: "Abrir Explorador 3D a pantalla completa"
+          className: "mt-1 dk-btn",
+          children: t("graf.explorador")
         }) : null
       ] }),
-      personal ? jsxs8("div", { className: "flex flex-col gap-1 rounded border border-slate-200 bg-white p-2.5", children: [
-        jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Grafo de Revisi\xF3n Personal (GRE)" }),
-        jsx8("div", {
-          className: "text-xs text-slate-700",
-          children: `Nodos candidatos: ${(personal.candidates || personal.nodes || []).length} \xB7 Aristas: ${(personal.edges || []).length}`
+      personal ? jsxs9("div", { className: "flex flex-col gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2.5", children: [
+        jsx9("div", { className: "dk-rotulo", children: t("graf.gre") }),
+        jsx9("div", {
+          className: "text-xs text-(--dk-texto-2)",
+          children: t("graf.greConteo", { nodos: (personal.candidates || personal.nodes || []).length, aristas: (personal.edges || []).length })
         }),
-        jsx8("div", { className: "text-[11px] text-slate-500", children: "Los candidatos del grafo personal viven en plugin-data fuera del corpus sellado." })
+        jsx9("div", { className: "text-xs text-(--dk-texto-3)", children: t("graf.greNota") })
       ] }) : null,
-      error2 ? jsx8("div", { className: "text-xs text-red-600", children: mensajeError(error2) }) : null
+      error2 ? jsx9("div", { className: S.bad, children: mensajeError(error2) }) : null
     ]
   });
 }
+var PanelHerramientasGrafos = memo8(PanelHerramientasGrafosImpl);
 
 // src/puente.js
 var cola = [];
+var TOPE_COLA = 20;
 function encolarCita(item) {
   if (!item || typeof item.cita !== "string" || !item.cita.trim()) return false;
+  if (cola.length >= TOPE_COLA) return false;
   cola.push({
     cita: item.cita,
     gid: typeof item.gid === "string" ? item.gid : null,
@@ -28884,12 +32064,19 @@ function tomarFoco() {
   foco = null;
   return out;
 }
+var pestana = null;
+function tomarPestana() {
+  const out = pestana;
+  pestana = null;
+  return out;
+}
 
 // src/escritor/escritor.js
 var BORRADOR = "borrador";
 var DEBOUNCE_GUARDADO = 800;
 var DEBOUNCE_INFO = 300;
 var MAX_INTENTOS_REPARAR = 2;
+var PIZARRA_VACIA = { nodos: [], aristas: [], colapsada: false, altura: 225 };
 var ESTILOS_ESTADO = {
   verificada: { chip: "chipOk", texto: "verificada" },
   fallo: { chip: "chipBad", texto: "FALLO" },
@@ -28899,21 +32086,27 @@ var ESTILOS_ESTADO = {
 };
 var TEMAS_HOJA = {
   clasico: {
-    label: "Papel cl\xE1sico",
+    get label() {
+      return t("writer.classic.paper");
+    },
     entorno: "#e5e7eb",
     hojaBg: "#ffffff",
     hojaTexto: "#1a1a1a",
     hojaBorde: "rgba(0,0,0,0.08)"
   },
   sepia: {
-    label: "Sepia lectura",
+    get label() {
+      return t("writer.warm.sepia");
+    },
     entorno: "#e4ddd0",
     hojaBg: "#fdf6e3",
     hojaTexto: "#2b2118",
     hojaBorde: "rgba(120,90,40,0.18)"
   },
   nocturno: {
-    label: "Tinta oscura",
+    get label() {
+      return t("writer.dark.ink");
+    },
     entorno: "#0f172a",
     hojaBg: "#1e293b",
     hojaTexto: "#f1f5f9",
@@ -28922,161 +32115,176 @@ var TEMAS_HOJA = {
 };
 var ANCHOS_HOJA = {
   a4: { label: "A4 (210 mm)", width: "210mm", padding: "2.2cm 2.6cm" },
-  carta: { label: "Carta (216 mm)", width: "216mm", padding: "2.0cm 2.4cm" },
-  ancho: { label: "Ancho fluido", width: "100%", padding: "1.6rem 2.2rem" }
+  carta: { get label() {
+    return t("writer.letter.216.mm");
+  }, width: "216mm", padding: "2.0cm 2.4cm" },
+  ancho: { get label() {
+    return t("writer.full.width");
+  }, width: "100%", padding: "1.6rem 2.2rem" }
 };
 var HERRAMIENTAS_BARRA = [
   {
     id: "citas",
-    icono: "\u2713",
-    label: "Verificador de Citas",
-    titulo: "Verificador de Citas Dik\xE9",
-    headerCls: "bg-emerald-50 border-emerald-200 text-emerald-800",
-    activeCls: "bg-emerald-600 text-white shadow-xs"
+    icono: "\xA7",
+    get label() {
+      return t("writer.citation.check");
+    },
+    get titulo() {
+      return t("writer.citation.check2");
+    }
   },
   {
     id: "privacidad",
-    icono: "\u{1F6E1}",
-    label: "Privacidad y Anonimizado",
-    titulo: "Seudonimizaci\xF3n y Privacidad (Ley 21.719)",
-    headerCls: "bg-amber-50 border-amber-200 text-amber-900",
-    activeCls: "bg-amber-600 text-white shadow-xs"
+    icono: "\u2298",
+    get label() {
+      return t("writer.privacy.label");
+    },
+    get titulo() {
+      return t("writer.privacy.and.pseudonymization.ley.21.719");
+    }
   },
   {
     id: "estilo",
-    icono: "\u270D",
-    label: "Revisi\xF3n de Estilo (LexO Escribe Claro)",
-    titulo: "Revisi\xF3n de Estilo \xB7 LexO Escribe Claro",
-    headerCls: "bg-teal-50 border-teal-200 text-teal-800",
-    activeCls: "bg-teal-600 text-white shadow-xs"
+    icono: "Aa",
+    get label() {
+      return t("writer.plain.language.review");
+    },
+    get titulo() {
+      return t("writer.plain.language.review2");
+    }
   },
   {
     id: "nif",
-    icono: "\u2442",
-    label: "NIF Interactivo y NIF Vivo",
-    titulo: "Tablero NIF Interactivo y Propuestas",
-    headerCls: "bg-indigo-50 border-indigo-200 text-indigo-800",
-    activeCls: "bg-indigo-600 text-white shadow-xs"
+    icono: "\u25A6",
+    get label() {
+      return t("writer.case.board.label");
+    },
+    get titulo() {
+      return t("writer.case.board.and.suggested.updates");
+    }
   },
   {
     id: "grafos",
     icono: "\u25C8",
-    label: "Herramientas de Grafos y Ordenamientos",
-    titulo: "Grafos del Corpus y Constructor de Ordenamientos",
-    headerCls: "bg-sky-50 border-sky-200 text-sky-900",
-    activeCls: "bg-sky-600 text-white shadow-xs"
+    get label() {
+      return t("writer.graphs.and.legal.systems");
+    },
+    get titulo() {
+      return t("writer.corpus.graph.and.legal.systems");
+    }
   },
   {
     id: "ajustes",
-    icono: "\u2699",
-    label: "Copilot y Personalizaci\xF3n",
-    titulo: "Personalizaci\xF3n de Estudio y Predicci\xF3n",
-    headerCls: "bg-violet-50 border-violet-200 text-violet-900",
-    activeCls: "bg-violet-600 text-white shadow-xs"
+    icono: "\u2726",
+    get label() {
+      return t("writer.settings.label");
+    },
+    get titulo() {
+      return t("writer.settings.and.suggestions");
+    }
   }
 ];
-function esConflicto(e3) {
-  if (!e3) return false;
-  if (e3.status === 409 || e3.statusCode === 409) return true;
-  if (e3.detail && typeof e3.detail === "object" && "rev_actual" in e3.detail) return true;
-  return /\b409\b|rev_actual/.test(String(e3.message || e3.detail || e3.error || e3));
-}
 function AccionesFallo({ detalle, acciones, onAccion }) {
   const a3 = acciones || {};
-  const [reparar, setReparar] = useState9(detalle.cita_raw || "");
-  const [motivo, setMotivo] = useState9("");
-  const [nota, setNota] = useState9("");
+  const [reparar, setReparar] = useState10(detalle.cita_raw || "");
+  const [motivo, setMotivo] = useState10("");
+  const [nota, setNota] = useState10("");
   const agotados = (a3.intentos || 0) >= MAX_INTENTOS_REPARAR;
-  return jsxs9("div", { className: "flex flex-col gap-1.5 mt-1.5 rounded border border-red-200 bg-red-50/40 p-2", children: [
-    jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx9("input", {
-        className: "flex-1 min-w-36 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
+  return jsxs10("div", { className: "flex flex-col gap-1.5 mt-1.5 p-2 " + S.noticeBad, children: [
+    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx10("input", {
+        className: "flex-1 min-w-36 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none",
         value: reparar,
-        placeholder: "texto de reemplazo",
+        placeholder: t("writer.replacement.text"),
         disabled: agotados,
         onChange: (e3) => setReparar(e3.target.value)
       }),
-      jsx9("button", {
+      jsx10("button", {
         type: "button",
-        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
+        className: "dk-btn dk-btn--borde dk-btn--chico",
         disabled: agotados || a3.ocupado || !reparar.trim(),
         onClick: () => onAccion("probar", reparar.trim()),
-        children: a3.ocupado ? "probando\u2026" : "Probar reemplazo"
+        children: a3.ocupado ? t("writer.testing") : t("writer.test.replacement")
       }),
-      jsx9("button", {
+      jsx10("button", {
         type: "button",
-        className: "rounded bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-40 cursor-pointer",
+        className: "dk-btn dk-btn--chico",
         disabled: !a3.probado || agotados || reparar.trim() !== a3.probadoTexto,
         onClick: () => onAccion("aplicar", a3.probadoTexto),
-        children: "Aplicar"
+        children: t("writer.apply")
       })
     ] }),
-    a3.resumenPrueba ? jsx9("div", { className: "text-[11px] text-slate-600", children: a3.resumenPrueba }) : null,
-    agotados ? jsx9("div", { className: "text-xs text-red-700 font-medium", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
-    jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx9("input", {
-        className: "flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
+    a3.resumenPrueba ? jsx10("div", { className: "text-xs text-(--dk-texto-2)", children: a3.resumenPrueba }) : null,
+    agotados ? jsx10("div", { className: S.bad + " font-medium", children: t("writer.two.repair.attempts.failed.request.human.review") }) : null,
+    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx10("input", {
+        className: "flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none",
         value: motivo,
-        placeholder: "motivo para retirarla",
+        placeholder: t("writer.reason.for.removal"),
         onChange: (e3) => setMotivo(e3.target.value)
       }),
-      jsx9("button", {
+      jsx10("button", {
         type: "button",
-        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
+        className: "rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer",
         disabled: !motivo.trim(),
         onClick: () => {
           onAccion("retirar", motivo.trim());
           setMotivo("");
         },
-        children: "Retirar"
+        children: t("writer.remove")
       }),
-      jsx9("input", {
-        className: "flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
+      jsx10("input", {
+        className: "flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none",
         value: nota,
-        placeholder: "nota para revisi\xF3n humana",
+        placeholder: t("writer.note.for.human.review"),
         onChange: (e3) => setNota(e3.target.value)
       }),
-      jsx9("button", {
+      jsx10("button", {
         type: "button",
-        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
+        className: "rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer",
         disabled: !nota.trim(),
         onClick: () => {
           onAccion("escalar", nota.trim());
           setNota("");
         },
-        children: "Escalar"
+        children: t("writer.request.review")
       })
     ] })
   ] });
 }
 function SeccionEscritor({ onAbrirGrafo }) {
-  const hostRef = useRef7(null);
-  const editorRef = useRef7(null);
-  const revRef = useRef7(0);
-  const [chatSesion, setChatSesion] = useState9(null);
-  const registroRef = useRef7({});
-  const casoRef = useRef7(BORRADOR);
-  const textoGuardadoRef = useRef7("");
-  const timerGuardado = useRef7(null);
-  const timerInfo = useRef7(null);
-  const infoDocRef = useRef7({ texto: "", hash: null });
-  const verificacionRef = useRef7(null);
-  const verificarRef = useRef7(null);
-  const [casos, setCasos] = useState9(null);
-  const [caseId, setCaseId] = useState9(BORRADOR);
-  const [estadoDoc, setEstadoDoc] = useState9("cargando");
-  const [error2, setError] = useState9(null);
-  const [aviso, setAviso] = useState9(null);
-  const [verificacion, setVerificacion] = useState9(null);
-  const [docInfo, setDocInfo] = useState9({ texto: "", hash: null });
-  const [verificando, setVerificando] = useState9(false);
-  const [acciones, setAcciones] = useState9({});
-  const [conflictoRev, setConflictoRev] = useState9(null);
-  const [registro, setRegistro] = useState9({});
-  const [modoVista, setModoVista] = useState9("write");
-  const [herramientaActiva, setHerramientaActiva] = useState9(null);
-  const [chatAbierto, setChatAbierto] = useState9(true);
-  const [prefs, setPrefs] = useState9({
+  const idioma2 = useIdioma();
+  const hostRef = useRef9(null);
+  const editorRef = useRef9(null);
+  const revRef = useRef9(0);
+  const [chatSesion, setChatSesion] = useState10(null);
+  const registroRef = useRef9({});
+  const casoRef = useRef9(BORRADOR);
+  const textoGuardadoRef = useRef9("");
+  const timerGuardado = useRef9(null);
+  const timerInfo = useRef9(null);
+  const infoDocRef = useRef9({ texto: "", hash: null });
+  const verificacionRef = useRef9(null);
+  const verificarRef = useRef9(null);
+  const colaGuardadoRef = useRef9(Promise.resolve());
+  const revPorCasoRef = useRef9({});
+  const cargaSeqRef = useRef9(0);
+  const montadoRef = useRef9(false);
+  const [casos, setCasos] = useState10(null);
+  const [caseId, setCaseId] = useState10(BORRADOR);
+  const [estadoDoc, setEstadoDoc] = useState10("cargando");
+  const [error2, setError] = useState10(null);
+  const [aviso, setAviso] = useState10(null);
+  const [verificacion, setVerificacion] = useState10(null);
+  const [docInfo, setDocInfo] = useState10({ texto: "", hash: null });
+  const [verificando, setVerificando] = useState10(false);
+  const [acciones, setAcciones] = useState10({});
+  const [conflictoRev, setConflictoRev] = useState10(null);
+  const [registro, setRegistro] = useState10({});
+  const [modoVista, setModoVista] = useState10("write");
+  const [herramientaActiva, setHerramientaActiva] = useState10(null);
+  const [chatAbierto, setChatAbierto] = useState10(true);
+  const [prefs, setPrefs] = useState10({
     tema_papel: "clasico",
     fuente: "Georgia, 'Times New Roman', serif",
     tamano_fuente: "12",
@@ -29088,7 +32296,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
     auto_detectar_privacidad: true,
     auto_analizar_estilo: false
   });
-  useEffect9(() => {
+  useEffect10(() => {
     rest("/preferencias").then((d2) => {
       if (d2 && typeof d2 === "object") {
         setPrefs((p2) => ({ ...p2, ...d2 }));
@@ -29097,7 +32305,11 @@ function SeccionEscritor({ onAbrirGrafo }) {
     }).catch(() => {
     });
   }, []);
-  const guardarPrefs = useCallback8((parche) => {
+  useEffect10(() => {
+    const ed = editorRef.current;
+    if (ed) ed.view.dispatch(ed.state.tr);
+  }, [idioma2]);
+  const guardarPrefs = useCallback9((parche) => {
     setPrefs((prev) => {
       const sig = { ...prev, ...parche };
       rest("/preferencias", { method: "POST", body: sig }).catch(() => {
@@ -29112,58 +32324,87 @@ function SeccionEscritor({ onAbrirGrafo }) {
     });
     if ("mostrar_chat" in parche) setChatAbierto(Boolean(parche.mostrar_chat));
   }, []);
-  const actualizarInfoDoc = useCallback8((ed) => {
+  const actualizarInfoDoc = useCallback9((ed) => {
     const texto = textoDelEditor(ed);
     sha256Hex(texto).then((hash) => {
+      if (!montadoRef.current || textoDelEditor(ed) !== texto) return;
       const info = { texto, hash };
       infoDocRef.current = info;
       setDocInfo(info);
     }).catch(() => {
     });
   }, []);
-  const programarInfoDoc = useCallback8((ed) => {
-    clearTimeout(timerInfo.current);
-    timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO);
+  const programarInfoDoc = useCallback9((ed) => {
+    cancelarTarea(timerInfo.current);
+    timerInfo.current = programarTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO);
   }, [actualizarInfoDoc]);
-  const estadoRef = useRef7("cargando");
+  const estadoRef = useRef9("cargando");
   estadoRef.current = estadoDoc;
-  const guardar = useCallback8(() => {
-    const ed = editorRef.current;
-    clearTimeout(timerGuardado.current);
-    if (!ed || estadoRef.current === "conflicto") return Promise.resolve();
-    setEstadoDoc("guardando");
-    const texto = textoDelEditor(ed);
-    return rest("/escrito", {
-      method: "POST",
-      body: {
-        case_id: casoRef.current,
-        html: ed.getHTML(),
-        texto,
-        rev_base: revRef.current,
-        registro: registroRef.current
+  const enviarGuardado = useCallback9(async (payload) => {
+    const revDe = () => revPorCasoRef.current[payload.case_id] || 0;
+    const r2 = await guardarConReintento(
+      (revBase) => rest("/escrito", {
+        method: "POST",
+        body: {
+          case_id: payload.case_id,
+          html: payload.html,
+          texto: payload.texto,
+          rev_base: revBase === void 0 ? revDe() : revBase,
+          registro: payload.registro
+        }
+      }),
+      async () => {
+        const d2 = await rest("/escrito?case_id=" + encodeURIComponent(payload.case_id));
+        const rev = d2 && typeof d2.rev === "number" ? d2.rev : null;
+        if (rev != null) revPorCasoRef.current[payload.case_id] = rev;
+        return rev;
       }
-    }).then((resp) => {
-      revRef.current = resp.rev;
-      textoGuardadoRef.current = texto;
-      setEstadoDoc("guardado");
-    }).catch((e3) => {
-      if (esConflicto(e3)) {
-        setEstadoDoc("conflicto");
-        const d2 = e3 && e3.detail;
-        setConflictoRev(d2 && typeof d2 === "object" ? d2.rev_actual : null);
-      } else {
-        setEstadoDoc("sin-guardar");
-        setError(e3);
+    );
+    const esActual = payload.case_id === casoRef.current;
+    if (r2.ok) {
+      const rev = r2.resp && typeof r2.resp.rev === "number" ? r2.resp.rev : revDe();
+      revPorCasoRef.current[payload.case_id] = rev;
+      borrarPendiente(payload.case_id);
+      if (esActual) {
+        revRef.current = rev;
+        textoGuardadoRef.current = payload.texto;
+        if (montadoRef.current) setEstadoDoc("guardado");
       }
-    });
+      return;
+    }
+    escribirPendiente(payload);
+    if (!montadoRef.current || !esActual) return;
+    if (r2.conflicto) {
+      setEstadoDoc("conflicto");
+      setConflictoRev(r2.rev_actual != null ? r2.rev_actual : null);
+    } else {
+      setEstadoDoc("sin-guardar");
+      setError(r2.error);
+    }
   }, []);
-  const programarGuardado = useCallback8(() => {
-    clearTimeout(timerGuardado.current);
-    timerGuardado.current = setTimeout(() => {
+  const guardar = useCallback9(() => {
+    cancelarTarea(timerGuardado.current);
+    const ed = editorRef.current;
+    if (!ed || estadoRef.current === "conflicto") return Promise.resolve();
+    if (montadoRef.current) setEstadoDoc("guardando");
+    const payload = {
+      case_id: casoRef.current,
+      html: ed.getHTML(),
+      texto: textoDelEditor(ed),
+      registro: registroRef.current
+    };
+    const promesa = colaGuardadoRef.current.then(() => enviarGuardado(payload));
+    colaGuardadoRef.current = promesa.catch(() => {
+    });
+    return promesa;
+  }, [enviarGuardado]);
+  const programarGuardado = useCallback9(() => {
+    cancelarTarea(timerGuardado.current);
+    timerGuardado.current = programarTimeout(() => {
       guardar();
     }, DEBOUNCE_GUARDADO);
   }, [guardar]);
-  const actualizarRegistro = useCallback8((updater) => {
+  const actualizarRegistro = useCallback9((updater) => {
     const base2 = registroRef.current || {};
     const nuevo = typeof updater === "function" ? updater(base2) : updater;
     registroRef.current = nuevo;
@@ -29173,12 +32414,12 @@ function SeccionEscritor({ onAbrirGrafo }) {
       programarGuardado();
     }
   }, [programarGuardado]);
-  const insertarCitaEnEscrito = useCallback8((p2) => {
+  const insertarCitaEnEscrito = useCallback9((p2) => {
     const ed = editorRef.current;
     if (!ed || !p2 || !p2.cita) return;
     const ahora = (/* @__PURE__ */ new Date()).toISOString();
     const seguro = String(p2.cita).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    ed.chain().insertContentAt(ed.state.doc.content.size, "<p>" + seguro + ".</p>").run();
+    insertarHtmlEnCursor(ed, "<p>" + seguro + ".</p>");
     const reg = registroRef.current || {};
     registroRef.current = {
       ...reg,
@@ -29188,15 +32429,18 @@ function SeccionEscritor({ onAbrirGrafo }) {
       ]
     };
     setRegistro(registroRef.current);
-    estadoRef.current = "sin-guardar";
-    setEstadoDoc("sin-guardar");
-    programarGuardado();
-    setAviso("Cita tra\xEDda desde la b\xFAsqueda: es una pista; se est\xE1 verificando.");
+    if (estadoRef.current !== "conflicto") {
+      estadoRef.current = "sin-guardar";
+      setEstadoDoc("sin-guardar");
+      programarGuardado();
+    }
+    setAviso(t("writer.search.lead.added.checking.the.citation"));
     if (verificarRef.current) verificarRef.current();
   }, [programarGuardado]);
-  const cargarEscrito = useCallback8((cid) => {
+  const cargarEscrito = useCallback9((cid) => {
     const ed = editorRef.current;
     if (!ed) return;
+    const seq = ++cargaSeqRef.current;
     setEstadoDoc("cargando");
     setError(null);
     setAviso(null);
@@ -29204,19 +32448,35 @@ function SeccionEscritor({ onAbrirGrafo }) {
     setAcciones({});
     setConflictoRev(null);
     rest("/escrito?case_id=" + encodeURIComponent(cid)).then((d2) => {
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return;
       casoRef.current = cid;
-      if (d2 && d2.existe) {
-        ed.commands.setContent(d2.html || d2.texto || "");
-        revRef.current = d2.rev;
-        registroRef.current = d2.registro || {};
-      } else {
-        ed.commands.setContent("");
-        revRef.current = 0;
-        registroRef.current = {};
-      }
+      const rev = d2 && typeof d2.rev === "number" ? d2.rev : 0;
+      revPorCasoRef.current[cid] = rev;
+      revRef.current = rev;
+      const htmlServidor = d2 && d2.existe ? d2.html || d2.texto || "" : "";
+      const registroServidor = d2 && d2.existe && d2.registro || {};
+      ed.commands.setContent(htmlServidor);
+      registroRef.current = registroServidor;
       textoGuardadoRef.current = textoDelEditor(ed);
       setRegistro(registroRef.current);
-      setEstadoDoc("guardado");
+      const pend = leerPendiente(cid);
+      const restaura = pend && pendienteDiff(pend, {
+        texto: textoGuardadoRef.current,
+        html: htmlServidor,
+        registro: registroRef.current
+      });
+      if (pend && !restaura) borrarPendiente(cid);
+      if (restaura) {
+        ed.commands.setContent(pend.html || "");
+        registroRef.current = pend.registro || {};
+        setRegistro(registroRef.current);
+        estadoRef.current = "sin-guardar";
+        setEstadoDoc("sin-guardar");
+        setAviso(t("writer.unsaved.changes.recovered.retrying.save"));
+        programarGuardado();
+      } else {
+        setEstadoDoc("guardado");
+      }
       actualizarInfoDoc(ed);
       const pendientes = tomarCitas();
       if (pendientes.length) {
@@ -29245,19 +32505,21 @@ function SeccionEscritor({ onAbrirGrafo }) {
         estadoRef.current = "sin-guardar";
         setEstadoDoc("sin-guardar");
         programarGuardado();
-        setAviso("Cita tra\xEDda desde la b\xFAsqueda: es una pista; se est\xE1 verificando.");
+        setAviso(t("writer.search.lead.added.checking.the.citation"));
         if (verificarRef.current) verificarRef.current();
       }
     }).catch((e3) => {
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return;
       setEstadoDoc("sin-guardar");
       setError(e3);
     });
   }, [actualizarInfoDoc, programarGuardado]);
-  const recargarListaCasos = useCallback8((seleccionarId = null) => {
+  const recargarListaCasos = useCallback9((seleccionarId = null) => {
+    const seq = cargaSeqRef.current;
     return rest("/nif/casos").then((d2) => {
       const lista = d2 && d2.cases || [];
       setCasos(lista);
-      if (seleccionarId) {
+      if (seleccionarId && cargaSeqRef.current === seq) {
         setCaseId(seleccionarId);
         cargarEscrito(seleccionarId);
       }
@@ -29267,22 +32529,24 @@ function SeccionEscritor({ onAbrirGrafo }) {
       return [];
     });
   }, [cargarEscrito]);
-  useEffect9(() => {
+  useEffect10(() => {
     const ed = montarEditor({
       element: hostRef.current,
       content: "",
-      placeholder: "Comience a redactar su escrito aqu\xED\u2026",
+      placeholder: () => t("writer.start.writing.your.brief.here"),
       onUpdate: (editor) => {
         const texto = textoDelEditor(editor);
-        if (texto === textoGuardadoRef.current) {
-          setEstadoDoc((s2) => s2 === "guardando" || s2 === "conflicto" ? s2 : "guardado");
-        } else if (estadoRef.current !== "conflicto" && estadoRef.current !== "cargando") {
-          setEstadoDoc("sin-guardar");
-          programarGuardado();
+        const estado = estadoRef.current;
+        const siguiente = texto === textoGuardadoRef.current ? estado === "guardando" || estado === "conflicto" ? estado : "guardado" : estado === "conflicto" || estado === "cargando" ? estado : "sin-guardar";
+        if (siguiente !== estado) {
+          estadoRef.current = siguiente;
+          setEstadoDoc(siguiente);
         }
+        if (texto !== textoGuardadoRef.current && estado !== "conflicto" && estado !== "cargando") programarGuardado();
         if (infoDocRef.current.texto !== texto) {
+          const invalidar = infoDocRef.current.hash != null;
           infoDocRef.current = { texto, hash: null };
-          setDocInfo(infoDocRef.current);
+          if (invalidar) setDocInfo(infoDocRef.current);
         }
         programarInfoDoc(editor);
         if (editorRef.prediccionPedir) editorRef.prediccionPedir(editor);
@@ -29292,6 +32556,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
       }
     });
     editorRef.current = ed;
+    montadoRef.current = true;
     rest("/nif/casos").then((d2) => {
       const lista = d2 && d2.cases || [];
       setCasos(lista);
@@ -29307,8 +32572,9 @@ function SeccionEscritor({ onAbrirGrafo }) {
       cargarEscrito(BORRADOR);
     });
     return () => {
-      clearTimeout(timerGuardado.current);
-      clearTimeout(timerInfo.current);
+      montadoRef.current = false;
+      cancelarTarea(timerGuardado.current);
+      cancelarTarea(timerInfo.current);
       if (estadoRef.current === "sin-guardar") {
         guardar();
       }
@@ -29316,12 +32582,12 @@ function SeccionEscritor({ onAbrirGrafo }) {
       editorRef.current = null;
     };
   }, [cargarEscrito, guardar, programarGuardado, programarInfoDoc]);
-  useEffect9(() => {
+  useEffect10(() => {
     const ed = editorRef.current;
     if (!ed) return;
     ed.setEditable(modoVista !== "read", false);
   }, [modoVista]);
-  useEffect9(() => {
+  useEffect10(() => {
     const ed = editorRef.current;
     if (!ed) return;
     const v3 = verificacionRef.current;
@@ -29342,7 +32608,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
     fijarMarcas(ed, marcas);
   }, [verificacion, docInfo, registro]);
   verificacionRef.current = verificacion;
-  const verificar = useCallback8(() => {
+  const verificar = useCallback9(() => {
     const ed = editorRef.current;
     if (!ed || verificando) return;
     setVerificando(true);
@@ -29358,8 +32624,8 @@ function SeccionEscritor({ onAbrirGrafo }) {
     })).catch(setError).finally(() => setVerificando(false));
   }, [verificando, actualizarInfoDoc]);
   verificarRef.current = verificar;
-  const cambiarCaso = useCallback8((cid) => {
-    clearTimeout(timerGuardado.current);
+  const cambiarCaso = useCallback9((cid) => {
+    cancelarTarea(timerGuardado.current);
     const continuar = () => {
       setCaseId(cid);
       cargarEscrito(cid);
@@ -29372,39 +32638,40 @@ function SeccionEscritor({ onAbrirGrafo }) {
       continuar();
     }
   }, [cargarEscrito, guardar]);
-  const crearNuevoCasoNif = useCallback8((nuevoId, pregunta) => {
+  const crearNuevoCasoNif = useCallback9((nuevoId, pregunta) => {
     rest("/nif/init", {
       method: "POST",
       body: { case_id: nuevoId, pregunta },
       timeoutMs: 6e4
     }).then(() => recargarListaCasos(nuevoId)).catch(setError);
   }, [recargarListaCasos]);
-  const sembrarCasoDemo = useCallback8(() => {
+  const sembrarCasoDemo = useCallback9(() => {
     rest("/nif/seed", {
       method: "POST",
       body: { case_id: "demo-panel" },
       timeoutMs: 6e4
     }).then(() => recargarListaCasos("demo-panel")).catch(setError);
   }, [recargarListaCasos]);
-  const cargarEscritoDemo = useCallback8(() => {
+  const cargarEscritoDemo = useCallback9(() => {
     const ed = editorRef.current;
     if (!ed) return;
     rest("/escrito/demo").then((d2) => {
+      if (!montadoRef.current) return;
       if (d2 && (d2.html || d2.texto)) {
         ed.commands.setContent(d2.html || d2.texto);
-        setAviso("Escrito sint\xE9tico de demostraci\xF3n cargado. Pulsa \xABVerificar citas\xBB para probar el motor.");
+        setAviso(t("writer.demo.brief.loaded.select.check.citations.to.try.the.engine"));
       }
     }).catch(setError);
   }, []);
-  const insertarTextoEnEditor = useCallback8((texto) => {
+  const insertarTextoEnEditor = useCallback9((texto) => {
     const ed = editorRef.current;
     if (!ed || !texto) return;
     const limpio = String(texto).trim();
     if (!limpio) return;
     const parrafos = limpio.split(/\n\s*\n/).map((p2) => "<p>" + p2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>") + "</p>").join("");
-    ed.chain().focus().insertContentAt(ed.state.doc.content.size, parrafos).run();
+    insertarHtmlEnCursor(ed, parrafos);
   }, []);
-  const agregarNotaAPizarra = useCallback8((datosNota) => {
+  const agregarNotaAPizarra = useCallback9((datosNota) => {
     const actual = registroRef.current && registroRef.current.pizarra || {};
     const nodos = Array.isArray(actual.nodos) ? actual.nodos : [];
     const idx = nodos.length;
@@ -29414,8 +32681,8 @@ function SeccionEscritor({ onAbrirGrafo }) {
       y: 22 + Math.floor(idx / 4) * 175,
       w: 232,
       h: 155,
-      titulo: datosNota.titulo || "Nota " + (idx + 1),
-      tag: datosNota.tag || "NOTA",
+      titulo: datosNota.titulo || t("piz.tituloNota", { n: idx + 1 }),
+      tag: datosNota.tag || t("piz.tagNota"),
       color: datosNota.color || "#bfdbfe",
       texto: datosNota.texto || "",
       nodo_id: datosNota.nodo_id || null,
@@ -29427,15 +32694,16 @@ function SeccionEscritor({ onAbrirGrafo }) {
       pizarra: { ...actual, nodos: [...nodos, nueva], colapsada: false }
     }));
   }, [actualizarRegistro]);
-  const recargarTrasConflicto = useCallback8(() => {
+  const recargarTrasConflicto = useCallback9(() => {
+    borrarPendiente(casoRef.current);
     cargarEscrito(casoRef.current);
   }, [cargarEscrito]);
-  const fijarRegistro = useCallback8((nuevo) => {
+  const fijarRegistro = useCallback9((nuevo) => {
     registroRef.current = nuevo;
     setRegistro(nuevo);
     return guardar();
   }, [guardar]);
-  const accionCita = useCallback8((indice, tipo, valor) => {
+  const accionCita = useCallback9((indice, tipo, valor) => {
     const ed = editorRef.current;
     const v3 = verificacionRef.current;
     if (!ed || !v3) return;
@@ -29461,7 +32729,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
             ocupado: false,
             probado: ok,
             probadoTexto: ok ? valor : null,
-            resumenPrueba: ok ? "El motor verific\xF3 el reemplazo: apl\xEDcalo y vuelve a verificar el escrito." : "FALLO del reemplazo: " + (primerFallo && primerFallo.resolucion || res2.veredicto || "sin detalle")
+            resumenPrueba: ok ? t("writer.replacement.verified.apply.it.then.check.the.brief.again") : t("writer.failedReplacement") + (etiquetaCodigo(primerFallo && primerFallo.resolucion || res2.veredicto) || t("writer.noDetail"))
           }
         }));
       }).catch((e3) => setAcciones((m3) => ({
@@ -29479,7 +32747,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
       const rangos = ubicar();
       if (rangos.length) {
         borrarRangos(ed, rangos);
-        setAviso("Cita retirada del texto: la frase puede quedar rota, rev\xEDsala.");
+        setAviso(t("writer.citation.removed.review.the.sentence.for.missing.text"));
       }
       const reg = registroRef.current;
       fijarRegistro({
@@ -29502,6 +32770,20 @@ function SeccionEscritor({ onAbrirGrafo }) {
       });
     }
   }, [acciones, fijarRegistro]);
+  const alternarHerramienta = useCallback9((id) => {
+    setHerramientaActiva((prev) => prev === id ? null : id);
+  }, []);
+  const cambiarPizarra = useCallback9((pizarra) => {
+    actualizarRegistro((r2) => ({ ...r2 || {}, pizarra }));
+  }, [actualizarRegistro]);
+  const enviarAPizarra = useCallback9((pizarra) => {
+    cambiarPizarra(pizarra);
+    guardarPrefs({ mostrar_pizarra: true });
+  }, [cambiarPizarra, guardarPrefs]);
+  const abrirGrafo = useCallback9((foco2) => {
+    if (onAbrirGrafo) onAbrirGrafo(foco2 || { nodo_id: "n:207436" });
+  }, [onAbrirGrafo]);
+  const abrirPrivacidad = useCallback9(() => setHerramientaActiva("privacidad"), []);
   const v2 = verificacion;
   const res = v2 && v2.resultado;
   const meta = res && res.meta || {};
@@ -29510,13 +32792,13 @@ function SeccionEscritor({ onAbrirGrafo }) {
   const temaActual = TEMAS_HOJA[prefs.tema_papel] || TEMAS_HOJA.clasico;
   const anchoActual = ANCHOS_HOJA[prefs.ancho_hoja] || ANCHOS_HOJA.a4;
   const cfgHerramienta = HERRAMIENTAS_BARRA.find((h3) => h3.id === herramientaActiva) || null;
-  const pizarraEstado = registro && registro.pizarra || { nodos: [], aristas: [], colapsada: false, altura: 225 };
-  return jsxs9("div", {
-    className: "flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-slate-300 bg-white shadow-xs",
-    style: { minHeight: "760px" },
+  const pizarraEstado = registro && registro.pizarra || PIZARRA_VACIA;
+  return jsxs10("div", {
+    className: "dk-writer " + (herramientaActiva ? "dk-writer--tool " : "") + "flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs",
+    style: { minHeight: "620px" },
     children: [
       // 1. Barra de formato y documento estilo Word (2 filas, como imagen 2)
-      jsx9(BarraFormato, {
+      jsx10(BarraFormato, {
         editorRef,
         caseId,
         casos,
@@ -29534,57 +32816,59 @@ function SeccionEscritor({ onAbrirGrafo }) {
         prefs,
         onCambiarPrefs: guardarPrefs,
         docInfo,
-        onAbrirHerramienta: (id) => setHerramientaActiva((prev) => prev === id ? null : id)
+        onAbrirHerramienta: alternarHerramienta
       }),
       // 2. Pizarra Estratégica encima del editor (colapsable y redimensionable)
-      modoVista !== "read" && prefs.mostrar_pizarra !== false ? jsx9(PizarraEstrategica, {
+      modoVista !== "read" && prefs.mostrar_pizarra !== false ? jsx10(PizarraEstrategica, {
         pizarra: pizarraEstado,
-        onChange: (nuevaPizarra) => actualizarRegistro((r2) => ({ ...r2 || {}, pizarra: nuevaPizarra })),
+        onChange: cambiarPizarra,
         onInsertarTexto: insertarTextoEnEditor,
         onLlevarCitaAlEscrito: insertarCitaEnEscrito,
         onAbrirGrafo
       }) : null,
       // Banners de conflicto, error o aviso
-      estadoDoc === "conflicto" ? jsxs9("div", {
-        className: "flex items-center gap-3 border-b border-amber-300 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 shrink-0",
+      estadoDoc === "conflicto" ? jsxs10("div", {
+        className: "flex items-center gap-3 border-b px-4 py-1.5 text-xs shrink-0 " + S.noticeWarn,
         children: [
-          jsx9("span", { className: "flex-1", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
-          jsx9("button", {
+          jsx10("span", { className: "flex-1", children: t("writer.another.process.saved.this.brief") + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
+          jsx10("button", {
             type: "button",
             onClick: recargarTrasConflicto,
-            className: "rounded border border-amber-400 bg-white px-2 py-0.5 font-medium text-amber-900 hover:bg-amber-100 cursor-pointer",
-            children: "descargar y perder mis cambios"
+            className: "dk-btn dk-btn--borde dk-btn--chico",
+            children: t("writer.reload.and.discard.my.changes")
           })
         ]
       }) : null,
-      error2 ? jsxs9("div", {
-        className: "flex items-center justify-between border-b border-red-200 bg-red-50 px-4 py-1.5 text-xs text-red-700 shrink-0",
+      error2 ? jsxs10("div", {
+        className: "flex items-center justify-between border-b px-4 py-1.5 text-xs shrink-0 " + S.noticeBad,
+        role: "alert",
         children: [
-          jsx9("span", { children: mensajeError(error2) }),
-          jsx9("button", { type: "button", onClick: () => setError(null), className: "text-red-500 hover:text-red-800", children: "\u2715" })
+          jsx10("span", { children: mensajeError(error2) }),
+          jsx10("button", { type: "button", "aria-label": t("writer.dismiss.error"), onClick: () => setError(null), className: "dk-btn dk-btn--icono dk-btn--chico", children: "\u2715" })
         ]
       }) : null,
-      aviso ? jsxs9("div", {
-        className: "flex items-center justify-between border-b border-sky-200 bg-sky-50 px-4 py-1 text-xs text-sky-800 shrink-0",
+      aviso ? jsxs10("div", {
+        className: "flex items-center justify-between border-b px-4 py-1 text-xs shrink-0 " + S.notice,
+        role: "status",
         children: [
-          jsx9("span", { children: aviso }),
-          jsx9("button", { type: "button", onClick: () => setAviso(null), className: "text-sky-600 hover:text-sky-900", children: "\u2715" })
+          jsx10("span", { children: aviso }),
+          jsx10("button", { type: "button", "aria-label": t("writer.dismiss.notice"), onClick: () => setAviso(null), className: "dk-btn dk-btn--icono dk-btn--chico", children: "\u2715" })
         ]
       }) : null,
       // 3. Área principal: Centro (Hoja Word) + Cajón de Herramienta + Barra de Iconos + Chat Hermes
-      jsxs9("div", {
+      jsxs10("div", {
         className: "flex flex-1 min-h-0 overflow-hidden",
         children: [
           // ── COLUMNA CENTRAL: Lienzo gris con Hoja de Papel tipo Word ──
-          jsxs9("div", {
+          jsxs10("div", {
             className: "flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden",
             children: [
               // Entorno gris desplazable con la hoja centrada
-              jsxs9("div", {
+              jsxs10("div", {
                 className: "flex-1 overflow-y-auto flex justify-center py-6 px-4",
-                style: { backgroundColor: temaActual.entorno },
+                style: { backgroundColor: "var(--dk-superficie-2)" },
                 children: [
-                  jsxs9("div", {
+                  jsxs10("div", {
                     className: "dike-editor-page transition-all",
                     style: {
                       width: anchoActual.width,
@@ -29594,67 +32878,70 @@ function SeccionEscritor({ onAbrirGrafo }) {
                       color: temaActual.hojaTexto,
                       border: "1px solid " + temaActual.hojaBorde,
                       boxShadow: "0 2px 12px rgba(0, 0, 0, 0.14)",
-                      padding: anchoActual.padding,
+                      padding: "clamp(20px, 3vw, 70px) clamp(20px, 3vw, 80px)",
                       fontFamily: prefs.fuente || "Georgia, 'Times New Roman', serif",
                       fontSize: (prefs.tamano_fuente || "12") + "pt",
                       lineHeight: "1.65"
                     },
                     children: [
-                      modoVista === "read" ? jsxs9("div", {
-                        className: "mb-4 flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-3 py-1.5 font-sans text-xs text-slate-600",
+                      modoVista === "read" ? jsxs10("div", {
+                        className: "mb-4 flex items-center justify-between rounded border border-(--dk-borde) bg-(--dk-superficie) px-3 py-1.5 font-sans text-xs text-(--dk-texto-2)",
                         children: [
-                          jsx9("span", { children: "\u{1F4D6} Modo lectura \u2014 edici\xF3n bloqueada para revisar texto y citas" }),
-                          jsx9("button", {
+                          jsx10("span", { children: t("writer.read.mode.review.the.text.and.citations") }),
+                          jsx10("button", {
                             type: "button",
                             onClick: () => setModoVista("write"),
-                            className: "font-semibold text-indigo-600 hover:underline cursor-pointer",
-                            children: "Volver a Escribir"
+                            className: S.link + " font-semibold cursor-pointer",
+                            children: t("writer.return.to.writing")
                           })
                         ]
                       }) : null,
                       // Contenedor Tiptap ProseMirror
-                      jsx9("div", { ref: hostRef })
+                      jsx10("div", { ref: hostRef })
                     ]
                   })
                 ]
               }),
               // Barra flotante de estado de citas (como CitationStatus en imagen 2)
-              res ? jsxs9("div", {
-                className: "flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-xs shrink-0 " + (res.error || (meta.citas_fallidas || 0) > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"),
+              res ? jsxs10("div", {
+                className: "flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-xs shrink-0 " + (res.error || (meta.citas_fallidas || 0) > 0 ? S.noticeWarn : S.noticeOk),
+                role: "status",
                 children: [
-                  res.error ? jsx9("span", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) }) : jsxs9("div", { className: "flex flex-wrap items-center gap-2", children: [
-                    jsx9("span", { className: "font-semibold", children: `\u{1F6E1} Dik\xE9: ${meta.citas_verificadas || 0} de ${meta.total_citas || 0} citas verificadas` + (res.veredicto ? ` (${res.veredicto})` : "") }),
-                    jsx9("span", { className: "text-[11px] opacity-80", children: `corpus ${meta.pack_hash || "?"}` + (meta.as_of ? ` \xB7 al ${meta.as_of}` : "") })
+                  res.error ? jsx10("span", { children: t("writer.could.not.check.the.brief") + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? " \xB7 " + etiquetaCodigo(res.motivo) : "") }) : jsxs10("div", { className: "flex flex-wrap items-center gap-2", children: [
+                    jsx10("span", { className: "font-semibold", children: t("writer.count", { ok: meta.citas_verificadas || 0, total: meta.total_citas || 0 }) + (res.veredicto ? ` (${etiquetaCodigo(res.veredicto)})` : "") }),
+                    jsx10("span", { className: "text-xs opacity-80", children: `corpus ${meta.pack_hash || "?"}` + (meta.as_of ? t("writer.asOf") + meta.as_of : "") })
                   ] }),
-                  jsx9("button", {
+                  jsx10("button", {
                     type: "button",
                     onClick: () => setHerramientaActiva("citas"),
-                    className: "rounded bg-white/80 hover:bg-white px-2 py-0.5 text-[11px] font-semibold border border-current/20 cursor-pointer",
-                    children: herramientaActiva === "citas" ? "Viendo detalle en barra derecha" : "Ver detalle y reparar citas \u2192"
+                    className: "dk-btn dk-btn--borde dk-btn--chico",
+                    children: herramientaActiva === "citas" ? t("writer.citation.details.open") : t("writer.review.and.repair.citations")
                   })
                 ]
               }) : null,
               // Barra inferior de custodia y persistencia local (como PersistenceBar en imagen 2)
-              jsxs9("div", {
-                className: "flex flex-wrap items-center gap-2 border-t border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-600 select-none shrink-0",
+              jsxs10("div", {
+                className: "flex flex-wrap items-center gap-2 border-t border-(--dk-borde) bg-(--dk-superficie) px-3 py-1 text-xs text-(--dk-texto-2) select-none shrink-0",
                 children: [
-                  jsx9("span", { className: "text-slate-400", children: "Datos:" }),
-                  jsx9("span", {
-                    className: "inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 font-medium text-slate-700",
-                    children: "\u{1F512} Guardado local en este equipo (plugin-data)"
+                  jsx10("span", { className: "text-(--dk-texto-3)", children: t("writer.data") }),
+                  jsx10("span", {
+                    className: "inline-flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 font-medium text-(--dk-texto-2)",
+                    children: t("writer.saved.on.this.device")
                   }),
-                  jsx9("span", {
-                    className: "text-slate-400 hidden sm:inline truncate",
-                    children: "El escrito vive en tu equipo; hacia el modelo viaja seudonimizado."
+                  jsx10("span", {
+                    className: "text-(--dk-texto-3) hidden sm:inline truncate",
+                    children: t("writer.brief.stored.on.this.device.privacy.settings.control.what.is.sent")
                   }),
-                  jsxs9("div", { className: "ml-auto flex items-center gap-1.5", children: [
-                    jsx9("span", { className: "text-slate-400", children: "Papel:" }),
-                    ...Object.entries(TEMAS_HOJA).map(([tid, tmeta]) => jsx9("button", {
+                  jsxs10("div", { className: "ml-auto flex items-center gap-1.5", children: [
+                    jsx10("span", { className: "text-(--dk-texto-3)", children: t("writer.paper.label") }),
+                    ...Object.entries(TEMAS_HOJA).map(([tid, tmeta]) => jsx10("button", {
                       key: tid,
                       type: "button",
                       onClick: () => guardarPrefs({ tema_papel: tid }),
-                      className: "rounded px-1.5 py-0.2 text-[10px] cursor-pointer " + (prefs.tema_papel === tid ? "bg-slate-800 text-white font-semibold" : "text-slate-500 hover:bg-slate-200"),
-                      children: tmeta.label.split(" ")[1] || tmeta.label
+                      "aria-pressed": prefs.tema_papel === tid,
+                      "aria-label": t("writer.paper.theme") + " " + tmeta.label,
+                      className: "dk-btn dk-btn--chico",
+                      children: t("paper." + tid)
                     }))
                   ] })
                 ]
@@ -29662,116 +32949,121 @@ function SeccionEscritor({ onAbrirGrafo }) {
             ]
           }),
           // ── CAJÓN DESLIZANTE DE LA HERRAMIENTA ACTIVA (a la izquierda de la barra de iconos) ──
-          jsxs9("div", {
-            className: (herramientaActiva ? "flex " : "hidden ") + "w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden",
+          jsxs10("div", {
+            className: (herramientaActiva ? "flex " : "hidden ") + "dk-tool-drawer shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden",
             children: [
               // Cabecera del cajón
-              cfgHerramienta ? jsxs9("div", {
-                className: "flex items-center justify-between border-b px-3 py-2 shrink-0 " + cfgHerramienta.headerCls,
+              cfgHerramienta ? jsxs10("div", {
+                className: "flex items-center justify-between border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-2 shrink-0",
                 children: [
-                  jsxs9("div", { className: "flex items-center gap-2 min-w-0", children: [
-                    jsx9("span", { className: "text-sm font-bold", children: cfgHerramienta.icono }),
-                    jsx9("span", { className: "text-xs font-bold uppercase tracking-wide truncate", children: cfgHerramienta.titulo })
+                  jsxs10("div", { className: "flex items-center gap-2 min-w-0", children: [
+                    jsx10("span", { className: "text-sm font-bold text-(--dk-texto-2)", children: cfgHerramienta.icono }),
+                    jsx10("span", { className: "text-xs font-semibold text-(--dk-texto)", children: cfgHerramienta.titulo })
                   ] }),
-                  jsx9("button", {
+                  jsx10("button", {
                     type: "button",
                     onClick: () => setHerramientaActiva(null),
-                    title: "Cerrar panel de herramienta",
-                    className: "rounded p-1 text-xs opacity-70 hover:opacity-100 hover:bg-black/5 cursor-pointer",
+                    title: t("writer.close.tool.panel"),
+                    "aria-label": t("writer.close.tool.panel"),
+                    className: "dk-btn dk-btn--icono dk-btn--chico",
                     children: "\u2715"
                   })
                 ]
               }) : null,
               // Contenido del cajón (Privacidad y Predicción permanecen montados para mantener efectos)
-              jsxs9("div", {
+              jsxs10("div", {
                 className: "flex-1 min-h-0 overflow-y-auto",
                 children: [
                   // 1. Herramienta: Verificador de Citas Diké
-                  herramientaActiva === "citas" ? jsxs9("div", {
-                    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+                  herramientaActiva === "citas" ? jsxs10("div", {
+                    className: "flex flex-col gap-3 p-3 text-xs text-(--dk-texto)",
                     children: [
-                      jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
-                        jsx9("span", { className: "text-slate-600", children: "Verificaci\xF3n determinista contra las 25 leyes del corpus sellado." }),
-                        jsx9("button", {
+                      jsxs10("div", { className: "flex items-center justify-between gap-2", children: [
+                        jsx10("span", { className: "text-(--dk-texto-2)", children: t("writer.check.against.the.25.laws.in.the.corpus.pack") }),
+                        jsx10("button", {
                           type: "button",
                           onClick: verificar,
                           disabled: verificando || estadoDoc === "cargando",
-                          className: "rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white cursor-pointer shrink-0",
-                          children: verificando ? "Verificando\u2026" : "Verificar citas"
+                          className: "dk-btn dk-btn--borde dk-btn--chico shrink-0",
+                          children: verificando ? t("writer.checking") : t("writer.check.citations")
                         })
                       ] }),
-                      !res && !verificando ? jsx9("div", {
-                        className: "rounded border border-dashed border-slate-300 p-4 text-center text-slate-500",
-                        children: "Pulsa \xABVerificar citas\xBB para comprobar todas las referencias normativas del escrito."
+                      !res && !verificando ? jsx10("div", {
+                        className: "rounded border border-dashed border-(--dk-borde) p-4 text-center text-(--dk-texto-3)",
+                        children: t("writer.select.check.citations.to.check.the.brief.s.article.references")
                       }) : null,
-                      res && res.error ? jsxs9("div", {
-                        className: "rounded border border-red-200 bg-red-50 p-2.5 text-red-800",
+                      res && res.error ? jsxs10("div", {
+                        className: S.noticeBad,
                         children: [
-                          jsx9("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
-                          jsx9("div", { className: "mt-1", children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
+                          jsx10("span", { className: S.chip + " " + S.chipBad, children: t("writer.unchecked") }),
+                          jsx10("div", { className: "mt-1", children: t("writer.could.not.check.the.brief") + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? " \xB7 " + etiquetaCodigo(res.motivo) : "") })
                         ]
                       }) : null,
-                      res && !res.error ? jsxs9("div", { className: "flex flex-col gap-2", children: [
-                        jsx9("div", { className: "font-semibold text-slate-900", children: "Dik\xE9: " + (meta.citas_verificadas || 0) + " de " + (meta.total_citas || 0) + " citas verificadas" + (res.veredicto ? " (" + res.veredicto + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? " \xB7 al " + meta.as_of : "") }),
-                        msgVeredicto ? jsx9("div", { className: "text-[11px] text-slate-600", children: msgVeredicto }) : null,
+                      res && !res.error ? jsxs10("div", { className: "flex flex-col gap-2", children: [
+                        jsx10("div", { className: "font-semibold text-(--dk-texto)", children: t("writer.dik") + (meta.citas_verificadas || 0) + t("writer.of") + (meta.total_citas || 0) + t("writer.verifiedSuffix") + (res.veredicto ? " (" + etiquetaCodigo(res.veredicto) + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? t("writer.asOf") + meta.as_of : "") }),
+                        msgVeredicto ? jsx10("div", { className: "text-xs text-(--dk-texto-2)", children: t(msgVeredicto) }) : null,
                         ...detalles.map((d2, i3) => {
                           const estado = estadoCita(d2, v2.hash, docInfo.hash, registro);
                           const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo;
-                          return jsxs9("div", { key: i3, className: "flex items-start gap-2 border-b border-slate-200 py-2 last:border-0", children: [
-                            jsx9("span", {
-                              className: "w-4 shrink-0 text-center font-bold " + (estado === "verificada" ? "text-emerald-600" : estado === "fallo" ? "text-red-600" : "text-slate-400"),
+                          return jsxs10("div", { key: i3, className: "flex items-start gap-2 border-b border-(--dk-borde) py-2 last:border-0", children: [
+                            jsx10("span", {
+                              className: "w-4 shrink-0 text-center font-bold " + (estado === "verificada" ? S.ok : estado === "fallo" ? S.bad : "text-(--dk-texto-3)"),
+                              "aria-hidden": "true",
                               children: estado === "verificada" ? "\u2713" : estado === "fallo" ? "\u2717" : "\xB7"
                             }),
-                            jsxs9("div", { className: "min-w-0 flex-1", children: [
-                              jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-                                jsx9("span", { className: "font-medium text-slate-900", children: d2.cita_raw }),
-                                estado === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx9("button", {
+                            jsxs10("div", { className: "min-w-0 flex-1", children: [
+                              jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                                jsx10("span", { className: "font-medium text-(--dk-texto)", children: d2.cita_raw }),
+                                estado === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx10("button", {
                                   type: "button",
                                   className: S.chip + " " + S[es.chip] + " cursor-pointer",
-                                  title: "Abrir el art\xEDculo en el grafo 3D",
+                                  title: t("writer.open.article.in.corpus.graph"),
                                   onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
-                                  children: es.texto + " \xB7 grafo"
-                                }) : jsx9("span", { className: S.chip + " " + S[es.chip], children: es.texto })
+                                  children: etiquetaCodigo(estado === "verificada" ? "VERIFICADA" : estado === "fallo" ? "FALLO" : estado) + t("writer.graph")
+                                }) : jsx10("span", { className: S.chip + " " + S[es.chip], children: etiquetaCodigo(estado === "verificada" ? "VERIFICADA" : estado === "fallo" ? "FALLO" : estado) })
                               ] }),
-                              jsx9("div", { className: "mt-0.5 break-all text-[11px] text-slate-500", children: etiquetaCita(estado, d2, meta, registro) }),
-                              estado === "fallo" ? jsx9(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
+                              jsx10("div", { className: "mt-0.5 break-all text-xs text-(--dk-texto-3)", children: (() => {
+                                const e3 = etiquetaCita(estado, d2, meta, registro);
+                                return t(e3.codigo, { ...e3.datos, resolution: etiquetaCodigo(e3.datos.resolution) }) + (e3.pista ? t("verify.lead") : "");
+                              })() }),
+                              estado === "fallo" ? jsx10(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t5, val) => accionCita(i3, t5, val) }) : null
                             ] })
                           ] });
                         }),
-                        res.problemas && res.problemas.length ? jsxs9("div", {
-                          className: "rounded border border-amber-200 bg-amber-50 p-2",
+                        res.problemas && res.problemas.length ? jsxs10("div", {
+                          className: S.noticeWarn,
                           children: [
-                            jsx9("div", { className: "text-[10px] font-bold uppercase text-amber-800", children: "Problemas del motor" }),
-                            ...res.problemas.map((p2, i3) => jsx9("div", { key: i3, className: "text-[11px] text-amber-900", children: String(p2) }))
+                            jsx10("div", { className: "dk-rotulo", children: t("writer.engine.problems") }),
+                            ...res.problemas.map((p2, i3) => jsx10("div", { key: i3, className: "text-xs", children: String(p2) }))
                           ]
                         }) : null,
-                        res.no_verificadas && res.no_verificadas.length ? jsx9("div", {
-                          className: "text-[11px] text-slate-500",
-                          children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ")
+                        res.no_verificadas && res.no_verificadas.length ? jsx10("div", {
+                          className: "text-xs text-(--dk-texto-3)",
+                          children: t("writer.references.without.an.article.unchecked") + res.no_verificadas.join(", ")
                         }) : null,
-                        registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs9("details", {
+                        registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs10("details", {
                           className: "text-xs",
                           children: [
-                            jsx9("summary", { className: "cursor-pointer text-slate-500", children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
-                            ...(registro.retiros || []).map((r2, i3) => jsxs9("div", { key: "r" + i3, className: "py-0.5 text-[11px]", children: [
-                              jsx9("span", { className: "text-slate-400", children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-                              jsx9("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
+                            jsx10("summary", { className: "cursor-pointer text-(--dk-texto-3)", children: t("writer.custody", { removed: (registro.retiros || []).length, review: (registro.escaladas || []).length }) }),
+                            ...(registro.retiros || []).map((r2, i3) => jsxs10("div", { key: "r" + i3, className: "py-0.5 text-xs", children: [
+                              jsx10("span", { className: "text-(--dk-texto-3)", children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+                              jsx10("span", { children: t("writer.removed") + r2.cita_raw + " \xB7 " + r2.motivo })
                             ] })),
-                            ...(registro.escaladas || []).map((e3, i3) => jsxs9("div", { key: "e" + i3, className: "py-0.5 text-[11px]", children: [
-                              jsx9("span", { className: "text-slate-400", children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-                              jsx9("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
+                            ...(registro.escaladas || []).map((e3, i3) => jsxs10("div", { key: "e" + i3, className: "py-0.5 text-xs", children: [
+                              jsx10("span", { className: "text-(--dk-texto-3)", children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+                              jsx10("span", { children: t("writer.sent.for.review") + e3.cita_raw + " \xB7 " + e3.nota })
                             ] }))
                           ]
                         }) : null,
-                        jsx9("div", { className: "text-[11px] text-slate-400 pt-1 border-t border-slate-100", children: AVISO_JUICIO }),
-                        res.alcance ? jsx9("div", { className: "text-[11px] text-slate-400", children: res.alcance }) : null
+                        jsx10("div", { className: "text-xs text-(--dk-texto-3) pt-1 border-t border-(--dk-borde-suave)", children: t(AVISO_JUICIO) }),
+                        res.alcance ? jsx10("div", { className: "text-xs text-(--dk-texto-3)", children: res.alcance }) : null
                       ] }) : null
                     ]
                   }) : null,
                   // 2. Herramienta: Privacidad y Anonimizado (siempre montada para mantener autodetección)
-                  jsx9("div", {
+                  jsx10("div", {
                     className: herramientaActiva === "privacidad" ? "p-3" : "hidden",
-                    children: jsx9(ModuloPrivacidad, {
+                    children: jsx10(ModuloPrivacidad, {
                       editorRef,
                       caseId,
                       docInfo,
@@ -29780,18 +33072,15 @@ function SeccionEscritor({ onAbrirGrafo }) {
                     })
                   }),
                   // 3. Herramienta: Revisión de Estilo — LexO Escribe Claro
-                  herramientaActiva === "estilo" ? jsx9(PanelEscribeClaro, {
+                  herramientaActiva === "estilo" ? jsx10(PanelEscribeClaro, {
                     editorRef,
                     docInfo,
                     contextoInicial: prefs.contexto_estilo,
                     autoAnalizarInicial: prefs.auto_analizar_estilo,
-                    onEnviarAPizarra: (nuevaPizarra) => {
-                      actualizarRegistro((r2) => ({ ...r2 || {}, pizarra: nuevaPizarra }));
-                      guardarPrefs({ mostrar_pizarra: true });
-                    }
+                    onEnviarAPizarra: enviarAPizarra
                   }) : null,
                   // 4. Herramienta: NIF Interactivo + NIF Vivo
-                  herramientaActiva === "nif" ? jsx9(NifInteractivoEscritor, {
+                  herramientaActiva === "nif" ? jsx10(NifInteractivoEscritor, {
                     editorRef,
                     caseId,
                     registro,
@@ -29804,77 +33093,75 @@ function SeccionEscritor({ onAbrirGrafo }) {
                     onInsertarTexto: insertarTextoEnEditor
                   }) : null,
                   // 5. Herramienta: Grafos (Corpus BM25 + Constructor de Ordenamientos + 3D)
-                  herramientaActiva === "grafos" ? jsx9(PanelHerramientasGrafos, {
+                  herramientaActiva === "grafos" ? jsx10(PanelHerramientasGrafos, {
                     onLlevarCitaAlEscrito: insertarCitaEnEscrito,
                     onAgregarAPizarra: agregarNotaAPizarra,
-                    onAbrirGrafo3D: (foco2) => {
-                      if (onAbrirGrafo) onAbrirGrafo(foco2 || { nodo_id: "n:207436" });
-                    }
+                    onAbrirGrafo3D: abrirGrafo
                   }) : null,
                   // 6. Herramienta: Personalización de Usuario + Predicción (siempre montada para ghost text)
-                  jsxs9("div", {
-                    className: herramientaActiva === "ajustes" ? "flex flex-col gap-3 p-3 text-xs text-slate-800" : "hidden",
+                  jsxs10("div", {
+                    className: herramientaActiva === "ajustes" ? "flex flex-col gap-3 p-3 text-xs text-(--dk-texto)" : "hidden",
                     children: [
                       // Bloque de personalización pensado para usuarios terceros
-                      jsxs9("div", {
-                        className: "flex flex-col gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3",
+                      jsxs10("div", {
+                        className: "flex flex-col gap-2.5 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3",
                         children: [
-                          jsx9("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-500", children: "Personalizaci\xF3n del Estudio (Preferencias de Usuario)" }),
-                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
-                            jsx9("label", { className: "text-slate-700", children: "Tema de la hoja:" }),
-                            jsx9("select", {
+                          jsx10("div", { className: "dk-rotulo", children: t("writer.writer.settings") }),
+                          jsxs10("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx10("label", { className: "text-(--dk-texto-2)", children: t("writer.paper.theme") }),
+                            jsx10("select", {
                               value: prefs.tema_papel,
                               onChange: (e3) => guardarPrefs({ tema_papel: e3.target.value }),
-                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
-                              children: Object.entries(TEMAS_HOJA).map(([k, v3]) => jsx9("option", { key: k, value: k, children: v3.label }))
+                              className: "rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs",
+                              children: Object.entries(TEMAS_HOJA).map(([k, v3]) => jsx10("option", { key: k, value: k, children: v3.label }))
                             })
                           ] }),
-                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
-                            jsx9("label", { className: "text-slate-700", children: "Formato de p\xE1gina:" }),
-                            jsx9("select", {
+                          jsxs10("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx10("label", { className: "text-(--dk-texto-2)", children: t("writer.page.format") }),
+                            jsx10("select", {
                               value: prefs.ancho_hoja,
                               onChange: (e3) => guardarPrefs({ ancho_hoja: e3.target.value }),
-                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
-                              children: Object.entries(ANCHOS_HOJA).map(([k, v3]) => jsx9("option", { key: k, value: k, children: v3.label }))
+                              className: "rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs",
+                              children: Object.entries(ANCHOS_HOJA).map(([k, v3]) => jsx10("option", { key: k, value: k, children: v3.label }))
                             })
                           ] }),
-                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
-                            jsx9("label", { className: "text-slate-700", children: "Estrategia de privacidad inicial:" }),
-                            jsx9("select", {
+                          jsxs10("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx10("label", { className: "text-(--dk-texto-2)", children: t("writer.default.privacy.strategy") }),
+                            jsx10("select", {
                               value: prefs.estrategia_privacidad,
                               onChange: (e3) => {
                                 const est = e3.target.value;
                                 guardarPrefs({ estrategia_privacidad: est });
                                 actualizarRegistro((r2) => ({ ...r2 || {}, privacidad: { ...(r2 || {}).privacidad, estrategia: est } }));
                               },
-                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
+                              className: "rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs",
                               children: [
-                                jsx9("option", { key: "ligera", value: "ligera", children: "Ligera (solo cr\xEDticos)" }),
-                                jsx9("option", { key: "media", value: "media", children: "Media (cr\xEDticos + altos)" }),
-                                jsx9("option", { key: "estricta", value: "estricta", children: "Estricta (+ medios y nombres)" })
+                                jsx10("option", { key: "ligera", value: "ligera", children: t("writer.light.critical.only") }),
+                                jsx10("option", { key: "media", value: "media", children: t("writer.medium.critical.and.high") }),
+                                jsx10("option", { key: "estricta", value: "estricta", children: t("writer.strict.also.medium.and.names") })
                               ]
                             })
                           ] }),
-                          jsxs9("label", { className: "flex items-center gap-2 text-slate-700 pt-1", children: [
-                            jsx9("input", {
+                          jsxs10("label", { className: "flex items-center gap-2 text-(--dk-texto-2) pt-1", children: [
+                            jsx10("input", {
                               type: "checkbox",
                               checked: prefs.mostrar_pizarra !== false,
                               onChange: (e3) => guardarPrefs({ mostrar_pizarra: e3.target.checked })
                             }),
-                            "Mostrar Pizarra Estrat\xE9gica encima del escrito"
+                            t("writer.show.strategy.board.above.the.brief")
                           ] }),
-                          jsxs9("label", { className: "flex items-center gap-2 text-slate-700", children: [
-                            jsx9("input", {
+                          jsxs10("label", { className: "flex items-center gap-2 text-(--dk-texto-2)", children: [
+                            jsx10("input", {
                               type: "checkbox",
                               checked: chatAbierto,
                               onChange: (e3) => guardarPrefs({ mostrar_chat: e3.target.checked })
                             }),
-                            "Mostrar panel de Chat Hermes a la derecha"
+                            t("writer.show.hermes.chat")
                           ] })
                         ]
                       }),
                       // Panel de Predicción por capas (L0/L1/L2)
-                      jsx9(PrediccionPanel, {
+                      jsx10(PrediccionPanel, {
                         editorRef,
                         caseId,
                         docInfo,
@@ -29890,43 +33177,47 @@ function SeccionEscritor({ onAbrirGrafo }) {
             ]
           }),
           // ── BARRA VERTICAL DE HERRAMIENTAS A LA DERECHA (estilo VS Code / imagen 2) ──
-          jsxs9("div", {
-            className: "flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-slate-200 bg-slate-50 py-2 select-none",
+          jsxs10("div", {
+            className: "flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none",
             children: [
-              ...HERRAMIENTAS_BARRA.map((t4) => {
-                const activa = herramientaActiva === t4.id;
+              ...HERRAMIENTAS_BARRA.map((tool) => {
+                const activa = herramientaActiva === tool.id;
                 let badge = null;
-                if (t4.id === "citas" && res && !res.error) {
+                if (tool.id === "citas" && res && !res.error) {
                   const fallos = meta.citas_fallidas || 0;
-                  badge = fallos > 0 ? jsx9("span", { className: "absolute -top-1 -right-1 rounded-full bg-red-600 px-1 text-[9px] font-bold text-white", children: String(fallos) }) : meta.total_citas > 0 ? jsx9("span", { className: "absolute -top-1 -right-1 rounded-full bg-emerald-600 px-1 text-[9px] font-bold text-white", children: String(meta.citas_verificadas) }) : null;
+                  badge = fallos > 0 ? jsx10("span", { className: "absolute -top-1 -right-1 rounded-full bg-(--dk-mal) px-1 text-xs font-bold text-(--dk-sobre-solido)", children: String(fallos) }) : meta.total_citas > 0 ? jsx10("span", { className: "absolute -top-1 -right-1 rounded-full bg-(--dk-ok) px-1 text-xs font-bold text-(--dk-sobre-solido)", children: String(meta.citas_verificadas) }) : null;
                 }
-                return jsxs9("button", {
-                  key: t4.id,
+                return jsxs10("button", {
+                  key: tool.id,
                   type: "button",
-                  title: t4.label,
-                  onClick: () => setHerramientaActiva((prev) => prev === t4.id ? null : t4.id),
-                  className: "relative flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors cursor-pointer " + (activa ? t4.activeCls : "text-slate-500 hover:bg-slate-200/80 hover:text-slate-900"),
+                  title: tool.label,
+                  "aria-label": tool.label,
+                  "aria-pressed": activa,
+                  onClick: () => setHerramientaActiva((prev) => prev === tool.id ? null : tool.id),
+                  className: "dk-btn dk-tool-button relative",
                   children: [
-                    jsx9("span", { children: t4.icono }),
+                    jsx10("span", { children: t("rail." + tool.id) }),
                     badge
                   ]
                 });
               }),
-              jsx9("div", { className: "my-1 h-px w-6 bg-slate-200" }),
+              jsx10("div", { className: "my-1 h-px w-6 bg-(--dk-superficie-2)" }),
               // Botón para mostrar/ocultar el panel de Chat Hermes a la derecha
-              jsx9("button", {
+              jsx10("button", {
                 type: "button",
-                title: chatAbierto ? "Ocultar panel de Chat Hermes" : "Mostrar panel de Chat Hermes a la derecha",
+                title: chatAbierto ? t("writer.hide.hermes.chat") : t("writer.show.hermes.chat"),
+                "aria-label": chatAbierto ? t("writer.hide.hermes.chat") : t("writer.show.hermes.chat"),
+                "aria-pressed": chatAbierto,
                 onClick: () => guardarPrefs({ mostrar_chat: !chatAbierto }),
-                className: "flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors cursor-pointer " + (chatAbierto ? "bg-slate-800 text-white shadow-xs" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"),
-                children: "\u{1F4AC}"
+                className: "dk-btn dk-tool-button",
+                children: t("rail.chat")
               })
             ]
           }),
           // ── PANEL DERECHO CONECTADO CON HERMES (Chat del escrito, siempre montado) ──
-          jsx9("div", {
-            className: (chatAbierto ? "flex " : "hidden ") + "w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden",
-            children: jsx9(ChatEscritor, {
+          jsx10("div", {
+            className: (chatAbierto ? "" : "hidden ") + "dk-chat-dock shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden",
+            children: jsx10(ChatEscritor, {
               editorRef,
               caseId,
               docInfo,
@@ -29937,7 +33228,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
               rev: revRef.current,
               onSesion: setChatSesion,
               onAbrirGrafo,
-              onAbrirPrivacidad: () => setHerramientaActiva("privacidad"),
+              onAbrirPrivacidad: abrirPrivacidad,
               modoDock: true
             })
           })
@@ -30329,8 +33620,8 @@ function inverseLerp(x3, y3, value) {
     return 0;
   }
 }
-function lerp(x3, y3, t4) {
-  return (1 - t4) * x3 + t4 * y3;
+function lerp(x3, y3, t5) {
+  return (1 - t5) * x3 + t5 * y3;
 }
 function damp(x3, y3, lambda, dt) {
   return lerp(x3, y3, 1 - Math.exp(-lambda * dt));
@@ -30361,10 +33652,10 @@ function randFloatSpread(range2) {
 }
 function seededRandom(s2) {
   if (s2 !== void 0) _seed = s2;
-  let t4 = _seed += 1831565813;
-  t4 = Math.imul(t4 ^ t4 >>> 15, t4 | 1);
-  t4 ^= t4 + Math.imul(t4 ^ t4 >>> 7, t4 | 61);
-  return ((t4 ^ t4 >>> 14) >>> 0) / 4294967296;
+  let t5 = _seed += 1831565813;
+  t5 = Math.imul(t5 ^ t5 >>> 15, t5 | 1);
+  t5 ^= t5 + Math.imul(t5 ^ t5 >>> 7, t5 | 61);
+  return ((t5 ^ t5 >>> 14) >>> 0) / 4294967296;
 }
 function degToRad(degrees4) {
   return degrees4 * DEG2RAD;
@@ -31336,7 +34627,7 @@ var Quaternion = class {
    * @param {number} t - The interpolation factor. A value in the range `[0,1]` will interpolate. A value outside the range `[0,1]` will extrapolate.
    * @see {@link Quaternion#slerp}
    */
-  static slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t4) {
+  static slerpFlat(dst, dstOffset, src0, srcOffset0, src1, srcOffset1, t5) {
     let x0 = src0[srcOffset0 + 0], y0 = src0[srcOffset0 + 1], z0 = src0[srcOffset0 + 2], w02 = src0[srcOffset0 + 3];
     let x1 = src1[srcOffset1 + 0], y1 = src1[srcOffset1 + 1], z1 = src1[srcOffset1 + 2], w12 = src1[srcOffset1 + 3];
     if (w02 !== w12 || x0 !== x1 || y0 !== y1 || z0 !== z1) {
@@ -31348,21 +34639,21 @@ var Quaternion = class {
         w12 = -w12;
         dot2 = -dot2;
       }
-      let s2 = 1 - t4;
+      let s2 = 1 - t5;
       if (dot2 < 0.9995) {
         const theta = Math.acos(dot2);
         const sin2 = Math.sin(theta);
         s2 = Math.sin(s2 * theta) / sin2;
-        t4 = Math.sin(t4 * theta) / sin2;
-        x0 = x0 * s2 + x1 * t4;
-        y0 = y0 * s2 + y1 * t4;
-        z0 = z0 * s2 + z1 * t4;
-        w02 = w02 * s2 + w12 * t4;
+        t5 = Math.sin(t5 * theta) / sin2;
+        x0 = x0 * s2 + x1 * t5;
+        y0 = y0 * s2 + y1 * t5;
+        z0 = z0 * s2 + z1 * t5;
+        w02 = w02 * s2 + w12 * t5;
       } else {
-        x0 = x0 * s2 + x1 * t4;
-        y0 = y0 * s2 + y1 * t4;
-        z0 = z0 * s2 + z1 * t4;
-        w02 = w02 * s2 + w12 * t4;
+        x0 = x0 * s2 + x1 * t5;
+        y0 = y0 * s2 + y1 * t5;
+        z0 = z0 * s2 + z1 * t5;
+        w02 = w02 * s2 + w12 * t5;
         const f2 = 1 / Math.sqrt(x0 * x0 + y0 * y0 + z0 * z0 + w02 * w02);
         x0 *= f2;
         y0 *= f2;
@@ -31658,8 +34949,8 @@ var Quaternion = class {
   rotateTowards(q2, step2) {
     const angle = this.angleTo(q2);
     if (angle === 0) return this;
-    const t4 = Math.min(1, step2 / angle);
-    this.slerp(q2, t4);
+    const t5 = Math.min(1, step2 / angle);
+    this.slerp(q2, t5);
     return this;
   }
   /**
@@ -31788,7 +35079,7 @@ var Quaternion = class {
    * @param {number} t - The interpolation factor. A value in the range `[0,1]` will interpolate. A value outside the range `[0,1]` will extrapolate.
    * @return {Quaternion} A reference to this quaternion.
    */
-  slerp(qb, t4) {
+  slerp(qb, t5) {
     let x3 = qb._x, y3 = qb._y, z3 = qb._z, w4 = qb._w;
     let dot2 = this.dot(qb);
     if (dot2 < 0) {
@@ -31798,22 +35089,22 @@ var Quaternion = class {
       w4 = -w4;
       dot2 = -dot2;
     }
-    let s2 = 1 - t4;
+    let s2 = 1 - t5;
     if (dot2 < 0.9995) {
       const theta = Math.acos(dot2);
       const sin2 = Math.sin(theta);
       s2 = Math.sin(s2 * theta) / sin2;
-      t4 = Math.sin(t4 * theta) / sin2;
-      this._x = this._x * s2 + x3 * t4;
-      this._y = this._y * s2 + y3 * t4;
-      this._z = this._z * s2 + z3 * t4;
-      this._w = this._w * s2 + w4 * t4;
+      t5 = Math.sin(t5 * theta) / sin2;
+      this._x = this._x * s2 + x3 * t5;
+      this._y = this._y * s2 + y3 * t5;
+      this._z = this._z * s2 + z3 * t5;
+      this._w = this._w * s2 + w4 * t5;
       this._onChangeCallback();
     } else {
-      this._x = this._x * s2 + x3 * t4;
-      this._y = this._y * s2 + y3 * t4;
-      this._z = this._z * s2 + z3 * t4;
-      this._w = this._w * s2 + w4 * t4;
+      this._x = this._x * s2 + x3 * t5;
+      this._y = this._y * s2 + y3 * t5;
+      this._z = this._z * s2 + z3 * t5;
+      this._w = this._w * s2 + w4 * t5;
       this.normalize();
     }
     return this;
@@ -31827,8 +35118,8 @@ var Quaternion = class {
    * @param {number} t - The interpolation factor in the closed interval `[0, 1]`.
    * @return {Quaternion} A reference to this quaternion.
    */
-  slerpQuaternions(qa, qb, t4) {
-    return this.copy(qa).slerp(qb, t4);
+  slerpQuaternions(qa, qb, t5) {
+    return this.copy(qa).slerp(qb, t5);
   }
   /**
    * Sets this quaternion to a uniformly random, normalized quaternion.
@@ -35521,14 +38812,14 @@ var Matrix4 = class _Matrix4 {
    * @return {Matrix4} A reference to this matrix.
    */
   invert() {
-    const te = this.elements, n11 = te[0], n21 = te[1], n31 = te[2], n41 = te[3], n12 = te[4], n22 = te[5], n32 = te[6], n42 = te[7], n13 = te[8], n23 = te[9], n33 = te[10], n43 = te[11], n14 = te[12], n24 = te[13], n34 = te[14], n44 = te[15], t12 = n11 * n22 - n21 * n12, t22 = n11 * n32 - n31 * n12, t32 = n11 * n42 - n41 * n12, t4 = n21 * n32 - n31 * n22, t5 = n21 * n42 - n41 * n22, t6 = n31 * n42 - n41 * n32, t7 = n13 * n24 - n23 * n14, t8 = n13 * n34 - n33 * n14, t9 = n13 * n44 - n43 * n14, t10 = n23 * n34 - n33 * n24, t11 = n23 * n44 - n43 * n24, t122 = n33 * n44 - n43 * n34;
-    const det2 = t12 * t122 - t22 * t11 + t32 * t10 + t4 * t9 - t5 * t8 + t6 * t7;
+    const te = this.elements, n11 = te[0], n21 = te[1], n31 = te[2], n41 = te[3], n12 = te[4], n22 = te[5], n32 = te[6], n42 = te[7], n13 = te[8], n23 = te[9], n33 = te[10], n43 = te[11], n14 = te[12], n24 = te[13], n34 = te[14], n44 = te[15], t12 = n11 * n22 - n21 * n12, t22 = n11 * n32 - n31 * n12, t32 = n11 * n42 - n41 * n12, t42 = n21 * n32 - n31 * n22, t5 = n21 * n42 - n41 * n22, t6 = n31 * n42 - n41 * n32, t7 = n13 * n24 - n23 * n14, t8 = n13 * n34 - n33 * n14, t9 = n13 * n44 - n43 * n14, t10 = n23 * n34 - n33 * n24, t11 = n23 * n44 - n43 * n24, t122 = n33 * n44 - n43 * n34;
+    const det2 = t12 * t122 - t22 * t11 + t32 * t10 + t42 * t9 - t5 * t8 + t6 * t7;
     if (det2 === 0) return this.set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     const detInv = 1 / det2;
     te[0] = (n22 * t122 - n32 * t11 + n42 * t10) * detInv;
     te[1] = (n31 * t11 - n21 * t122 - n41 * t10) * detInv;
-    te[2] = (n24 * t6 - n34 * t5 + n44 * t4) * detInv;
-    te[3] = (n33 * t5 - n23 * t6 - n43 * t4) * detInv;
+    te[2] = (n24 * t6 - n34 * t5 + n44 * t42) * detInv;
+    te[3] = (n33 * t5 - n23 * t6 - n43 * t42) * detInv;
     te[4] = (n32 * t9 - n12 * t122 - n42 * t8) * detInv;
     te[5] = (n11 * t122 - n31 * t9 + n41 * t8) * detInv;
     te[6] = (n34 * t32 - n14 * t6 - n44 * t22) * detInv;
@@ -35539,8 +38830,8 @@ var Matrix4 = class _Matrix4 {
     te[11] = (n23 * t32 - n13 * t5 - n43 * t12) * detInv;
     te[12] = (n22 * t8 - n12 * t10 - n32 * t7) * detInv;
     te[13] = (n11 * t10 - n21 * t8 + n31 * t7) * detInv;
-    te[14] = (n24 * t22 - n14 * t4 - n34 * t12) * detInv;
-    te[15] = (n13 * t4 - n23 * t22 + n33 * t12) * detInv;
+    te[14] = (n24 * t22 - n14 * t42 - n34 * t12) * detInv;
+    te[15] = (n13 * t42 - n23 * t22 + n33 * t12) * detInv;
     return this;
   }
   /**
@@ -35729,9 +39020,9 @@ var Matrix4 = class _Matrix4 {
   makeRotationAxis(axis, angle) {
     const c4 = Math.cos(angle);
     const s2 = Math.sin(angle);
-    const t4 = 1 - c4;
+    const t5 = 1 - c4;
     const x3 = axis.x, y3 = axis.y, z3 = axis.z;
-    const tx = t4 * x3, ty = t4 * y3;
+    const tx = t5 * x3, ty = t5 * y3;
     this.set(
       tx * x3 + c4,
       tx * y3 - s2 * z3,
@@ -35743,7 +39034,7 @@ var Matrix4 = class _Matrix4 {
       0,
       tx * z3 - s2 * y3,
       ty * z3 + s2 * x3,
-      t4 * z3 * z3 + c4,
+      t5 * z3 * z3 + c4,
       0,
       0,
       0,
@@ -37759,12 +41050,12 @@ var _colorKeywords = {
 };
 var _hslA = { h: 0, s: 0, l: 0 };
 var _hslB = { h: 0, s: 0, l: 0 };
-function hue2rgb(p2, q2, t4) {
-  if (t4 < 0) t4 += 1;
-  if (t4 > 1) t4 -= 1;
-  if (t4 < 1 / 6) return p2 + (q2 - p2) * 6 * t4;
-  if (t4 < 1 / 2) return q2;
-  if (t4 < 2 / 3) return p2 + (q2 - p2) * 6 * (2 / 3 - t4);
+function hue2rgb(p2, q2, t5) {
+  if (t5 < 0) t5 += 1;
+  if (t5 > 1) t5 -= 1;
+  if (t5 < 1 / 6) return p2 + (q2 - p2) * 6 * t5;
+  if (t5 < 1 / 2) return q2;
+  if (t5 < 2 / 3) return p2 + (q2 - p2) * 6 * (2 / 3 - t5);
   return p2;
 }
 var Color = class {
@@ -40703,10 +43994,10 @@ var BufferGeometry = class _BufferGeometry extends EventDispatcher {
     function handleVertex(v2) {
       n2.fromBufferAttribute(normalAttribute, v2);
       n22.copy(n2);
-      const t4 = tan1[v2];
-      tmp2.copy(t4);
-      tmp2.sub(n2.multiplyScalar(n2.dot(t4))).normalize();
-      tmp22.crossVectors(n22, t4);
+      const t5 = tan1[v2];
+      tmp2.copy(t5);
+      tmp2.sub(n2.multiplyScalar(n2.dot(t5))).normalize();
+      tmp22.crossVectors(n22, t5);
       const test = tmp22.dot(tan2[v2]);
       const w4 = test < 0 ? -1 : 1;
       tangentAttribute.setXYZW(v2, tmp2.x, tmp2.y, tmp2.z, w4);
@@ -41987,8 +45278,8 @@ var Ray = class {
    * @param {Vector3} target - The target vector that is used to store the method's result.
    * @return {Vector3} A position on the ray.
    */
-  at(t4, target) {
-    return target.copy(this.origin).addScaledVector(this.direction, t4);
+  at(t5, target) {
+    return target.copy(this.origin).addScaledVector(this.direction, t5);
   }
   /**
    * Adjusts the direction of the ray to point at the given vector in world space.
@@ -42006,8 +45297,8 @@ var Ray = class {
    * @param {number} t - The distance along the ray to interpolate.
    * @return {Ray} A reference to this ray.
    */
-  recast(t4) {
-    this.origin.copy(this.at(t4, _vector$7));
+  recast(t5) {
+    this.origin.copy(this.at(t5, _vector$7));
     return this;
   }
   /**
@@ -42163,8 +45454,8 @@ var Ray = class {
       }
       return null;
     }
-    const t4 = -(this.origin.dot(plane.normal) + plane.constant) / denominator;
-    return t4 >= 0 ? t4 : null;
+    const t5 = -(this.origin.dot(plane.normal) + plane.constant) / denominator;
+    return t5 >= 0 ? t5 : null;
   }
   /**
    * Intersects this ray with the given plane, returning the intersection
@@ -42175,11 +45466,11 @@ var Ray = class {
    * @return {?Vector3} The intersection point.
    */
   intersectPlane(plane, target) {
-    const t4 = this.distanceToPlane(plane);
-    if (t4 === null) {
+    const t5 = this.distanceToPlane(plane);
+    if (t5 === null) {
       return null;
     }
-    return this.at(t4, target);
+    return this.at(t5, target);
   }
   /**
    * Returns `true` if this ray intersects with the given plane.
@@ -42830,11 +46121,11 @@ var Plane = class {
       }
       return null;
     }
-    const t4 = -(line.start.dot(this.normal) + this.constant) / denominator;
-    if (t4 < 0 || t4 > 1) {
+    const t5 = -(line.start.dot(this.normal) + this.constant) / denominator;
+    if (t5 < 0 || t5 > 1) {
       return null;
     }
-    return target.copy(line.start).addScaledVector(direction, t4);
+    return target.copy(line.start).addScaledVector(direction, t5);
   }
   /**
    * Returns `true` if the given line segment intersects with (passes through) the plane.
@@ -43947,8 +47238,8 @@ var Curve = class {
    * @return {(Vector2|Vector3)} The position on the curve. It can be a 2D or 3D vector depending on the curve definition.
    */
   getPointAt(u2, optionalTarget) {
-    const t4 = this.getUtoTmapping(u2);
-    return this.getPoint(t4, optionalTarget);
+    const t5 = this.getUtoTmapping(u2);
+    return this.getPoint(t5, optionalTarget);
   }
   /**
    * This method samples the curve via {@link Curve#getPoint} and returns an array of points representing
@@ -44063,8 +47354,8 @@ var Curve = class {
     const lengthAfter = arcLengths[i3 + 1];
     const segmentLength = lengthAfter - lengthBefore;
     const segmentFraction = (targetArcLength - lengthBefore) / segmentLength;
-    const t4 = (i3 + segmentFraction) / (il - 1);
-    return t4;
+    const t5 = (i3 + segmentFraction) / (il - 1);
+    return t5;
   }
   /**
    * Returns a unit vector tangent for the given interpolation factor.
@@ -44076,10 +47367,10 @@ var Curve = class {
    * @param {(Vector2|Vector3)} [optionalTarget] - The optional target vector the result is written to.
    * @return {(Vector2|Vector3)} The tangent vector.
    */
-  getTangent(t4, optionalTarget) {
+  getTangent(t5, optionalTarget) {
     const delta = 1e-4;
-    let t12 = t4 - delta;
-    let t22 = t4 + delta;
+    let t12 = t5 - delta;
+    let t22 = t5 + delta;
     if (t12 < 0) t12 = 0;
     if (t22 > 1) t22 = 1;
     const pt1 = this.getPoint(t12);
@@ -44097,8 +47388,8 @@ var Curve = class {
    * @see {@link Curve#getPointAt}
    */
   getTangentAt(u2, optionalTarget) {
-    const t4 = this.getUtoTmapping(u2);
-    return this.getTangent(t4, optionalTarget);
+    const t5 = this.getUtoTmapping(u2);
+    return this.getTangent(t5, optionalTarget);
   }
   /**
    * Generates the Frenet Frames. Requires a curve definition in 3D space. Used
@@ -44247,7 +47538,7 @@ var EllipseCurve = class extends Curve {
    * @param {Vector2} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector2} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector2()) {
+  getPoint(t5, optionalTarget = new Vector2()) {
     const point = optionalTarget;
     const twoPi = Math.PI * 2;
     let deltaAngle = this.aEndAngle - this.aStartAngle;
@@ -44268,7 +47559,7 @@ var EllipseCurve = class extends Curve {
         deltaAngle = deltaAngle - twoPi;
       }
     }
-    const angle = this.aStartAngle + t4 * deltaAngle;
+    const angle = this.aStartAngle + t5 * deltaAngle;
     let x3 = this.aX + this.xRadius * Math.cos(angle);
     let y3 = this.aY + this.yRadius * Math.sin(angle);
     if (this.aRotation !== 0) {
@@ -44354,10 +47645,10 @@ function CubicPoly() {
       t22 *= dt1;
       init3(x1, x22, t12, t22);
     },
-    calc: function(t4) {
-      const t22 = t4 * t4;
-      const t32 = t22 * t4;
-      return c0 + c1 * t4 + c22 * t22 + c32 * t32;
+    calc: function(t5) {
+      const t22 = t5 * t5;
+      const t32 = t22 * t5;
+      return c0 + c1 * t5 + c22 * t22 + c32 * t32;
     }
   };
 }
@@ -44390,11 +47681,11 @@ var CatmullRomCurve3 = class extends Curve {
    * @param {Vector3} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector3} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector3()) {
+  getPoint(t5, optionalTarget = new Vector3()) {
     const point = optionalTarget;
     const points = this.points;
     const l2 = points.length;
-    const p2 = (l2 - (this.closed ? 0 : 1)) * t4;
+    const p2 = (l2 - (this.closed ? 0 : 1)) * t5;
     let intPoint = Math.floor(p2);
     let weight = p2 - intPoint;
     if (this.closed) {
@@ -44478,42 +47769,42 @@ var CatmullRomCurve3 = class extends Curve {
     return this;
   }
 };
-function CatmullRom(t4, p0, p1, p2, p3) {
+function CatmullRom(t5, p0, p1, p2, p3) {
   const v0 = (p2 - p0) * 0.5;
   const v1 = (p3 - p1) * 0.5;
-  const t22 = t4 * t4;
-  const t32 = t4 * t22;
-  return (2 * p1 - 2 * p2 + v0 + v1) * t32 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t22 + v0 * t4 + p1;
+  const t22 = t5 * t5;
+  const t32 = t5 * t22;
+  return (2 * p1 - 2 * p2 + v0 + v1) * t32 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t22 + v0 * t5 + p1;
 }
-function QuadraticBezierP0(t4, p2) {
-  const k = 1 - t4;
+function QuadraticBezierP0(t5, p2) {
+  const k = 1 - t5;
   return k * k * p2;
 }
-function QuadraticBezierP1(t4, p2) {
-  return 2 * (1 - t4) * t4 * p2;
+function QuadraticBezierP1(t5, p2) {
+  return 2 * (1 - t5) * t5 * p2;
 }
-function QuadraticBezierP2(t4, p2) {
-  return t4 * t4 * p2;
+function QuadraticBezierP2(t5, p2) {
+  return t5 * t5 * p2;
 }
-function QuadraticBezier(t4, p0, p1, p2) {
-  return QuadraticBezierP0(t4, p0) + QuadraticBezierP1(t4, p1) + QuadraticBezierP2(t4, p2);
+function QuadraticBezier(t5, p0, p1, p2) {
+  return QuadraticBezierP0(t5, p0) + QuadraticBezierP1(t5, p1) + QuadraticBezierP2(t5, p2);
 }
-function CubicBezierP0(t4, p2) {
-  const k = 1 - t4;
+function CubicBezierP0(t5, p2) {
+  const k = 1 - t5;
   return k * k * k * p2;
 }
-function CubicBezierP1(t4, p2) {
-  const k = 1 - t4;
-  return 3 * k * k * t4 * p2;
+function CubicBezierP1(t5, p2) {
+  const k = 1 - t5;
+  return 3 * k * k * t5 * p2;
 }
-function CubicBezierP2(t4, p2) {
-  return 3 * (1 - t4) * t4 * t4 * p2;
+function CubicBezierP2(t5, p2) {
+  return 3 * (1 - t5) * t5 * t5 * p2;
 }
-function CubicBezierP3(t4, p2) {
-  return t4 * t4 * t4 * p2;
+function CubicBezierP3(t5, p2) {
+  return t5 * t5 * t5 * p2;
 }
-function CubicBezier(t4, p0, p1, p2, p3) {
-  return CubicBezierP0(t4, p0) + CubicBezierP1(t4, p1) + CubicBezierP2(t4, p2) + CubicBezierP3(t4, p3);
+function CubicBezier(t5, p0, p1, p2, p3) {
+  return CubicBezierP0(t5, p0) + CubicBezierP1(t5, p1) + CubicBezierP2(t5, p2) + CubicBezierP3(t5, p3);
 }
 var CubicBezierCurve = class extends Curve {
   /**
@@ -44540,12 +47831,12 @@ var CubicBezierCurve = class extends Curve {
    * @param {Vector2} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector2} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector2()) {
+  getPoint(t5, optionalTarget = new Vector2()) {
     const point = optionalTarget;
     const v0 = this.v0, v1 = this.v1, v2 = this.v2, v3 = this.v3;
     point.set(
-      CubicBezier(t4, v0.x, v1.x, v2.x, v3.x),
-      CubicBezier(t4, v0.y, v1.y, v2.y, v3.y)
+      CubicBezier(t5, v0.x, v1.x, v2.x, v3.x),
+      CubicBezier(t5, v0.y, v1.y, v2.y, v3.y)
     );
     return point;
   }
@@ -44599,13 +47890,13 @@ var CubicBezierCurve3 = class extends Curve {
    * @param {Vector3} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector3} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector3()) {
+  getPoint(t5, optionalTarget = new Vector3()) {
     const point = optionalTarget;
     const v0 = this.v0, v1 = this.v1, v2 = this.v2, v3 = this.v3;
     point.set(
-      CubicBezier(t4, v0.x, v1.x, v2.x, v3.x),
-      CubicBezier(t4, v0.y, v1.y, v2.y, v3.y),
-      CubicBezier(t4, v0.z, v1.z, v2.z, v3.z)
+      CubicBezier(t5, v0.x, v1.x, v2.x, v3.x),
+      CubicBezier(t5, v0.y, v1.y, v2.y, v3.y),
+      CubicBezier(t5, v0.z, v1.z, v2.z, v3.z)
     );
     return point;
   }
@@ -44655,13 +47946,13 @@ var LineCurve = class extends Curve {
    * @param {Vector2} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector2} The position on the line.
    */
-  getPoint(t4, optionalTarget = new Vector2()) {
+  getPoint(t5, optionalTarget = new Vector2()) {
     const point = optionalTarget;
-    if (t4 === 1) {
+    if (t5 === 1) {
       point.copy(this.v2);
     } else {
       point.copy(this.v2).sub(this.v1);
-      point.multiplyScalar(t4).add(this.v1);
+      point.multiplyScalar(t5).add(this.v1);
     }
     return point;
   }
@@ -44669,7 +47960,7 @@ var LineCurve = class extends Curve {
   getPointAt(u2, optionalTarget) {
     return this.getPoint(u2, optionalTarget);
   }
-  getTangent(t4, optionalTarget = new Vector2()) {
+  getTangent(t5, optionalTarget = new Vector2()) {
     return optionalTarget.subVectors(this.v2, this.v1).normalize();
   }
   getTangentAt(u2, optionalTarget) {
@@ -44715,13 +48006,13 @@ var LineCurve3 = class extends Curve {
    * @param {Vector3} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector3} The position on the line.
    */
-  getPoint(t4, optionalTarget = new Vector3()) {
+  getPoint(t5, optionalTarget = new Vector3()) {
     const point = optionalTarget;
-    if (t4 === 1) {
+    if (t5 === 1) {
       point.copy(this.v2);
     } else {
       point.copy(this.v2).sub(this.v1);
-      point.multiplyScalar(t4).add(this.v1);
+      point.multiplyScalar(t5).add(this.v1);
     }
     return point;
   }
@@ -44729,7 +48020,7 @@ var LineCurve3 = class extends Curve {
   getPointAt(u2, optionalTarget) {
     return this.getPoint(u2, optionalTarget);
   }
-  getTangent(t4, optionalTarget = new Vector3()) {
+  getTangent(t5, optionalTarget = new Vector3()) {
     return optionalTarget.subVectors(this.v2, this.v1).normalize();
   }
   getTangentAt(u2, optionalTarget) {
@@ -44777,12 +48068,12 @@ var QuadraticBezierCurve = class extends Curve {
    * @param {Vector2} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector2} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector2()) {
+  getPoint(t5, optionalTarget = new Vector2()) {
     const point = optionalTarget;
     const v0 = this.v0, v1 = this.v1, v2 = this.v2;
     point.set(
-      QuadraticBezier(t4, v0.x, v1.x, v2.x),
-      QuadraticBezier(t4, v0.y, v1.y, v2.y)
+      QuadraticBezier(t5, v0.x, v1.x, v2.x),
+      QuadraticBezier(t5, v0.y, v1.y, v2.y)
     );
     return point;
   }
@@ -44831,13 +48122,13 @@ var QuadraticBezierCurve3 = class extends Curve {
    * @param {Vector3} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector3} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector3()) {
+  getPoint(t5, optionalTarget = new Vector3()) {
     const point = optionalTarget;
     const v0 = this.v0, v1 = this.v1, v2 = this.v2;
     point.set(
-      QuadraticBezier(t4, v0.x, v1.x, v2.x),
-      QuadraticBezier(t4, v0.y, v1.y, v2.y),
-      QuadraticBezier(t4, v0.z, v1.z, v2.z)
+      QuadraticBezier(t5, v0.x, v1.x, v2.x),
+      QuadraticBezier(t5, v0.y, v1.y, v2.y),
+      QuadraticBezier(t5, v0.z, v1.z, v2.z)
     );
     return point;
   }
@@ -44882,10 +48173,10 @@ var SplineCurve = class extends Curve {
    * @param {Vector2} [optionalTarget] - The optional target vector the result is written to.
    * @return {Vector2} The position on the curve.
    */
-  getPoint(t4, optionalTarget = new Vector2()) {
+  getPoint(t5, optionalTarget = new Vector2()) {
     const point = optionalTarget;
     const points = this.points;
-    const p2 = (points.length - 1) * t4;
+    const p2 = (points.length - 1) * t5;
     const intPoint = Math.floor(p2);
     const weight = p2 - intPoint;
     const p0 = points[intPoint === 0 ? intPoint : intPoint - 1];
@@ -46178,17 +49469,17 @@ var Interpolant = class {
    * @param {number} t - The interpolation factor.
    * @return {TypedArray} The result buffer.
    */
-  evaluate(t4) {
+  evaluate(t5) {
     const pp = this.parameterPositions;
     let i1 = this._cachedIndex, t12 = pp[i1], t02 = pp[i1 - 1];
     validate_interval: {
       seek: {
         let right;
         linear_scan: {
-          forward_scan: if (!(t4 < t12)) {
+          forward_scan: if (!(t5 < t12)) {
             for (let giveUpAt = i1 + 2; ; ) {
               if (t12 === void 0) {
-                if (t4 < t02) break forward_scan;
+                if (t5 < t02) break forward_scan;
                 i1 = pp.length;
                 this._cachedIndex = i1;
                 return this.copySampleValue_(i1 - 1);
@@ -46196,16 +49487,16 @@ var Interpolant = class {
               if (i1 === giveUpAt) break;
               t02 = t12;
               t12 = pp[++i1];
-              if (t4 < t12) {
+              if (t5 < t12) {
                 break seek;
               }
             }
             right = pp.length;
             break linear_scan;
           }
-          if (!(t4 >= t02)) {
+          if (!(t5 >= t02)) {
             const t1global = pp[1];
-            if (t4 < t1global) {
+            if (t5 < t1global) {
               i1 = 2;
               t02 = t1global;
             }
@@ -46217,7 +49508,7 @@ var Interpolant = class {
               if (i1 === giveUpAt) break;
               t12 = t02;
               t02 = pp[--i1 - 1];
-              if (t4 >= t02) {
+              if (t5 >= t02) {
                 break seek;
               }
             }
@@ -46229,7 +49520,7 @@ var Interpolant = class {
         }
         while (i1 < right) {
           const mid = i1 + right >>> 1;
-          if (t4 < pp[mid]) {
+          if (t5 < pp[mid]) {
             right = mid;
           } else {
             i1 = mid + 1;
@@ -46250,7 +49541,7 @@ var Interpolant = class {
       this._cachedIndex = i1;
       this.intervalChanged_(i1, t02, t12);
     }
-    return this.interpolate_(i1, t02, t4, t12);
+    return this.interpolate_(i1, t02, t5, t12);
   }
   /**
    * Returns the interpolation settings.
@@ -46355,8 +49646,8 @@ var CubicInterpolant = class extends Interpolant {
     this._offsetPrev = iPrev * stride;
     this._offsetNext = iNext * stride;
   }
-  interpolate_(i1, t02, t4, t12) {
-    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, o1 = i1 * stride, o0 = o1 - stride, oP = this._offsetPrev, oN = this._offsetNext, wP = this._weightPrev, wN = this._weightNext, p2 = (t4 - t02) / (t12 - t02), pp = p2 * p2, ppp = pp * p2;
+  interpolate_(i1, t02, t5, t12) {
+    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, o1 = i1 * stride, o0 = o1 - stride, oP = this._offsetPrev, oN = this._offsetNext, wP = this._weightPrev, wN = this._weightNext, p2 = (t5 - t02) / (t12 - t02), pp = p2 * p2, ppp = pp * p2;
     const sP = -wP * ppp + 2 * wP * pp - wP * p2;
     const s0 = (1 + wP) * ppp + (-1.5 - 2 * wP) * pp + (-0.5 + wP) * p2 + 1;
     const s1 = (-1 - wN) * ppp + (1.5 + wN) * pp + 0.5 * p2;
@@ -46379,8 +49670,8 @@ var LinearInterpolant = class extends Interpolant {
   constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) {
     super(parameterPositions, sampleValues, sampleSize, resultBuffer);
   }
-  interpolate_(i1, t02, t4, t12) {
-    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, offset1 = i1 * stride, offset0 = offset1 - stride, weight1 = (t4 - t02) / (t12 - t02), weight0 = 1 - weight1;
+  interpolate_(i1, t02, t5, t12) {
+    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, offset1 = i1 * stride, offset0 = offset1 - stride, weight1 = (t5 - t02) / (t12 - t02), weight0 = 1 - weight1;
     for (let i3 = 0; i3 !== stride; ++i3) {
       result[i3] = values[offset0 + i3] * weight0 + values[offset1 + i3] * weight1;
     }
@@ -46404,7 +49695,7 @@ var DiscreteInterpolant = class extends Interpolant {
   }
 };
 var BezierInterpolant = class extends Interpolant {
-  interpolate_(i1, t02, t4, t12) {
+  interpolate_(i1, t02, t5, t12) {
     const result = this.resultBuffer;
     const values = this.sampleValues;
     const stride = this.valueSize;
@@ -46414,7 +49705,7 @@ var BezierInterpolant = class extends Interpolant {
     const inTangents = settings.inTangents;
     const outTangents = settings.outTangents;
     if (!inTangents || !outTangents) {
-      const weight1 = (t4 - t02) / (t12 - t02);
+      const weight1 = (t5 - t02) / (t12 - t02);
       const weight0 = 1 - weight1;
       for (let i3 = 0; i3 !== stride; ++i3) {
         result[i3] = values[offset0 + i3] * weight0 + values[offset1 + i3] * weight1;
@@ -46432,7 +49723,7 @@ var BezierInterpolant = class extends Interpolant {
       const inTangentOffset = i1 * tangentStride + i3 * 2;
       const c1x = inTangents[inTangentOffset];
       const c1y = inTangents[inTangentOffset + 1];
-      let s2 = (t4 - t02) / (t12 - t02);
+      let s2 = (t5 - t02) / (t12 - t02);
       let s22, s3, oneMinusS, oneMinusS2, oneMinusS3;
       for (let iter = 0; iter < 8; iter++) {
         s22 = s2 * s2;
@@ -46441,7 +49732,7 @@ var BezierInterpolant = class extends Interpolant {
         oneMinusS2 = oneMinusS * oneMinusS;
         oneMinusS3 = oneMinusS2 * oneMinusS;
         const bx = oneMinusS3 * t02 + 3 * oneMinusS2 * s2 * c0x + 3 * oneMinusS * s22 * c1x + s3 * t12;
-        const error2 = bx - t4;
+        const error2 = bx - t5;
         if (Math.abs(error2) < 1e-10) break;
         const dbx = 3 * oneMinusS2 * (c0x - t02) + 6 * oneMinusS * s2 * (c1x - c0x) + 3 * s22 * (t12 - c1x);
         if (Math.abs(dbx) < 1e-10) break;
@@ -46847,8 +50138,8 @@ var QuaternionLinearInterpolant = class extends Interpolant {
   constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) {
     super(parameterPositions, sampleValues, sampleSize, resultBuffer);
   }
-  interpolate_(i1, t02, t4, t12) {
-    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, alpha2 = (t4 - t02) / (t12 - t02);
+  interpolate_(i1, t02, t5, t12) {
+    const result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, alpha2 = (t5 - t02) / (t12 - t02);
     let offset = i1 * stride;
     for (let end = offset + stride; offset !== end; offset += 4) {
       Quaternion.slerpFlat(result, 0, values, offset - stride, values, offset, alpha2);
@@ -61768,34 +65059,34 @@ function cover_default2(x3, y3, z3) {
     y1 = (y0 = Math.floor(y3)) + 1;
     z1 = (z0 = Math.floor(z3)) + 1;
   } else {
-    var t4 = x1 - x0 || 1, node = this._root, parent, i3;
+    var t5 = x1 - x0 || 1, node = this._root, parent, i3;
     while (x0 > x3 || x3 >= x1 || y0 > y3 || y3 >= y1 || z0 > z3 || z3 >= z1) {
       i3 = (z3 < z0) << 2 | (y3 < y0) << 1 | x3 < x0;
-      parent = new Array(8), parent[i3] = node, node = parent, t4 *= 2;
+      parent = new Array(8), parent[i3] = node, node = parent, t5 *= 2;
       switch (i3) {
         case 0:
-          x1 = x0 + t4, y1 = y0 + t4, z1 = z0 + t4;
+          x1 = x0 + t5, y1 = y0 + t5, z1 = z0 + t5;
           break;
         case 1:
-          x0 = x1 - t4, y1 = y0 + t4, z1 = z0 + t4;
+          x0 = x1 - t5, y1 = y0 + t5, z1 = z0 + t5;
           break;
         case 2:
-          x1 = x0 + t4, y0 = y1 - t4, z1 = z0 + t4;
+          x1 = x0 + t5, y0 = y1 - t5, z1 = z0 + t5;
           break;
         case 3:
-          x0 = x1 - t4, y0 = y1 - t4, z1 = z0 + t4;
+          x0 = x1 - t5, y0 = y1 - t5, z1 = z0 + t5;
           break;
         case 4:
-          x1 = x0 + t4, y1 = y0 + t4, z0 = z1 - t4;
+          x1 = x0 + t5, y1 = y0 + t5, z0 = z1 - t5;
           break;
         case 5:
-          x0 = x1 - t4, y1 = y0 + t4, z0 = z1 - t4;
+          x0 = x1 - t5, y1 = y0 + t5, z0 = z1 - t5;
           break;
         case 6:
-          x1 = x0 + t4, y0 = y1 - t4, z0 = z1 - t4;
+          x1 = x0 + t5, y0 = y1 - t5, z0 = z1 - t5;
           break;
         case 7:
-          x0 = x1 - t4, y0 = y1 - t4, z0 = z1 - t4;
+          x0 = x1 - t5, y0 = y1 - t5, z0 = z1 - t5;
           break;
       }
     }
@@ -62189,9 +65480,9 @@ function link_default(links) {
 var noop2 = { value: () => {
 } };
 function dispatch() {
-  for (var i3 = 0, n2 = arguments.length, _2 = {}, t4; i3 < n2; ++i3) {
-    if (!(t4 = arguments[i3] + "") || t4 in _2 || /[\s.]/.test(t4)) throw new Error("illegal type: " + t4);
-    _2[t4] = [];
+  for (var i3 = 0, n2 = arguments.length, _2 = {}, t5; i3 < n2; ++i3) {
+    if (!(t5 = arguments[i3] + "") || t5 in _2 || /[\s.]/.test(t5)) throw new Error("illegal type: " + t5);
+    _2[t5] = [];
   }
   return new Dispatch(_2);
 }
@@ -62199,41 +65490,41 @@ function Dispatch(_2) {
   this._ = _2;
 }
 function parseTypenames(typenames, types) {
-  return typenames.trim().split(/^|\s+/).map(function(t4) {
-    var name = "", i3 = t4.indexOf(".");
-    if (i3 >= 0) name = t4.slice(i3 + 1), t4 = t4.slice(0, i3);
-    if (t4 && !types.hasOwnProperty(t4)) throw new Error("unknown type: " + t4);
-    return { type: t4, name };
+  return typenames.trim().split(/^|\s+/).map(function(t5) {
+    var name = "", i3 = t5.indexOf(".");
+    if (i3 >= 0) name = t5.slice(i3 + 1), t5 = t5.slice(0, i3);
+    if (t5 && !types.hasOwnProperty(t5)) throw new Error("unknown type: " + t5);
+    return { type: t5, name };
   });
 }
 Dispatch.prototype = dispatch.prototype = {
   constructor: Dispatch,
   on: function(typename, callback) {
-    var _2 = this._, T3 = parseTypenames(typename + "", _2), t4, i3 = -1, n2 = T3.length;
+    var _2 = this._, T3 = parseTypenames(typename + "", _2), t5, i3 = -1, n2 = T3.length;
     if (arguments.length < 2) {
-      while (++i3 < n2) if ((t4 = (typename = T3[i3]).type) && (t4 = get2(_2[t4], typename.name))) return t4;
+      while (++i3 < n2) if ((t5 = (typename = T3[i3]).type) && (t5 = get2(_2[t5], typename.name))) return t5;
       return;
     }
     if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback);
     while (++i3 < n2) {
-      if (t4 = (typename = T3[i3]).type) _2[t4] = set(_2[t4], typename.name, callback);
-      else if (callback == null) for (t4 in _2) _2[t4] = set(_2[t4], typename.name, null);
+      if (t5 = (typename = T3[i3]).type) _2[t5] = set(_2[t5], typename.name, callback);
+      else if (callback == null) for (t5 in _2) _2[t5] = set(_2[t5], typename.name, null);
     }
     return this;
   },
   copy: function() {
     var copy2 = {}, _2 = this._;
-    for (var t4 in _2) copy2[t4] = _2[t4].slice();
+    for (var t5 in _2) copy2[t5] = _2[t5].slice();
     return new Dispatch(copy2);
   },
   call: function(type, that) {
-    if ((n2 = arguments.length - 2) > 0) for (var args = new Array(n2), i3 = 0, n2, t4; i3 < n2; ++i3) args[i3] = arguments[i3 + 2];
+    if ((n2 = arguments.length - 2) > 0) for (var args = new Array(n2), i3 = 0, n2, t5; i3 < n2; ++i3) args[i3] = arguments[i3 + 2];
     if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
-    for (t4 = this._[type], i3 = 0, n2 = t4.length; i3 < n2; ++i3) t4[i3].value.apply(that, args);
+    for (t5 = this._[type], i3 = 0, n2 = t5.length; i3 < n2; ++i3) t5[i3].value.apply(that, args);
   },
   apply: function(type, that, args) {
     if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
-    for (var t4 = this._[type], i3 = 0, n2 = t4.length; i3 < n2; ++i3) t4[i3].value.apply(that, args);
+    for (var t5 = this._[type], i3 = 0, n2 = t5.length; i3 < n2; ++i3) t5[i3].value.apply(that, args);
   }
 };
 function get2(type, name) {
@@ -62300,17 +65591,17 @@ Timer2.prototype = timer.prototype = {
   }
 };
 function timer(callback, delay, time) {
-  var t4 = new Timer2();
-  t4.restart(callback, delay, time);
-  return t4;
+  var t5 = new Timer2();
+  t5.restart(callback, delay, time);
+  return t5;
 }
 function timerFlush() {
   now();
   ++frame;
-  var t4 = taskHead, e3;
-  while (t4) {
-    if ((e3 = clockNow - t4._time) >= 0) t4._call.call(void 0, e3);
-    t4 = t4._next;
+  var t5 = taskHead, e3;
+  while (t5) {
+    if ((e3 = clockNow - t5._time) >= 0) t5._call.call(void 0, e3);
+    t5 = t5._next;
   }
   --frame;
 }
@@ -62665,7 +65956,7 @@ function radial_default(radius, x3, y3, z3) {
 
 // src/ngraph-stub.js
 function ngraphNoIncluido() {
-  throw new Error("forceEngine 'ngraph' no est\xE1 incluido en este bundle; usa el motor d3");
+  throw new Error("forceEngine 'ngraph' is not included in this bundle; use the d3 engine");
 }
 
 // node_modules/lodash-es/isObject.js
@@ -62893,23 +66184,23 @@ function _arrayWithHoles(r2) {
 function _classCallCheck(a3, n2) {
   if (!(a3 instanceof n2)) throw new TypeError("Cannot call a class as a function");
 }
-function _createClass(e3, r2, t4) {
+function _createClass(e3, r2, t5) {
   return Object.defineProperty(e3, "prototype", {
     writable: false
   }), e3;
 }
 function _iterableToArrayLimit(r2, l2) {
-  var t4 = null == r2 ? null : "undefined" != typeof Symbol && r2[Symbol.iterator] || r2["@@iterator"];
-  if (null != t4) {
+  var t5 = null == r2 ? null : "undefined" != typeof Symbol && r2[Symbol.iterator] || r2["@@iterator"];
+  if (null != t5) {
     var e3, n2, i3, u2, a3 = [], f2 = true, o2 = false;
     try {
-      if (i3 = (t4 = t4.call(r2)).next, 0 === l2) ;
-      else for (; !(f2 = (e3 = i3.call(t4)).done) && (a3.push(e3.value), a3.length !== l2); f2 = true) ;
+      if (i3 = (t5 = t5.call(r2)).next, 0 === l2) ;
+      else for (; !(f2 = (e3 = i3.call(t5)).done) && (a3.push(e3.value), a3.length !== l2); f2 = true) ;
     } catch (r3) {
       o2 = true, n2 = r3;
     } finally {
       try {
-        if (!f2 && null != t4.return && (u2 = t4.return(), Object(u2) !== u2)) return;
+        if (!f2 && null != t5.return && (u2 = t5.return(), Object(u2) !== u2)) return;
       } finally {
         if (o2) throw n2;
       }
@@ -62926,8 +66217,8 @@ function _slicedToArray(r2, e3) {
 function _unsupportedIterableToArray(r2, a3) {
   if (r2) {
     if ("string" == typeof r2) return _arrayLikeToArray(r2, a3);
-    var t4 = {}.toString.call(r2).slice(8, -1);
-    return "Object" === t4 && r2.constructor && (t4 = r2.constructor.name), "Map" === t4 || "Set" === t4 ? Array.from(r2) : "Arguments" === t4 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t4) ? _arrayLikeToArray(r2, a3) : void 0;
+    var t5 = {}.toString.call(r2).slice(8, -1);
+    return "Object" === t5 && r2.constructor && (t5 = r2.constructor.name), "Map" === t5 || "Set" === t5 ? Array.from(r2) : "Arguments" === t5 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t5) ? _arrayLikeToArray(r2, a3) : void 0;
   }
 }
 var Prop = /* @__PURE__ */ _createClass(function Prop2(name, _ref) {
@@ -63147,7 +66438,7 @@ function blurfImage(radius) {
 function blurf(radius) {
   const radius0 = Math.floor(radius);
   if (radius0 === radius) return bluri(radius);
-  const t4 = radius - radius0;
+  const t5 = radius - radius0;
   const w4 = 2 * radius + 1;
   return (T3, S3, start, stop, step2) => {
     if (!((stop -= step2) >= start)) return;
@@ -63159,7 +66450,7 @@ function blurf(radius) {
     }
     for (let i3 = start, j2 = stop; i3 <= j2; i3 += step2) {
       sum += S3[Math.min(stop, i3 + s0)];
-      T3[i3] = (sum + t4 * (S3[Math.max(start, i3 - s1)] + S3[Math.min(stop, i3 + s1)])) / w4;
+      T3[i3] = (sum + t5 * (S3[Math.max(start, i3 - s1)] + S3[Math.min(stop, i3 + s1)])) / w4;
       sum -= S3[Math.max(start, i3 - s0)];
     }
   };
@@ -63266,9 +66557,9 @@ function shuffler(random) {
   return function shuffle2(array4, i0 = 0, i1 = array4.length) {
     let m3 = i1 - (i0 = +i0);
     while (m3) {
-      const i3 = random() * m3-- | 0, t4 = array4[m3 + i0];
+      const i3 = random() * m3-- | 0, t5 = array4[m3 + i0];
       array4[m3 + i0] = array4[i3 + i0];
-      array4[i3 + i0] = t4;
+      array4[i3 + i0] = t5;
     }
     return array4;
   };
@@ -63286,12 +66577,12 @@ function _arrayWithHoles2(r2) {
 function _arrayWithoutHoles(r2) {
   if (Array.isArray(r2)) return _arrayLikeToArray2(r2);
 }
-function _assertClassBrand(e3, t4, n2) {
-  if ("function" == typeof e3 ? e3 === t4 : e3.has(t4)) return arguments.length < 3 ? t4 : n2;
+function _assertClassBrand(e3, t5, n2) {
+  if ("function" == typeof e3 ? e3 === t5 : e3.has(t5)) return arguments.length < 3 ? t5 : n2;
   throw new TypeError("Private element is not present on this object");
 }
-function _checkPrivateRedeclaration(e3, t4) {
-  if (t4.has(e3)) throw new TypeError("Cannot initialize the same private elements twice on an object");
+function _checkPrivateRedeclaration(e3, t5) {
+  if (t5.has(e3)) throw new TypeError("Cannot initialize the same private elements twice on an object");
 }
 function _classCallCheck2(a3, n2) {
   if (!(a3 instanceof n2)) throw new TypeError("Cannot call a class as a function");
@@ -63299,19 +66590,19 @@ function _classCallCheck2(a3, n2) {
 function _classPrivateFieldGet2(s2, a3) {
   return s2.get(_assertClassBrand(s2, a3));
 }
-function _classPrivateFieldInitSpec(e3, t4, a3) {
-  _checkPrivateRedeclaration(e3, t4), t4.set(e3, a3);
+function _classPrivateFieldInitSpec(e3, t5, a3) {
+  _checkPrivateRedeclaration(e3, t5), t5.set(e3, a3);
 }
 function _classPrivateFieldSet2(s2, a3, r2) {
   return s2.set(_assertClassBrand(s2, a3), r2), r2;
 }
 function _defineProperties(e3, r2) {
-  for (var t4 = 0; t4 < r2.length; t4++) {
-    var o2 = r2[t4];
+  for (var t5 = 0; t5 < r2.length; t5++) {
+    var o2 = r2[t5];
     o2.enumerable = o2.enumerable || false, o2.configurable = true, "value" in o2 && (o2.writable = true), Object.defineProperty(e3, _toPropertyKey(o2.key), o2);
   }
 }
-function _createClass2(e3, r2, t4) {
+function _createClass2(e3, r2, t5) {
   return r2 && _defineProperties(e3.prototype, r2), Object.defineProperty(e3, "prototype", {
     writable: false
   }), e3;
@@ -63320,17 +66611,17 @@ function _iterableToArray(r2) {
   if ("undefined" != typeof Symbol && null != r2[Symbol.iterator] || null != r2["@@iterator"]) return Array.from(r2);
 }
 function _iterableToArrayLimit2(r2, l2) {
-  var t4 = null == r2 ? null : "undefined" != typeof Symbol && r2[Symbol.iterator] || r2["@@iterator"];
-  if (null != t4) {
+  var t5 = null == r2 ? null : "undefined" != typeof Symbol && r2[Symbol.iterator] || r2["@@iterator"];
+  if (null != t5) {
     var e3, n2, i3, u2, a3 = [], f2 = true, o2 = false;
     try {
-      if (i3 = (t4 = t4.call(r2)).next, 0 === l2) ;
-      else for (; !(f2 = (e3 = i3.call(t4)).done) && (a3.push(e3.value), a3.length !== l2); f2 = true) ;
+      if (i3 = (t5 = t5.call(r2)).next, 0 === l2) ;
+      else for (; !(f2 = (e3 = i3.call(t5)).done) && (a3.push(e3.value), a3.length !== l2); f2 = true) ;
     } catch (r3) {
       o2 = true, n2 = r3;
     } finally {
       try {
-        if (!f2 && null != t4.return && (u2 = t4.return(), Object(u2) !== u2)) return;
+        if (!f2 && null != t5.return && (u2 = t5.return(), Object(u2) !== u2)) return;
       } finally {
         if (o2) throw n2;
       }
@@ -63350,25 +66641,25 @@ function _slicedToArray2(r2, e3) {
 function _toConsumableArray(r2) {
   return _arrayWithoutHoles(r2) || _iterableToArray(r2) || _unsupportedIterableToArray2(r2) || _nonIterableSpread();
 }
-function _toPrimitive(t4, r2) {
-  if ("object" != typeof t4 || !t4) return t4;
-  var e3 = t4[Symbol.toPrimitive];
+function _toPrimitive(t5, r2) {
+  if ("object" != typeof t5 || !t5) return t5;
+  var e3 = t5[Symbol.toPrimitive];
   if (void 0 !== e3) {
-    var i3 = e3.call(t4, r2);
+    var i3 = e3.call(t5, r2);
     if ("object" != typeof i3) return i3;
     throw new TypeError("@@toPrimitive must return a primitive value.");
   }
-  return String(t4);
+  return String(t5);
 }
-function _toPropertyKey(t4) {
-  var i3 = _toPrimitive(t4, "string");
+function _toPropertyKey(t5) {
+  var i3 = _toPrimitive(t5, "string");
   return "symbol" == typeof i3 ? i3 : i3 + "";
 }
 function _unsupportedIterableToArray2(r2, a3) {
   if (r2) {
     if ("string" == typeof r2) return _arrayLikeToArray2(r2, a3);
-    var t4 = {}.toString.call(r2).slice(8, -1);
-    return "Object" === t4 && r2.constructor && (t4 = r2.constructor.name), "Map" === t4 || "Set" === t4 ? Array.from(r2) : "Arguments" === t4 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t4) ? _arrayLikeToArray2(r2, a3) : void 0;
+    var t5 = {}.toString.call(r2).slice(8, -1);
+    return "Object" === t5 && r2.constructor && (t5 = r2.constructor.name), "Map" === t5 || "Set" === t5 ? Array.from(r2) : "Arguments" === t5 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t5) ? _arrayLikeToArray2(r2, a3) : void 0;
   }
 }
 var _dataMap = /* @__PURE__ */ new WeakMap();
@@ -63865,11 +67156,11 @@ define(Lab, lab, extend(Color2, {
     );
   }
 }));
-function xyz2lab(t4) {
-  return t4 > t3 ? Math.pow(t4, 1 / 3) : t4 / t2 + t0;
+function xyz2lab(t5) {
+  return t5 > t3 ? Math.pow(t5, 1 / 3) : t5 / t2 + t0;
 }
-function lab2xyz(t4) {
-  return t4 > t1 ? t4 * t4 * t4 : t2 * (t4 - t0);
+function lab2xyz(t5) {
+  return t5 > t1 ? t5 * t5 * t5 : t2 * (t5 - t0);
 }
 function lrgb2rgb(x3) {
   return 255 * (x3 <= 31308e-7 ? 12.92 * x3 : 1.055 * Math.pow(x3, 1 / 2.4) - 0.055);
@@ -63959,27 +67250,27 @@ function basis(t12, v0, v1, v2, v3) {
 }
 function basis$1(values) {
   var n2 = values.length - 1;
-  return function(t4) {
-    var i3 = t4 <= 0 ? t4 = 0 : t4 >= 1 ? (t4 = 1, n2 - 1) : Math.floor(t4 * n2), v1 = values[i3], v2 = values[i3 + 1], v0 = i3 > 0 ? values[i3 - 1] : 2 * v1 - v2, v3 = i3 < n2 - 1 ? values[i3 + 2] : 2 * v2 - v1;
-    return basis((t4 - i3 / n2) * n2, v0, v1, v2, v3);
+  return function(t5) {
+    var i3 = t5 <= 0 ? t5 = 0 : t5 >= 1 ? (t5 = 1, n2 - 1) : Math.floor(t5 * n2), v1 = values[i3], v2 = values[i3 + 1], v0 = i3 > 0 ? values[i3 - 1] : 2 * v1 - v2, v3 = i3 < n2 - 1 ? values[i3 + 2] : 2 * v2 - v1;
+    return basis((t5 - i3 / n2) * n2, v0, v1, v2, v3);
   };
 }
 function basisClosed(values) {
   var n2 = values.length;
-  return function(t4) {
-    var i3 = Math.floor(((t4 %= 1) < 0 ? ++t4 : t4) * n2), v0 = values[(i3 + n2 - 1) % n2], v1 = values[i3 % n2], v2 = values[(i3 + 1) % n2], v3 = values[(i3 + 2) % n2];
-    return basis((t4 - i3 / n2) * n2, v0, v1, v2, v3);
+  return function(t5) {
+    var i3 = Math.floor(((t5 %= 1) < 0 ? ++t5 : t5) * n2), v0 = values[(i3 + n2 - 1) % n2], v1 = values[i3 % n2], v2 = values[(i3 + 1) % n2], v3 = values[(i3 + 2) % n2];
+    return basis((t5 - i3 / n2) * n2, v0, v1, v2, v3);
   };
 }
 var constant = (x3) => () => x3;
 function linear(a3, d2) {
-  return function(t4) {
-    return a3 + t4 * d2;
+  return function(t5) {
+    return a3 + t5 * d2;
   };
 }
 function exponential(a3, b2, y3) {
-  return a3 = Math.pow(a3, y3), b2 = Math.pow(b2, y3) - a3, y3 = 1 / y3, function(t4) {
-    return Math.pow(a3 + t4 * b2, y3);
+  return a3 = Math.pow(a3, y3), b2 = Math.pow(b2, y3) - a3, y3 = 1 / y3, function(t5) {
+    return Math.pow(a3 + t5 * b2, y3);
   };
 }
 function hue$1(a3, b2) {
@@ -63999,11 +67290,11 @@ var rgb2 = (function rgbGamma(y3) {
   var color3 = gamma(y3);
   function rgb4(start, end) {
     var r2 = color3((start = rgb(start)).r, (end = rgb(end)).r), g3 = color3(start.g, end.g), b2 = color3(start.b, end.b), opacity = nogamma(start.opacity, end.opacity);
-    return function(t4) {
-      start.r = r2(t4);
-      start.g = g3(t4);
-      start.b = b2(t4);
-      start.opacity = opacity(t4);
+    return function(t5) {
+      start.r = r2(t5);
+      start.g = g3(t5);
+      start.b = b2(t5);
+      start.opacity = opacity(t5);
       return start + "";
     };
   }
@@ -64023,10 +67314,10 @@ function rgbSpline(spline) {
     g3 = spline(g3);
     b2 = spline(b2);
     color3.opacity = 1;
-    return function(t4) {
-      color3.r = r2(t4);
-      color3.g = g3(t4);
-      color3.b = b2(t4);
+    return function(t5) {
+      color3.r = r2(t5);
+      color3.g = g3(t5);
+      color3.b = b2(t5);
       return color3 + "";
     };
   };
@@ -64034,8 +67325,8 @@ function rgbSpline(spline) {
 var rgbBasis = rgbSpline(basis$1);
 var rgbBasisClosed = rgbSpline(basisClosed);
 function number2(a3, b2) {
-  return a3 = +a3, b2 = +b2, function(t4) {
-    return a3 * (1 - t4) + b2 * t4;
+  return a3 = +a3, b2 = +b2, function(t5) {
+    return a3 * (1 - t5) + b2 * t5;
   };
 }
 var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g;
@@ -64121,9 +67412,9 @@ function interpolateTransform(parse2, pxComma, pxParen, degParen) {
     skewX(a3.skewX, b2.skewX, s2, q2);
     scale2(a3.scaleX, a3.scaleY, b2.scaleX, b2.scaleY, s2, q2);
     a3 = b2 = null;
-    return function(t4) {
+    return function(t5) {
       var i3 = -1, n2 = q2.length, o2;
-      while (++i3 < n2) s2[(o2 = q2[i3]).i] = o2.x(t4);
+      while (++i3 < n2) s2[(o2 = q2[i3]).i] = o2.x(t5);
       return s2.join("");
     };
   };
@@ -64145,18 +67436,18 @@ var zoom = (function zoomRho(rho, rho2, rho4) {
     var ux0 = p0[0], uy0 = p0[1], w02 = p0[2], ux1 = p1[0], uy1 = p1[1], w12 = p1[2], dx = ux1 - ux0, dy = uy1 - uy0, d2 = dx * dx + dy * dy, i3, S3;
     if (d2 < epsilon2) {
       S3 = Math.log(w12 / w02) / rho;
-      i3 = function(t4) {
+      i3 = function(t5) {
         return [
-          ux0 + t4 * dx,
-          uy0 + t4 * dy,
-          w02 * Math.exp(rho * t4 * S3)
+          ux0 + t5 * dx,
+          uy0 + t5 * dy,
+          w02 * Math.exp(rho * t5 * S3)
         ];
       };
     } else {
       var d1 = Math.sqrt(d2), b0 = (w12 * w12 - w02 * w02 + rho4 * d2) / (2 * w02 * rho2 * d1), b1 = (w12 * w12 - w02 * w02 - rho4 * d2) / (2 * w12 * rho2 * d1), r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0), r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1);
       S3 = (r1 - r0) / rho;
-      i3 = function(t4) {
-        var s2 = t4 * S3, coshr0 = cosh(r0), u2 = w02 / (rho2 * d1) * (coshr0 * tanh(rho * s2 + r0) - sinh(r0));
+      i3 = function(t5) {
+        var s2 = t5 * S3, coshr0 = cosh(r0), u2 = w02 / (rho2 * d1) * (coshr0 * tanh(rho * s2 + r0) - sinh(r0));
         return [
           ux0 + u2 * dx,
           uy0 + u2 * dy,
@@ -64176,11 +67467,11 @@ var zoom = (function zoomRho(rho, rho2, rho4) {
 function hsl2(hue) {
   return function(start, end) {
     var h3 = hue((start = hsl(start)).h, (end = hsl(end)).h), s2 = nogamma(start.s, end.s), l2 = nogamma(start.l, end.l), opacity = nogamma(start.opacity, end.opacity);
-    return function(t4) {
-      start.h = h3(t4);
-      start.s = s2(t4);
-      start.l = l2(t4);
-      start.opacity = opacity(t4);
+    return function(t5) {
+      start.h = h3(t5);
+      start.s = s2(t5);
+      start.l = l2(t5);
+      start.opacity = opacity(t5);
       return start + "";
     };
   };
@@ -64190,11 +67481,11 @@ var hslLong = hsl2(nogamma);
 function hcl2(hue) {
   return function(start, end) {
     var h3 = hue((start = hcl(start)).h, (end = hcl(end)).h), c4 = nogamma(start.c, end.c), l2 = nogamma(start.l, end.l), opacity = nogamma(start.opacity, end.opacity);
-    return function(t4) {
-      start.h = h3(t4);
-      start.c = c4(t4);
-      start.l = l2(t4);
-      start.opacity = opacity(t4);
+    return function(t5) {
+      start.h = h3(t5);
+      start.c = c4(t5);
+      start.l = l2(t5);
+      start.opacity = opacity(t5);
       return start + "";
     };
   };
@@ -64206,11 +67497,11 @@ function cubehelix2(hue) {
     y3 = +y3;
     function cubehelix4(start, end) {
       var h3 = hue((start = cubehelix(start)).h, (end = cubehelix(end)).h), s2 = nogamma(start.s, end.s), l2 = nogamma(start.l, end.l), opacity = nogamma(start.opacity, end.opacity);
-      return function(t4) {
-        start.h = h3(t4);
-        start.s = s2(t4);
-        start.l = l2(Math.pow(t4, y3));
-        start.opacity = opacity(t4);
+      return function(t5) {
+        start.h = h3(t5);
+        start.s = s2(t5);
+        start.l = l2(Math.pow(t5, y3));
+        start.opacity = opacity(t5);
         return start + "";
       };
     }
@@ -64583,8 +67874,8 @@ var pi_1_3 = Math.PI / 3;
 var pi_2_3 = Math.PI * 2 / 3;
 function ramp(range2) {
   var n2 = range2.length;
-  return function(t4) {
-    return range2[Math.max(0, Math.min(n2 - 1, Math.floor(t4 * n2)))];
+  return function(t5) {
+    return range2[Math.max(0, Math.min(n2 - 1, Math.floor(t5 * n2)))];
   };
 }
 var viridis = ramp(colors("44015444025645045745055946075a46085c460a5d460b5e470d60470e6147106347116447136548146748166848176948186a481a6c481b6d481c6e481d6f481f70482071482173482374482475482576482677482878482979472a7a472c7a472d7b472e7c472f7d46307e46327e46337f463480453581453781453882443983443a83443b84433d84433e85423f854240864241864142874144874045884046883f47883f48893e49893e4a893e4c8a3d4d8a3d4e8a3c4f8a3c508b3b518b3b528b3a538b3a548c39558c39568c38588c38598c375a8c375b8d365c8d365d8d355e8d355f8d34608d34618d33628d33638d32648e32658e31668e31678e31688e30698e306a8e2f6b8e2f6c8e2e6d8e2e6e8e2e6f8e2d708e2d718e2c718e2c728e2c738e2b748e2b758e2a768e2a778e2a788e29798e297a8e297b8e287c8e287d8e277e8e277f8e27808e26818e26828e26828e25838e25848e25858e24868e24878e23888e23898e238a8d228b8d228c8d228d8d218e8d218f8d21908d21918c20928c20928c20938c1f948c1f958b1f968b1f978b1f988b1f998a1f9a8a1e9b8a1e9c891e9d891f9e891f9f881fa0881fa1881fa1871fa28720a38620a48621a58521a68522a78522a88423a98324aa8325ab8225ac8226ad8127ad8128ae8029af7f2ab07f2cb17e2db27d2eb37c2fb47c31b57b32b67a34b67935b77937b87838b9773aba763bbb753dbc743fbc7340bd7242be7144bf7046c06f48c16e4ac16d4cc26c4ec36b50c46a52c56954c56856c66758c7655ac8645cc8635ec96260ca6063cb5f65cb5e67cc5c69cd5b6ccd5a6ece5870cf5773d05675d05477d1537ad1517cd2507fd34e81d34d84d44b86d54989d5488bd6468ed64590d74393d74195d84098d83e9bd93c9dd93ba0da39a2da37a5db36a8db34aadc32addc30b0dd2fb2dd2db5de2bb8de29bade28bddf26c0df25c2df23c5e021c8e020cae11fcde11dd0e11cd2e21bd5e21ad8e219dae319dde318dfe318e2e418e5e419e7e419eae51aece51befe51cf1e51df4e61ef6e620f8e621fbe723fde725"));
@@ -64947,12 +68238,12 @@ function hslToRgb(h3, s2, l2) {
   h3 = bound01(h3, 360);
   s2 = bound01(s2, 100);
   l2 = bound01(l2, 100);
-  function hue2rgb2(p3, q3, t4) {
-    if (t4 < 0) t4 += 1;
-    if (t4 > 1) t4 -= 1;
-    if (t4 < 1 / 6) return p3 + (q3 - p3) * 6 * t4;
-    if (t4 < 1 / 2) return q3;
-    if (t4 < 2 / 3) return p3 + (q3 - p3) * (2 / 3 - t4) * 6;
+  function hue2rgb2(p3, q3, t5) {
+    if (t5 < 0) t5 += 1;
+    if (t5 > 1) t5 -= 1;
+    if (t5 < 1 / 6) return p3 + (q3 - p3) * 6 * t5;
+    if (t5 < 1 / 2) return q3;
+    if (t5 < 2 / 3) return p3 + (q3 - p3) * (2 / 3 - t5) * 6;
     return p3;
   }
   if (s2 === 0) {
@@ -65004,7 +68295,7 @@ function hsvToRgb(h3, s2, v2) {
   h3 = bound01(h3, 360) * 6;
   s2 = bound01(s2, 100);
   v2 = bound01(v2, 100);
-  var i3 = Math.floor(h3), f2 = h3 - i3, p2 = v2 * (1 - s2), q2 = v2 * (1 - f2 * s2), t4 = v2 * (1 - (1 - f2) * s2), mod2 = i3 % 6, r2 = [v2, q2, p2, p2, t4, v2][mod2], g3 = [t4, v2, v2, q2, p2, p2][mod2], b2 = [p2, p2, t4, v2, v2, q2][mod2];
+  var i3 = Math.floor(h3), f2 = h3 - i3, p2 = v2 * (1 - s2), q2 = v2 * (1 - f2 * s2), t5 = v2 * (1 - (1 - f2) * s2), mod2 = i3 % 6, r2 = [v2, q2, p2, p2, t5, v2][mod2], g3 = [t5, v2, v2, q2, p2, p2][mod2], b2 = [p2, p2, t5, v2, v2, q2][mod2];
   return {
     r: r2 * 255,
     g: g3 * 255,
@@ -66159,12 +69450,12 @@ var ForceGraph = index2({
           const endR = Math.cbrt(Math.max(0, nodeValAccessor(end) || 1)) * state.nodeRelSize;
           const arrowLength = arrowLengthAccessor(link);
           const arrowRelPos = arrowRelPosAccessor(link);
-          const getPosAlongLine = link.__curve ? (t4) => link.__curve.getPoint(t4) : (t4) => {
-            const iplt = (dim, start2, end2, t5) => start2[dim] + (end2[dim] - start2[dim]) * t5 || 0;
+          const getPosAlongLine = link.__curve ? (t5) => link.__curve.getPoint(t5) : (t5) => {
+            const iplt = (dim, start2, end2, t6) => start2[dim] + (end2[dim] - start2[dim]) * t6 || 0;
             return {
-              x: iplt("x", start, end, t4),
-              y: iplt("y", start, end, t4),
-              z: iplt("z", start, end, t4)
+              x: iplt("x", start, end, t5),
+              y: iplt("y", start, end, t5),
+              z: iplt("z", start, end, t5)
             };
           };
           const lineLen = link.__curve ? link.__curve.getLength() : Math.sqrt(["x", "y", "z"].map((dim) => Math.pow((end[dim] || 0) - (start[dim] || 0), 2)).reduce((acc, v2) => acc + v2, 0));
@@ -66191,12 +69482,12 @@ var ForceGraph = index2({
           if (!start || !end || !start.hasOwnProperty("x") || !end.hasOwnProperty("x")) return;
           const particleSpeed = particleSpeedAccessor(link);
           const particleOffset = Math.abs(particleOffsetAccessor(link));
-          const getPhotonPos = link.__curve ? (t4) => link.__curve.getPoint(t4) : (t4) => {
-            const iplt = (dim, start2, end2, t5) => start2[dim] + (end2[dim] - start2[dim]) * t5 || 0;
+          const getPhotonPos = link.__curve ? (t5) => link.__curve.getPoint(t5) : (t5) => {
+            const iplt = (dim, start2, end2, t6) => start2[dim] + (end2[dim] - start2[dim]) * t6 || 0;
             return {
-              x: iplt("x", start, end, t4),
-              y: iplt("y", start, end, t4),
-              z: iplt("z", start, end, t4)
+              x: iplt("x", start, end, t5),
+              y: iplt("y", start, end, t5),
+              z: iplt("z", start, end, t5)
             };
           };
           const photons = [...cyclePhotons || [], ...singleHopPhotons || []];
@@ -69973,7 +73264,7 @@ var rand = /* @__PURE__ */ Fn(([uv2]) => {
   const dt = dot(uv2.xy, vec2(a3, b2)), sn = mod(dt, PI);
   return fract(sin(sn).mul(c4));
 });
-var mixElement = (t4, e1, e22) => mix(e1, e22, t4);
+var mixElement = (t5, e1, e22) => mix(e1, e22, t5);
 var smoothstepElement = (x3, low, high) => smoothstep2(low, high, x3);
 var stepElement = (x3, edge) => step(edge, x3);
 addMethodChaining("all", all);
@@ -71248,9 +74539,9 @@ var RemapNode = class extends Node4 {
   }
   setup() {
     const { node, inLowNode, inHighNode, outLowNode, outHighNode, doClamp } = this;
-    let t4 = node.sub(inLowNode).div(inHighNode.sub(inLowNode));
-    if (doClamp === true) t4 = t4.clamp();
-    return t4.mul(outHighNode.sub(outLowNode)).add(outLowNode);
+    let t5 = node.sub(inLowNode).div(inHighNode.sub(inLowNode));
+    if (doClamp === true) t5 = t5.clamp();
+    return t5.mul(outHighNode.sub(outLowNode)).add(outLowNode);
   }
 };
 var remap = /* @__PURE__ */ nodeProxy(RemapNode, null, null, { doClamp: false }).setParameterLength(3, 5);
@@ -97579,7 +100870,7 @@ var WebGLBackend = class extends Backend {
     const { gl } = this;
     const bindGroupData = this.get(bindGroup);
     let i3 = bindGroupData.uniformBuffers;
-    let t4 = bindGroupData.textures;
+    let t5 = bindGroupData.textures;
     for (const binding of bindGroup.bindings) {
       const map2 = this.get(binding);
       if (binding.isUniformsGroup || binding.isUniformBuffer) {
@@ -97613,7 +100904,7 @@ var WebGLBackend = class extends Backend {
         this.set(binding, map2);
       } else if (binding.isSampledTexture) {
         const { textureGPU, glTextureType } = this.get(binding.texture);
-        map2.index = t4++;
+        map2.index = t5++;
         map2.textureGPU = textureGPU;
         map2.glTextureType = glTextureType;
         this.set(binding, map2);
@@ -101597,7 +104888,7 @@ var WebGPUUtils = class {
    */
   getCurrentColorFormats(renderContext) {
     if (renderContext.textures !== null) {
-      return renderContext.textures.map((t4) => this.getTextureFormatGPU(t4));
+      return renderContext.textures.map((t5) => this.getTextureFormatGPU(t5));
     } else {
       return [this.getPreferredCanvasFormat()];
     }
@@ -106925,8 +110216,8 @@ var RenderPass = class extends Pass {
 function _extends() {
   return _extends = Object.assign ? Object.assign.bind() : function(n2) {
     for (var e3 = 1; e3 < arguments.length; e3++) {
-      var t4 = arguments[e3];
-      for (var r2 in t4) ({}).hasOwnProperty.call(t4, r2) && (n2[r2] = t4[r2]);
+      var t5 = arguments[e3];
+      for (var r2 in t5) ({}).hasOwnProperty.call(t5, r2) && (n2[r2] = t5[r2]);
     }
     return n2;
   }, _extends.apply(null, arguments);
@@ -106939,76 +110230,76 @@ function _assertThisInitialized(e3) {
 }
 
 // node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js
-function _setPrototypeOf(t4, e3) {
-  return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t5, e4) {
-    return t5.__proto__ = e4, t5;
-  }, _setPrototypeOf(t4, e3);
+function _setPrototypeOf(t5, e3) {
+  return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t6, e4) {
+    return t6.__proto__ = e4, t6;
+  }, _setPrototypeOf(t5, e3);
 }
 
 // node_modules/@babel/runtime/helpers/esm/inheritsLoose.js
-function _inheritsLoose(t4, o2) {
-  t4.prototype = Object.create(o2.prototype), t4.prototype.constructor = t4, _setPrototypeOf(t4, o2);
+function _inheritsLoose(t5, o2) {
+  t5.prototype = Object.create(o2.prototype), t5.prototype.constructor = t5, _setPrototypeOf(t5, o2);
 }
 
 // node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js
-function _getPrototypeOf(t4) {
-  return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function(t5) {
-    return t5.__proto__ || Object.getPrototypeOf(t5);
-  }, _getPrototypeOf(t4);
+function _getPrototypeOf(t5) {
+  return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function(t6) {
+    return t6.__proto__ || Object.getPrototypeOf(t6);
+  }, _getPrototypeOf(t5);
 }
 
 // node_modules/@babel/runtime/helpers/esm/isNativeFunction.js
-function _isNativeFunction(t4) {
+function _isNativeFunction(t5) {
   try {
-    return -1 !== Function.toString.call(t4).indexOf("[native code]");
+    return -1 !== Function.toString.call(t5).indexOf("[native code]");
   } catch (n2) {
-    return "function" == typeof t4;
+    return "function" == typeof t5;
   }
 }
 
 // node_modules/@babel/runtime/helpers/esm/isNativeReflectConstruct.js
 function _isNativeReflectConstruct() {
   try {
-    var t4 = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {
+    var t5 = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {
     }));
-  } catch (t5) {
+  } catch (t6) {
   }
   return (_isNativeReflectConstruct = function _isNativeReflectConstruct2() {
-    return !!t4;
+    return !!t5;
   })();
 }
 
 // node_modules/@babel/runtime/helpers/esm/construct.js
-function _construct(t4, e3, r2) {
+function _construct(t5, e3, r2) {
   if (_isNativeReflectConstruct()) return Reflect.construct.apply(null, arguments);
   var o2 = [null];
   o2.push.apply(o2, e3);
-  var p2 = new (t4.bind.apply(t4, o2))();
+  var p2 = new (t5.bind.apply(t5, o2))();
   return r2 && _setPrototypeOf(p2, r2.prototype), p2;
 }
 
 // node_modules/@babel/runtime/helpers/esm/wrapNativeSuper.js
-function _wrapNativeSuper(t4) {
+function _wrapNativeSuper(t5) {
   var r2 = "function" == typeof Map ? /* @__PURE__ */ new Map() : void 0;
-  return _wrapNativeSuper = function _wrapNativeSuper2(t5) {
-    if (null === t5 || !_isNativeFunction(t5)) return t5;
-    if ("function" != typeof t5) throw new TypeError("Super expression must either be null or a function");
+  return _wrapNativeSuper = function _wrapNativeSuper2(t6) {
+    if (null === t6 || !_isNativeFunction(t6)) return t6;
+    if ("function" != typeof t6) throw new TypeError("Super expression must either be null or a function");
     if (void 0 !== r2) {
-      if (r2.has(t5)) return r2.get(t5);
-      r2.set(t5, Wrapper);
+      if (r2.has(t6)) return r2.get(t6);
+      r2.set(t6, Wrapper);
     }
     function Wrapper() {
-      return _construct(t5, arguments, _getPrototypeOf(this).constructor);
+      return _construct(t6, arguments, _getPrototypeOf(this).constructor);
     }
-    return Wrapper.prototype = Object.create(t5.prototype, {
+    return Wrapper.prototype = Object.create(t6.prototype, {
       constructor: {
         value: Wrapper,
         enumerable: false,
         writable: true,
         configurable: true
       }
-    }), _setPrototypeOf(Wrapper, t5);
-  }, _wrapNativeSuper(t4);
+    }), _setPrototypeOf(Wrapper, t6);
+  }, _wrapNativeSuper(t5);
 }
 
 // node_modules/polished/dist/polished.esm.js
@@ -108057,8 +111348,8 @@ var Interpolation = {
     }
   },
   Utils: {
-    Linear: function(p0, p1, t4) {
-      return (p1 - p0) * t4 + p0;
+    Linear: function(p0, p1, t5) {
+      return (p1 - p0) * t5 + p0;
     },
     Bernstein: function(n2, i3) {
       var fc = Interpolation.Utils.Factorial;
@@ -108078,12 +111369,12 @@ var Interpolation = {
         return s2;
       };
     })(),
-    CatmullRom: function(p0, p1, p2, p3, t4) {
+    CatmullRom: function(p0, p1, p2, p3, t5) {
       var v0 = (p2 - p0) * 0.5;
       var v1 = (p3 - p1) * 0.5;
-      var t22 = t4 * t4;
-      var t32 = t4 * t22;
-      return (2 * p1 - 2 * p2 + v0 + v1) * t32 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t22 + v0 * t4 + p1;
+      var t22 = t5 * t5;
+      var t32 = t5 * t22;
+      return (2 * p1 - 2 * p2 + v0 + v1) * t32 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t22 + v0 * t5 + p1;
     }
   }
 };
@@ -109112,10 +112403,10 @@ function contextListener(listener) {
   };
 }
 function parseTypenames2(typenames) {
-  return typenames.trim().split(/^|\s+/).map(function(t4) {
-    var name = "", i3 = t4.indexOf(".");
-    if (i3 >= 0) name = t4.slice(i3 + 1), t4 = t4.slice(0, i3);
-    return { type: t4, name };
+  return typenames.trim().split(/^|\s+/).map(function(t5) {
+    var name = "", i3 = t5.indexOf(".");
+    if (i3 >= 0) name = t5.slice(i3 + 1), t5 = t5.slice(0, i3);
+    return { type: t5, name };
   });
 }
 function onRemove(typename) {
@@ -109151,12 +112442,12 @@ function onAdd(typename, value, options) {
   };
 }
 function selection_on(typename, value, options) {
-  var typenames = parseTypenames2(typename + ""), i3, n2 = typenames.length, t4;
+  var typenames = parseTypenames2(typename + ""), i3, n2 = typenames.length, t5;
   if (arguments.length < 2) {
     var on = this.node().__on;
     if (on) for (var j2 = 0, m3 = on.length, o2; j2 < m3; ++j2) {
       for (i3 = 0, o2 = on[j2]; i3 < n2; ++i3) {
-        if ((t4 = typenames[i3]).type === o2.type && t4.name === o2.name) {
+        if ((t5 = typenames[i3]).type === o2.type && t5.name === o2.name) {
           return o2.value;
         }
       }
@@ -109300,7 +112591,7 @@ function pointer(event, node) {
 
 // node_modules/preact/dist/preact.mjs
 var n;
-var t;
+var t4;
 var r;
 var u;
 var i2;
@@ -109321,53 +112612,53 @@ var _ = Object.assign;
 function g2(n2) {
   n2 && n2.parentNode && n2.remove();
 }
-function b(n2, t4, r2) {
+function b(n2, t5, r2) {
   var u2, i3, f2, o2 = _({}, n2.props), e3 = arguments.length;
-  for (f2 in t4) "key" == f2 ? u2 = t4[f2] : "ref" == f2 && "function" != typeof n2.type ? i3 = t4[f2] : o2[f2] = t4[f2];
+  for (f2 in t5) "key" == f2 ? u2 = t5[f2] : "ref" == f2 && "function" != typeof n2.type ? i3 = t5[f2] : o2[f2] = t5[f2];
   return e3 > 2 && (o2.children = e3 > 3 ? d.call(arguments, 2) : r2), m2(n2.type, o2, void 0 !== u2 ? u2 : n2.key, void 0 !== i3 ? i3 : n2.ref, null);
 }
 function m2(r2, u2, i3, f2, o2) {
-  var e3 = { type: r2, props: u2, key: i3, ref: f2, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: h2, __v: o2 || ++t, __i: -1, __u: 0 };
+  var e3 = { type: r2, props: u2, key: i3, ref: f2, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: h2, __v: o2 || ++t4, __i: -1, __u: 0 };
   return !o2 && n.vnode && n.vnode(e3), e3;
 }
 function $(n2) {
   return n2.children;
 }
-function x2(n2, t4) {
-  this.props = n2, this.context = t4, this.__g = 0;
+function x2(n2, t5) {
+  this.props = n2, this.context = t5, this.__g = 0;
 }
-function S2(n2, t4) {
-  if (null == t4) return n2.__ && S2(n2.__, n2.__i + 1);
-  for (var r2; t4 < n2.__k.length; t4++) if ((r2 = n2.__k[t4]) && r2.__e) return r2.__e;
+function S2(n2, t5) {
+  if (null == t5) return n2.__ && S2(n2.__, n2.__i + 1);
+  for (var r2; t5 < n2.__k.length; t5++) if ((r2 = n2.__k[t5]) && r2.__e) return r2.__e;
   return "function" != typeof n2.type || n2.props.__P ? null : S2(n2);
 }
-function C2(t4) {
-  var r2, u2 = t4.__v, i3 = u2.__e, f2 = [], o2 = [], e3 = t4.__P;
-  e3 && ((r2 = _({ constructor: h2 }, u2)).__v = u2.__v + 1, n.vnode && n.vnode(r2), z2(e3, r2, u2, t4.__n, e3.namespaceURI, 32 & u2.__u ? [i3] : null, f2, i3 || S2(u2), 32 & u2.__u, o2), r2.__v = u2.__v, r2.__.__k[r2.__i] = r2, E2(f2, r2, o2), u2.__ = u2.__e = null, r2.__e != i3 && j(r2));
+function C2(t5) {
+  var r2, u2 = t5.__v, i3 = u2.__e, f2 = [], o2 = [], e3 = t5.__P;
+  e3 && ((r2 = _({ constructor: h2 }, u2)).__v = u2.__v + 1, n.vnode && n.vnode(r2), z2(e3, r2, u2, t5.__n, e3.namespaceURI, 32 & u2.__u ? [i3] : null, f2, i3 || S2(u2), 32 & u2.__u, o2), r2.__v = u2.__v, r2.__.__k[r2.__i] = r2, E2(f2, r2, o2), u2.__ = u2.__e = null, r2.__e != i3 && j(r2));
 }
 function j(n2) {
-  if ((n2 = n2.__) && n2.__c && !n2.props.__P) return n2.__e = null, n2.__k.some(function(t4) {
-    return t4 && (n2.__e = t4.__e);
+  if ((n2 = n2.__) && n2.__c && !n2.props.__P) return n2.__e = null, n2.__k.some(function(t5) {
+    return t5 && (n2.__e = t5.__e);
   }), j(n2);
 }
-function L(t4) {
-  (8 & t4.__g || (t4.__g |= 8, u.push(t4), f++)) && i2 == n.debounceRendering || ((i2 = n.debounceRendering) || queueMicrotask)(H);
+function L(t5) {
+  (8 & t5.__g || (t5.__g |= 8, u.push(t5), f++)) && i2 == n.debounceRendering || ((i2 = n.debounceRendering) || queueMicrotask)(H);
 }
 function H() {
   try {
-    for (var n2, t4 = 1; u.length; ) u.length > t4 && u.sort(o), n2 = u.shift(), t4 = u.length, 8 & n2.__g && C2(n2);
+    for (var n2, t5 = 1; u.length; ) u.length > t5 && u.sort(o), n2 = u.shift(), t5 = u.length, 8 & n2.__g && C2(n2);
   } finally {
     (f = u.length) && (i2 || queueMicrotask)(H);
   }
 }
-function I(n2, t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
-  var s2, h3, v2, w4, d2, _2, g3 = u2.__k || y2, k = t4.length;
-  for (l2 = q(r2, t4, g3, l2, k), s2 = 0; s2 < k; s2++) null != (v2 = r2.__k[s2]) && (h3 = ~v2.__i && g3[v2.__i] || p, v2.__i = s2, _2 = z2(n2, v2, h3, i3, f2, o2, e3, l2, c4, a3), w4 = v2.__e, (h3.ref != v2.ref || 8 & h3.__u) && (h3.ref && G(h3.ref, null, v2, h3), v2.ref && a3.push(v2.ref, v2.__c || w4, v2)), d2 = d2 || w4, 4 & v2.__u ? (l2 = A2(v2, l2, n2, !h3.__v), h3.__e && (h3.__e = null)) : "function" == typeof v2.type && void 0 !== _2 ? l2 = _2 : w4 && (l2 = w4.nextSibling), v2.__u &= -21);
+function I(n2, t5, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
+  var s2, h3, v2, w4, d2, _2, g3 = u2.__k || y2, k = t5.length;
+  for (l2 = q(r2, t5, g3, l2, k), s2 = 0; s2 < k; s2++) null != (v2 = r2.__k[s2]) && (h3 = ~v2.__i && g3[v2.__i] || p, v2.__i = s2, _2 = z2(n2, v2, h3, i3, f2, o2, e3, l2, c4, a3), w4 = v2.__e, (h3.ref != v2.ref || 8 & h3.__u) && (h3.ref && G(h3.ref, null, v2, h3), v2.ref && a3.push(v2.ref, v2.__c || w4, v2)), d2 = d2 || w4, 4 & v2.__u ? (l2 = A2(v2, l2, n2, !h3.__v), h3.__e && (h3.__e = null)) : "function" == typeof v2.type && void 0 !== _2 ? l2 = _2 : w4 && (l2 = w4.nextSibling), v2.__u &= -21);
   return r2.__e = d2, l2;
 }
-function q(n2, t4, r2, u2, i3) {
+function q(n2, t5, r2, u2, i3) {
   var f2, o2, e3, l2, c4, a3, s2, p2, y3, v2 = r2.length, d2 = v2, _2 = 0, g3 = 0, k = n2.__k = Array(i3);
-  for (f2 = 0; f2 < i3; f2++) null != (o2 = t4[f2]) && "boolean" != typeof o2 && "function" != typeof o2 ? ("object" != typeof o2 || o2.constructor === String ? o2 = k[f2] = m2(null, o2) : w(o2) ? o2 = k[f2] = m2($, { children: o2 }) : o2.constructor === h2 && o2.__b ? o2 = k[f2] = m2(o2.type, o2.props, o2.key, o2.ref, o2.__v) : k[f2] = o2, l2 = f2 + _2, o2.__ = n2, o2.__b = n2.__b + 1, e3 = null, ~(c4 = o2.__i = P(o2, r2, l2, d2)) && (d2--, (e3 = r2[c4]) && (e3.__u |= 2)), e3 && e3.__v ? (o2.__u |= 16, c4 == l2 - 1 ? _2-- : c4 == l2 + 1 ? _2++ : c4 != l2 && (c4 > l2 ? _2-- : _2++, g3 = 1)) : (~c4 || (i3 > v2 ? _2-- : i3 < v2 && _2++), "function" != typeof o2.type && (o2.__u |= 4))) : k[f2] = null;
+  for (f2 = 0; f2 < i3; f2++) null != (o2 = t5[f2]) && "boolean" != typeof o2 && "function" != typeof o2 ? ("object" != typeof o2 || o2.constructor === String ? o2 = k[f2] = m2(null, o2) : w(o2) ? o2 = k[f2] = m2($, { children: o2 }) : o2.constructor === h2 && o2.__b ? o2 = k[f2] = m2(o2.type, o2.props, o2.key, o2.ref, o2.__v) : k[f2] = o2, l2 = f2 + _2, o2.__ = n2, o2.__b = n2.__b + 1, e3 = null, ~(c4 = o2.__i = P(o2, r2, l2, d2)) && (d2--, (e3 = r2[c4]) && (e3.__u |= 2)), e3 && e3.__v ? (o2.__u |= 16, c4 == l2 - 1 ? _2-- : c4 == l2 + 1 ? _2++ : c4 != l2 && (c4 > l2 ? _2-- : _2++, g3 = 1)) : (~c4 || (i3 > v2 ? _2-- : i3 < v2 && _2++), "function" != typeof o2.type && (o2.__u |= 4))) : k[f2] = null;
   if (g3) {
     for (a3 = [], s2 = [], f2 = 0; f2 < i3; f2++) if ((o2 = k[f2]) && 16 & o2.__u) {
       for (_2 = 0, p2 = a3.length; _2 < p2; ) a3[y3 = _2 + p2 >> 1] < o2.__i ? _2 = y3 + 1 : p2 = y3;
@@ -109378,58 +112669,58 @@ function q(n2, t4, r2, u2, i3) {
   if (d2) for (f2 = 0; f2 < v2; f2++) !(e3 = r2[f2]) || 2 & e3.__u || (e3.__e == u2 && (u2 = S2(e3)), J(e3, e3));
   return u2;
 }
-function A2(n2, t4, r2, u2) {
+function A2(n2, t5, r2, u2) {
   var i3, f2, o2, e3;
   if ("function" == typeof n2.type) {
-    if (n2.props.__P) return t4;
-    if (i3 = n2.__k) for (f2 = 0; f2 < i3.length; f2++) i3[f2] && (i3[f2].__ = n2, t4 = A2(i3[f2], t4, r2, false));
-    return t4;
+    if (n2.props.__P) return t5;
+    if (i3 = n2.__k) for (f2 = 0; f2 < i3.length; f2++) i3[f2] && (i3[f2].__ = n2, t5 = A2(i3[f2], t5, r2, false));
+    return t5;
   }
-  for (t4 && !t4.parentNode && (t4 = S2(n2)) && !t4.parentNode && (t4 = null), o2 = n2.__e, e3 = t4; e3 && 8 == e3.nodeType; ) e3 = e3.nextSibling;
-  for (o2 != e3 && (!u2 && r2.moveBefore && o2.parentNode ? r2.moveBefore(o2, t4) : r2.insertBefore(o2, t4 || null)), t4 = o2; (t4 = t4 && t4.nextSibling) && 8 == t4.nodeType && !t4.data.startsWith("$s"); ) ;
-  return t4;
+  for (t5 && !t5.parentNode && (t5 = S2(n2)) && !t5.parentNode && (t5 = null), o2 = n2.__e, e3 = t5; e3 && 8 == e3.nodeType; ) e3 = e3.nextSibling;
+  for (o2 != e3 && (!u2 && r2.moveBefore && o2.parentNode ? r2.moveBefore(o2, t5) : r2.insertBefore(o2, t5 || null)), t5 = o2; (t5 = t5 && t5.nextSibling) && 8 == t5.nodeType && !t5.data.startsWith("$s"); ) ;
+  return t5;
 }
-function P(n2, t4, r2, u2) {
-  var i3, f2 = n2.key, o2 = n2.type, e3 = t4[r2], l2 = e3 && !(2 & e3.__u);
+function P(n2, t5, r2, u2) {
+  var i3, f2 = n2.key, o2 = n2.type, e3 = t5[r2], l2 = e3 && !(2 & e3.__u);
   if (null === e3 && null == f2 || l2 && f2 == e3.key && o2 == e3.type) return r2;
   if (u2 > (l2 ? 1 : 0)) {
-    for (i3 = r2 - 1; i3 >= 0; i3--) if ((e3 = t4[i3]) && !(2 & e3.__u) && f2 == e3.key && o2 == e3.type) return i3;
-    for (i3 = r2 + 1; i3 < t4.length; i3++) if ((e3 = t4[i3]) && !(2 & e3.__u) && f2 == e3.key && o2 == e3.type) return i3;
+    for (i3 = r2 - 1; i3 >= 0; i3--) if ((e3 = t5[i3]) && !(2 & e3.__u) && f2 == e3.key && o2 == e3.type) return i3;
+    for (i3 = r2 + 1; i3 < t5.length; i3++) if ((e3 = t5[i3]) && !(2 & e3.__u) && f2 == e3.key && o2 == e3.type) return i3;
   }
   return -1;
 }
-function T2(n2, t4, r2) {
-  null == r2 && (r2 = ""), "-" == t4[0] ? n2.setProperty(t4, r2) : n2[t4] = r2;
+function T2(n2, t5, r2) {
+  null == r2 && (r2 = ""), "-" == t5[0] ? n2.setProperty(t5, r2) : n2[t5] = r2;
 }
-function N2(n2, t4, r2, u2, i3) {
+function N2(n2, t5, r2, u2, i3) {
   var f2, o2;
-  if ("style" == t4) if ("string" == typeof r2) n2.style.cssText = r2;
+  if ("style" == t5) if ("string" == typeof r2) n2.style.cssText = r2;
   else {
-    if ("string" == typeof u2 && (n2.style.cssText = u2 = ""), u2) for (t4 in u2) r2 && t4 in r2 || T2(n2.style, t4);
-    if (r2) for (t4 in r2) u2 && r2[t4] == u2[t4] || T2(n2.style, t4, r2[t4]);
+    if ("string" == typeof u2 && (n2.style.cssText = u2 = ""), u2) for (t5 in u2) r2 && t5 in r2 || T2(n2.style, t5);
+    if (r2) for (t5 in r2) u2 && r2[t5] == u2[t5] || T2(n2.style, t5, r2[t5]);
   }
-  else if ("o" == t4[0] && "n" == t4[1]) "function" != typeof r2 && (r2 = null), "function" != typeof u2 && (u2 = null), (n2.__e || (n2.__e = {}))[t4] = r2, r2 && u2 || (o2 = a2[t4] || (a2[t4] = V(t4)), (n2.__a || (n2.__a = {}))[t4] = c3, f2 = t4 != (t4 = t4.replace(l, "$1")), (t4 = t4.slice(2))[0] < "a" && (t4 = t4.toLowerCase()), r2 ? n2.addEventListener(t4, o2, f2) : n2.removeEventListener(t4, o2, f2));
+  else if ("o" == t5[0] && "n" == t5[1]) "function" != typeof r2 && (r2 = null), "function" != typeof u2 && (u2 = null), (n2.__e || (n2.__e = {}))[t5] = r2, r2 && u2 || (o2 = a2[t5] || (a2[t5] = V(t5)), (n2.__a || (n2.__a = {}))[t5] = c3, f2 = t5 != (t5 = t5.replace(l, "$1")), (t5 = t5.slice(2))[0] < "a" && (t5 = t5.toLowerCase()), r2 ? n2.addEventListener(t5, o2, f2) : n2.removeEventListener(t5, o2, f2));
   else {
-    if ("http://www.w3.org/2000/svg" == i3) t4 = t4.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
-    else if ("width" != t4 && "height" != t4 && "href" != t4 && "list" != t4 && "form" != t4 && "tabIndex" != t4 && "download" != t4 && "rowSpan" != t4 && "colSpan" != t4 && "role" != t4 && "popover" != t4 && t4 in n2) try {
-      return void (n2[t4] = null == r2 ? "" : r2);
+    if ("http://www.w3.org/2000/svg" == i3) t5 = t5.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
+    else if ("width" != t5 && "height" != t5 && "href" != t5 && "list" != t5 && "form" != t5 && "tabIndex" != t5 && "download" != t5 && "rowSpan" != t5 && "colSpan" != t5 && "role" != t5 && "popover" != t5 && t5 in n2) try {
+      return void (n2[t5] = null == r2 ? "" : r2);
     } catch (n3) {
     }
     if ("function" == typeof r2) return;
-    null == r2 || false === r2 && "-" != t4[4] ? n2.removeAttribute(t4) : n2.setAttribute(t4, "popover" == t4 && 1 == r2 ? "" : r2);
+    null == r2 || false === r2 && "-" != t5[4] ? n2.removeAttribute(t5) : n2.setAttribute(t5, "popover" == t5 && 1 == r2 ? "" : r2);
   }
 }
-function V(t4) {
+function V(t5) {
   return function(r2) {
     var u2 = this.__e;
     if (u2) {
-      if (u2 = u2[t4], null == r2[e]) r2[e] = c3++;
-      else if (r2[e] < this.__a[t4]) return;
+      if (u2 = u2[t5], null == r2[e]) r2[e] = c3++;
+      else if (r2[e] < this.__a[t5]) return;
       return u2(n.event ? n.event(r2) : r2);
     }
   };
 }
-function z2(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
+function z2(t5, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
   var s2, p2, v2, d2, k, b2, m3, M, C3, j2, L2, H2, q2, A3, O, P2, T3, N3, V2 = r2.type;
   if (r2.constructor !== h2) return null;
   128 & u2.__u && (c4 = 32 & u2.__u, s2 = u2.__c.__z) && (r2.__u |= c4, p2 = o2 = [], 8 == s2.nodeType ? l2 = B3(s2, o2) : o2.push(s2), l2 = o2[0] || l2), (s2 = n.__b) && s2(r2);
@@ -109447,15 +112738,15 @@ function z2(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
           d2.componentDidUpdate(k, b2, m3);
         });
       } else C3 && !V2.getDerivedStateFromProps && d2.componentWillMount && d2.componentWillMount(), C3 && d2.componentDidMount && d2.__h.push(d2.componentDidMount);
-      d2.context = L2, d2.props = M, d2.__P = t4, d2.__g &= -5, H2 = n.__r, q2 = C3 ? 25 : 0;
+      d2.context = L2, d2.props = M, d2.__P = t5, d2.__g &= -5, H2 = n.__r, q2 = C3 ? 25 : 0;
       do {
         d2.__g &= -9, H2 && H2(r2), s2 = d2.render(d2.props, d2.state = d2.__s, d2.context);
       } while (8 & d2.__g && ++q2 < 25);
-      C3 && (y2.push.apply(d2.__h, d2.__k), d2.__k = []), d2.state = d2.__s, d2.getChildContext && (i3 = _({}, i3, d2.getChildContext())), C3 && u2.__c && d2.getSnapshotBeforeUpdate && (m3 = d2.getSnapshotBeforeUpdate(k, b2)), A3 = s2 && s2.type === $ && null == s2.key ? s2.props.children : s2, M.__P && (s2 = l2, f2 = (t4 = M.__P).namespaceURI, c4 = o2 = null, u2.props && u2.props.__P != t4 && (u2.__k.some(function(n2) {
+      C3 && (y2.push.apply(d2.__h, d2.__k), d2.__k = []), d2.state = d2.__s, d2.getChildContext && (i3 = _({}, i3, d2.getChildContext())), C3 && u2.__c && d2.getSnapshotBeforeUpdate && (m3 = d2.getSnapshotBeforeUpdate(k, b2)), A3 = s2 && s2.type === $ && null == s2.key ? s2.props.children : s2, M.__P && (s2 = l2, f2 = (t5 = M.__P).namespaceURI, c4 = o2 = null, u2.props && u2.props.__P != t5 && (u2.__k.some(function(n2) {
         n2 && J(n2, n2);
-      }), u2.__k = null), l2 = u2.__k ? S2(u2, 0) : null), l2 = I(t4, w(A3) ? A3 : [A3], r2, u2, i3, f2, o2, e3, l2, c4, a3), M.__P && (r2.__e = null, l2 = s2), r2.__u &= -161, p2 && p2.some(g2), d2.__h.length && e3.push(d2), 1 & d2.__g && (d2.__g &= -4);
-    } catch (t5) {
-      if (e3.length = v2, r2.__v = null, c4 || o2) if (t5 && t5.then) {
+      }), u2.__k = null), l2 = u2.__k ? S2(u2, 0) : null), l2 = I(t5, w(A3) ? A3 : [A3], r2, u2, i3, f2, o2, e3, l2, c4, a3), M.__P && (r2.__e = null, l2 = s2), r2.__u &= -161, p2 && p2.some(g2), d2.__h.length && e3.push(d2), 1 & d2.__g && (d2.__g &= -4);
+    } catch (t6) {
+      if (e3.length = v2, r2.__v = null, c4 || o2) if (t6 && t6.then) {
         if (r2.__u |= 128 | c4, o2) {
           for (~(T3 = o2.indexOf(l2 || void 0)) || (T3 = o2.length); (N3 = o2[T3 - 1]) && 8 == N3.nodeType; ) T3--;
           for (; T3 < o2.length; T3++) if (N3 = o2[T3]) if (o2[T3] = null, O) {
@@ -109472,101 +112763,101 @@ function z2(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
         (s2 = B3(O = r2.__c.__z || (r2.__c.__z = O))) ? (r2.__e = O, l2 = s2) : r2.__e = l2, l2 = l2 && l2.nextSibling;
       } else o2 && o2.some(g2);
       else r2.__e = u2.__e;
-      r2.__k || (r2.__k = u2.__k || []), t5 && t5.then || D2(r2), n.__e(t5, r2, u2);
+      r2.__k || (r2.__k = u2.__k || []), t6 && t6.then || D2(r2), n.__e(t6, r2, u2);
     }
-  } else l2 = r2.__e = F(u2.__e, r2, u2, i3, f2, o2, e3, c4, a3, t4);
+  } else l2 = r2.__e = F(u2.__e, r2, u2, i3, f2, o2, e3, c4, a3, t5);
   return (s2 = n.diffed) && s2(r2), l2;
 }
-function B3(n2, t4) {
+function B3(n2, t5) {
   if (n2 && 8 == n2.nodeType && n2.data.startsWith("$s")) for (var r2 = 1; n2 = n2.nextSibling; ) {
     if (8 == n2.nodeType) {
       if (n2.data.startsWith("$s")) r2++;
       else if (n2.data.startsWith("/$s") && !--r2) return n2;
     }
-    t4 && t4.push(n2);
+    t5 && t5.push(n2);
   }
 }
 function D2(n2) {
   n2 && (n2.__c && (n2.__c.__g |= 4), n2.__k && n2.__k.some(D2));
 }
-function E2(t4, r2, u2) {
+function E2(t5, r2, u2) {
   for (var i3 = 0; i3 < u2.length; ) G(u2[i3++], u2[i3++], u2[i3++]);
-  n.__c && n.__c(r2, t4), t4.some(function(r3) {
+  n.__c && n.__c(r2, t5), t5.some(function(r3) {
     try {
-      t4 = r3.__h, r3.__h = [], t4.some(function(n2) {
+      t5 = r3.__h, r3.__h = [], t5.some(function(n2) {
         n2.call(r3);
       });
-    } catch (t5) {
-      n.__e(t5, r3.__v);
+    } catch (t6) {
+      n.__e(t6, r3.__v);
     }
   });
 }
-function F(t4, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
+function F(t5, r2, u2, i3, f2, o2, e3, l2, c4, a3) {
   var s2, h3, y3, _2, k, b2, m3, M, $2 = u2.props || p, x3 = r2.props, C3 = r2.type;
   if ("svg" == C3 ? f2 = "http://www.w3.org/2000/svg" : "math" == C3 ? f2 = "http://www.w3.org/1998/Math/MathML" : f2 || (f2 = "http://www.w3.org/1999/xhtml"), o2) {
     for (s2 = 0; s2 < o2.length; s2++) if ((k = o2[s2]) && (C3 ? k.localName == C3 : 3 == k.nodeType)) {
-      t4 = k, o2[s2] = null;
+      t5 = k, o2[s2] = null;
       break;
     }
   }
-  if (!t4) {
+  if (!t5) {
     if (M = a3.ownerDocument || document, !C3) return M.createTextNode(x3);
-    t4 = M.createElementNS(f2, C3, x3.is ? x3 : a3), l2 && (n.__m && n.__m(r2, o2), l2 = false), o2 = null;
+    t5 = M.createElementNS(f2, C3, x3.is ? x3 : a3), l2 && (n.__m && n.__m(r2, o2), l2 = false), o2 = null;
   }
   if (C3) {
-    if (a3 = "template" == C3 && t4.content || t4, o2 = "textarea" == C3 && null != x3.defaultValue ? null : o2 && d.call(a3.childNodes), !l2 && o2) for ($2 = {}, s2 = 0; s2 < t4.attributes.length; s2++) $2[(k = t4.attributes[s2]).name] = k.value;
-    for (s2 in $2) k = $2[s2], "dangerouslySetInnerHTML" == s2 ? y3 = k : "children" == s2 || s2 in x3 || "value" == s2 && "defaultValue" in x3 || "checked" == s2 && "defaultChecked" in x3 || N2(t4, s2, null, k, f2);
-    for (s2 in x3) k = x3[s2], "children" == s2 ? _2 = k : "dangerouslySetInnerHTML" == s2 ? h3 = k : "value" == s2 ? b2 = k : "checked" == s2 ? m3 = k : l2 && "function" != typeof k || $2[s2] === k || N2(t4, s2, k, $2[s2], f2);
-    h3 ? (l2 || y3 && (h3.__html == y3.__html || h3.__html == t4.innerHTML) || (t4.innerHTML = h3.__html), r2.__k = []) : (y3 && (t4.textContent = ""), ("foreignObject" == C3 || "http://www.w3.org/1998/Math/MathML" == f2 && v.test(C3)) && (f2 = "http://www.w3.org/1999/xhtml"), I(a3, w(_2) ? _2 : [_2], r2, u2, i3, f2, o2, e3, o2 ? o2[0] : u2.__k && S2(u2, 0), l2, c4), o2 && o2.some(g2)), l2 && "textarea" != C3 || (s2 = "value", "progress" == C3 && null == b2 ? t4.removeAttribute(s2) : null == b2 || b2 === t4[s2] && ("progress" != C3 || b2) || N2(t4, s2, b2, $2[s2], f2), s2 = "checked", null != m3 && m3 != t4[s2] && N2(t4, s2, m3, $2[s2], f2));
-  } else $2 === x3 || l2 && t4.data == x3 || (t4.data = x3);
-  return t4;
+    if (a3 = "template" == C3 && t5.content || t5, o2 = "textarea" == C3 && null != x3.defaultValue ? null : o2 && d.call(a3.childNodes), !l2 && o2) for ($2 = {}, s2 = 0; s2 < t5.attributes.length; s2++) $2[(k = t5.attributes[s2]).name] = k.value;
+    for (s2 in $2) k = $2[s2], "dangerouslySetInnerHTML" == s2 ? y3 = k : "children" == s2 || s2 in x3 || "value" == s2 && "defaultValue" in x3 || "checked" == s2 && "defaultChecked" in x3 || N2(t5, s2, null, k, f2);
+    for (s2 in x3) k = x3[s2], "children" == s2 ? _2 = k : "dangerouslySetInnerHTML" == s2 ? h3 = k : "value" == s2 ? b2 = k : "checked" == s2 ? m3 = k : l2 && "function" != typeof k || $2[s2] === k || N2(t5, s2, k, $2[s2], f2);
+    h3 ? (l2 || y3 && (h3.__html == y3.__html || h3.__html == t5.innerHTML) || (t5.innerHTML = h3.__html), r2.__k = []) : (y3 && (t5.textContent = ""), ("foreignObject" == C3 || "http://www.w3.org/1998/Math/MathML" == f2 && v.test(C3)) && (f2 = "http://www.w3.org/1999/xhtml"), I(a3, w(_2) ? _2 : [_2], r2, u2, i3, f2, o2, e3, o2 ? o2[0] : u2.__k && S2(u2, 0), l2, c4), o2 && o2.some(g2)), l2 && "textarea" != C3 || (s2 = "value", "progress" == C3 && null == b2 ? t5.removeAttribute(s2) : null == b2 || b2 === t5[s2] && ("progress" != C3 || b2) || N2(t5, s2, b2, $2[s2], f2), s2 = "checked", null != m3 && m3 != t5[s2] && N2(t5, s2, m3, $2[s2], f2));
+  } else $2 === x3 || l2 && t5.data == x3 || (t5.data = x3);
+  return t5;
 }
-function G(t4, r2, u2, i3) {
+function G(t5, r2, u2, i3) {
   try {
-    "function" == typeof t4 ? r2 ? r2.__x = t4(r2) || 1 : i3 && (i3 = i3.__c || i3.__e) && (r2 = i3.__x) && (i3.__x = null, "function" == typeof r2 ? r2() : t4(null)) : t4.current = r2;
-  } catch (t5) {
-    n.__e(t5, u2);
+    "function" == typeof t5 ? r2 ? r2.__x = t5(r2) || 1 : i3 && (i3 = i3.__c || i3.__e) && (r2 = i3.__x) && (i3.__x = null, "function" == typeof r2 ? r2() : t5(null)) : t5.current = r2;
+  } catch (t6) {
+    n.__e(t6, u2);
   }
 }
-function J(t4, r2, u2) {
+function J(t5, r2, u2) {
   var i3, f2, o2, e3;
-  if (n.unmount && n.unmount(t4), !(i3 = t4.ref) || i3.current && i3.current != t4.__e || G(i3, null, r2, t4), i3 = t4.__c) {
+  if (n.unmount && n.unmount(t5), !(i3 = t5.ref) || i3.current && i3.current != t5.__e || G(i3, null, r2, t5), i3 = t5.__c) {
     if (i3.componentWillUnmount) try {
       i3.componentWillUnmount();
-    } catch (t5) {
-      n.__e(t5, r2);
+    } catch (t6) {
+      n.__e(t6, r2);
     }
     i3.__P = i3.__n = null;
   }
-  if (i3 = t4.__k) for (e3 = 0; e3 < i3.length; e3++) i3[e3] && J(i3[e3], r2, "function" != typeof t4.type || u2 && !t4.props.__P);
-  !u2 && (i3 = t4.__c) && (i3 = i3.__z) && (f2 = B3(i3, o2 = [])) && (i3 == t4.__e && o2.some(g2), g2(f2), g2(i3)), u2 || g2(t4.__e), t4.__e = t4.__c = t4.__ = null;
+  if (i3 = t5.__k) for (e3 = 0; e3 < i3.length; e3++) i3[e3] && J(i3[e3], r2, "function" != typeof t5.type || u2 && !t5.props.__P);
+  !u2 && (i3 = t5.__c) && (i3 = i3.__z) && (f2 = B3(i3, o2 = [])) && (i3 == t5.__e && o2.some(g2), g2(f2), g2(i3)), u2 || g2(t5.__e), t5.__e = t5.__c = t5.__ = null;
 }
-function K2(n2, t4, r2) {
+function K2(n2, t5, r2) {
   return this.constructor(n2, r2);
 }
-function Q(t4, r2) {
+function Q(t5, r2) {
   var u2, i3, f2, o2;
-  n.__ && n.__(t4, r2), 9 == r2.nodeType && (r2 = r2.documentElement), i3 = (u2 = t4 && 32 & t4.__u) ? null : r2.__k, r2.__k = m2($, { children: [t4] }), f2 = [], o2 = [], z2(r2, r2.__k, i3 || p, p, r2.namespaceURI, i3 ? null : r2.firstChild ? d.call(r2.childNodes) : null, f2, i3 ? i3.__e : r2.firstChild, u2, o2), E2(f2, r2.__k, o2), r2.__k.props.children = null;
+  n.__ && n.__(t5, r2), 9 == r2.nodeType && (r2 = r2.documentElement), i3 = (u2 = t5 && 32 & t5.__u) ? null : r2.__k, r2.__k = m2($, { children: [t5] }), f2 = [], o2 = [], z2(r2, r2.__k, i3 || p, p, r2.namespaceURI, i3 ? null : r2.firstChild ? d.call(r2.childNodes) : null, f2, i3 ? i3.__e : r2.firstChild, u2, o2), E2(f2, r2.__k, o2), r2.__k.props.children = null;
 }
-n = { __e: function(n2, t4, r2, u2) {
-  for (var i3, o2, e3; t4 = t4.__; ) if ((i3 = t4.__c) && !(1 & i3.__g)) {
+n = { __e: function(n2, t5, r2, u2) {
+  for (var i3, o2, e3; t5 = t5.__; ) if ((i3 = t5.__c) && !(1 & i3.__g)) {
     i3.__g |= 4;
     try {
       if ((e3 = (o2 = i3.constructor) && o2.getDerivedStateFromError) && i3.setState(o2.getDerivedStateFromError(n2)), i3.componentDidCatch && (i3.componentDidCatch(n2, u2 || {}), e3 = 1), e3 && 8 & i3.__g) return void (i3.__g |= 2);
-    } catch (t5) {
-      n2 = t5;
+    } catch (t6) {
+      n2 = t6;
     }
   }
   throw f = 0, n2;
-} }, t = 0, r = function(n2) {
+} }, t4 = 0, r = function(n2) {
   return null != n2 && n2.constructor === h2;
-}, x2.prototype.setState = function(n2, t4) {
+}, x2.prototype.setState = function(n2, t5) {
   var r2 = this.__s;
-  r2 && r2 != this.state || (r2 = this.__s = _({}, this.state)), "function" == typeof n2 && (n2 = n2(_({}, r2), this.props)), n2 && (_(r2, n2), this.__v && (t4 && this.__k.push(t4), L(this)));
+  r2 && r2 != this.state || (r2 = this.__s = _({}, this.state)), "function" == typeof n2 && (n2 = n2(_({}, r2), this.props)), n2 && (_(r2, n2), this.__v && (t5 && this.__k.push(t5), L(this)));
 }, x2.prototype.forceUpdate = function(n2) {
   this.__v && (this.__g |= 4, n2 && this.__h.push(n2), L(this));
-}, x2.prototype.render = $, u = [], f = 0, o = function(n2, t4) {
-  return n2.__v.__b - t4.__v.__b;
+}, x2.prototype.render = $, u = [], f = 0, o = function(n2, t5) {
+  return n2.__v.__b - t5.__v.__b;
 }, e = /* @__PURE__ */ Symbol(), l = /(PointerCapture)$|Capture$/i, c3 = 0, a2 = {}, s = 0;
 
 // node_modules/float-tooltip/dist/float-tooltip.mjs
@@ -109584,9 +112875,9 @@ var reactElement2VNode = (el) => {
   return res;
 };
 var isReactRenderable = (o2) => r(b(o2));
-var render2 = (jsx12, domEl) => {
+var render2 = (jsx13, domEl) => {
   delete domEl.__k;
-  Q(reactElement2VNode(jsx12), domEl);
+  Q(reactElement2VNode(jsx13), domEl);
 };
 function styleInject(css, ref) {
   if (ref === void 0) ref = {};
@@ -110234,13 +113525,13 @@ function _arrayLikeToArray3(r2, a3) {
 function _arrayWithoutHoles2(r2) {
   if (Array.isArray(r2)) return _arrayLikeToArray3(r2);
 }
-function _defineProperty(e3, r2, t4) {
+function _defineProperty(e3, r2, t5) {
   return (r2 = _toPropertyKey2(r2)) in e3 ? Object.defineProperty(e3, r2, {
-    value: t4,
+    value: t5,
     enumerable: true,
     configurable: true,
     writable: true
-  }) : e3[r2] = t4, e3;
+  }) : e3[r2] = t5, e3;
 }
 function _iterableToArray2(r2) {
   if ("undefined" != typeof Symbol && null != r2[Symbol.iterator] || null != r2["@@iterator"]) return Array.from(r2);
@@ -110249,22 +113540,22 @@ function _nonIterableSpread2() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 function ownKeys(e3, r2) {
-  var t4 = Object.keys(e3);
+  var t5 = Object.keys(e3);
   if (Object.getOwnPropertySymbols) {
     var o2 = Object.getOwnPropertySymbols(e3);
     r2 && (o2 = o2.filter(function(r3) {
       return Object.getOwnPropertyDescriptor(e3, r3).enumerable;
-    })), t4.push.apply(t4, o2);
+    })), t5.push.apply(t5, o2);
   }
-  return t4;
+  return t5;
 }
 function _objectSpread2(e3) {
   for (var r2 = 1; r2 < arguments.length; r2++) {
-    var t4 = null != arguments[r2] ? arguments[r2] : {};
-    r2 % 2 ? ownKeys(Object(t4), true).forEach(function(r3) {
-      _defineProperty(e3, r3, t4[r3]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e3, Object.getOwnPropertyDescriptors(t4)) : ownKeys(Object(t4)).forEach(function(r3) {
-      Object.defineProperty(e3, r3, Object.getOwnPropertyDescriptor(t4, r3));
+    var t5 = null != arguments[r2] ? arguments[r2] : {};
+    r2 % 2 ? ownKeys(Object(t5), true).forEach(function(r3) {
+      _defineProperty(e3, r3, t5[r3]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e3, Object.getOwnPropertyDescriptors(t5)) : ownKeys(Object(t5)).forEach(function(r3) {
+      Object.defineProperty(e3, r3, Object.getOwnPropertyDescriptor(t5, r3));
     });
   }
   return e3;
@@ -110272,25 +113563,25 @@ function _objectSpread2(e3) {
 function _toConsumableArray2(r2) {
   return _arrayWithoutHoles2(r2) || _iterableToArray2(r2) || _unsupportedIterableToArray3(r2) || _nonIterableSpread2();
 }
-function _toPrimitive2(t4, r2) {
-  if ("object" != typeof t4 || !t4) return t4;
-  var e3 = t4[Symbol.toPrimitive];
+function _toPrimitive2(t5, r2) {
+  if ("object" != typeof t5 || !t5) return t5;
+  var e3 = t5[Symbol.toPrimitive];
   if (void 0 !== e3) {
-    var i3 = e3.call(t4, r2);
+    var i3 = e3.call(t5, r2);
     if ("object" != typeof i3) return i3;
     throw new TypeError("@@toPrimitive must return a primitive value.");
   }
-  return ("string" === r2 ? String : Number)(t4);
+  return ("string" === r2 ? String : Number)(t5);
 }
-function _toPropertyKey2(t4) {
-  var i3 = _toPrimitive2(t4, "string");
+function _toPropertyKey2(t5) {
+  var i3 = _toPrimitive2(t5, "string");
   return "symbol" == typeof i3 ? i3 : i3 + "";
 }
 function _unsupportedIterableToArray3(r2, a3) {
   if (r2) {
     if ("string" == typeof r2) return _arrayLikeToArray3(r2, a3);
-    var t4 = {}.toString.call(r2).slice(8, -1);
-    return "Object" === t4 && r2.constructor && (t4 = r2.constructor.name), "Map" === t4 || "Set" === t4 ? Array.from(r2) : "Arguments" === t4 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t4) ? _arrayLikeToArray3(r2, a3) : void 0;
+    var t5 = {}.toString.call(r2).slice(8, -1);
+    return "Object" === t5 && r2.constructor && (t5 = r2.constructor.name), "Map" === t5 || "Set" === t5 ? Array.from(r2) : "Arguments" === t5 || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t5) ? _arrayLikeToArray3(r2, a3) : void 0;
   }
 }
 function linkKapsule(kapsulePropName, kapsuleType) {
@@ -110680,8 +113971,8 @@ function getGraphObj(object) {
 }
 
 // src/grafo3d.js
-import { jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
-import { useCallback as useCallback9, useEffect as useEffect10, useMemo, useRef as useRef8, useState as useState10 } from "react";
+import { jsx as jsx11, jsxs as jsxs11 } from "react/jsx-runtime";
+import { useCallback as useCallback10, useEffect as useEffect11, useMemo, useRef as useRef10, useState as useState11 } from "react";
 var COLORES_NODO = {
   instrumento: "#60a5fa",
   articulo: "#a78bfa",
@@ -110697,16 +113988,21 @@ var COLORES_ARISTA = {
   excepciona: "#06b6d4"
 };
 var NOMBRE_TIPO = {
-  instrumento: "Instrumento",
-  articulo: "Art\xEDculo",
-  sentencia: "Sentencia",
-  resolucion: "Resoluci\xF3n",
-  unidad: "Unidad"
-};
-var NOMBRE_ESTADO = {
-  verificada_estructura: "verificada (estructura)",
-  candidata: "candidata",
-  aprobada: "aprobada"
+  get instrumento() {
+    return t("graph.instrument");
+  },
+  get articulo() {
+    return t("graph.article.label");
+  },
+  get sentencia() {
+    return t("graph.judgment");
+  },
+  get resolucion() {
+    return t("graph.decision");
+  },
+  get unidad() {
+    return t("graph.unit.label");
+  }
 };
 var COLORES_MODALIDAD = {
   obligacion: "#f59e0b",
@@ -110765,29 +114061,29 @@ function LienzoGrafo({
   onFallo,
   apiRef
 }) {
-  const hostEl = useRef8(null);
-  const engine = useRef8(null);
-  const [listo, setListo] = useState10(false);
-  const clickRef = useRef8(alClickNodo);
+  const hostEl = useRef10(null);
+  const engine = useRef10(null);
+  const [listo, setListo] = useState11(false);
+  const clickRef = useRef10(alClickNodo);
   clickRef.current = alClickNodo;
-  const conteosRef = useRef8(conteos);
+  const conteosRef = useRef10(conteos);
   conteosRef.current = conteos;
-  const padresRef = useRef8(padres);
+  const padresRef = useRef10(padres);
   padresRef.current = padres;
-  const clickAristaRef = useRef8(alClickArista);
+  const clickAristaRef = useRef10(alClickArista);
   clickAristaRef.current = alClickArista;
-  const hoverRef = useRef8(alHover);
+  const hoverRef = useRef10(alHover);
   hoverRef.current = alHover;
-  const fondoRef = useRef8(alFondo);
+  const fondoRef = useRef10(alFondo);
   fondoRef.current = alFondo;
-  const resalteRef = useRef8(resalte);
+  const resalteRef = useRef10(resalte);
   resalteRef.current = resalte;
-  const pool = useRef8(/* @__PURE__ */ new Map());
-  const primerAjuste = useRef8(false);
-  useEffect10(() => {
+  const pool = useRef10(/* @__PURE__ */ new Map());
+  const primerAjuste = useRef10(false);
+  useEffect11(() => {
     if (!hostEl.current) return void 0;
     if (!hayWebGL()) {
-      onFallo("WebGL no est\xE1 disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.");
+      onFallo(t("graph.webgl.unavailable.use.the.corpus.list.below"));
       return void 0;
     }
     let graph;
@@ -110795,10 +114091,10 @@ function LienzoGrafo({
     try {
       graph = new _3dForceGraph(hostEl.current);
     } catch (e3) {
-      onFallo("No se pudo iniciar el renderizador 3D: " + mensajeError(e3));
+      onFallo(t("graph.could.not.start.the.3d.view") + mensajeError(e3));
       return void 0;
     }
-    graph.backgroundColor("#0b1020").showNavInfo(false).nodeId("id").nodeVal((n2) => n2.tipo === "instrumento" ? 6 : n2.tipo === "articulo" ? 1 : 0.4).nodeResolution(6).nodeOpacity(0.95).nodeColor((n2) => colorNodoResalte(n2, resalteRef.current)).nodeLabel((n2) => n2.tipo === "instrumento" ? n2.label + " \xB7 " + (conteosRef.current.get(n2.id) || 0) + " art\xEDculos" : n2.label).linkColor((l2) => colorAristaResalte(l2, resalteRef.current)).linkLabel((l2) => l2.tipo + " \xB7 " + (NOMBRE_ESTADO[l2.estado] || l2.estado)).linkOpacity(0.5).linkWidth((l2) => l2.tipo === "contiene" ? 0.4 : 1.2).linkDirectionalArrowLength((l2) => l2.tipo === "contiene" ? 0 : 2.5).linkDirectionalArrowRelPos(0.85).onNodeClick((n2) => clickRef.current(n2)).onLinkClick((l2) => {
+    graph.backgroundColor("#0b1020").showNavInfo(false).nodeId("id").nodeVal((n2) => n2.tipo === "instrumento" ? 6 : n2.tipo === "articulo" ? 1 : 0.4).nodeResolution(6).nodeOpacity(0.95).nodeColor((n2) => colorNodoResalte(n2, resalteRef.current)).nodeLabel((n2) => n2.tipo === "instrumento" ? n2.label + " \xB7 " + (conteosRef.current.get(n2.id) || 0) + t("graph.articles") : n2.label).linkColor((l2) => colorAristaResalte(l2, resalteRef.current)).linkLabel((l2) => l2.tipo + " \xB7 " + etiquetaCodigo(l2.estado)).linkOpacity(0.5).linkWidth((l2) => l2.tipo === "contiene" ? 0.4 : 1.2).linkDirectionalArrowLength((l2) => l2.tipo === "contiene" ? 0 : 2.5).linkDirectionalArrowRelPos(0.85).onNodeClick((n2) => clickRef.current(n2)).onLinkClick((l2) => {
       if (clickAristaRef.current) clickAristaRef.current(l2);
     }).onNodeHover((n2) => {
       if (hoverRef.current) hoverRef.current(n2 ? n2.id : null);
@@ -110825,6 +114121,7 @@ function LienzoGrafo({
         if (!g3) return;
         let intentos = 0;
         const intentar = () => {
+          if (engine.current !== g3) return;
           const n2 = g3.graphData().nodes.find((x3) => x3.id === id);
           if (n2 && Number.isFinite(n2.x)) {
             g3.cameraPosition(
@@ -110834,7 +114131,7 @@ function LienzoGrafo({
             );
           } else if (intentos < 40) {
             intentos += 1;
-            setTimeout(intentar, 50);
+            programarTimeout(intentar, 50);
           }
         };
         intentar();
@@ -110875,7 +114172,7 @@ function LienzoGrafo({
       apiRef.current = null;
     };
   }, []);
-  useEffect10(() => {
+  useEffect11(() => {
     const g3 = engine.current;
     if (!listo || !g3) return;
     const visibles = /* @__PURE__ */ new Set();
@@ -110907,77 +114204,77 @@ function LienzoGrafo({
     });
     if (agregados && g3.d3ReheatSimulation) g3.d3ReheatSimulation();
   }, [proyeccion, listo]);
-  useEffect10(() => {
+  useEffect11(() => {
     const g3 = engine.current;
     if (g3 && g3.refresh) g3.refresh();
   }, [resalte, listo]);
-  return jsxs10("div", { className: "relative min-w-0", children: [
-    jsx10("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
-    !listo ? jsx10("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
+  return jsxs11("div", { className: "relative min-w-0", children: [
+    jsx11("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
+    !listo ? jsx11("div", { className: S.sub + " absolute left-3 top-3", children: t("graph.drawing.graph") }) : null
   ] });
 }
 function UnidadDetalle({ nodo, fuente }) {
-  const [data, setData] = useState10(null);
-  const [error2, setError] = useState10(null);
-  useEffect10(() => {
+  const [data, setData] = useState11(null);
+  const [error2, setError] = useState11(null);
+  useEffect11(() => {
     setData(null);
     setError(null);
     rest("/grafo/unidad?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(setError);
   }, [nodo.id, fuente]);
-  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx10("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
-  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx10("div", {
+  if (error2) return jsx11("div", { className: "text-xs dk-mal", children: mensajeError(error2) });
+  if (!data) return jsx11("div", { className: S.sub, children: t("graph.loading.unit.text") });
+  return jsxs11("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx11("div", {
       className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs",
       children: data.texto
     }),
-    jsx10("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
-    data.articulo_url ? jsx10("a", {
+    jsx11("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
+    data.articulo_url ? jsx11("a", {
       className: S.link,
       href: data.articulo_url,
       target: "_blank",
       rel: "noopener noreferrer",
-      children: "Art\xEDculo fuente \u2197"
+      children: t("graph.source.article")
     }) : null,
-    data.sha256 ? jsx10("div", {
-      className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
-      children: "sha256 unidad " + data.sha256
+    data.sha256 ? jsx11("div", {
+      className: "break-all font-mono text-xs text-(--ui-text-tertiary)",
+      children: t("graph.unit.sha.256") + data.sha256
     }) : null,
-    data.articulo_sha256 ? jsx10("div", {
-      className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
-      children: "sha256 art\xEDculo " + data.articulo_sha256
+    data.articulo_sha256 ? jsx11("div", {
+      className: "break-all font-mono text-xs text-(--ui-text-tertiary)",
+      children: t("graph.article.sha.256") + data.articulo_sha256
     }) : null
   ] });
 }
 function NodoDetalle({ nodo, fuente }) {
-  const [data, setData] = useState10(null);
-  useEffect10(() => {
+  const [data, setData] = useState11(null);
+  useEffect11(() => {
     setData(null);
     rest("/grafo/nodo?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(() => {
     });
   }, [nodo.id, fuente]);
   if (!data) return null;
-  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    data.titulo ? jsx10("div", { className: S.sub, children: data.titulo }) : null,
-    data.vigencia && data.vigencia.estado ? jsx10("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
-    data.url ? jsx10("a", {
+  return jsxs11("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    data.titulo ? jsx11("div", { className: S.sub, children: data.titulo }) : null,
+    data.vigencia && data.vigencia.estado ? jsx11("div", { className: S.sub, children: t("graph.in.force.label") + etiquetaCodigo(data.vigencia.estado) + (data.vigencia.desde ? t("graph.from") + data.vigencia.desde : "") }) : null,
+    data.url ? jsx11("a", {
       className: S.link,
       href: data.url,
       target: "_blank",
       rel: "noopener noreferrer",
-      children: "Fuente original \u2197"
+      children: t("graph.original.source")
     }) : null,
-    data.sha256 ? jsx10("div", {
-      className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
+    data.sha256 ? jsx11("div", {
+      className: "break-all font-mono text-xs text-(--ui-text-tertiary)",
       children: "sha256 " + data.sha256
     }) : null
   ] });
 }
 function TarjetaArista({ arista, fuente }) {
-  const [ev, setEv] = useState10(null);
-  const [err, setErr] = useState10(null);
+  const [ev, setEv] = useState11(null);
+  const [err, setErr] = useState11(null);
   const clave = arista ? arista.source + "|" + arista.target + "|" + arista.tipo : "";
-  useEffect10(() => {
+  useEffect11(() => {
     setEv(null);
     setErr(null);
     if (!arista) return void 0;
@@ -110987,86 +114284,82 @@ function TarjetaArista({ arista, fuente }) {
   }, [clave, fuente, arista]);
   if (!arista) return null;
   const e3 = arista.evidencia || {};
-  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx10("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
-    jsx10("div", {
-      className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
+  return jsxs11("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx11("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
+    jsx11("div", {
+      className: "break-all font-mono text-xs text-(--ui-text-tertiary)",
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) + " \u2192 " + (arista.target && arista.target.id ? arista.target.id : arista.target)
     }),
-    e3.regla ? jsx10("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
-    err ? jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
-    ev ? jsxs10("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
+    e3.regla ? jsx11("div", { className: S.sub, children: t("graph.rule") + e3.regla + (e3.nivel ? t("graph.level") + e3.nivel : "") }) : null,
+    err ? jsx11("div", { className: "text-xs dk-mal", children: mensajeError(err) }) : null,
+    ev ? jsxs11("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
       ev.snippet || "",
-      ev.n_evidencias ? " (" + ev.n_evidencias + " evidencias)" : ""
+      ev.n_evidencias ? " (" + ev.n_evidencias + t("graph.evidence.items") : ""
     ] }) : null
   ] });
 }
 function etiquetaVigencia(v2) {
   const e3 = v2 && v2.estado;
-  if (!e3 || e3 === "IN_FORCE") return null;
-  if (e3 === "OUT_OF_FORCE") {
-    return v2.motivo === "SUPERSEDED_VERSION" ? { texto: "versi\xF3n superada", malo: false } : { texto: "derogado", malo: true };
-  }
-  if (e3 === "FUTURE") return { texto: "a\xFAn no vigente", malo: false };
-  return { texto: "vigencia desconocida", malo: false };
+  if (!e3) return null;
+  return { texto: etiquetaCodigo(e3) + (v2.motivo ? " \xB7 " + etiquetaCodigo(v2.motivo) : ""), malo: e3 === "OUT_OF_FORCE" && v2.motivo !== "SUPERSEDED_VERSION" };
 }
 function vigenteDe(v2) {
   return !v2 || !v2.estado || v2.estado === "IN_FORCE";
 }
 function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
   if (!nodo) {
-    return jsx10("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
+    return jsx11("div", { className: S.sub, children: t("graph.select.or.search.for.a.node.to.see.its.details.select.an.article.") });
   }
   const n2 = nodo;
   const esUnidad = n2.tipo === "unidad";
-  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    busqueda ? jsxs10("div", { className: "flex flex-col gap-0.5", children: [
-      jsx10("span", { className: S.chip + " " + S.chipOff, children: "Resultado de b\xFAsqueda: es una pista, no una fuente verificada" }),
-      (busqueda.terminos || []).length ? jsx10("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null,
-      jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-        jsx10("span", {
-          title: busqueda.cita ? void 0 : busqueda.cita_motivo || "sin forma de cita",
-          children: jsx10("button", {
+  return jsxs11("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    busqueda ? jsxs11("div", { className: "flex flex-col gap-0.5", children: [
+      jsx11("span", { className: S.chip + " " + S.chipOff, children: t("graph.search.lead.citation.not.yet.checked") }),
+      (busqueda.terminos || []).length ? jsx11("div", { className: S.sub, children: t("graph.terms") + busqueda.terminos.join(", ") }) : null,
+      jsxs11("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+        jsx11("span", {
+          title: busqueda.cita ? void 0 : busqueda.cita_motivo || t("graph.no.citation.form.available"),
+          children: jsx11("button", {
             type: "button",
             className: S.ghost,
             disabled: !busqueda.cita || !onLlevar,
             onClick: () => {
               if (busqueda.cita && onLlevar) onLlevar(busqueda);
             },
-            children: "Llevar al escrito"
+            children: t("graph.add.to.brief")
           })
         }),
-        jsx10("span", { className: S.sub, children: vigenteDe(busqueda.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+        jsx11("span", { className: S.sub, children: vigenteDe(busqueda.vigencia) ? t("graph.added.as.an.unchecked.citation.citation.check.runs.next") : t("graph.citation.check.will.return.fallo.article.out.of.force") })
       ] })
     ] }) : null,
-    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx10("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
-      esUnidad ? jsx10("span", {
+    jsxs11("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx11("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
+      esUnidad ? jsx11("span", {
         className: S.chip + " " + S.chipOff,
         style: { borderLeft: "3px solid " + (COLORES_MODALIDAD[n2.modalidad] || "#64748b") },
-        children: (n2.modalidad || "otra") + (n2.modalidad_regla ? " \xB7 " + n2.modalidad_regla : "")
+        children: t("mod." + (n2.modalidad || "otra")) + (n2.modalidad_regla ? " \xB7 " + n2.modalidad_regla : "")
       }) : null,
-      esUnidad ? jsx10("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
+      esUnidad ? jsx11("span", { className: S.chip + " " + S.chipOff, children: t("graph.candidate.label_text") }) : null
     ] }),
-    jsx10("div", { className: "font-medium", children: n2.label }),
-    n2.tipo === "instrumento" ? jsx10("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
-    n2.tipo === "articulo" ? jsx10("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx10("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx10("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
-    esUnidad && n2.articulo ? jsx10("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
-    jsx10("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
-    esUnidad ? jsx10(UnidadDetalle, { nodo: n2, fuente }) : jsx10(NodoDetalle, { nodo: n2, fuente })
+    jsx11("div", { className: "font-medium", children: n2.label }),
+    n2.tipo === "instrumento" ? jsx11("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + t("graph.articles") }) : null,
+    n2.tipo === "articulo" ? jsx11("div", { className: S.sub, children: (n2.n_unidades || 0) + t("graph.units") + (fuente === "corpus" ? t("graph.select.to.expand.collapse") : "") }) : null,
+    n2.tipo === "resolucion" ? jsx11("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + t("graph.mentions") + (n2.rca ? " \xB7 RCA" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx11("div", { className: S.sub, children: t("graph.no.local.text.inferred.from.mentions.in.judgments") }) : null,
+    esUnidad && n2.articulo ? jsx11("div", { className: S.sub, children: t("graph.unit2") + (n2.etiqueta || "") + (n2.clase === "judicial" ? t("graph.of.the.judgment") : t("graph.of.the.article")) }) : null,
+    jsx11("div", { className: "break-all font-mono text-xs text-(--ui-text-tertiary)", children: n2.id }),
+    esUnidad ? jsx11(UnidadDetalle, { nodo: n2, fuente }) : jsx11(NodoDetalle, { nodo: n2, fuente })
   ] });
 }
 function NormaDetalle({ data, error: error2 }) {
-  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx10("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
+  if (error2) return jsx11("div", { className: "text-xs dk-mal", children: mensajeError(error2) });
+  if (!data) return jsx11("div", { className: S.sub, children: t("graph.loading.articles") });
   const arts = data.articulos || [];
-  return jsxs10("div", { className: "flex flex-col gap-1 pl-4", children: [
-    jsx10("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
-    ...arts.map((a3, i3) => jsxs10("details", { key: i3, className: "text-xs", children: [
-      jsx10("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
-      jsx10("div", {
+  return jsxs11("div", { className: "flex flex-col gap-1 pl-4", children: [
+    jsx11("div", { className: S.sub, children: (data.articulos_total || arts.length) + t("graph.articles") + (data.articulos_truncados ? t("graph.showing") + arts.length + ")" : "") }),
+    ...arts.map((a3, i3) => jsxs11("details", { key: i3, className: "text-xs", children: [
+      jsx11("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + etiquetaCodigo(a3.estado) : "") + (a3.vigente_desde ? t("graph.from2") + String(a3.vigente_desde).slice(0, 10) : "") }),
+      jsx11("div", {
         className: S.sub + " pl-3 pb-1 whitespace-pre-wrap",
         children: String(a3.texto || "").slice(0, 1200)
       })
@@ -111074,11 +114367,11 @@ function NormaDetalle({ data, error: error2 }) {
   ] });
 }
 function NormaRow({ norma }) {
-  const [abierta, setAbierta] = useState10(false);
-  const [detalle, setDetalle] = useState10(null);
-  const [error2, setError] = useState10(null);
-  const [cargando, setCargando] = useState10(false);
-  const abrir = useCallback9(() => {
+  const [abierta, setAbierta] = useState11(false);
+  const [detalle, setDetalle] = useState11(null);
+  const [error2, setError] = useState11(null);
+  const [cargando, setCargando] = useState11(false);
+  const abrir = useCallback10(() => {
     if (abierta) {
       setAbierta(false);
       return;
@@ -111090,32 +114383,32 @@ function NormaRow({ norma }) {
     rest("/grafo/corpus/norma/" + norma.leychileCode).then(setDetalle).catch(setError).finally(() => setCargando(false));
   }, [abierta, detalle, cargando, norma.leychileCode]);
   const rotulo = (norma.tipo && norma.numero ? norma.tipo + " " + norma.numero : norma.tipo) + (norma.anio ? "/" + norma.anio : "") + " \xB7 " + norma.articulos + " art.";
-  return jsxs10("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
-    jsxs10("button", {
+  return jsxs11("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
+    jsxs11("button", {
       type: "button",
       className: "flex w-full items-start gap-2 text-left hover:opacity-80",
       onClick: abrir,
       children: [
-        jsx10("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
-        jsxs10("div", { className: "min-w-0", children: [
-          jsx10("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
-          jsx10("div", { className: S.sub + " truncate", children: norma.titulo })
+        jsx11("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
+        jsxs11("div", { className: "min-w-0", children: [
+          jsx11("div", { children: rotulo + (norma.estado ? " \xB7 " + etiquetaCodigo(norma.estado) : "") }),
+          jsx11("div", { className: S.sub + " truncate", children: norma.titulo })
         ] })
       ]
     }),
-    abierta ? jsx10(NormaDetalle, { data: detalle, error: error2 }) : null
+    abierta ? jsx11(NormaDetalle, { data: detalle, error: error2 }) : null
   ] });
 }
 function ListaCorpus() {
-  const [corpus, setCorpus] = useState10(null);
-  const [error2, setError] = useState10(null);
-  useEffect10(() => {
+  const [corpus, setCorpus] = useState11(null);
+  const [error2, setError] = useState11(null);
+  useEffect11(() => {
     rest("/grafo/corpus").then(setCorpus).catch(setError);
   }, []);
-  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (error2) return jsx11("div", { className: "text-xs dk-mal", children: mensajeError(error2) });
   const pack = corpus && corpus.packs && corpus.packs[0];
-  if (!pack) return jsx10("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
-  return jsx10("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx10(NormaRow, { key: n2.leychileCode, norma: n2 })) });
+  if (!pack) return jsx11("div", { className: S.sub, children: t("graph.loading.corpus.label") });
+  return jsx11("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx11(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
 function _segmentos(texto, marcas) {
   const puntos = /* @__PURE__ */ new Set([0, texto.length]);
@@ -111136,10 +114429,10 @@ function _segmentos(texto, marcas) {
   return out;
 }
 function TextoArticulo({ foco: foco2 }) {
-  const [data, setData] = useState10(null);
-  const [error2, setError] = useState10(null);
+  const [data, setData] = useState11(null);
+  const [error2, setError] = useState11(null);
   const nodoId = foco2 && foco2.nodo_id;
-  useEffect10(() => {
+  useEffect11(() => {
     setData(null);
     setError(null);
     if (!nodoId) return void 0;
@@ -111158,14 +114451,14 @@ function TextoArticulo({ foco: foco2 }) {
     };
   }, [nodoId]);
   if (error2) {
-    return jsx10("div", {
-      className: "text-xs text-(--ui-danger)",
-      children: "No se pudo leer el art\xEDculo: " + mensajeError(error2)
+    return jsx11("div", {
+      className: "text-xs dk-mal",
+      children: t("graph.could.not.read.the.article") + mensajeError(error2)
     });
   }
-  if (!data) return jsx10("div", { className: S.sub, children: "Leyendo el art\xEDculo\u2026" });
+  if (!data) return jsx11("div", { className: S.sub, children: t("graph.loading.article") });
   if (data.resolucion !== "RESOLVED") {
-    return jsx10("div", { className: S.sub, children: "El art\xEDculo no se resolvi\xF3 en el corpus (" + (data.resolucion || "?") + (data.motivo ? ": " + data.motivo : "") + ")." });
+    return jsx11("div", { className: S.sub, children: t("graph.article.could.not.be.resolved.in.the.corpus") + etiquetaCodigo(data.resolucion || "?") + (data.motivo ? ": " + etiquetaCodigo(data.motivo) : "") + ")." });
   }
   const texto = data.texto || "";
   const unidades = data.unidades || [];
@@ -111182,34 +114475,34 @@ function TextoArticulo({ foco: foco2 }) {
   }
   const segmentos = _segmentos(texto, marcas);
   const etiquetaUnidad = unidad ? unidad.etiqueta : null;
-  return jsxs10("div", { className: "flex flex-col gap-1.5", children: [
-    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx10("span", { className: S.cardTitle, children: "Texto del art\xEDculo" }),
-      jsx10("span", {
+  return jsxs11("div", { className: "flex flex-col gap-1.5", children: [
+    jsxs11("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx11("span", { className: S.cardTitle, children: t("graph.article.text") }),
+      jsx11("span", {
         className: S.chip + " " + S.chipOff,
         children: data.articulo || data.nodo_id || ""
       }),
-      data.pack_hash ? jsx10("span", {
+      data.pack_hash ? jsx11("span", {
         className: S.sub,
         children: "pack " + data.pack_hash
       }) : null
     ] }),
-    jsxs10("div", { className: S.sub, children: [
+    jsxs11("div", { className: S.sub, children: [
       data.norma && (data.norma.nombre_corto || data.norma.titulo) ? (data.norma.nombre_corto || data.norma.titulo) + " \u2014 " : "",
-      jsx10("a", {
+      jsx11("a", {
         href: data.fuente_url,
         target: "_blank",
         rel: "noopener noreferrer",
         className: S.link,
-        children: "fuente \u2197"
+        children: t("graph.source.label")
       }),
-      " \xB7 Copia fechada: verifica t\xFA el texto vigente"
+      t("graph.dated.copy.check.the.text.in.force.yourself")
     ] }),
-    unidad ? jsx10("div", { className: S.sub, children: "Unidad resaltada: " + (etiquetaUnidad || foco2.unidad_id) }) : null,
-    fragEstado ? jsx10("div", { className: S.sub, children: fragEstado.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (fragEstado.motivo === "corto" ? " (muy corto para comparar)" : fragEstado.motivo === "largo" ? " (demasiado largo)" : "") }) : null,
-    jsxs10("div", {
+    unidad ? jsx11("div", { className: S.sub, children: t("graph.highlighted.unit") + (etiquetaUnidad || foco2.unidad_id) }) : null,
+    fragEstado ? jsx11("div", { className: S.sub, children: fragEstado.ok ? t("graph.passage.found.in.article") : t("graph.passage.not.found.in.this.article") + (fragEstado.motivo === "corto" ? t("graph.too.short.to.compare") : fragEstado.motivo === "largo" ? t("graph.too.long") : "") }) : null,
+    jsxs11("div", {
       className: "max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md border border-(--ui-stroke-secondary) p-2 text-xs leading-relaxed",
-      children: segmentos.map((s2, i3) => jsx10("span", {
+      children: segmentos.map((s2, i3) => jsx11("span", {
         key: i3,
         style: s2.cls === "frag" ? { background: "rgba(250,204,21,0.35)" } : s2.cls === "unit" ? { background: "rgba(96,165,250,0.18)" } : void 0,
         children: s2.texto
@@ -111218,39 +114511,39 @@ function TextoArticulo({ foco: foco2 }) {
   ] });
 }
 function SeccionGrafo({ onLlevarAlEscrito }) {
-  const [red, setRed] = useState10(null);
-  const [redErr, setRedErr] = useState10(null);
-  const [personal, setPersonal] = useState10(null);
-  const [personalErr, setPersonalErr] = useState10(null);
-  const [seleccion, setSeleccion] = useState10(null);
-  const [expandidos, setExpandidos] = useState10(() => /* @__PURE__ */ new Set());
-  const [unidadesMap, setUnidadesMap] = useState10(() => /* @__PURE__ */ new Map());
-  const [ocultarArts, setOcultarArts] = useState10(false);
-  const [fuente, setFuenteState] = useState10("corpus");
-  const [fuentes, setFuentes] = useState10(null);
-  const [aristaSel, setAristaSel] = useState10(null);
-  const [hover, setHover] = useState10(null);
-  const [caminoOn, setCaminoOn] = useState10(false);
-  const [caminoIdx, setCaminoIdx] = useState10(0);
-  const [rotar, setRotar] = useState10(false);
-  const setFuente = useCallback9((f2) => {
+  const [red, setRed] = useState11(null);
+  const [redErr, setRedErr] = useState11(null);
+  const [personal, setPersonal] = useState11(null);
+  const [personalErr, setPersonalErr] = useState11(null);
+  const [seleccion, setSeleccion] = useState11(null);
+  const [expandidos, setExpandidos] = useState11(() => /* @__PURE__ */ new Set());
+  const [unidadesMap, setUnidadesMap] = useState11(() => /* @__PURE__ */ new Map());
+  const [ocultarArts, setOcultarArts] = useState11(false);
+  const [fuente, setFuenteState] = useState11("corpus");
+  const [fuentes, setFuentes] = useState11(null);
+  const [aristaSel, setAristaSel] = useState11(null);
+  const [hover, setHover] = useState11(null);
+  const [caminoOn, setCaminoOn] = useState11(false);
+  const [caminoIdx, setCaminoIdx] = useState11(0);
+  const [rotar, setRotar] = useState11(false);
+  const setFuente = useCallback10((f2) => {
     setFuenteState(f2);
     try {
       storage && storage.set("grafo.fuente", f2);
     } catch (e3) {
     }
   }, []);
-  const [query, setQuery] = useState10("");
-  const [modoBusqueda, setModoBusqueda] = useState10("nombre");
-  const [busqueda, setBusqueda] = useState10(null);
-  const [busquedaPorNodo, setBusquedaPorNodo] = useState10(() => /* @__PURE__ */ new Map());
-  const [materiaFiltro, setMateriaFiltro] = useState10(null);
-  const [fallo3d, setFallo3d] = useState10(null);
-  const [listaAbierta, setListaAbierta] = useState10(false);
-  const apiRef = useRef8(null);
-  const [foco2] = useState10(() => tomarFoco());
-  const focoAplicado = useRef8(false);
-  const cargar = useCallback9(() => {
+  const [query, setQuery] = useState11("");
+  const [modoBusqueda, setModoBusqueda] = useState11("nombre");
+  const [busqueda, setBusqueda] = useState11(null);
+  const [busquedaPorNodo, setBusquedaPorNodo] = useState11(() => /* @__PURE__ */ new Map());
+  const [materiaFiltro, setMateriaFiltro] = useState11(null);
+  const [fallo3d, setFallo3d] = useState11(null);
+  const [listaAbierta, setListaAbierta] = useState11(false);
+  const apiRef = useRef10(null);
+  const [foco2] = useState11(() => tomarFoco());
+  const focoAplicado = useRef10(false);
+  const cargar = useCallback10(() => {
     setRedErr(null);
     setPersonalErr(null);
     setRed(null);
@@ -111259,8 +114552,8 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     rest("/grafo/red?fuente=" + fuente, { timeoutMs: 12e4 }).then(setRed).catch(setRedErr);
     rest("/grafo/personal").then(setPersonal).catch(setPersonalErr);
   }, [fuente]);
-  useEffect10(cargar, [cargar]);
-  useEffect10(() => {
+  useEffect11(cargar, [cargar]);
+  useEffect11(() => {
     rest("/grafo/fuentes").then((fs) => {
       setFuentes(fs);
       if (foco2) return;
@@ -111277,7 +114570,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }).catch(() => {
     });
   }, [foco2]);
-  useEffect10(() => {
+  useEffect11(() => {
     if (!foco2 || focoAplicado.current) return;
     if (fuente !== "corpus") {
       setFuenteState("corpus");
@@ -111295,7 +114588,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }
     if (apiRef.current) apiRef.current.enfocar(foco2.nodo_id);
   }, [foco2, fuente, red, expandidos, unidadesMap]);
-  const alFallo3d = useCallback9((msg) => {
+  const alFallo3d = useCallback10((msg) => {
     setFallo3d(msg);
     setListaAbierta(true);
   }, []);
@@ -111341,7 +114634,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       links: links.filter((l2) => ids.has(l2.source) && ids.has(l2.target))
     };
   }, [nodos, aristas, ocultarArts, expandidos, unidadesMap]);
-  const alClickNodo = useCallback9((n2) => {
+  const alClickNodo = useCallback10((n2) => {
     setSeleccion(n2.id);
     if (n2.tipo === "articulo" && fuente === "corpus") {
       if (expandidos.has(n2.id)) {
@@ -111359,15 +114652,15 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       }
     }
   }, [expandidos, unidadesMap, fuente]);
-  const alClickArista = useCallback9((l2) => {
+  const alClickArista = useCallback10((l2) => {
     setAristaSel(l2);
   }, []);
-  const alFondo = useCallback9(() => {
+  const alFondo = useCallback10(() => {
     setSeleccion(null);
     setCaminoOn(false);
     setRotar(false);
   }, []);
-  const alHover = useCallback9((id) => setHover(id), []);
+  const alHover = useCallback10((id) => setHover(id), []);
   const resalte = useMemo(() => {
     const cam = red && (red.caminos_demo || [])[caminoIdx];
     if (caminoOn && cam && (cam.ids || []).length) {
@@ -111383,14 +114676,14 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       const links2 = /* @__PURE__ */ new Set();
       for (const l2 of proyeccion.links) {
         const s2 = idDe(l2.source);
-        const t4 = idDe(l2.target);
+        const t5 = idDe(l2.target);
         if (s2 === foco3) {
-          ids2.add(t4);
-          links2.add(s2 + "|" + t4 + "|" + l2.tipo);
+          ids2.add(t5);
+          links2.add(s2 + "|" + t5 + "|" + l2.tipo);
         }
-        if (t4 === foco3) {
+        if (t5 === foco3) {
           ids2.add(s2);
-          links2.add(s2 + "|" + t4 + "|" + l2.tipo);
+          links2.add(s2 + "|" + t5 + "|" + l2.tipo);
         }
       }
       return { ids: ids2, links: links2 };
@@ -111409,25 +114702,25 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     for (const l2 of proyeccion.links) {
       if (l2.tipo !== "contiene") continue;
       const s2 = idDe(l2.source);
-      const t4 = idDe(l2.target);
-      if (ids.has(s2) && ids.has(t4)) links.add(s2 + "|" + t4 + "|" + l2.tipo);
+      const t5 = idDe(l2.target);
+      if (ids.has(s2) && ids.has(t5)) links.add(s2 + "|" + t5 + "|" + l2.tipo);
     }
     return { ids, links };
   }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo, materiaFiltro]);
-  useEffect10(() => {
+  useEffect11(() => {
     if (!rotar) return void 0;
-    const id = setInterval(() => {
+    const tarea = programarInterval(() => {
       if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita();
     }, 40);
-    return () => clearInterval(id);
+    return () => cancelarTarea(tarea);
   }, [rotar]);
-  const alBuscar = useCallback9((id) => {
+  const alBuscar = useCallback10((id) => {
     const n2 = indice.get(id);
     if (!n2) return;
     setSeleccion(id);
     if (apiRef.current) apiRef.current.enfocar(id);
   }, [indice]);
-  const buscarContenido = useCallback9(() => {
+  const buscarContenido = useCallback10(() => {
     const q3 = query.trim();
     if (!q3 || fuente !== "corpus") return;
     setBusqueda({ estado: "cargando" });
@@ -111451,7 +114744,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       setMateriaFiltro(null);
     });
   }, [query, fuente]);
-  const alElegirResultado = useCallback9((r2) => {
+  const alElegirResultado = useCallback10((r2) => {
     setBusquedaPorNodo((prev) => new Map(prev).set(r2.nodo_id, r2));
     setSeleccion(r2.nodo_id);
     if (fuente === "corpus" && !expandidos.has(r2.nodo_id)) {
@@ -111463,7 +114756,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }
     if (apiRef.current) apiRef.current.enfocar(r2.nodo_id);
   }, [expandidos, unidadesMap, fuente]);
-  const alLlevar = useCallback9((r2) => {
+  const alLlevar = useCallback10((r2) => {
     if (onLlevarAlEscrito && r2 && r2.cita) onLlevarAlEscrito(r2);
   }, [onLlevarAlEscrito]);
   const q2 = query.trim().toLocaleLowerCase();
@@ -111473,13 +114766,13 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
   const candidatos = personal && personal.candidates || [];
   const aristasP = personal && personal.edges || [];
   const totales = red && red.conteos || {};
-  return jsxs10("div", { className: "flex flex-col gap-3", children: [
-    jsxs10("div", { className: S.card, children: [
-      jsxs10("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
-        jsx10("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
-        jsxs10("select", {
+  return jsxs11("div", { className: "flex flex-col gap-3", children: [
+    jsxs11("div", { className: S.card, children: [
+      jsxs11("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
+        jsx11("div", { className: S.cardTitle, children: t("graph.corpus.graph") }),
+        jsxs11("select", {
           className: S.input,
-          title: "Fuente del grafo",
+          title: t("graph.graph.source"),
           value: fuente,
           onChange: (e3) => {
             setFuente(e3.target.value);
@@ -111491,76 +114784,76 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
             }
           },
           children: [
-            jsx10("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
-            jsx10("option", {
+            jsx11("option", { value: "corpus", children: t("graph.dik.corpus.25.laws") }),
+            jsx11("option", {
               value: "ambiental",
               disabled: !(fuentes && fuentes.find((f2) => f2.id === "ambiental" && f2.disponible)),
-              title: "solo en este equipo \u2014 no publicada",
-              children: "Ambiental local (solo en este equipo)"
+              title: t("graph.only.on.this.device.unpublished"),
+              children: t("graph.local.environmental.graph.this.device")
             })
           ]
         }),
-        fuente === "ambiental" ? jsx10("span", {
+        fuente === "ambiental" ? jsx11("span", {
           className: S.chip + " " + S.chipOff,
-          children: "local \u2014 no publicado \xB7 sentencias anonimizadas \xB7 relaciones candidatas, sin validar"
+          children: t("graph.local.unpublished.pseudonymized.judgments") + t("graph.candidate.relations.unvalidated")
         }) : null,
-        red ? jsx10("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
+        red ? jsx11("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + t("graph.nodes") + (totales.links || 0) + t("graph.edges") + (red.truncado ? t("graph.truncated") : "") }) : null
       ] }),
-      redErr ? jsxs10("div", { className: "flex flex-col items-start gap-1.5", children: [
-        jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
-        jsx10("button", {
+      redErr ? jsxs11("div", { className: "flex flex-col items-start gap-1.5", children: [
+        jsx11("div", { className: "text-xs dk-mal", children: mensajeError(redErr) }),
+        jsx11("button", {
           type: "button",
           className: S.ghost,
           onClick: cargar,
-          children: "Reintentar"
+          children: t("graph.retry")
         })
-      ] }) : !red ? jsx10("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs10("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
-        jsxs10("div", { className: "min-w-0", children: [
-          jsxs10("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
-            Object.keys(COLORES_NODO).map((tipo) => jsxs10("span", {
+      ] }) : !red ? jsx11("div", { className: S.sub, children: t("graph.loading.corpus.graph.the.first.load.may.take.a.minute.while.the.c") }) : jsxs11("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
+        jsxs11("div", { className: "min-w-0", children: [
+          jsxs11("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
+            Object.keys(COLORES_NODO).map((tipo) => jsxs11("span", {
               key: tipo,
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx10("span", {
+                jsx11("span", {
                   className: "inline-block h-2.5 w-2.5 rounded-full",
                   style: { background: COLORES_NODO[tipo] }
                 }),
                 NOMBRE_TIPO[tipo]
               ]
             })),
-            jsxs10("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
-              jsx10("input", {
+            jsxs11("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
+              jsx11("input", {
                 type: "checkbox",
                 checked: ocultarArts,
                 onChange: (e3) => setOcultarArts(e3.target.checked)
               }),
-              "ocultar art\xEDculos"
+              t("graph.hide.articles")
             ] }),
-            jsx10("span", { className: S.sub, children: "|" }),
-            jsx10("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
-            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs10("span", {
+            jsx11("span", { className: S.sub, children: "|" }),
+            jsx11("span", { className: S.sub, children: t("graph.candidate.label.unvalidated") }),
+            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs11("span", {
               key: mod2,
               className: "flex items-center gap-1 " + S.sub,
               children: [
-                jsx10("span", {
+                jsx11("span", {
                   className: "inline-block h-2 w-2 rounded-full",
                   style: { background: COLORES_MODALIDAD[mod2] }
                 }),
-                mod2
+                t("mod." + mod2)
               ]
             })),
-            jsx10("button", {
+            jsx11("button", {
               type: "button",
               className: S.link,
               onClick: () => {
                 if (apiRef.current) apiRef.current.zoomFit();
               },
-              children: "encajar"
+              children: t("graph.fit")
             }),
-            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs10("span", { className: "flex items-center gap-1", children: [
-              jsxs10("select", {
+            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs11("span", { className: "flex items-center gap-1", children: [
+              jsxs11("select", {
                 className: S.input,
-                title: "Camino destacado",
+                title: t("graph.highlighted.path"),
                 value: caminoIdx,
                 onChange: (e3) => {
                   const i3 = Number(e3.target.value);
@@ -111570,13 +114863,13 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                     apiRef.current.encuadrar(cm.ids);
                   }
                 },
-                children: (red.caminos_demo || []).map((cm, i3) => jsx10("option", {
+                children: (red.caminos_demo || []).map((cm, i3) => jsx11("option", {
                   key: i3,
                   value: i3,
                   children: cm.titulo + " \xB7 " + cm.relajacion
                 }))
               }),
-              jsx10("button", {
+              jsx11("button", {
                 type: "button",
                 className: caminoOn ? S.chip + " " + S.chipOk : S.link,
                 onClick: () => {
@@ -111588,26 +114881,26 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                     apiRef.current.encuadrar(cm.ids);
                   }
                 },
-                children: "camino destacado"
+                children: t("graph.highlighted.path2")
               })
             ] }) : null,
-            fuente === "ambiental" ? jsxs10("label", {
+            fuente === "ambiental" ? jsxs11("label", {
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx10("input", {
+                jsx11("input", {
                   type: "checkbox",
                   checked: rotar,
                   onChange: (e3) => setRotar(e3.target.checked)
                 }),
-                "rotar"
+                t("graph.rotate")
               ]
             }) : null,
-            jsx10("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
+            jsx11("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + t("graph.visible") + proyeccion.links.length + t("graph.edges") })
           ] }),
-          fallo3d ? jsxs10("div", { className: S.card, children: [
-            jsx10("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
-            jsx10("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
-          ] }) : jsx10(LienzoGrafo, {
+          fallo3d ? jsxs11("div", { className: S.card, children: [
+            jsx11("div", { className: "text-xs dk-mal", children: fallo3d }),
+            jsx11("div", { className: S.sub, children: t("graph.the.3d.graph.needs.webgl.the.list.below.has.the.same.corpus") })
+          ] }) : jsx11(LienzoGrafo, {
             proyeccion,
             padres,
             conteos,
@@ -111620,25 +114913,25 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
             apiRef
           })
         ] }),
-        jsxs10("div", { className: "flex min-w-0 flex-col gap-2", children: [
-          jsxs10("div", { className: "flex items-center gap-1", children: [
-            jsx10("select", {
-              className: S.input,
-              title: "Modo de b\xFAsqueda",
+        jsxs11("div", { className: "flex min-w-0 flex-col gap-2", children: [
+          jsxs11("div", { className: "flex flex-wrap items-center gap-1", children: [
+            jsx11("select", {
+              className: S.input + " w-full",
+              title: t("graph.search.mode"),
               value: modoBusqueda,
               onChange: (e3) => setModoBusqueda(e3.target.value),
               children: [
-                jsx10("option", { value: "nombre", children: "por nombre" }),
-                jsx10("option", {
+                jsx11("option", { value: "nombre", children: t("graph.by.name") }),
+                jsx11("option", {
                   value: "contenido",
                   disabled: fuente !== "corpus",
-                  children: "por contenido"
+                  children: t("graph.by.content")
                 })
               ]
             }),
-            jsx10("input", {
+            jsx11("input", {
               className: S.input + " w-full",
-              placeholder: modoBusqueda === "contenido" ? "Buscar por contenido en los art\xEDculos\u2026" : "Buscar ley, c\xF3digo o art\xEDculo\u2026",
+              placeholder: modoBusqueda === "contenido" ? t("graph.search.article.text") : t("graph.search.law.code.or.article"),
               value: query,
               onChange: (e3) => setQuery(e3.target.value),
               onKeyDown: (e3) => {
@@ -111647,70 +114940,70 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                 }
               }
             }),
-            modoBusqueda === "contenido" ? jsx10("button", {
+            modoBusqueda === "contenido" ? jsx11("button", {
               type: "button",
               className: S.ghost,
               disabled: !query.trim() || busqueda?.estado === "cargando",
               onClick: buscarContenido,
-              children: busqueda?.estado === "cargando" ? "Buscando\u2026" : "Buscar"
+              children: busqueda?.estado === "cargando" ? t("graph.searching.label") : t("graph.search.label")
             }) : null
           ] }),
-          modoBusqueda === "contenido" && fuente !== "corpus" ? jsx10("div", { className: S.sub, children: "la b\xFAsqueda por contenido cubre solo el corpus Dik\xE9" }) : null,
-          modoBusqueda === "nombre" && q2 ? jsxs10("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
-            coincidencias.map((n2) => jsxs10("button", {
+          modoBusqueda === "contenido" && fuente !== "corpus" ? jsx11("div", { className: S.sub, children: t("graph.text.search.covers.the.dik.corpus.only") }) : null,
+          modoBusqueda === "nombre" && q2 ? jsxs11("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
+            coincidencias.map((n2) => jsxs11("button", {
               key: n2.id,
               type: "button",
               className: "block w-full px-2 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary) truncate",
               onClick: () => alBuscar(n2.id),
               children: [
-                jsx10("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
+                jsx11("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
                 n2.label
               ]
             })),
-            coincidencias.length === 0 ? jsx10("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
+            coincidencias.length === 0 ? jsx11("div", { className: S.sub + " p-2", children: t("graph.no.matches") }) : null
           ] }) : null,
-          modoBusqueda === "contenido" && busqueda ? jsxs10("div", {
+          modoBusqueda === "contenido" && busqueda ? jsxs11("div", {
             className: "flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-(--ui-stroke-secondary) p-1.5",
             children: [
-              busqueda.estado === "cargando" ? jsx10("div", { className: S.sub + " p-1", children: "Buscando en el corpus\u2026" }) : null,
-              busqueda.estado === "error" ? jsx10("div", { className: "text-xs text-(--ui-danger) p-1", children: busqueda.mensaje }) : null,
-              busqueda.estado === "lista" ? jsxs10("div", { className: "flex flex-col gap-1", children: [
-                jsx10("span", {
+              busqueda.estado === "cargando" ? jsx11("div", { className: S.sub + " p-1", children: t("graph.searching.corpus") }) : null,
+              busqueda.estado === "error" ? jsx11("div", { className: "text-xs dk-mal p-1", children: busqueda.mensaje }) : null,
+              busqueda.estado === "lista" ? jsxs11("div", { className: "flex flex-col gap-1", children: [
+                jsx11("span", {
                   className: S.chip + " " + S.chipOff,
-                  children: busqueda.data && busqueda.data.rotulo || "Resultado de b\xFAsqueda: es una pista, no una fuente verificada"
+                  children: busqueda.data && busqueda.data.rotulo || t("graph.search.lead.citation.not.yet.checked")
                 }),
-                arbolData ? arbolData.disponible ? jsxs10("div", { className: "flex flex-col gap-0.5 px-1", children: [
-                  jsxs10("div", { className: "flex flex-wrap items-center gap-1", children: [
-                    jsx10("span", { className: S.sub, children: "Materias de la consulta" }),
-                    ...(arbolData.clasificacion || []).map((c4) => jsx10("button", {
+                arbolData ? arbolData.disponible ? jsxs11("div", { className: "flex flex-col gap-0.5 px-1", children: [
+                  jsxs11("div", { className: "flex flex-wrap items-center gap-1", children: [
+                    jsx11("span", { className: S.sub, children: t("graph.query.subjects") }),
+                    ...(arbolData.clasificacion || []).map((c4) => jsx11("button", {
                       key: c4.nodo,
                       type: "button",
                       className: S.chip + " " + (materiaFiltro === c4.nodo ? S.chipOk : S.chipOff),
-                      title: "t\xE9rminos: " + (c4.terminos || []).join(", ") + " \xB7 cobertura " + Math.round((c4.cobertura || 0) * 100) + "%",
+                      title: t("graph.terms") + (c4.terminos || []).join(", ") + t("graph.coverage") + Math.round((c4.cobertura || 0) * 100) + "%",
                       onClick: () => setMateriaFiltro(
                         (prev) => prev === c4.nodo ? null : c4.nodo
                       ),
                       children: c4.nombre + " \xB7 " + c4.score
                     })),
-                    !arbolData.clara ? jsx10("span", {
+                    !arbolData.clara ? jsx11("span", {
                       className: S.chip + " " + S.chipOff,
-                      children: "clasificaci\xF3n ambigua"
+                      children: t("graph.ambiguous.classification")
                     }) : null
                   ] }),
-                  ...(arbolData.clasificacion || []).map((c4) => jsx10("div", {
+                  ...(arbolData.clasificacion || []).map((c4) => jsx11("div", {
                     key: "t-" + c4.nodo,
                     className: S.sub + " truncate",
-                    children: c4.nombre + " \u2014 " + ((c4.terminos || []).join(", ") || "sin t\xE9rminos") + " \xB7 cobertura " + Math.round((c4.cobertura || 0) * 100) + "%"
+                    children: c4.nombre + " \u2014 " + ((c4.terminos || []).join(", ") || t("graph.no.terms")) + t("graph.coverage") + Math.round((c4.cobertura || 0) * 100) + "%"
                   })),
-                  jsx10("div", { className: S.sub + " truncate", children: "clasificaci\xF3n l\xE9xica por \xE1rbol de materias: explica, no reordena" })
-                ] }) : jsx10("div", { className: S.sub + " px-1", children: "\xE1rbol de materias no disponible" + (arbolData.motivo ? " \u2014 " + arbolData.motivo : "") }) : null,
-                (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx10("div", { className: S.sub + " p-1", children: "Sin resultados." }) : null,
+                  jsx11("div", { className: S.sub + " truncate", children: t("graph.subject.classification.explains.matches.it.does.not.change.their.") })
+                ] }) : jsx11("div", { className: S.sub + " px-1", children: t("graph.subject.tree.unavailable") + (arbolData.motivo ? " \u2014 " + arbolData.motivo : "") }) : null,
+                (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx11("div", { className: S.sub + " p-1", children: t("graph.no.results") }) : null,
                 (busqueda.data && busqueda.data.resultados || []).map((r2) => {
                   const metodo = busqueda.data && busqueda.data.metodo || {};
                   const rel = Math.max(0, Math.min(1, r2.score_rel || 0));
                   const vig = etiquetaVigencia(r2.vigencia);
                   const fueraDelFiltro = materiaFiltro && !(r2.materias || []).some((m3) => m3.nodo === materiaFiltro);
-                  return jsxs10("div", {
+                  return jsxs11("div", {
                     key: r2.nodo_id,
                     role: "button",
                     tabIndex: 0,
@@ -111724,34 +115017,34 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                       }
                     },
                     children: [
-                      jsxs10("div", { className: "flex items-center gap-1.5", children: [
-                        jsx10("span", { className: S.sub, children: "#" + r2.rank }),
-                        jsx10("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
-                        jsx10("span", { className: S.chip + " " + S.chipOff, children: r2.canal }),
-                        vig ? jsx10("span", {
+                      jsxs11("div", { className: "flex items-center gap-1.5", children: [
+                        jsx11("span", { className: S.sub, children: "#" + r2.rank }),
+                        jsx11("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
+                        jsx11("span", { className: S.chip + " " + S.chipOff, children: r2.canal }),
+                        vig ? jsx11("span", {
                           className: S.chip + " " + (vig.malo ? S.chipBad : S.chipOff),
                           children: vig.texto
                         }) : null
                       ] }),
-                      jsxs10("div", { className: "flex items-center gap-1.5", children: [
-                        jsx10("span", {
+                      jsxs11("div", { className: "flex items-center gap-1.5", children: [
+                        jsx11("span", {
                           className: "inline-block h-1.5 rounded-sm bg-(--ui-accent)",
                           style: { width: Math.max(3, Math.round(rel * 64)) + "px" }
                         }),
-                        jsx10("span", { className: S.sub, children: Math.round(rel * 100) + "%" })
+                        jsx11("span", { className: S.sub, children: Math.round(rel * 100) + "%" })
                       ] }),
-                      (r2.terminos || []).length ? jsx10("div", { className: S.sub + " truncate", children: "t\xE9rminos: " + r2.terminos.join(", ") }) : null,
-                      (r2.unidades || []).length ? jsx10("div", { className: S.sub + " truncate", children: "unidades: " + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
-                      (r2.materias || []).length ? jsx10("div", { className: "flex flex-wrap gap-1", children: r2.materias.map((m3, i3) => jsx10("span", {
+                      (r2.terminos || []).length ? jsx11("div", { className: S.sub + " truncate", children: t("graph.terms") + r2.terminos.join(", ") }) : null,
+                      (r2.unidades || []).length ? jsx11("div", { className: S.sub + " truncate", children: t("graph.units2") + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
+                      (r2.materias || []).length ? jsx11("div", { className: "flex flex-wrap gap-1", children: r2.materias.map((m3, i3) => jsx11("span", {
                         key: m3.nodo + "-" + i3,
                         className: S.chip + " " + S.chipOff,
-                        children: (m3.relacion === "ancla" ? "ancla" : "territorio") + " \xB7 " + m3.nombre
+                        children: (m3.relacion === "ancla" ? t("graph.anchor") : t("graph.territory")) + " \xB7 " + m3.nombre
                       })) }) : null,
-                      jsx10("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") }),
-                      jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-                        jsx10("span", {
-                          title: r2.cita ? void 0 : r2.cita_motivo || "sin forma de cita",
-                          children: jsx10("button", {
+                      jsx11("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + t("graph.channel") + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") }),
+                      jsxs11("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                        jsx11("span", {
+                          title: r2.cita ? void 0 : r2.cita_motivo || t("graph.no.citation.form.available"),
+                          children: jsx11("button", {
                             type: "button",
                             className: S.ghost,
                             disabled: !r2.cita,
@@ -111759,10 +115052,10 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                               e3.stopPropagation();
                               alLlevar(r2);
                             },
-                            children: "Llevar al escrito"
+                            children: t("graph.add.to.brief")
                           })
                         }),
-                        jsx10("span", { className: S.sub, children: vigenteDe(r2.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+                        jsx11("span", { className: S.sub, children: vigenteDe(r2.vigencia) ? t("graph.added.as.an.unchecked.citation.citation.check.runs.next") : t("graph.citation.check.will.return.fallo.article.out.of.force") })
                       ] })
                     ]
                   });
@@ -111770,23 +115063,23 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
               ] }) : null
             ]
           }) : null,
-          foco2 ? jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TextoArticulo, { foco: foco2 }) }) : null,
-          jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TarjetaNodo, {
+          foco2 ? jsx11("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx11(TextoArticulo, { foco: foco2 }) }) : null,
+          jsx11("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx11(TarjetaNodo, {
             nodo: actual,
             conteos,
             fuente,
             busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null,
             onLlevar: alLlevar
           }) }),
-          aristaSel ? jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
-          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs10("div", {
+          aristaSel ? jsx11("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx11(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
+          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs11("div", {
             className: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",
             children: [
-              jsx10("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
+              jsx11("div", { className: S.cardTitle, children: t("graph.highlighted.path2") + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
               ...(red.caminos_demo[caminoIdx].ids || []).map((id, i3) => {
                 const n2 = indice.get(id);
                 const paso = i3 > 0 ? " " + ((red.caminos_demo[caminoIdx].links[i3 - 1] || "").split("|")[2] || "\u2192") + " " : "";
-                return jsxs10("button", {
+                return jsxs11("button", {
                   key: id,
                   type: "button",
                   className: "text-left text-xs hover:bg-(--ui-bg-quaternary) truncate " + S.link,
@@ -111795,7 +115088,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                   },
                   children: [
                     i3 + 1 + ". " + (n2 ? n2.label : id),
-                    paso ? jsx10("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
+                    paso ? jsx11("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
                   ]
                 });
               })
@@ -111804,26 +115097,26 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
         ] })
       ] })
     ] }),
-    fuente === "corpus" ? jsxs10("details", {
+    fuente === "corpus" ? jsxs11("details", {
       className: S.card,
       open: listaAbierta,
       onToggle: (e3) => setListaAbierta(e3.currentTarget.open),
       children: [
-        jsx10("summary", {
+        jsx11("summary", {
           className: "cursor-pointer " + S.cardTitle + " normal-case",
-          children: "Lista del corpus (texto)"
+          children: t("graph.corpus.list.text")
         }),
-        listaAbierta ? jsx10("div", { className: "mt-2", children: jsx10(ListaCorpus, {}) }) : null
+        listaAbierta ? jsx11("div", { className: "mt-2", children: jsx11(ListaCorpus, {}) }) : null
       ]
     }) : null,
-    fuente === "corpus" ? jsxs10("div", { className: S.card, children: [
-      jsx10("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
-      personalErr ? jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx10("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs10("div", { className: "flex flex-col gap-1", children: [
-        jsx10("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
-        candidatos.length === 0 ? jsx10("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx10("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs10("div", { key: i3, className: S.row, children: [
-          jsxs10("div", { className: "min-w-0", children: [
-            jsx10("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
-            jsx10("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
+    fuente === "corpus" ? jsxs11("div", { className: S.card, children: [
+      jsx11("div", { className: S.cardTitle, children: t("graph.personal.review.graph") }),
+      personalErr ? jsx11("div", { className: "text-xs dk-mal", children: mensajeError(personalErr) }) : !personal ? jsx11("div", { className: S.sub, children: t("graph.loading.label") }) : jsxs11("div", { className: "flex flex-col gap-1", children: [
+        jsx11("div", { className: S.sub, children: candidatos.length + t("graph.candidates") + aristasP.length + t("graph.edges") }),
+        candidatos.length === 0 ? jsx11("div", { className: S.sub, children: t("graph.no.candidates.yet.the.personal.review.graph.collects.evidence.fro") + t("graph.brief") }) : jsx11("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs11("div", { key: i3, className: S.row, children: [
+          jsxs11("div", { className: "min-w-0", children: [
+            jsx11("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
+            jsx11("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
           ] })
         ] })) })
       ] })
@@ -111834,50 +115127,55 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
 // src/plugin.src.js
 var ID = "dike";
 function Estado() {
-  const [estado, setEstado] = useState11(null);
-  const [err, setErr] = useState11(null);
-  const cargar = useCallback10(() => {
+  const [estado, setEstado] = useState12(null);
+  const [err, setErr] = useState12(null);
+  const cargar = useCallback11(() => {
     setErr(null);
     rest("/estado").then(setEstado).catch(setErr);
   }, []);
-  useEffect11(cargar, [cargar]);
+  useEffect12(cargar, [cargar]);
   if (err) {
     const perfil = host4.state && host4.state.profile && host4.state.profile.get() || "";
-    return jsxs11("div", { className: "flex flex-col gap-2", children: [
-      jsx11("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
-      jsx11("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
-      jsx11("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
+    return jsxs12("div", { className: "flex flex-col gap-2", children: [
+      jsx12("div", { className: S.sub, children: t("shell.estado.sinBackend") + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
+      jsx12("div", { className: S.sub, children: t("shell.estado.ayuda") }),
+      jsx12("button", { type: "button", className: S.ghost, onClick: cargar, children: t("graph.retry") })
     ] });
   }
-  if (!estado) return jsx11("div", { className: S.sub, children: "Consultando el corpus\u2026" });
+  if (!estado) return jsx12("div", { className: S.sub, children: t("shell.estado.cargando") });
   const aislado = estado.aislamiento && estado.aislamiento.modo === "bwrap";
   const motivo = estado.aislamiento && estado.aislamiento.motivo || "";
-  return jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
-    jsx11("span", {
+  return jsxs12("div", { className: "flex flex-wrap items-center gap-2", children: [
+    jsx12("span", {
       className: S.chip + " " + (estado.corpus_instalado ? S.chipOk : S.chipOff),
-      children: estado.corpus_instalado ? "corpus instalado" : "corpus sin instalar"
+      children: estado.corpus_instalado ? t("shell.estado.corpusOk") : t("shell.estado.corpusNo")
     }),
-    jsx11("span", {
+    jsx12("span", {
       className: S.chip + " " + (aislado ? S.chipOk : S.chipOff),
-      children: aislado ? "aislado (bubblewrap)" : "sin aislamiento: " + motivo
+      children: aislado ? t("shell.estado.aislado") : t("shell.estado.sinAislamiento", { motivo })
     }),
-    jsx11("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
+    jsx12("span", { className: S.sub, children: t("shell.estado.pack", {
+      pack: estado.pack_hash,
+      leyes: estado.leyes,
+      articulos: estado.articulos,
+      version: estado.version ? " \xB7 v" + estado.version : ""
+    }) })
   ] });
 }
 var SECCIONES_NIF = [
-  ["facts.known", "Hechos conocidos"],
-  ["facts.alleged", "Hechos alegados"],
-  ["facts.missing", "Hechos faltantes"],
-  ["subjects", "Sujetos"],
-  ["norms", "Normas"],
-  ["norm_relations", "Relaciones entre normas"],
-  ["admin_acts", "Actos administrativos"],
-  ["principles", "Principios"],
-  ["deontic_positions", "Posiciones de\xF3nticas"],
-  ["conflicts", "Conflictos"],
-  ["hypotheses", "Hip\xF3tesis"],
-  ["gaps", "Vac\xEDos"],
-  ["relevant_factors", "Factores relevantes"]
+  ["facts.known", "nif.seccion.factsKnown"],
+  ["facts.alleged", "nif.seccion.factsAlleged"],
+  ["facts.missing", "nif.seccion.factsMissing"],
+  ["subjects", "nif.seccion.subjects"],
+  ["norms", "nif.seccion.norms"],
+  ["norm_relations", "nif.seccion.normRelations"],
+  ["admin_acts", "nif.seccion.adminActs"],
+  ["principles", "nif.seccion.principles"],
+  ["deontic_positions", "nif.seccion.deonticPositions"],
+  ["conflicts", "nif.seccion.conflicts"],
+  ["hypotheses", "nif.seccion.hypotheses"],
+  ["gaps", "nif.seccion.gaps"],
+  ["relevant_factors", "nif.seccion.relevantFactors"]
 ];
 var SECCIONES_OBJETO = /* @__PURE__ */ new Set(["subjects", "norms", "hypotheses", "gaps", "conflicts", "admin_acts", "deontic_positions", "principles", "norm_relations", "relevant_factors"]);
 function ItemNif({ valor }) {
@@ -111887,32 +115185,32 @@ function ItemNif({ valor }) {
   else if (v2 && typeof v2 === "object" && !Array.isArray(v2)) {
     texto = [v2.label || v2.id || v2.name || "", v2.description || v2.text || v2.filled_with || ""].filter(Boolean).join(" \u2014 ") || JSON.stringify(v2);
   } else texto = JSON.stringify(v2);
-  return jsx11("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx11("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
+  return jsx12("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx12("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
 }
 function SeccionNif({ titulo, valores, campo, onAgregar }) {
-  const [nuevo, setNuevo] = useState11("");
-  const [editando, setEditando] = useState11(false);
+  const [nuevo, setNuevo] = useState12("");
+  const [editando, setEditando] = useState12(false);
   const lista = Array.isArray(valores) ? valores : [];
-  return jsxs11("div", { className: S.section, children: [
-    jsxs11("div", { className: "flex items-center justify-between", children: [
-      jsx11("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
-      jsx11("button", {
+  return jsxs12("div", { className: S.section, children: [
+    jsxs12("div", { className: "flex items-center justify-between", children: [
+      jsx12("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
+      jsx12("button", {
         type: "button",
         className: S.link + " normal-case",
         onClick: () => setEditando(!editando),
-        children: editando ? "cerrar" : "+ agregar"
+        children: editando ? t("format.close") : t("nif.agregar")
       })
     ] }),
-    ...lista.map((v2, i3) => jsx11(ItemNif, { key: i3, valor: v2 })),
-    lista.length === 0 ? jsx11("div", { className: S.sub, children: "\u2014" }) : null,
-    editando ? jsxs11("div", { className: "flex flex-col gap-1 mt-1", children: [
-      jsx11("textarea", {
+    ...lista.map((v2, i3) => jsx12(ItemNif, { key: i3, valor: v2 })),
+    lista.length === 0 ? jsx12("div", { className: S.sub, children: "\u2014" }) : null,
+    editando ? jsxs12("div", { className: "flex flex-col gap-1 mt-1", children: [
+      jsx12("textarea", {
         className: "min-h-16 w-full rounded border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-1.5 font-mono text-xs",
-        placeholder: SECCIONES_OBJETO.has(campo) ? 'JSON del \xEDtem, ej. {"label": "Trabajador"}' : "Texto del \xEDtem",
+        placeholder: SECCIONES_OBJETO.has(campo) ? t("nif.placeholderJson") : t("nif.placeholderTexto"),
         value: nuevo,
         onChange: (ev) => setNuevo(ev.target.value)
       }),
-      jsx11("button", {
+      jsx12("button", {
         type: "button",
         className: S.ghost,
         onClick: () => {
@@ -111928,51 +115226,51 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
           setNuevo("");
           setEditando(false);
         },
-        children: "Guardar"
+        children: t("nif.guardar")
       })
     ] }) : null
   ] });
 }
 function GapRow({ gap, index: index5, ocupado, onResolver }) {
-  const [by, setBy] = useState11("");
-  const [with_, setWith] = useState11("");
-  return jsxs11("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
-    jsx11("div", { children: gap.description || JSON.stringify(gap) }),
-    jsx11("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
-    jsxs11("div", { className: "flex gap-1", children: [
-      jsx11("input", {
+  const [by, setBy] = useState12("");
+  const [with_, setWith] = useState12("");
+  return jsxs12("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
+    jsx12("div", { children: gap.description || JSON.stringify(gap) }),
+    jsx12("div", { className: S.sub, children: t("nif.impacto", { impacto: gap.impact || "?" }) + (gap.demanded_by ? " \xB7 " + t("nif.pide", { quien: gap.demanded_by }) : "") }),
+    jsxs12("div", { className: "flex gap-1", children: [
+      jsx12("input", {
         className: S.input + " w-28",
-        placeholder: "qui\xE9n",
+        placeholder: t("nif.quien"),
         value: by,
         onChange: (e3) => setBy(e3.target.value)
       }),
-      jsx11("input", {
+      jsx12("input", {
         className: S.input + " flex-1",
-        placeholder: "con qu\xE9 se llena",
+        placeholder: t("nif.conQue"),
         value: with_,
         onChange: (e3) => setWith(e3.target.value)
       }),
-      jsx11("button", {
+      jsx12("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado || !by.trim() || !with_.trim(),
         onClick: () => onResolver(index5, by.trim(), with_.trim()),
-        children: "llenar"
+        children: t("nif.llenar")
       })
     ] })
   ] });
 }
 function NifBoard({ caso, onCambio }) {
-  const [data, setData] = useState11(null);
-  const [error2, setError] = useState11(null);
-  const [conf, setConf] = useState11("");
-  const [ocupado, setOcupado] = useState11(false);
-  const cargar = useCallback10(() => {
+  const [data, setData] = useState12(null);
+  const [error2, setError] = useState12(null);
+  const [conf, setConf] = useState12("");
+  const [ocupado, setOcupado] = useState12(false);
+  const cargar = useCallback11(() => {
     setError(null);
     rest("/nif/snapshot?case_id=" + encodeURIComponent(caso.case_id)).then(setData).catch(setError);
   }, [caso.case_id]);
-  useEffect11(cargar, [cargar]);
-  const accion = useCallback10((fn) => (...args) => {
+  useEffect12(cargar, [cargar]);
+  const accion = useCallback11((fn) => (...args) => {
     if (ocupado) return;
     setOcupado(true);
     setError(null);
@@ -111983,31 +115281,31 @@ function NifBoard({ caso, onCambio }) {
   }, [ocupado, cargar, onCambio]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   if (error2 && !data) {
-    return jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+    return jsx12("div", { className: "text-xs dk-mal", children: mensajeError(error2) });
   }
-  if (!data) return jsx11("div", { className: S.sub, children: "Cargando NIF\u2026" });
+  if (!data) return jsx12("div", { className: S.sub, children: t("nif.cargando") });
   const snap = data.snapshot || {};
   const nif = snap.nif;
   if (!snap.exists || !nif) {
-    return jsx11("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
+    return jsx12("div", { className: "text-sm text-(--ui-text-secondary)", children: t("nif.sinNif") });
   }
   const patches = data.patches && data.patches.patches || [];
   const gaps = nif.gaps || [];
-  return jsxs11("div", { className: "flex flex-col gap-3", children: [
-    jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx11("span", {
+  return jsxs12("div", { className: "flex flex-col gap-3", children: [
+    jsxs12("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx12("span", {
         className: S.chip + " " + (nif.validated_by_human ? S.chipOk : S.chipOff),
-        children: nif.validated_by_human ? "validado por humano" : "sin validaci\xF3n humana"
+        children: nif.validated_by_human ? t("nif.validado") : t("nif.sinValidar")
       }),
-      jsx11("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
-      jsx11("button", {
+      jsx12("span", { className: S.sub, children: t("nif.versionConf", { version: snap.version, pct: Math.round((nif.confidence || 0) * 100) }) }),
+      jsx12("button", {
         type: "button",
         className: S.link,
         onClick: accion(() => post("/nif/validar", { case_id: caso.case_id, validated: !nif.validated_by_human })),
-        children: nif.validated_by_human ? "retirar validaci\xF3n" : "marcar validado"
+        children: nif.validated_by_human ? t("nif.quitarValidacion") : t("nif.marcarValidado")
       }),
-      jsxs11("span", { className: "flex items-center gap-1", children: [
-        jsx11("input", {
+      jsxs12("span", { className: "flex items-center gap-1", children: [
+        jsx12("input", {
           type: "number",
           min: "0",
           max: "1",
@@ -112017,20 +115315,20 @@ function NifBoard({ caso, onCambio }) {
           value: conf,
           onChange: (e3) => setConf(e3.target.value)
         }),
-        jsx11("button", {
+        jsx12("button", {
           type: "button",
           className: S.link,
           onClick: accion(() => post("/nif/confianza", { case_id: caso.case_id, confidence: parseFloat(conf) })),
-          children: "fijar confianza"
+          children: t("nif.fijarConfianza")
         })
       ] })
     ] }),
-    jsx11("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
-    jsx11("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
+    jsx12("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
+    jsx12("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, claveTitulo]) => {
       const valores = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
-      return jsx11(SeccionNif, {
+      return jsx12(SeccionNif, {
         key: campo,
-        titulo,
+        titulo: t(claveTitulo),
         valores,
         campo,
         onAgregar: (fp, v2) => accion(() => post("/nif/edit", {
@@ -112040,9 +115338,9 @@ function NifBoard({ caso, onCambio }) {
         }))()
       });
     }) }),
-    gaps.length ? jsxs11("div", { className: S.section, children: [
-      jsx11("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
-      ...gaps.map((g3, i3) => g3.status === "filled" ? null : jsx11(GapRow, {
+    gaps.length ? jsxs12("div", { className: S.section, children: [
+      jsx12("div", { className: S.sectionTitle, children: t("nif.resolverVacios") }),
+      ...gaps.map((g3, i3) => g3.status === "filled" ? null : jsx12(GapRow, {
         key: i3,
         gap: g3,
         index: i3,
@@ -112055,32 +115353,32 @@ function NifBoard({ caso, onCambio }) {
         }))
       }))
     ] }) : null,
-    patches.length ? jsxs11("details", { className: "text-xs", children: [
-      jsx11("summary", {
+    patches.length ? jsxs12("details", { className: "text-xs", children: [
+      jsx12("summary", {
         className: "cursor-pointer " + S.sub,
-        children: "Historial de parches (" + patches.length + ")"
+        children: t("nif.historial", { n: patches.length })
       }),
-      ...patches.slice(-12).reverse().map((p2, i3) => jsxs11("div", {
+      ...patches.slice(-12).reverse().map((p2, i3) => jsxs12("div", {
         key: i3,
         className: "border-b border-(--ui-stroke-tertiary) py-1",
         children: [
-          jsx11("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx11("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
-          p2.reason ? jsx11("div", { className: S.sub, children: p2.reason }) : null
+          jsx12("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx12("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
+          p2.reason ? jsx12("div", { className: S.sub, children: p2.reason }) : null
         ]
       }))
     ] }) : null,
-    error2 ? jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
+    error2 ? jsx12("div", { className: "text-xs dk-mal", children: mensajeError(error2) }) : null
   ] });
 }
 function SeccionNifPanel() {
-  const [lista, setLista] = useState11({ cases: [] });
-  const [error2, setError] = useState11(null);
-  const [casoSel, setCasoSel] = useState11(null);
-  const [nuevoId, setNuevoId] = useState11("");
-  const [nuevaPregunta, setNuevaPregunta] = useState11("");
-  const [ocupado, setOcupado] = useState11(false);
-  const cargar = useCallback10(() => {
+  const [lista, setLista] = useState12({ cases: [] });
+  const [error2, setError] = useState12(null);
+  const [casoSel, setCasoSel] = useState12(null);
+  const [nuevoId, setNuevoId] = useState12("");
+  const [nuevaPregunta, setNuevaPregunta] = useState12("");
+  const [ocupado, setOcupado] = useState12(false);
+  const cargar = useCallback11(() => {
     setError(null);
     rest("/nif/casos").then((d2) => {
       setLista(d2);
@@ -112091,25 +115389,25 @@ function SeccionNifPanel() {
       });
     }).catch(setError);
   }, []);
-  useEffect11(cargar, [cargar]);
+  useEffect12(cargar, [cargar]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   const casos = lista.cases || [];
-  return jsxs11("div", { className: "flex flex-col gap-3", children: [
-    jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx11("select", {
+  return jsxs12("div", { className: "flex flex-col gap-3", children: [
+    jsxs12("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx12("select", {
         className: S.input,
         value: casoSel ? casoSel.case_id : "",
         onChange: (ev) => {
           const c4 = casos.filter((x3) => x3.case_id === ev.target.value)[0];
           setCasoSel(c4 || null);
         },
-        children: casos.length === 0 ? jsx11("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx11("option", {
+        children: casos.length === 0 ? jsx12("option", { value: "", children: t("nif.sinCasos") }) : casos.map((c4) => jsx12("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx11("button", {
+      jsx12("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado,
@@ -112117,21 +115415,21 @@ function SeccionNifPanel() {
           setOcupado(true);
           post("/nif/seed", { case_id: "demo-caso" }).then(cargar).catch(setError).finally(() => setOcupado(false));
         },
-        children: ocupado ? "\u2026" : "Cargar caso demo"
+        children: ocupado ? "\u2026" : t("nif.cargarDemo")
       }),
-      jsx11("input", {
+      jsx12("input", {
         className: S.input + " w-32",
-        placeholder: "id del caso",
+        placeholder: t("nif.idCaso"),
         value: nuevoId,
         onChange: (e3) => setNuevoId(e3.target.value)
       }),
-      jsx11("input", {
+      jsx12("input", {
         className: S.input + " w-64",
-        placeholder: "pregunta jur\xEDdica",
+        placeholder: t("nif.pregunta"),
         value: nuevaPregunta,
         onChange: (e3) => setNuevaPregunta(e3.target.value)
       }),
-      jsx11("button", {
+      jsx12("button", {
         type: "button",
         className: S.button,
         disabled: ocupado || !nuevoId.trim() || !nuevaPregunta.trim(),
@@ -112143,136 +115441,139 @@ function SeccionNifPanel() {
             cargar();
           }).catch(setError).finally(() => setOcupado(false));
         },
-        children: "Nuevo caso"
+        children: t("nif.nuevoCaso")
       })
     ] }),
-    error2 ? jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    casos.length === 0 && !error2 ? jsx11("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
-    casoSel ? jsx11(NifBoard, { caso: casoSel, onCambio: cargar }) : null
+    error2 ? jsx12("div", { className: "text-xs dk-mal", children: mensajeError(error2) }) : null,
+    casos.length === 0 && !error2 ? jsx12("div", { className: S.card, children: t("nif.vacio") }) : null,
+    casoSel ? jsx12(NifBoard, { caso: casoSel, onCambio: cargar }) : null
   ] });
 }
 function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
-  const [prefs, setPrefs] = useState11(null);
-  const [estado, setEstado] = useState11(null);
-  const [guardadoMsg, setGuardadoMsg] = useState11("");
-  useEffect11(() => {
+  const [prefs, setPrefs] = useState12(null);
+  const [estado, setEstado] = useState12(null);
+  const [guardadoMsg, setGuardadoMsg] = useState12("");
+  useEffect12(() => {
     rest("/preferencias").then(setPrefs).catch(() => {
     });
     rest("/estado").then(setEstado).catch(() => {
     });
   }, []);
-  const actualizarPref = useCallback10((parche) => {
+  const actualizarPref = useCallback11((parche) => {
     setPrefs((prev) => {
       const nuevo = { ...prev || {}, ...parche };
       rest("/preferencias", { method: "POST", body: nuevo }).then(() => {
-        setGuardadoMsg("Preferencias guardadas");
-        setTimeout(() => setGuardadoMsg(""), 2e3);
+        setGuardadoMsg(t("prefs.guardadas"));
+        programarTimeout(() => setGuardadoMsg(""), 2e3);
       }).catch(() => {
       });
       return nuevo;
     });
   }, []);
   const p2 = prefs || {};
-  return jsxs11("div", {
+  return jsxs12("div", {
     className: "grid grid-cols-1 lg:grid-cols-2 gap-4",
     children: [
       // Columna 1: Personalización del plugin y diagnóstico para terceros
-      jsxs11("div", { className: "flex flex-col gap-3", children: [
-        jsxs11("div", { className: S.card, children: [
-          jsxs11("div", { className: "flex items-center justify-between", children: [
-            jsx11("div", { className: S.cardTitle, children: "Personalizaci\xF3n de Experiencia (Estudio Dik\xE9)" }),
-            guardadoMsg ? jsx11("span", { className: S.chip + " " + S.chipOk, children: guardadoMsg }) : null
+      jsxs12("div", { className: "flex flex-col gap-3", children: [
+        jsxs12("div", { className: S.card, children: [
+          jsxs12("div", { className: "flex items-center justify-between", children: [
+            jsx12("div", { className: S.cardTitle, children: t("format.writer.settings") }),
+            guardadoMsg ? jsx12("span", { className: S.chip + " " + S.chipOk, children: guardadoMsg }) : null
           ] }),
-          jsx11("div", { className: S.sub, children: "Ajusta la apariencia de la hoja del Case Writer, la estrategia de privacidad inicial y los paneles visibles." }),
-          jsxs11("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs", children: [
-            jsxs11("label", { className: "flex flex-col gap-1", children: [
-              jsx11("span", { className: S.sub, children: "Tema del papel" }),
-              jsx11("select", {
+          jsx12("div", { className: S.sub, children: t("prefs.ayuda") }),
+          jsxs12("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs", children: [
+            jsxs12("label", { className: "flex flex-col gap-1", children: [
+              jsx12("span", { className: S.sub, children: t("prefs.temaPapel") }),
+              jsx12("select", {
                 className: S.input,
                 value: p2.tema_papel || "clasico",
                 onChange: (e3) => actualizarPref({ tema_papel: e3.target.value }),
                 children: [
-                  jsx11("option", { key: "clasico", value: "clasico", children: "Papel cl\xE1sico (blanco sobre gris)" }),
-                  jsx11("option", { key: "sepia", value: "sepia", children: "Sepia lectura c\xE1lida" }),
-                  jsx11("option", { key: "nocturno", value: "nocturno", children: "Tinta oscura (modo noche)" })
+                  jsx12("option", { key: "clasico", value: "clasico", children: t("prefs.temaClasico") }),
+                  jsx12("option", { key: "sepia", value: "sepia", children: t("prefs.temaSepia") }),
+                  jsx12("option", { key: "nocturno", value: "nocturno", children: t("prefs.temaNocturno") })
                 ]
               })
             ] }),
-            jsxs11("label", { className: "flex flex-col gap-1", children: [
-              jsx11("span", { className: S.sub, children: "Formato de hoja" }),
-              jsx11("select", {
+            jsxs12("label", { className: "flex flex-col gap-1", children: [
+              jsx12("span", { className: S.sub, children: t("prefs.formatoHoja") }),
+              jsx12("select", {
                 className: S.input,
                 value: p2.ancho_hoja || "a4",
                 onChange: (e3) => actualizarPref({ ancho_hoja: e3.target.value }),
                 children: [
-                  jsx11("option", { key: "a4", value: "a4", children: "A4 Est\xE1ndar (210 mm)" }),
-                  jsx11("option", { key: "carta", value: "carta", children: "Carta Judicial (216 mm)" }),
-                  jsx11("option", { key: "ancho", value: "ancho", children: "Ancho completo fluido" })
+                  jsx12("option", { key: "a4", value: "a4", children: t("prefs.a4") }),
+                  jsx12("option", { key: "carta", value: "carta", children: t("writer.letter.216.mm") }),
+                  jsx12("option", { key: "ancho", value: "ancho", children: t("prefs.ancho") })
                 ]
               })
             ] }),
-            jsxs11("label", { className: "flex flex-col gap-1", children: [
-              jsx11("span", { className: S.sub, children: "Estrategia de seudonimizaci\xF3n por defecto" }),
-              jsx11("select", {
+            jsxs12("label", { className: "flex flex-col gap-1", children: [
+              jsx12("span", { className: S.sub, children: t("prefs.estrategia") }),
+              jsx12("select", {
                 className: S.input,
                 value: p2.estrategia_privacidad || "media",
                 onChange: (e3) => actualizarPref({ estrategia_privacidad: e3.target.value }),
                 children: [
-                  jsx11("option", { key: "ligera", value: "ligera", children: "Ligera (solo cr\xEDticos: RUT, correo, fono)" }),
-                  jsx11("option", { key: "media", value: "media", children: "Media (cr\xEDticos + altos)" }),
-                  jsx11("option", { key: "estricta", value: "estricta", children: "Estricta (+ medios y nombres)" })
+                  jsx12("option", { key: "ligera", value: "ligera", children: t("prefs.ligera") }),
+                  jsx12("option", { key: "media", value: "media", children: t("prefs.media") }),
+                  jsx12("option", { key: "estricta", value: "estricta", children: t("prefs.estricta") })
                 ]
               })
             ] }),
-            jsxs11("label", { className: "flex flex-col gap-1", children: [
-              jsx11("span", { className: S.sub, children: "Contexto de LexO Escribe Claro" }),
-              jsx11("select", {
+            jsxs12("label", { className: "flex flex-col gap-1", children: [
+              jsx12("span", { className: S.sub, children: t("prefs.contextoEstilo") }),
+              jsx12("select", {
                 className: S.input,
                 value: p2.contexto_estilo || "escrito",
                 onChange: (e3) => actualizarPref({ contexto_estilo: e3.target.value }),
                 children: [
-                  jsx11("option", { key: "escrito", value: "escrito", children: "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)" }),
-                  jsx11("option", { key: "demanda", value: "demanda", children: "Demanda (m\xE1x. 25 pal/oraci\xF3n)" }),
-                  jsx11("option", { key: "sentencia", value: "sentencia", children: "Sentencia (m\xE1x. 20 pal/oraci\xF3n)" }),
-                  jsx11("option", { key: "general", value: "general", children: "General (m\xE1x. 25 pal/oraci\xF3n)" })
+                  jsx12("option", { key: "escrito", value: "escrito", children: t("prefs.ctxEscrito") }),
+                  jsx12("option", { key: "demanda", value: "demanda", children: t("prefs.ctxDemanda") }),
+                  jsx12("option", { key: "sentencia", value: "sentencia", children: t("prefs.ctxSentencia") }),
+                  jsx12("option", { key: "general", value: "general", children: t("prefs.ctxGeneral") })
                 ]
               })
             ] })
           ] }),
-          jsxs11("div", { className: "flex flex-wrap gap-4 pt-1 text-xs", children: [
-            jsxs11("label", { className: "flex items-center gap-1.5", children: [
-              jsx11("input", {
+          jsxs12("div", { className: "flex flex-wrap gap-4 pt-1 text-xs", children: [
+            jsxs12("label", { className: "flex items-center gap-1.5", children: [
+              jsx12("input", {
                 type: "checkbox",
                 checked: p2.mostrar_pizarra !== false,
                 onChange: (e3) => actualizarPref({ mostrar_pizarra: e3.target.checked })
               }),
-              "Mostrar Pizarra Estrat\xE9gica al abrir el Case Writer"
+              t("prefs.mostrarPizarra")
             ] }),
-            jsxs11("label", { className: "flex items-center gap-1.5", children: [
-              jsx11("input", {
+            jsxs12("label", { className: "flex items-center gap-1.5", children: [
+              jsx12("input", {
                 type: "checkbox",
                 checked: p2.mostrar_chat !== false,
                 onChange: (e3) => actualizarPref({ mostrar_chat: e3.target.checked })
               }),
-              "Anclar Chat Hermes a la derecha"
+              t("prefs.mostrarChat")
             ] })
           ] })
         ] }),
         // Diagnóstico de instalación para usuarios terceros
-        jsxs11("div", { className: S.card, children: [
-          jsx11("div", { className: S.cardTitle, children: "Estado del Entorno para Terceros" }),
-          estado ? jsxs11("div", { className: "flex flex-col gap-1.5 text-xs", children: [
-            jsx11("div", { children: `Versi\xF3n del plugin: v${estado.version || "0.9.0"} \xB7 Pack sellado: ${estado.pack_hash}` }),
-            jsx11("div", { children: `Cobertura instalada: ${estado.leyes} leyes chilenas \xB7 ${estado.articulos} art\xEDculos` }),
-            jsx11("div", { children: `Perfil configurado para el chat (perfil_chat): ${estado.perfil_chat || "(usa el perfil activo de Hermes)"}` }),
-            jsx11("div", { className: S.sub, children: "Para fijar un perfil dedicado de abogado: hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>" })
-          ] }) : jsx11("div", { className: S.sub, children: "Consultando estado\u2026" })
+        jsxs12("div", { className: S.card, children: [
+          jsx12("div", { className: S.cardTitle, children: t("prefs.estadoTitulo") }),
+          estado ? jsxs12("div", { className: "flex flex-col gap-1.5 text-xs", children: [
+            jsx12("div", { children: t("prefs.versionPack", { version: estado.version || "0.9.0", pack: estado.pack_hash }) }),
+            jsx12("div", { children: t("prefs.cobertura", { leyes: estado.leyes, articulos: estado.articulos }) }),
+            jsx12("div", { children: t("prefs.perfilChat", { perfil: estado.perfil_chat || t("prefs.perfilActivo") }) }),
+            jsxs12("div", { className: S.sub, children: [
+              t("prefs.fijarPerfil"),
+              " hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>"
+            ] })
+          ] }) : jsx12("div", { className: S.sub, children: t("prefs.consultando") })
         ] })
       ] }),
       // Columna 2: Paquete para crear grafos / ordenamientos (dike-perfil-ordenamiento-v1)
-      jsxs11("div", { className: S.card, children: [
-        jsx11("div", { className: S.cardTitle, children: "Constructor de Grafos y Ordenamientos Jur\xEDdicos" }),
-        jsx11(PanelHerramientasGrafos, {
+      jsxs12("div", { className: S.card, children: [
+        jsx12("div", { className: S.cardTitle, children: t("prefs.grafosTitulo") }),
+        jsx12(PanelHerramientasGrafos, {
           onLlevarCitaAlEscrito: onLlevarAlEscrito,
           onAbrirGrafo3D: onAbrirGrafo
         })
@@ -112283,19 +115584,44 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
 var plugin_src_default = {
   id: ID,
   name: "Dik\xE9",
-  description: "Verificaci\xF3n local de citas de la ley chilena, mapa del corpus y tablero NIF.",
+  description: "Local Chilean citation checks, corpus graph and case board.",
   defaultEnabled: true,
   register(ctx) {
     setRest(ctx.rest);
     setStorage(ctx.storage || null);
+    setTimers(ctx);
+    const hoja = document.createElement("style");
+    hoja.dataset.plugin = ID;
+    hoja.textContent = estilos_default;
+    document.head.appendChild(hoja);
+    ctx.onDispose(() => hoja.remove());
+    const resolverIdioma = () => {
+      const guardado = ctx.storage ? ctx.storage.get("idioma", null) : null;
+      if (guardado === "es" || guardado === "en") return guardado;
+      const opciones = host4.i18n && host4.i18n.languageOptions ? host4.i18n.languageOptions() : [];
+      const activo = (opciones.find((o2) => o2.active) || opciones[0] || {}).id || "";
+      return activo === "es" ? "es" : "en";
+    };
+    fijarIdioma(resolverIdioma());
+    if (ctx.i18n && ctx.i18n.onLocaleChange) {
+      ctx.i18n.onLocaleChange(() => fijarIdioma(resolverIdioma()));
+    }
+    if (ctx.i18n && ctx.i18n.register) {
+      ctx.i18n.register(anidarTextos());
+    }
     function DikePage() {
-      const [pestana, setPestana] = useState11("escritor");
+      useIdioma();
+      const [pestana2, setPestana] = useState12(() => tomarPestana() || "escritor");
       const pestanas = [
-        ["escritor", "Escritos (Case Writer)"],
-        ["grafo", "Grafo 3D"],
-        ["nif", "Tablero NIF"],
-        ["personalizacion", "Ordenamientos y Ajustes"]
+        ["escritor", t("shell.pestana.escritor")],
+        ["grafo", t("shell.pestana.grafo")],
+        ["nif", t("shell.pestana.nif")],
+        ["personalizacion", t("shell.pestana.personalizacion")]
       ];
+      const cambiarIdioma = (v2) => {
+        fijarIdioma(v2);
+        if (ctx.storage) ctx.storage.set("idioma", v2);
+      };
       const onAbrirGrafo = (foco2) => {
         if (foco2) {
           if (pedirFoco(foco2)) setPestana("grafo");
@@ -112306,48 +115632,74 @@ var plugin_src_default = {
       const onLlevarAlEscrito = (r2) => {
         if (encolarCita(r2)) setPestana("escritor");
       };
-      return jsxs11("div", {
-        className: "flex h-full flex-col gap-2 overflow-y-auto p-2 text-sm text-(--ui-text-primary)",
+      return jsx12("div", { className: "dike-raiz", style: { height: "100%" }, children: jsxs12("div", {
+        className: "flex h-full flex-col gap-2 overflow-y-auto p-2",
         children: [
           // Barra superior compacta estilo Estudio Diké (imagen 2)
-          jsxs11("div", {
-            className: "flex flex-wrap items-center justify-between gap-3 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) px-3 py-1.5 shrink-0",
+          jsxs12("div", {
+            className: S.panel + " flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 shrink-0",
             children: [
-              jsxs11("div", { className: "flex items-center gap-3", children: [
-                jsxs11("div", { className: "flex items-baseline gap-2", children: [
-                  jsx11("span", { className: "text-base font-bold tracking-tight", children: "Dik\xE9" }),
-                  jsx11("span", { className: S.sub + " hidden md:inline", children: "Estudio jur\xEDdico local \xB7 No es consejo legal" })
+              jsxs12("div", { className: "flex items-center gap-3", children: [
+                jsxs12("div", { className: "flex items-baseline gap-2", children: [
+                  jsx12("span", { className: "text-base font-bold tracking-tight", children: "Dik\xE9" }),
+                  jsx12("span", { className: S.sub + " hidden md:inline", children: t("shell.subtitulo") })
                 ] }),
-                jsxs11("div", {
+                jsx12("div", {
                   className: "flex items-center gap-1",
-                  children: pestanas.map(([id, label2]) => jsx11("button", {
+                  role: "tablist",
+                  children: pestanas.map(([id, label2]) => jsx12("button", {
                     key: id,
                     type: "button",
-                    className: "rounded px-2.5 py-1 text-xs transition-colors cursor-pointer " + (pestana === id ? "bg-(--ui-accent) text-(--ui-bg-primary) font-semibold" : "text-(--ui-text-secondary) hover:bg-(--ui-bg-tertiary) hover:text-(--ui-text-primary)"),
+                    role: "tab",
+                    "aria-selected": pestana2 === id,
+                    className: S.tab,
                     onClick: () => setPestana(id),
                     children: label2
                   }))
                 })
               ] }),
-              jsx11(Estado, {})
+              jsxs12("div", { className: "flex items-center gap-2", children: [
+                jsx12("div", {
+                  role: "group",
+                  "aria-label": t("shell.idioma"),
+                  className: "flex items-center gap-0.5",
+                  children: [
+                    jsx12("button", {
+                      type: "button",
+                      className: "dk-btn dk-btn--chico dk-btn--borde",
+                      "aria-pressed": idiomaActual() === "en",
+                      onClick: () => cambiarIdioma("en"),
+                      children: "EN"
+                    }),
+                    jsx12("button", {
+                      type: "button",
+                      className: "dk-btn dk-btn--chico dk-btn--borde",
+                      "aria-pressed": idiomaActual() === "es",
+                      onClick: () => cambiarIdioma("es"),
+                      children: "ES"
+                    })
+                  ]
+                }),
+                jsx12(Estado, {})
+              ] })
             ]
           }),
-          pestana === "escritor" ? jsx11(SeccionEscritor, { onAbrirGrafo }) : null,
-          pestana === "grafo" ? jsx11(SeccionGrafo, { onLlevarAlEscrito }) : null,
-          pestana === "nif" ? jsx11(SeccionNifPanel, {}) : null,
-          pestana === "personalizacion" ? jsx11(SeccionPersonalizacionTerceros, {
+          pestana2 === "escritor" ? jsx12(SeccionEscritor, { onAbrirGrafo }) : null,
+          pestana2 === "grafo" ? jsx12(SeccionGrafo, { onLlevarAlEscrito }) : null,
+          pestana2 === "nif" ? jsx12(SeccionNifPanel, {}) : null,
+          pestana2 === "personalizacion" ? jsx12(SeccionPersonalizacionTerceros, {
             onAbrirGrafo,
             onLlevarAlEscrito
           }) : null
         ]
-      });
+      }) });
     }
     ctx.registerMany([
       {
         id: "page",
         area: ROUTES_AREA,
         data: { path: "/dike" },
-        render: () => jsx11(DikePage, {})
+        render: () => jsx12(DikePage, {})
       },
       {
         id: "nav",
@@ -112360,7 +115712,7 @@ var plugin_src_default = {
         area: PALETTE_AREA,
         data: {
           id: "dike.open",
-          label: "Dik\xE9: verificar citas",
+          label: "Dik\xE9: check citations",
           keywords: ["dike", "citas", "legal", "verificar", "nif", "grafo"],
           run: () => host4.navigate("/dike")
         }

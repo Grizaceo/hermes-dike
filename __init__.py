@@ -162,15 +162,49 @@ ESQUEMA_BUSCAR = {'name': 'dike_buscar_corpus',
                                                          'resultados, 1–10; por defecto 5.'}}}}
 
 
-def _textos():
-    nombre = 'dike_textos'
+def _firma_de_copia(ruta: Path, paquete: bool = False) -> str:
+    """Ruta resuelta más fecha y tamaño del archivo (o de cada .py del paquete)."""
+    archivos = sorted(ruta.parent.rglob('*.py')) if paquete else [ruta]
+    partes = [str(ruta.resolve())]
+    for f in archivos:
+        st = f.stat()
+        partes.append(f'{f.name}:{st.st_mtime_ns}:{st.st_size}')
+    return hashlib.sha256('|'.join(partes).encode()).hexdigest()[:12]
+
+
+def _modulo_de_esta_copia(base: str, ruta: Path, paquete: bool = False):
+    """Carga un archivo del plugin por ruta, una vez por proceso y por copia.
+
+    El nombre en ``sys.modules`` lleva la firma de la copia (``base_<hash>``).
+    El adaptador y el backend del panel de una misma copia comparten así el
+    módulo, pero un proceso que sirve varios perfiles con versiones
+    distintas del plugin (el multiplexor del gateway de Hermes, y los plugin
+    hosts que hereda al hacer fork) o que sigue vivo después de ``hermes
+    plugins update`` nunca recibe el módulo de otra copia u otra versión.
+    Con un nombre fijo, la 0.10.0 recibía el ``aislamiento`` de una 0.9.0
+    cargada antes por otro perfil y fallaba al importar. Si la carga falla,
+    el módulo a medias se retira para que el siguiente intento empiece de
+    cero.
+    """
+    nombre = f'{base}_{_firma_de_copia(ruta, paquete)}'
     mod = sys.modules.get(nombre)
-    if mod is None:
-        spec = importlib.util.spec_from_file_location(nombre, _RAIZ / 'textos.py')
-        mod = importlib.util.module_from_spec(spec)
+    if mod is not None:
+        return mod
+    spec = importlib.util.spec_from_file_location(
+        nombre, ruta,
+        **({'submodule_search_locations': [str(ruta.parent)]} if paquete else {}))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[nombre] = mod
+    try:
         spec.loader.exec_module(mod)
-        sys.modules[nombre] = mod
+    except BaseException:
+        sys.modules.pop(nombre, None)
+        raise
     return mod
+
+
+def _textos():
+    return _modulo_de_esta_copia('dike_textos', _RAIZ / 'textos.py')
 
 
 def _idioma():
@@ -251,21 +285,14 @@ def _entorno(datos: Path) -> dict:
 # ── Aislamiento del subproceso (bubblewrap) ─────────────────────────────
 
 def _aislamiento():
-    """Carga ``aislamiento.py`` una vez y lo comparte vía ``sys.modules``.
+    """``aislamiento.py`` de esta copia del plugin, compartido vía ``sys.modules``.
 
     El dashboard y el agente cargan este adaptador por separado (por ruta y
-    como paquete): guardar el módulo en ``sys.modules`` bajo un nombre fijo
-    hace que compartan la misma sonda, la misma política y el mismo motor
-    en caliente.
+    como paquete): compartir el módulo hace que usen la misma sonda, la
+    misma política y el mismo motor en caliente. El nombre es por copia
+    (ver ``_modulo_de_esta_copia``).
     """
-    mod = sys.modules.get("dike_aislamiento")
-    if mod is None:
-        spec = importlib.util.spec_from_file_location(
-            "dike_aislamiento", _RAIZ / "aislamiento.py")
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["dike_aislamiento"] = mod
-        spec.loader.exec_module(mod)
-    return mod
+    return _modulo_de_esta_copia("dike_aislamiento", _RAIZ / "aislamiento.py")
 
 
 def _setting(key, default=None):
@@ -924,13 +951,7 @@ def _cwd_sesion():
 
 def _texto_docx(data: bytes) -> str:
     """Traduce errores del lector independiente al contrato público de entrada."""
-    nombre = 'dike_lector_docx'
-    lector = sys.modules.get(nombre)
-    if lector is None:
-        spec = importlib.util.spec_from_file_location(nombre, _RAIZ / 'lector_docx.py')
-        lector = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(lector)
-        sys.modules[nombre] = lector
+    lector = _modulo_de_esta_copia('dike_lector_docx', _RAIZ / 'lector_docx.py')
     try:
         return lector.leer(data, limite=_LIMITE_TEXTO)
     except lector.DocxInvalido:

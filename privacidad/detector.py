@@ -19,8 +19,8 @@ import re
 import unicodedata
 from collections.abc import Iterable
 
-from dike_privacidad.nombres_pila import NOMBRES_PILA
-from dike_privacidad.patrones import patrones_de, dv_rut_valido
+from .nombres_pila import NOMBRES_PILA
+from .patrones import patrones_de, dv_rut_valido
 
 VERSION = "privacidad-f2a-2"
 

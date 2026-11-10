@@ -1,7 +1,8 @@
 """Framework de ordenamientos jurídicos: perfiles, núcleo v1, validador y constructor.
 
-Se carga por ruta como paquete ``dike_ordenamiento`` (igual que ``privacidad/``
-se carga como ``dike_privacidad``): solo stdlib, sin red, sin importar Hermes.
+Se carga por ruta como paquete, con un nombre por copia del plugin
+(``dike_ordenamiento_<firma>``; igual que ``privacidad/``): solo stdlib, sin red,
+sin importar Hermes.
 """
 from .acunacion import BASE, contexto_efectivo, id_arista, id_norma, id_unidad, id_vigencia, jur_efectivo
 from .construir import construir

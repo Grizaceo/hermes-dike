@@ -28,11 +28,9 @@ def _cargar(ruta, nombre):
 
 
 @pytest.fixture(scope='module')
-def aisla():
-    mod = sys.modules.get('dike_aislamiento')
-    if mod is None:
-        mod = _cargar(ROOT / 'aislamiento.py', 'dike_aislamiento')
-    return mod
+def aisla(modulo_de_la_copia):
+    """El ``aislamiento`` de esta copia, el mismo objeto que usa el adaptador."""
+    return modulo_de_la_copia('dike_aislamiento', ROOT / 'aislamiento.py')
 
 
 @pytest.fixture(autouse=True)

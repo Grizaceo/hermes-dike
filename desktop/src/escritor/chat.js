@@ -157,7 +157,8 @@ function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
 
 
 export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
-  registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo }) {
+  registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo,
+  onAbrirPrivacidad, modoDock = true }) {
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
   const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
   const perfilRef = useRef(null)                    // perfil resuelto (callbacks)
@@ -169,7 +170,10 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   const [pregunta, setPregunta] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState(null)
+  const [verContexto, setVerContexto] = useState(false)
+  const [avisoCerrado, setAvisoCerrado] = useState(false)
   const releaseRef = useRef(null)
+  const endRef = useRef(null)
   const sesionRef = useRef(null)
   sesionRef.current = sesion
   const deltasRef = useRef([])
@@ -444,99 +448,243 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     ed.chain().focus().insertContentAt(from, rehid).run()
   }, [editorRef, registro])
 
+  useEffect(() => {
+    if (endRef.current && typeof endRef.current.scrollIntoView === 'function') {
+      endRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [mensajes.length, ocupado, stream])
+
+  const cfgPriv = (registro && registro.privacidad) || {}
+  const seudOn = cfgPriv.seudonimizar !== false
+  const estrategiaActiva = cfgPriv.estrategia || 'media'
+  const largoEscrito = ((docInfo && docInfo.texto) || '').length
+  const numCitasVerif = (((verificacion && verificacion.resultado && verificacion.resultado.meta) || {}).citas_verificadas) || 0
+
   if (perfilOk && perfilOk.error) {
-    return jsx('div', { className: S.card, children:
-      jsx('div', { className: 'text-xs text-(--ui-danger)',
-        children: mensajeError(perfilOk.error) }) })
+    return jsxs('div', {
+      className: modoDock
+        ? 'flex h-full w-full flex-col border-l border-slate-200 bg-white text-slate-800'
+        : S.card,
+      children: [
+        jsxs('div', { className: 'flex items-center gap-2 border-b border-slate-200 px-3 py-2 text-xs', children: [
+          jsx('span', { className: 'font-semibold text-slate-800', children: 'Hermes' }),
+          jsx('span', { className: 'h-2 w-2 rounded-full bg-amber-500', title: 'sin perfil con Diké' }),
+        ] }),
+        jsxs('div', { className: 'p-3 flex flex-col gap-2', children: [
+          jsx('div', { className: 'rounded border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 leading-relaxed',
+            children: mensajeError(perfilOk.error) }),
+        ] }),
+      ],
+    })
   }
 
-  return jsxs('div', { className: S.card, children: [
-    jsxs('div', { className: 'flex items-center gap-2', children: [
-      jsx('div', { className: S.cardTitle, children: 'Chat del escrito' }),
-      perfilElegido ? jsx('span', { className: 'text-xs '
-        + 'text-(--ui-text-secondary)',
-        children: '· ' + perfilElegido }) : null,
-      modelo ? jsx('span', { className: S.sub, children:
-        etiquetaModelo(modelo.id) + ' · ' + modelo.destino }) : null,
-    ] }),
-    jsx('div', { className: S.sub, children:
-      'El estado de las citas lo fija Diké, no el modelo.' }),
-    perfilOk === null ? jsx('div', { className: S.sub, children: 'abriendo sesión…' }) : null,
-
-    jsxs('div', { className: 'flex max-h-80 flex-col gap-2 overflow-auto', children: [
-      ...mensajes.map((m, i) => {
-        // Las notas al pie se separan del cuerpo para verificarlas contra el
-        // grafo; «Insertar en el escrito» sigue insertando el texto crudo.
-        const notas = m.rol === 'assistant' ? parsearNotas(m.texto)
-          : { cuerpo: m.texto, notas: [], invalidas: [] }
-        return jsxs('div', {
-        key: i,
-        className: m.rol === 'user' ? 'text-sm' : 'rounded border border-(--ui-stroke-secondary) p-2 text-sm',
+  return jsxs('div', {
+    className: modoDock
+      ? 'flex h-full w-full flex-col bg-white text-slate-800 overflow-hidden'
+      : S.card,
+    children: [
+      // Cabecera superior estilo Hermes Chat (imagen 2)
+      jsxs('div', {
+        className: 'flex items-center gap-2 border-b border-slate-200 px-3 h-9 text-xs shrink-0 bg-slate-50/60',
         children: [
-          m.rol === 'user'
-            ? jsxs('span', { children: [jsx('b', { children: 'Tú: ' }), rehidratar(m.texto, {})] })
-            : jsxs('div', { className: 'flex flex-col gap-1', children: [
-                jsx('div', { className: 'whitespace-pre-wrap', children:
-                  rehidratar(notas.cuerpo,
-                    (registro && registro.chat && registro.chat.mapa) || {}) }),
-                m.verificando ? jsx('span', { className: S.chip + ' ' + S.chipOff,
-                  children: 'verificando citas…' }) : null,
-                m.verif && m.verif.fallo ? jsx('div', { className: 'text-xs text-(--ui-danger)',
-                  children: 'No se pudieron verificar las citas de esta respuesta: trátalas como no verificadas.' }) : null,
-                m.verif && m.verif.res ? jsxs('div', { className: 'flex flex-wrap gap-1', children:
-                    (m.verif.res.detalles || []).map((d, j) => {
-                      const est = estadoCita(d, m.verif.hash, m.verif.hash, registro)
-                      const chip = {
-                        key: j,
-                        className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                        title: etiquetaCita(est, d, (m.verif.res.meta || {}), registro)
-                          + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
-                        children: d.cita_raw,
-                      }
-                      // Una cita VERIFICADA con nodo del grafo abre el artículo.
-                      return est === 'verificada' && d.nodo_id && onAbrirGrafo
-                        ? jsx('button', {
-                            type: 'button', className: chip.className + ' cursor-pointer',
-                            title: chip.title,
-                            onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
-                            children: d.cita_raw,
-                          })
-                        : jsx('span', chip)
-                    }) }) : null,
-                jsx(NotasAlPie, {
-                  notas: notas.notas, invalidas: notas.invalidas,
-                  verif: m.verif, onAbrirGrafo,
-                }),
-                jsx('button', {
-                  type: 'button', className: S.link,
-                  onClick: () => insertar(m.texto), children: 'Insertar en el escrito',
-                }),
-              ] }),
+          jsx('span', { className: 'font-semibold text-slate-800', children: 'Hermes' }),
+          jsx('span', {
+            className: 'text-slate-500 truncate',
+            children: perfilElegido || 'abriendo…',
+          }),
+          jsx('span', {
+            className: 'h-2 w-2 rounded-full shrink-0 ' +
+              (perfilOk === true ? 'bg-emerald-500' : 'bg-slate-300'),
+            title: modelo
+              ? etiquetaModelo(modelo.id) + ' · ' + modelo.destino
+              : 'conectando sesión del escrito',
+          }),
+          modelo ? jsx('span', {
+            className: 'text-[10px] text-slate-400 truncate',
+            children: etiquetaModelo(modelo.id) + ' · ' + modelo.destino,
+          }) : null,
+          jsxs('div', { className: 'ml-auto flex items-center gap-1', children: [
+            mensajes.length > 0 ? jsx('button', {
+              type: 'button',
+              onClick: () => setMensajes([]),
+              className: 'rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 cursor-pointer',
+              title: 'Limpiar vista de conversación',
+              children: 'Limpiar',
+            }) : null,
+            jsx('button', {
+              type: 'button',
+              onClick: () => setVerContexto((v) => !v),
+              className: 'rounded p-1 text-xs cursor-pointer ' +
+                (verContexto ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-200/70 hover:text-slate-800'),
+              title: 'Qué ve el agente en este turno (seudonimizado antes de salir)',
+              children: '👁',
+            }),
+          ] }),
         ],
-      })
       }),
-      stream ? jsx('div', { className: 'rounded border border-(--ui-stroke-secondary) p-2 text-sm whitespace-pre-wrap', children: stream }) : null,
-    ] }),
 
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) }) : null,
+      // Inspector de transparencia: qué viaja en el sobre <dike-escritor v="1">
+      verContexto ? jsxs('div', {
+        className: 'border-b border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 flex flex-col gap-1 shrink-0',
+        children: [
+          jsx('div', { className: 'font-semibold text-slate-800', children: 'Lo que ve el agente en este turno (sobre <dike-escritor v="1">)' }),
+          jsx('div', { children: `Caso: ${caseId} · Escrito: ${largoEscrito} caracteres · Citas verificadas: ${numCitasVerif}` }),
+          jsx('div', {
+            children: seudOn
+              ? `Privacidad activa: seudonimización «${estrategiaActiva}» antes de enviar.`
+              : 'Privacidad desactivada por confirmación expresa del abogado.',
+          }),
+          jsx('div', { className: 'text-[10px] text-slate-500', children: 'El estado de las citas lo fija Diké, no el modelo. Hooks fail-closed bloquean herramientas de terminal y archivos.' }),
+          onAbrirPrivacidad ? jsx('button', {
+            type: 'button',
+            onClick: onAbrirPrivacidad,
+            className: 'self-start text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer',
+            children: 'Configurar reglas de seudonimización →',
+          }) : null,
+        ],
+      }) : null,
 
-    jsxs('div', { className: 'flex items-center gap-2', children: [
-      jsx('input', {
-        className: S.input + ' flex-1', value: pregunta,
-        placeholder: 'Pregunta sobre el escrito…',
-        disabled: !sesion || ocupado,
-        onChange: (e) => setPregunta(e.target.value),
-        onKeyDown: (e) => { if (e.key === 'Enter') enviar() },
+      // Área de conversación desplazable
+      jsxs('div', {
+        className: 'flex-1 overflow-y-auto px-3 py-2.5 flex flex-col gap-2.5 min-h-0',
+        children: [
+          // Tarjeta informativa de privacidad y destino (inspirada en la imagen 2)
+          (!avisoCerrado && mensajes.length === 0) ? jsxs('div', {
+            className: 'rounded-md border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 flex flex-col gap-2',
+            children: [
+              jsx('div', { className: 'font-semibold text-slate-900', children: 'Antes de escribir: ¿a dónde va lo que escribas?' }),
+              jsx('div', { className: 'leading-relaxed text-slate-600 text-[11px]', children:
+                'Diké seudonimiza los datos personales (RUT, correo, teléfono, nombres con contexto) antes de enviar al perfil de Hermes. ' +
+                'El estado de las citas lo fija Diké, no el modelo.' }),
+              jsxs('div', { className: 'flex flex-col gap-1 rounded border border-slate-200 bg-white p-2 text-[11px]', children: [
+                jsxs('div', { className: 'flex items-center justify-between', children: [
+                  jsx('span', { className: 'font-medium text-slate-800', children: 'Destino del perfil:' }),
+                  jsx('span', { className: 'font-mono text-slate-600', children: (perfilElegido || 'activo') + (modelo ? ' · ' + modelo.destino : '') }),
+                ] }),
+                jsxs('div', { className: 'flex items-center justify-between', children: [
+                  jsx('span', { className: 'font-medium text-slate-800', children: 'Seudonimización:' }),
+                  jsx('span', {
+                    className: seudOn ? 'font-semibold text-emerald-700' : 'font-semibold text-amber-700',
+                    children: seudOn ? `Activa (${estrategiaActiva})` : 'Apagada por el usuario',
+                  }),
+                ] }),
+              ] }),
+              jsxs('div', { className: 'flex items-center gap-2 pt-0.5', children: [
+                jsx('button', {
+                  type: 'button',
+                  onClick: () => setAvisoCerrado(true),
+                  className: 'rounded bg-slate-700 hover:bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer',
+                  children: 'Entendido, continuar',
+                }),
+                onAbrirPrivacidad ? jsx('button', {
+                  type: 'button',
+                  onClick: onAbrirPrivacidad,
+                  className: 'text-[11px] text-indigo-600 hover:underline cursor-pointer',
+                  children: 'Ver datos que salen',
+                }) : null,
+              ] }),
+            ],
+          }) : jsx('div', {
+            className: 'text-[11px] text-slate-400',
+            children: 'Chat del escrito · El estado de las citas lo fija Diké, no el modelo.',
+          }),
+
+          perfilOk === null ? jsx('div', { className: S.sub, children: 'abriendo sesión…' }) : null,
+
+          ...mensajes.map((m, i) => {
+            // Las notas al pie se separan del cuerpo para verificarlas contra el
+            // grafo; «Insertar en el escrito» sigue insertando el texto crudo.
+            const notas = m.rol === 'assistant' ? parsearNotas(m.texto)
+              : { cuerpo: m.texto, notas: [], invalidas: [] }
+            return jsxs('div', {
+              key: i,
+              className: m.rol === 'user'
+                ? 'self-end max-w-[90%] rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-xs text-slate-800'
+                : 'rounded-lg border border-slate-200 bg-slate-50/70 p-2.5 text-xs text-slate-800',
+              children: [
+                m.rol === 'user'
+                  ? jsxs('span', { children: [jsx('b', { className: 'text-indigo-900', children: 'Tú: ' }), rehidratar(m.texto, {})] })
+                  : jsxs('div', { className: 'flex flex-col gap-1.5', children: [
+                      jsx('div', { className: 'whitespace-pre-wrap leading-relaxed', children:
+                        rehidratar(notas.cuerpo,
+                          (registro && registro.chat && registro.chat.mapa) || {}) }),
+                      m.verificando ? jsx('span', { className: S.chip + ' ' + S.chipOff,
+                        children: 'verificando citas…' }) : null,
+                      m.verif && m.verif.fallo ? jsx('div', { className: 'text-xs text-(--ui-danger)',
+                        children: 'No se pudieron verificar las citas de esta respuesta: trátalas como no verificadas.' }) : null,
+                      m.verif && m.verif.res ? jsxs('div', { className: 'flex flex-wrap gap-1', children:
+                          (m.verif.res.detalles || []).map((d, j) => {
+                            const est = estadoCita(d, m.verif.hash, m.verif.hash, registro)
+                            const chip = {
+                              key: j,
+                              className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
+                              title: etiquetaCita(est, d, (m.verif.res.meta || {}), registro)
+                                + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
+                              children: d.cita_raw,
+                            }
+                            return est === 'verificada' && d.nodo_id && onAbrirGrafo
+                              ? jsx('button', {
+                                  type: 'button', className: chip.className + ' cursor-pointer',
+                                  title: chip.title,
+                                  onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
+                                  children: d.cita_raw,
+                                })
+                              : jsx('span', chip)
+                          }) }) : null,
+                      jsx(NotasAlPie, {
+                        notas: notas.notas, invalidas: notas.invalidas,
+                        verif: m.verif, onAbrirGrafo,
+                      }),
+                      jsx('button', {
+                        type: 'button', className: S.link + ' text-left text-[11px] font-medium pt-0.5',
+                        onClick: () => insertar(m.texto), children: '↳ Insertar en el escrito',
+                      }),
+                    ] }),
+              ],
+            })
+          }),
+
+          stream ? jsx('div', {
+            className: 'rounded-lg border border-indigo-200 bg-indigo-50/30 p-2.5 text-xs whitespace-pre-wrap text-slate-800',
+            children: stream,
+          }) : null,
+
+          jsx('div', { ref: endRef }),
+        ],
       }),
-      jsx('button', {
-        type: 'button', className: S.button, onClick: enviar,
-        disabled: !sesion || ocupado || !pregunta.trim(),
-        children: ocupado ? '…' : 'Enviar',
+
+      error ? jsx('div', { className: 'border-t border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700', children: mensajeError(error) }) : null,
+
+      // Barra de entrada inferior estilo imagen 2 («Escribe a Hermes…»)
+      jsxs('div', {
+        className: 'flex items-center gap-1.5 border-t border-slate-200 bg-white p-2 shrink-0',
+        children: [
+          jsx('input', {
+            className: 'flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100',
+            value: pregunta,
+            placeholder: 'Escribe a Hermes…',
+            disabled: !sesion || ocupado,
+            onChange: (e) => setPregunta(e.target.value),
+            onKeyDown: (e) => { if (e.key === 'Enter') enviar() },
+          }),
+          !ocupado
+            ? jsx('button', {
+                type: 'button',
+                onClick: enviar,
+                disabled: !sesion || ocupado || !pregunta.trim(),
+                title: 'Enviar mensaje a Hermes (seudonimizado)',
+                className: 'flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 hover:bg-slate-900 disabled:opacity-35 text-white text-xs cursor-pointer shrink-0',
+                children: '➤',
+              })
+            : jsx('button', {
+                type: 'button',
+                onClick: detener,
+                title: 'Detener generación',
+                className: 'rounded-md border border-red-300 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 cursor-pointer shrink-0',
+                children: 'Detener',
+              }),
+        ],
       }),
-      jsx('button', {
-        type: 'button', className: S.ghost, onClick: detener,
-        disabled: !ocupado, children: 'Detener',
-      }),
-    ] }),
-  ] })
+    ],
+  })
 }

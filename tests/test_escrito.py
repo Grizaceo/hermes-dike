@@ -177,3 +177,86 @@ def test_escrito_registro_pistas(api, datos):
     api.escrito_guardar({'case_id': 'c1', 'html': '', 'texto': '', 'rev_base': 0,
                          'registro': reg})
     assert api.escrito_obtener('c1')['registro'] == reg
+
+
+def test_escrito_demo_y_pizarra(api, datos):
+    demo = api.escrito_demo()
+    assert 'artículo 161 del Código del Trabajo' in demo['texto']
+    assert '<p>' in demo['html']
+    reg = {'pizarra': {'nodos': [{'id': 'n1', 'titulo': 'Hechos', 'texto': 'x'}],
+                       'aristas': [], 'colapsada': False, 'altura': 220}}
+    api.escrito_guardar({'case_id': 'c1', 'html': demo['html'], 'texto': demo['texto'],
+                         'rev_base': 0, 'registro': reg})
+    assert api.escrito_obtener('c1')['registro']['pizarra']['nodos'][0]['titulo'] == 'Hechos'
+
+
+def test_estilo_analizar_escribe_claro(api, datos):
+    texto = (
+        "PRIMERO.- Consta que el trabajador fue notificado de la realización "
+        "del despido conforme al artículo 161 del Código del Trabajo.\n\n"
+        "SEGUNDO.- A mayor abundamiento, toda vez que no se acompañó en autos "
+        "la carta de aviso según el artículo 162 del Código del Trabajo, "
+        "por tanto procede acoger la demanda."
+    )
+    out = api.estilo_analizar({'texto': texto, 'contexto': 'escrito', 'detallado': True})
+    assert 0 <= out['score'] <= 100
+    stats = out['global_stats']
+    assert stats['total_sentences'] >= 2
+    assert stats['archaism_count'] >= 2
+    assert stats['nominalization_count'] >= 1
+    assert any(s['category'] == 'arcaismo' and s.get('replacement') for s in out['suggestions'])
+    assert isinstance(out['sentences'], list) and len(out['sentences']) == stats['total_sentences']
+
+
+def test_estilo_grafo_argumentativo(api, datos):
+    texto = (
+        "Consta que con fecha 10 de marzo se puso término al contrato.\n\n"
+        "El artículo 161 del Código del Trabajo exige necesidades de la empresa.\n\n"
+        "Según la prueba documental y la carta de aviso acompañada.\n\n"
+        "Por tanto, procede acoger la demanda y condenar al pago."
+    )
+    g = api.estilo_grafo({'texto': texto})
+    assert g['counts']['hecho'] >= 1
+    assert g['counts']['norma'] >= 1
+    assert g['counts']['prueba'] >= 1
+    assert g['counts']['conclusion'] >= 1
+    assert g['has_complete_chain'] is True
+    assert g['coverage_ratio'] == 1.0
+
+
+def test_ordenamiento_endpoints(api, datos):
+    cat = api.ordenamiento_perfiles()
+    jurs = {p['jurisdiccion'] for p in cat['perfiles']}
+    assert {'cl', 'xx'} <= jurs
+    pl = api.ordenamiento_plantilla({'jur': 'ar'})
+    assert pl['ok'] is True and pl['jur'] == 'ar'
+    val_pl = api.ordenamiento_validar_perfil({'perfil': pl['perfil']})
+    assert val_pl['ok'] is False and val_pl['errores']
+    xx = next(p['perfil'] for p in cat['perfiles'] if p['jurisdiccion'] == 'xx')
+    val_xx = api.ordenamiento_validar_perfil({'perfil': xx})
+    assert val_xx['ok'] is True and val_xx['errores'] == []
+    res = api.ordenamiento_construir({
+        'perfil': xx,
+        'paquete': cat['ejemplo_xx']['paquete'],
+        'textos': cat['ejemplo_xx']['textos'],
+    })
+    assert res['ok'] is True
+    assert res['compatibilidad']['nivelAlcanzado'] == 'C1'
+    assert res['construccion']['articulos'] >= 2
+
+
+def test_preferencias_usuario(api, datos):
+    prefs0 = api.preferencias_obtener()
+    assert prefs0['tema_papel'] == 'clasico'
+    prefs1 = api.preferencias_guardar({
+        'tema_papel': 'sepia',
+        'ancho_hoja': 'carta',
+        'estrategia_privacidad': 'estricta',
+        'mostrar_pizarra': False,
+    })
+    assert prefs1['tema_papel'] == 'sepia'
+    assert prefs1['ancho_hoja'] == 'carta'
+    assert prefs1['estrategia_privacidad'] == 'estricta'
+    assert prefs1['mostrar_pizarra'] is False
+    assert api.preferencias_obtener()['tema_papel'] == 'sepia'
+

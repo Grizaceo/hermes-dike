@@ -82,6 +82,13 @@
     var _b = useState(null), error = _b[0], setError = _b[1];
     var _c = useState(""), texto = _c[0], setTexto = _c[1];
     var _d = useState(false), ocupado = _d[0], setOcupado = _d[1];
+    var _e = useState(null), estilo = _e[0], setEstilo = _e[1];
+
+    var cargarDemo = useCallback(function () {
+      SDK.fetchJSON("/api/plugins/dike/escrito/demo")
+        .then(function (d) { if (d && d.texto) setTexto(d.texto); })
+        .catch(function (e) { setError(e); });
+    }, []);
 
     var verificar = useCallback(function () {
       var t = texto.trim();
@@ -98,24 +105,55 @@
         .finally(function () { setOcupado(false); });
     }, [texto, ocupado]);
 
+    var analizarEstilo = useCallback(function () {
+      var t = texto.trim();
+      if (!t || ocupado) return;
+      setError(null);
+      SDK.fetchJSON("/api/plugins/dike/estilo/analizar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texto: t, contexto: "escrito", detallado: false }),
+      })
+        .then(setEstilo)
+        .catch(function (e) { setError(e); });
+    }, [texto, ocupado]);
+
     return h(C.Card, null,
-      h(C.CardHeader, null, h(C.CardTitle, null, "Verificar un escrito")),
+      h(C.CardHeader, null, h(C.CardTitle, null, "Estudio de Escrito (Verificador + LexO Escribe Claro)")),
       h(C.CardContent, { className: "flex flex-col gap-3" },
         h("textarea", {
-          className: "min-h-40 w-full rounded-md border bg-background p-2 font-mono text-xs outline-none",
-          placeholder: "Pega el texto del escrito…",
+          className: "min-h-56 w-full rounded-md border bg-background p-3 font-serif text-sm leading-relaxed outline-none shadow-2xs",
+          placeholder: "Comience a redactar o pegue el texto del escrito…",
           value: texto,
           onChange: function (ev) { setTexto(ev.target.value); },
         }),
-        h("div", { className: "flex items-center gap-3" },
+        h("div", { className: "flex flex-wrap items-center gap-2" },
           h(C.Button, { onClick: verificar, disabled: ocupado || !texto.trim() },
             ocupado ? "Verificando…" : "Verificar citas"),
+          h(C.Button, { variant: "secondary", onClick: analizarEstilo, disabled: ocupado || !texto.trim() },
+            "Revisar estilo (Escribe Claro)"),
+          h(C.Button, { variant: "outline", onClick: cargarDemo, disabled: ocupado },
+            "Cargar escrito demo"),
           ocupado
             ? h("span", { className: "text-xs text-muted-foreground" },
                 "La primera llamada instala el corpus (~1 min).")
             : null),
         error
           ? h("div", { className: "text-xs text-destructive" }, mensajeError(error))
+          : null,
+        estilo
+          ? h("div", { className: "rounded-md border p-3 text-xs flex flex-col gap-1.5" },
+              h("div", { className: "font-semibold" },
+                "LexO Escribe Claro — Puntaje: " + estilo.score + "/100 · Alineación judicial: " +
+                (estilo.global_stats && estilo.global_stats.judicial_alignment_score) + "/100"),
+              h("div", { className: "text-muted-foreground" },
+                "Oraciones: " + (estilo.global_stats && estilo.global_stats.total_sentences) +
+                " · Promedio: " + (estilo.global_stats && estilo.global_stats.avg_words_per_sentence) + " pal/oración" +
+                " · Arcaísmos: " + (estilo.global_stats && estilo.global_stats.archaism_count) +
+                " · Nominalizaciones: " + (estilo.global_stats && estilo.global_stats.nominalization_count)),
+              (estilo.suggestions || []).slice(0, 6).map(function (s, i) {
+                return h("div", { key: i, className: "text-muted-foreground" }, "• " + s.message);
+              }))
           : null,
         h(Resultado, { resultado: resultado })));
   }

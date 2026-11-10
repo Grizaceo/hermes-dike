@@ -2,6 +2,18 @@
 
 [Español](case-writer.es.md)
 
+- **Studio layout, Strategy Board and Word-like page.** The Case Writer opens
+  as a studio with a collapsible, resizable **Pizarra Estratégica** above the
+  document (sticky notes, procedural templates for lawsuits, judgments,
+  contracts and administrative rulings, directed links between cards, and a
+  `LexO Search` panel over the sealed corpus), a centered Word-like page in
+  the middle (formatting bar, `Escribir | Leer` toggle, configurable paper
+  themes and page widths), the **Hermes chat** docked on the right, and a
+  vertical tool rail between them that opens dedicated drawers for the
+  citation verifier, privacy/pseudonymization, **LexO Escribe Claro** style
+  and argumentative-structure review, the interactive NIF board,
+  differentiated graph tools (corpus search/reader and the `ordenamiento`
+  pack builder), and user preferences.
 - **Editor and verifier.** The brief is edited in place and saved per case.
   "Verificar citas" runs the same engine; each citation is marked in the
   text, and only an engine `VERIFICADA` on the exact current text shows as

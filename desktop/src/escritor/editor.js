@@ -265,9 +265,10 @@ export function montarEditor({ element, content, placeholder, onUpdate,
       attributes: {
         lang: 'es-CL',
         spellcheck: 'true',
-        style: 'white-space:pre-wrap;outline:none;min-height:10rem;' +
-          'font-family:inherit;font-size:inherit;line-height:1.55;' +
-          'color:var(--ui-text-primary)',
+        class: 'dike-prosemirror-page',
+        style: 'white-space:pre-wrap;outline:none;min-height:22rem;' +
+          'font-family:inherit;font-size:inherit;line-height:1.65;' +
+          'color:inherit',
       },
     },
     onUpdate: ({ editor }) => {

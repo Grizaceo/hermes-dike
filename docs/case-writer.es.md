@@ -1,8 +1,21 @@
-<!-- vitrina:translation-of case-writer.md sha256=27a2e1329dd0a1a06e5bbaf4e94be6d0edf6dd2b3d88f64ef9ae7c4cb9d35c80 -->
+<!-- vitrina:translation-of case-writer.md sha256=2ada3a0a1af08113ab7b7b8654c71f99ffc37f4d5fae7f6267b745edc7b33e55 -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
 
+- **Vista de estudio, Pizarra Estratégica y hoja tipo Word.** El Case Writer
+  abre como un estudio con una **Pizarra Estratégica** colapsable y
+  redimensionable encima del documento (notas adhesivas, plantillas de
+  demanda, sentencia, contrato y resolución administrativa, enlaces dirigidos
+  entre tarjetas y un buscador `LexO Search` sobre el corpus sellado), una
+  hoja tipo Word al centro (barra de formato, selector `Escribir | Leer`,
+  temas de papel y anchos de página configurables), el **chat con Hermes**
+  anclado a la derecha y una barra vertical de herramientas entre ambos que
+  abre paneles dedicados para el verificador de citas, la seudonimización, la
+  revisión de estilo y estructura argumentativa de **LexO Escribe Claro**, el
+  tablero NIF interactivo, las herramientas diferenciadas de grafos (buscador
+  y lector del corpus y constructor de paquetes `ordenamiento`) y las
+  preferencias del usuario.
 - **Editor y verificador.** El escrito se edita en el lugar y se guarda por
   caso. "Verificar citas" corre el mismo motor; cada cita queda marcada en el
   texto, y solo un `VERIFICADA` del motor sobre el texto actual exacto se

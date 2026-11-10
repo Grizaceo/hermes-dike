@@ -350,7 +350,21 @@ only a temporary copy of the brief, removed after the call; `POST /nif/*`
 writes case files; `POST /escrito` and `POST /privacidad/*` write the files
 listed in "It writes"; no route writes outside plugin-data.
 
-- `/escrito` (`GET`, `POST`) — load and save the Case Writer brief of a case.
+- `/escrito` (`GET`, `POST`) and `/escrito/demo` (`GET`) — load and save the
+  Case Writer brief of a case (including `registro.pizarra` for the case's
+  strategic board notes), or read the synthetic demo brief.
+- `/preferencias` (`GET`, `POST`) — read and save user UI customization
+  (paper theme, font, page width, default privacy strategy, layout toggles)
+  to `<plugin-data>/dike/preferencias.json` (`0600`).
+- `/estilo/analizar`, `/estilo/grafo` (`POST`) — run the deterministic,
+  in-memory `LexO Escribe Claro` style and argumentative-structure analyzer
+  (`escritor/escribe_claro.py`, stdlib only, no network, no disk writes).
+- `/ordenamiento/perfiles` (`GET`), `/ordenamiento/plantilla`,
+  `/ordenamiento/validar-perfil`, `/ordenamiento/construir` (`POST`) — list
+  bundled legal-system profiles (`cl`, `xx`), generate a template, validate a
+  profile JSON, or test-build and validate (`C0`–`C3`) a norm pack inside a
+  temporary directory under `<plugin-data>/dike/tmp-ordenamiento/` that is
+  removed immediately after the call.
 - `/privacidad/detectar`, `/privacidad/decision`, `/privacidad/seudonimizar`,
   `/privacidad/envio` (`POST`) — detect personal data, store your
   keep/mask decisions, pseudonymize a text with the case's stable tokens,

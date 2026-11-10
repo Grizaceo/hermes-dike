@@ -296,3 +296,268 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
     ] }) : null,
   ] })
 }
+
+// ---------------------------------------------------------------------------
+// NIF Interactivo en la barra de herramientas del Case Writer:
+// Combina propuestas del modelo (NIF vivo) + edición interactiva del tablero
+// NIF del caso activo + envío de hechos/normas/hipótesis a la Pizarra.
+// ---------------------------------------------------------------------------
+
+const SECCIONES_TABLERO_NIF = [
+  ['facts.known', 'Hechos conocidos', 'HECHO', '#bbf7d0'],
+  ['facts.alleged', 'Hechos alegados', 'HECHO', '#bfdbfe'],
+  ['facts.missing', 'Hechos faltantes', 'HECHO', '#fed7aa'],
+  ['norms', 'Normas', 'NORMA', '#e9d5ff'],
+  ['subjects', 'Sujetos', 'PARTES', '#bfdbfe'],
+  ['hypotheses', 'Hipótesis', 'CONCLUSIÓN', '#fef08a'],
+  ['gaps', 'Vacíos probatorios/normativos', 'PRUEBA', '#fecaca'],
+  ['conflicts', 'Conflictos', 'NORMA', '#fecaca'],
+  ['principles', 'Principios', 'NORMA', '#e9d5ff'],
+  ['deontic_positions', 'Posiciones deónticas', 'NORMA', '#bbf7d0'],
+]
+
+function formatearItemNif(v) {
+  if (typeof v === 'string') return v
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    return [v.label || v.id || v.name || '', v.description || v.text || v.filled_with || '']
+      .filter(Boolean).join(' — ') || JSON.stringify(v)
+  }
+  return JSON.stringify(v)
+}
+
+export function NifInteractivoEscritor({
+  editorRef,
+  caseId,
+  registro,
+  setRegistro,
+  sesion,
+  tieneNif,
+  onCrearCaso,
+  onSembrarDemoCaso,
+  onAgregarAPizarra,
+  onInsertarTexto,
+}) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+  const [ocupado, setOcupado] = useState(false)
+  const [seccionAbierta, setSeccionAbierta] = useState('facts.known')
+  const [nuevoValor, setNuevoValor] = useState('')
+  const [nuevoId, setNuevoId] = useState('')
+  const [nuevaPregunta, setNuevaPregunta] = useState('')
+
+  const cargar = useCallback(() => {
+    if (!tieneNif) {
+      setData(null)
+      return
+    }
+    setError(null)
+    rest('/nif/snapshot?case_id=' + encodeURIComponent(caseId))
+      .then(setData)
+      .catch(setError)
+  }, [caseId, tieneNif])
+
+  useEffect(() => { cargar() }, [cargar])
+
+  const agregarItem = useCallback((campo) => {
+    const raw = nuevoValor.trim()
+    if (!raw || ocupado || !tieneNif) return
+    let valor = raw
+    if (!campo.startsWith('facts.')) {
+      try {
+        valor = JSON.parse(raw)
+      } catch {
+        if (campo === 'norms' || campo === 'subjects') valor = { label: raw }
+        else if (campo === 'hypotheses' || campo === 'gaps' || campo === 'conflicts') valor = { description: raw }
+      }
+    }
+    setOcupado(true)
+    setError(null)
+    rest('/nif/edit', {
+      method: 'POST',
+      body: { case_id: caseId, field_path: campo, value: valor },
+      timeoutMs: 60000,
+    }).then(() => {
+      setNuevoValor('')
+      cargar()
+    }).catch(setError).finally(() => setOcupado(false))
+  }, [nuevoValor, ocupado, tieneNif, caseId, cargar])
+
+  const alternarValidacion = useCallback((validadoActual) => {
+    if (!tieneNif || ocupado) return
+    setOcupado(true)
+    rest('/nif/validar', {
+      method: 'POST',
+      body: { case_id: caseId, validated: !validadoActual },
+      timeoutMs: 60000,
+    }).then(cargar).catch(setError).finally(() => setOcupado(false))
+  }, [tieneNif, ocupado, caseId, cargar])
+
+  const snap = (data && data.snapshot) || {}
+  const nif = snap.nif || null
+
+  return jsxs('div', {
+    className: 'flex flex-col gap-3 p-3 text-xs text-slate-800',
+    children: [
+      // 1. Propuestas de NIF Vivo desde el escrito
+      jsx(NifPropuestas, {
+        editorRef,
+        caseId,
+        registro,
+        setRegistro,
+        sesion,
+        tieneNif,
+      }),
+
+      // 2. Si está en borrador sin caso NIF, permitir crear o sembrar caso aquí mismo
+      !tieneNif ? jsxs('div', {
+        className: 'flex flex-col gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 p-3',
+        children: [
+          jsx('div', { className: 'font-bold text-indigo-900', children: 'Vincular o crear Tablero NIF' }),
+          jsx('div', { className: 'text-[11px] text-indigo-800', children: 'El documento actual está en «borrador». Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo.' }),
+          jsx('input', {
+            value: nuevoId,
+            onChange: (e) => setNuevoId(e.target.value),
+            placeholder: 'ID del caso (ej. causa-despido-1)',
+            className: 'rounded border border-indigo-200 bg-white px-2 py-1 text-xs',
+          }),
+          jsx('input', {
+            value: nuevaPregunta,
+            onChange: (e) => setNuevaPregunta(e.target.value),
+            placeholder: 'Pregunta jurídica principal…',
+            className: 'rounded border border-indigo-200 bg-white px-2 py-1 text-xs',
+          }),
+          jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
+            jsx('button', {
+              type: 'button',
+              disabled: !nuevoId.trim() || !nuevaPregunta.trim(),
+              onClick: () => {
+                if (onCrearCaso) onCrearCaso(nuevoId.trim(), nuevaPregunta.trim())
+                setNuevoId('')
+                setNuevaPregunta('')
+              },
+              className: 'rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-xs font-semibold text-white cursor-pointer',
+              children: 'Crear caso NIF',
+            }),
+            onSembrarDemoCaso ? jsx('button', {
+              type: 'button',
+              onClick: onSembrarDemoCaso,
+              className: 'rounded border border-indigo-300 bg-white hover:bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 cursor-pointer',
+              children: 'Cargar caso demo (CT)',
+            }) : null,
+          ] }),
+        ],
+      }) : null,
+
+      error ? jsx('div', { className: 'rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700', children: mensajeError(error) }) : null,
+
+      // 3. Tablero NIF interactivo del caso activo
+      tieneNif && nif ? jsxs('div', {
+        className: 'flex flex-col gap-2.5 rounded-md border border-slate-200 bg-white p-2.5',
+        children: [
+          jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2', children: [
+            jsxs('div', { className: 'flex items-center gap-1.5', children: [
+              jsx('span', {
+                className: 'rounded px-1.5 py-0.5 text-[10px] font-semibold ' +
+                  (nif.validated_by_human ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'),
+                children: nif.validated_by_human ? '✓ validado por humano' : 'borrador NIF',
+              }),
+              jsx('span', {
+                className: 'text-[10px] text-slate-500',
+                children: `v${snap.version || 1} · confianza ${Math.round((nif.confidence || 0) * 100)}%`,
+              }),
+            ] }),
+            jsx('button', {
+              type: 'button',
+              onClick: () => alternarValidacion(nif.validated_by_human),
+              className: 'text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer',
+              children: nif.validated_by_human ? 'Retirar validación' : 'Marcar validado',
+            }),
+          ] }),
+
+          nif.legal_question ? jsx('div', {
+            className: 'rounded bg-slate-50 p-2 text-xs font-medium text-slate-800 border border-slate-200/80',
+            children: nif.legal_question,
+          }) : null,
+
+          // Acordeón interactivo de secciones del NIF
+          ...SECCIONES_TABLERO_NIF.map(([campo, titulo, tagPizarra, colorPizarra]) => {
+            const lista = campo.startsWith('facts.')
+              ? ((nif.facts || {})[campo.slice(6)] || [])
+              : (nif[campo] || [])
+            const abierta = seccionAbierta === campo
+            return jsxs('div', {
+              key: campo,
+              className: 'rounded border border-slate-200 overflow-hidden',
+              children: [
+                jsxs('button', {
+                  type: 'button',
+                  onClick: () => setSeccionAbierta(abierta ? null : campo),
+                  className: 'flex w-full items-center justify-between bg-slate-50 px-2.5 py-1.5 text-left hover:bg-slate-100 cursor-pointer',
+                  children: [
+                    jsx('span', { className: 'text-[11px] font-semibold text-slate-700', children: titulo }),
+                    jsx('span', {
+                      className: 'rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700',
+                      children: String(lista.length),
+                    }),
+                  ],
+                }),
+                abierta ? jsxs('div', { className: 'flex flex-col gap-1.5 p-2 bg-white', children: [
+                  lista.length === 0
+                    ? jsx('div', { className: 'text-[11px] text-slate-400 italic', children: 'Sin elementos registrados en esta sección.' })
+                    : lista.map((item, idx) => {
+                        const txt = formatearItemNif(item)
+                        return jsxs('div', {
+                          key: idx,
+                          className: 'flex items-start justify-between gap-1.5 border-b border-slate-100 pb-1.5 last:border-0',
+                          children: [
+                            jsx('div', { className: 'flex-1 text-[11px] text-slate-700 leading-relaxed whitespace-pre-wrap', children: txt }),
+                            jsxs('div', { className: 'flex items-center gap-1 shrink-0', children: [
+                              onAgregarAPizarra ? jsx('button', {
+                                type: 'button',
+                                title: 'Enviar este elemento a la Pizarra Estratégica',
+                                onClick: () => onAgregarAPizarra({
+                                  titulo: titulo,
+                                  tag: tagPizarra,
+                                  color: colorPizarra,
+                                  texto: txt,
+                                }),
+                                className: 'rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 cursor-pointer',
+                                children: '+ Pizarra',
+                              }) : null,
+                              onInsertarTexto ? jsx('button', {
+                                type: 'button',
+                                title: 'Insertar en el escrito',
+                                onClick: () => onInsertarTexto(txt),
+                                className: 'rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700 cursor-pointer',
+                                children: '↳',
+                              }) : null,
+                            ] }),
+                          ],
+                        })
+                      }),
+                  // Agregar nuevo elemento a la sección
+                  jsxs('div', { className: 'flex gap-1 pt-1', children: [
+                    jsx('input', {
+                      value: nuevoValor,
+                      onChange: (e) => setNuevoValor(e.target.value),
+                      onKeyDown: (e) => { if (e.key === 'Enter') agregarItem(campo) },
+                      placeholder: 'Agregar a ' + titulo.toLowerCase() + '…',
+                      className: 'flex-1 rounded border border-slate-300 px-2 py-1 text-[11px] text-slate-800 outline-none',
+                    }),
+                    jsx('button', {
+                      type: 'button',
+                      onClick: () => agregarItem(campo),
+                      disabled: ocupado || !nuevoValor.trim(),
+                      className: 'rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer',
+                      children: '+ Agregar',
+                    }),
+                  ] }),
+                ] }) : null,
+              ],
+            })
+          }),
+        ],
+      }) : null,
+    ],
+  })
+}

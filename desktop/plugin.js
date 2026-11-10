@@ -11,8 +11,8 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
 
 // src/plugin.src.js
 import { host as host4, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from "@hermes/plugin-sdk";
-import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
-import { useCallback as useCallback7, useEffect as useEffect7, useState as useState7 } from "react";
+import { jsx as jsx11, jsxs as jsxs11 } from "react/jsx-runtime";
+import { useCallback as useCallback10, useEffect as useEffect11, useState as useState11 } from "react";
 
 // src/common.js
 var rest = null;
@@ -55,10 +55,10 @@ function mensajeError(e3) {
 }
 
 // src/escritor/escritor.js
-import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
-import { useCallback as useCallback5, useEffect as useEffect5, useRef as useRef4, useState as useState5 } from "react";
+import { jsx as jsx9, jsxs as jsxs9 } from "react/jsx-runtime";
+import { useCallback as useCallback8, useEffect as useEffect9, useRef as useRef7, useState as useState9 } from "react";
 
-// node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/rolldown-runtime-D7D4PA-g.js
 var __defProp2 = Object.defineProperty;
 var __exportAll = (all2, no_symbols) => {
   let target = {};
@@ -70,7 +70,7 @@ var __exportAll = (all2, no_symbols) => {
   return target;
 };
 
-// node_modules/orderedmap/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/orderedmap/dist/index.js
 function OrderedMap(content) {
   this.content = content;
 }
@@ -189,7 +189,7 @@ OrderedMap.from = function(value) {
 };
 var dist_default = OrderedMap;
 
-// node_modules/prosemirror-model/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-model/dist/index.js
 function findDiffStart(a3, b2, pos) {
   for (let i3 = 0; ; i3++) {
     if (i3 == a3.childCount || i3 == b2.childCount)
@@ -3409,7 +3409,7 @@ function renderSpec(doc3, structure, xmlNS, blockArraysIn) {
   return { dom, contentDOM };
 }
 
-// node_modules/prosemirror-transform/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-transform/dist/index.js
 var lower16 = 65535;
 var factor16 = Math.pow(2, 16);
 function makeRecover(index5, offset) {
@@ -5327,7 +5327,7 @@ var Transform = class {
   }
 };
 
-// node_modules/prosemirror-state/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-state/dist/index.js
 var classesById = /* @__PURE__ */ Object.create(null);
 var Selection = class {
   /**
@@ -6253,7 +6253,7 @@ var PluginKey = class {
   }
 };
 
-// node_modules/prosemirror-commands/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-commands/dist/index.js
 var deleteSelection = (state, dispatch2) => {
   if (state.selection.empty)
     return false;
@@ -6781,7 +6781,7 @@ for (let key in pcBaseKeymap)
   macBaseKeymap[key] = pcBaseKeymap[key];
 var mac = typeof navigator != "undefined" ? /Mac|iP(hone|[oa]d)/.test(navigator.platform) : typeof os != "undefined" && os.platform ? os.platform() == "darwin" : false;
 
-// node_modules/prosemirror-schema-list/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-schema-list/dist/index.js
 function wrapInList(listType, attrs = null) {
   return function(state, dispatch2) {
     let { $from, $to } = state.selection;
@@ -6909,7 +6909,7 @@ function sinkListItem(itemType) {
   };
 }
 
-// node_modules/prosemirror-view/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-view/dist/index.js
 var domIndex = function(node) {
   for (var index5 = 0; ; index5++) {
     node = node.previousSibling;
@@ -12293,7 +12293,7 @@ function checkStateComponent(plugin) {
     throw new RangeError("Plugins passed directly to the view must not have a state component");
 }
 
-// node_modules/w3c-keyname/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/w3c-keyname/index.js
 var base = {
   8: "Backspace",
   9: "Tab",
@@ -12399,7 +12399,7 @@ function keyName(event) {
   return name;
 }
 
-// node_modules/prosemirror-keymap/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-keymap/dist/index.js
 var mac4 = typeof navigator != "undefined" && /Mac|iP(hone|[oa]d)/.test(navigator.platform);
 var windows2 = typeof navigator != "undefined" && /Win/.test(navigator.platform);
 function normalizeKeyName(name) {
@@ -12478,7 +12478,7 @@ function keydownHandler(bindings) {
   };
 }
 
-// node_modules/rope-sequence/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/rope-sequence/dist/index.js
 var GOOD_LEAF_SIZE = 200;
 var RopeSequence = function RopeSequence2() {
 };
@@ -12661,7 +12661,7 @@ var Append = /* @__PURE__ */ (function(RopeSequence3) {
 })(RopeSequence);
 var dist_default2 = RopeSequence;
 
-// node_modules/prosemirror-history/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-history/dist/index.js
 var max_empty_items = 500;
 var Branch = class _Branch {
   constructor(items, eventCount) {
@@ -13021,7 +13021,7 @@ function isHistoryTransaction(tr2) {
   return tr2.getMeta(historyKey) != null;
 }
 
-// node_modules/@tiptap/core/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/index.js
 function createChainableState(config) {
   const { state, transaction } = config;
   let { selection: selection2 } = transaction;
@@ -18080,7 +18080,7 @@ function markPasteRule(config) {
   });
 }
 
-// node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/core/dist/jsx-runtime/jsx-runtime.js
 var jsxElements = /* @__PURE__ */ new WeakSet();
 var jsxFragments = /* @__PURE__ */ new WeakSet();
 function createJSXElement(spec) {
@@ -18131,7 +18131,7 @@ function render(tag, attributes) {
 }
 var h = (tag, attributes) => render(tag, attributes);
 
-// node_modules/@tiptap/extension-blockquote/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-blockquote/dist/index.js
 var handleBackspace = (editor, type) => {
   var _previous$lastChild;
   const { state } = editor;
@@ -18225,7 +18225,7 @@ ${prefix}
   }
 });
 
-// node_modules/@tiptap/extension-bold/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-bold/dist/index.js
 var starInputRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))$/;
 var starPasteRegex = /(?:^|\s)(\*\*(?!\s+\*\*)((?:[^*]+))\*\*(?!\s+\*\*))/g;
 var underscoreInputRegex = /(?:^|\s)(__(?!\s+__)((?:[^_]+))__(?!\s+__))$/;
@@ -18308,7 +18308,7 @@ var Bold = Mark2.create({
   }
 });
 
-// node_modules/@tiptap/extension-code/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-code/dist/index.js
 var inputRegexMatch = (text) => {
   const match = /`([^`]+)`(?!`)$/.exec(text);
   if (!match) return null;
@@ -18402,7 +18402,7 @@ var Code = Mark2.create({
   }
 });
 
-// node_modules/@tiptap/extension-code-block/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-code-block/dist/index.js
 var DEFAULT_TAB_SIZE = 4;
 var backtickInputRegex = /^```([a-z]+)?[\s\n]$/;
 var tildeInputRegex = /^~~~([a-z]+)?[\s\n]$/;
@@ -18634,7 +18634,7 @@ var CodeBlock = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-document/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-document/dist/index.js
 var Document = Node2.create({
   name: "doc",
   topNode: true,
@@ -18645,7 +18645,7 @@ var Document = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-hard-break/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-hard-break/dist/index.js
 var HardBreak = Node2.create({
   name: "hardBreak",
   markdownTokenName: "br",
@@ -18699,7 +18699,7 @@ var HardBreak = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-heading/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-heading/dist/index.js
 var Heading = Node2.create({
   name: "heading",
   addOptions() {
@@ -18778,7 +18778,7 @@ var Heading = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-horizontal-rule/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-horizontal-rule/dist/index.js
 var HorizontalRule = Node2.create({
   name: "horizontalRule",
   addOptions() {
@@ -18839,7 +18839,7 @@ var HorizontalRule = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-italic/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-italic/dist/index.js
 var starInputRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))$/;
 var starPasteRegex2 = /(?:^|\s)(\*(?!\s+\*)((?:[^*]+))\*(?!\s+\*))/g;
 var underscoreInputRegex2 = /(?:^|\s)(_(?!\s+_)((?:[^_]+))_(?!\s+_))$/;
@@ -18920,7 +18920,7 @@ var Italic = Mark2.create({
   }
 });
 
-// node_modules/linkifyjs/dist/linkify.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/linkifyjs/dist/linkify.mjs
 var encodedTlds = "aaa1rp3bb0ott3vie4c1le2ogado5udhabi7c0ademy5centure6ountant0s9o1tor4d0s1ult4e0g1ro2tna4f0l1rica5g0akhan5ency5i0g1rbus3force5tel5kdn3l0ibaba4pay4lfinanz6state5y2sace3tom5m0azon4ericanexpress7family11x2fam3ica3sterdam8nalytics7droid5quan4z2o0l2partments8p0le4q0uarelle8r0ab1mco4chi3my2pa2t0e3s0da2ia2sociates9t0hleta5torney7u0ction5di0ble3o3spost5thor3o0s4w0s2x0a2z0ure5ba0by2idu3namex4d1k2r0celona5laycard4s5efoot5gains6seball5ketball8uhaus5yern5b0c1t1va3cg1n2d1e0ats2uty4er2rlin4st0buy5t2f1g1h0arti5i0ble3d1ke2ng0o3o1z2j1lack0friday9ockbuster8g1omberg7ue3m0s1w2n0pparibas9o0ats3ehringer8fa2m1nd2o0k0ing5sch2tik2on4t1utique6x2r0adesco6idgestone9oadway5ker3ther5ussels7s1t1uild0ers6siness6y1zz3v1w1y1z0h3ca0b1fe2l0l1vinklein9m0era3p2non3petown5ital0one8r0avan4ds2e0er0s4s2sa1e1h1ino4t0ering5holic7ba1n1re3c1d1enter4o1rn3f0a1d2g1h0anel2nel4rity4se2t2eap3intai5ristmas6ome4urch5i0priani6rcle4sco3tadel4i0c2y3k1l0aims4eaning6ick2nic1que6othing5ud3ub0med6m1n1o0ach3des3ffee4llege4ogne5m0mbank4unity6pany2re3uter5sec4ndos3struction8ulting7tact3ractors9oking4l1p2rsica5untry4pon0s4rses6pa2r0edit0card4union9icket5own3s1uise0s6u0isinella9v1w1x1y0mru3ou3z2dad1nce3ta1e1ing3sun4y2clk3ds2e0al0er2s3gree4livery5l1oitte5ta3mocrat6ntal2ist5si0gn4v2hl2iamonds6et2gital5rect0ory7scount3ver5h2y2j1k1m1np2o0cs1tor4g1mains5t1wnload7rive4tv2ubai3pont4rban5vag2r2z2earth3t2c0o2deka3u0cation8e1g1mail3erck5nergy4gineer0ing9terprises10pson4quipment8r0icsson6ni3s0q1tate5t1u0rovision8s2vents5xchange6pert3osed4ress5traspace10fage2il1rwinds6th3mily4n0s2rm0ers5shion4t3edex3edback6rrari3ero6i0delity5o2lm2nal1nce1ial7re0stone6mdale6sh0ing5t0ness6j1k1lickr3ghts4r2orist4wers5y2m1o0o0d1tball6rd1ex2sale4um3undation8x2r0ee1senius7l1ogans4ntier7tr2ujitsu5n0d2rniture7tbol5yi3ga0l0lery3o1up4me0s3p1rden4y2b0iz3d0n2e0a1nt0ing5orge5f1g0ee3h1i0ft0s3ves2ing5l0ass3e1obal2o4m0ail3bh2o1x2n1odaddy5ld0point6f2odyear5g0le4p1t1v2p1q1r0ainger5phics5tis4een3ipe3ocery4up4s1t1u0cci3ge2ide2tars5ru3w1y2hair2mburg5ngout5us3bo2dfc0bank7ealth0care8lp1sinki6re1mes5iphop4samitsu7tachi5v2k0t2m1n1ockey4ldings5iday5medepot5goods5s0ense7nda3rse3spital5t0ing5t0els3mail5use3w2r1sbc3t1u0ghes5yatt3undai7ibm2cbc2e1u2d1e0ee3fm2kano4l1m0amat4db2mo0bilien9n0c1dustries8finiti5o2g1k1stitute6urance4e4t0ernational10uit4vestments10o1piranga7q1r0ish4s0maili5t0anbul7t0au2v3jaguar4va3cb2e0ep2tzt3welry6io2ll2m0p2nj2o0bs1urg4t1y2p0morgan6rs3uegos6kaufen5ddi3e0rryhotels6properties14fh2g1h1i0a1ds2m1ndle4tchen5wi3m1n1oeln3matsu5sher5p0mg2n2r0d1ed3uokgroup8w1y0oto4z2la0caixa5mborghini8er3nd0rover6xess5salle5t0ino3robe5w0yer5b1c1ds2ease3clerc5frak4gal2o2xus4gbt3i0dl2fe0insurance9style7ghting6ke2lly3mited4o2ncoln4k2ve1ing5k1lc1p2oan0s3cker3us3l1ndon4tte1o3ve3pl0financial11r1s1t0d0a3u0ndbeck6xe1ury5v1y2ma0drid4if1son4keup4n0agement7go3p1rket0ing3s4riott5shalls7ttel5ba2c0kinsey7d1e0d0ia3et2lbourne7me1orial6n0u2rck0msd7g1h1iami3crosoft7l1ni1t2t0subishi9k1l0b1s2m0a2n1o0bi0le4da2e1i1m1nash3ey2ster5rmon3tgage6scow4to0rcycles9v0ie4p1q1r1s0d2t0n1r2u0seum3ic4v1w1x1y1z2na0b1goya4me2vy3ba2c1e0c1t0bank4flix4work5ustar5w0s2xt0direct7us4f0l2g0o2hk2i0co2ke1on3nja3ssan1y5l1o0kia3rton4w0ruz3tv4p1r0a1w2tt2u1yc2z2obi1server7ffice5kinawa6layan0group9lo3m0ega4ne1g1l0ine5oo2pen3racle3nge4g0anic5igins6saka4tsuka4t2vh3pa0ge2nasonic7ris2s1tners4s1y3y2ccw3e0t2f0izer5g1h0armacy6d1ilips5one2to0graphy6s4ysio5ics1tet2ures6d1n0g1k2oneer5zza4k1l0ace2y0station9umbing5s3m1n0c2ohl2ker3litie5rn2st3r0axi3ess3ime3o0d0uctions8f1gressive8mo2perties3y5tection8u0dential9s1t1ub2w0c2y2qa1pon3uebec3st5racing4dio4e0ad1lestate6tor2y4cipes5d0umbrella9hab3ise0n3t2liance6n0t0als5pair3ort3ublican8st0aurant8view0s5xroth6ich0ardli6oh3l1o1p2o0cks3deo3gers4om3s0vp3u0gby3hr2n2w0e2yukyu6sa0arland6fe0ty4kura4le1on3msclub4ung5ndvik0coromant12ofi4p1rl2s1ve2xo3b0i1s2c0b1haeffler7midt4olarships8ol3ule3warz5ience5ot3d1e0arch3t2cure1ity6ek2lect4ner3rvices6ven3w1x0y3fr2g1h0angrila6rp3ell3ia1ksha5oes2p0ping5uji3w3i0lk2na1gles5te3j1k0i0n2y0pe4l0ing4m0art3ile4n0cf3o0ccer3ial4ftbank4ware6hu2lar2utions7ng1y2y2pa0ce3ort2t3r0l2s1t0ada2ples4r1tebank4farm7c0group6ockholm6rage3e3ream4udio2y3yle4u0cks3pplies3y2ort5rf1gery5zuki5v1watch4iss4x1y0dney4stems6z2tab1ipei4lk2obao4rget4tamotors6r2too4x0i3c0i2d0k2eam2ch0nology8l1masek5nnis4va3f1g1h0d1eater2re6iaa2ckets5enda4ps2res2ol4j0maxx4x2k0maxx5l1m0all4n1o0day3kyo3ols3p1ray3shiba5tal3urs3wn2yota3s3r0ade1ing4ining5vel0ers0insurance16ust3v2t1ube2i1nes3shu4v0s2w1z2ua1bank3s2g1k1nicom3versity8o2ol2ps2s1y1z2va0cations7na1guard7c1e0gas3ntures6risign5m\xF6gensberater2ung14sicherung10t2g1i0ajes4deo3g1king4llas4n1p1rgin4sa1ion4va1o3laanderen9n1odka3lvo3te1ing3o2yage5u2wales2mart4ter4ng0gou5tch0es6eather0channel12b0cam3er2site5d0ding5ibo2r3f1hoswho6ien2ki2lliamhill9n0dows4e1ners6me2oodside6rk0s2ld3w2s1tc1f3xbox3erox4ihuan4n2xx2yz3yachts4hoo3maxun5ndex5e1odobashi7ga2kohama6u0tube6t1un3za0ppos4ra3ero3ip2m1one3uerich6w2";
 var encodedUtlds = "\u03B5\u03BB1\u03C52\u0431\u04331\u0435\u043B3\u0434\u0435\u0442\u04384\u0435\u044E2\u043A\u0430\u0442\u043E\u043B\u0438\u043A6\u043E\u043C3\u043C\u043A\u04342\u043E\u043D1\u0441\u043A\u0432\u04306\u043E\u043D\u043B\u0430\u0439\u043D5\u0440\u04333\u0440\u0443\u04412\u04442\u0441\u0430\u0439\u04423\u0440\u04313\u0443\u043A\u04403\u049B\u0430\u04373\u0570\u0561\u05753\u05D9\u05E9\u05E8\u05D0\u05DC5\u05E7\u05D5\u05DD3\u0627\u0628\u0648\u0638\u0628\u064A5\u0631\u0627\u0645\u0643\u06485\u0644\u0627\u0631\u062F\u06464\u0628\u062D\u0631\u064A\u06465\u062C\u0632\u0627\u0626\u06315\u0633\u0639\u0648\u062F\u064A\u06296\u0639\u0644\u064A\u0627\u06465\u0645\u063A\u0631\u06285\u0645\u0627\u0631\u0627\u062A5\u06CC\u0631\u0627\u06465\u0628\u0627\u0631\u062A2\u0632\u0627\u06314\u064A\u062A\u06433\u06BE\u0627\u0631\u062A5\u062A\u0648\u0646\u06334\u0633\u0648\u062F\u0627\u06463\u0631\u064A\u06295\u0634\u0628\u0643\u06294\u0639\u0631\u0627\u06422\u06282\u0645\u0627\u06464\u0641\u0644\u0633\u0637\u064A\u06466\u0642\u0637\u06313\u0643\u0627\u062B\u0648\u0644\u064A\u06436\u0648\u06453\u0645\u0635\u06312\u0644\u064A\u0633\u064A\u06275\u0648\u0631\u064A\u062A\u0627\u0646\u064A\u06277\u0642\u06394\u0647\u0645\u0631\u0627\u06475\u067E\u0627\u06A9\u0633\u062A\u0627\u06467\u0680\u0627\u0631\u062A4\u0915\u0949\u092E3\u0928\u0947\u091F3\u092D\u093E\u0930\u09240\u092E\u094D3\u094B\u09245\u0938\u0902\u0917\u0920\u09285\u09AC\u09BE\u0982\u09B2\u09BE5\u09AD\u09BE\u09B0\u09A42\u09F0\u09A44\u0A2D\u0A3E\u0A30\u0A244\u0AAD\u0ABE\u0AB0\u0AA44\u0B2D\u0B3E\u0B30\u0B244\u0B87\u0BA8\u0BCD\u0BA4\u0BBF\u0BAF\u0BBE6\u0BB2\u0B99\u0BCD\u0B95\u0BC86\u0B9A\u0BBF\u0B99\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0BC2\u0BB0\u0BCD11\u0C2D\u0C3E\u0C30\u0C24\u0C4D5\u0CAD\u0CBE\u0CB0\u0CA44\u0D2D\u0D3E\u0D30\u0D24\u0D025\u0DBD\u0D82\u0D9A\u0DCF4\u0E04\u0E2D\u0E213\u0E44\u0E17\u0E223\u0EA5\u0EB2\u0EA73\u10D2\u10D42\u307F\u3093\u306A3\u30A2\u30DE\u30BE\u30F34\u30AF\u30E9\u30A6\u30C94\u30B0\u30FC\u30B0\u30EB4\u30B3\u30E02\u30B9\u30C8\u30A23\u30BB\u30FC\u30EB3\u30D5\u30A1\u30C3\u30B7\u30E7\u30F36\u30DD\u30A4\u30F3\u30C84\u4E16\u754C2\u4E2D\u4FE11\u56FD1\u570B1\u6587\u7F513\u4E9A\u9A6C\u900A3\u4F01\u4E1A2\u4F5B\u5C712\u4FE1\u606F2\u5065\u5EB72\u516B\u53662\u516C\u53F81\u76CA2\u53F0\u6E7E1\u70632\u5546\u57CE1\u5E971\u68072\u5609\u91CC0\u5927\u9152\u5E975\u5728\u7EBF2\u5927\u62FF2\u5929\u4E3B\u65593\u5A31\u4E502\u5BB6\u96FB2\u5E7F\u4E1C2\u5FAE\u535A2\u6148\u55842\u6211\u7231\u4F603\u624B\u673A2\u62DB\u80582\u653F\u52A11\u5E9C2\u65B0\u52A0\u57612\u95FB2\u65F6\u5C1A2\u66F8\u7C4D2\u673A\u67842\u6DE1\u9A6C\u95213\u6E38\u620F2\u6FB3\u95802\u70B9\u770B2\u79FB\u52A82\u7EC4\u7EC7\u673A\u67844\u7F51\u57401\u5E971\u7AD91\u7EDC2\u8054\u901A2\u8C37\u6B4C2\u8D2D\u72692\u901A\u8CA92\u96C6\u56E22\u96FB\u8A0A\u76C8\u79D14\u98DE\u5229\u6D663\u98DF\u54C12\u9910\u53852\u9999\u683C\u91CC\u62C93\u6E2F2\uB2F7\uB1371\uCEF42\uC0BC\uC1312\uD55C\uAD6D2";
 var numeric = "numeric";
@@ -20112,7 +20112,7 @@ function find(str, type = null, opts = null) {
   return filtered;
 }
 
-// node_modules/@tiptap/extension-link/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-link/dist/index.js
 var UNICODE_WHITESPACE_PATTERN = "[\0- \xA0\u1680\u180E\u2000-\u2029\u205F\u3000]";
 var UNICODE_WHITESPACE_REGEX = new RegExp(UNICODE_WHITESPACE_PATTERN);
 var UNICODE_WHITESPACE_REGEX_END = new RegExp(`${UNICODE_WHITESPACE_PATTERN}$`);
@@ -20590,7 +20590,7 @@ var Link = Mark2.create({
   }
 });
 
-// node_modules/@tiptap/extension-list/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-list/dist/index.js
 var ListItemName$1 = "listItem";
 var TextStyleName$1 = "textStyle";
 var bulletListInputRegex = /^\s*([-+*])\s$/;
@@ -21865,7 +21865,7 @@ var ListKit = Extension.create({
   }
 });
 
-// node_modules/@tiptap/extension-paragraph/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-paragraph/dist/index.js
 var EMPTY_PARAGRAPH_MARKDOWN = "&nbsp;";
 var NBSP_CHAR = "\xA0";
 var Paragraph = Node2.create({
@@ -21913,7 +21913,7 @@ var Paragraph = Node2.create({
   }
 });
 
-// node_modules/@tiptap/extension-strike/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-strike/dist/index.js
 var inputRegex3 = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))$/;
 var pasteRegex = /(?:^|\s)(~~(?!\s+~~)((?:[^~]+))~~(?!\s+~~))/g;
 var Strike = Mark2.create({
@@ -21977,7 +21977,7 @@ var Strike = Mark2.create({
   }
 });
 
-// node_modules/@tiptap/extension-text/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-text/dist/index.js
 var Text2 = Node2.create({
   name: "text",
   group: "inline",
@@ -21990,7 +21990,7 @@ var Text2 = Node2.create({
   renderMarkdown: (node) => node.text || ""
 });
 
-// node_modules/@tiptap/extension-underline/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-underline/dist/index.js
 var Underline = Mark2.create({
   name: "underline",
   addOptions() {
@@ -22066,7 +22066,7 @@ var Underline = Mark2.create({
   }
 });
 
-// node_modules/prosemirror-dropcursor/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-dropcursor/dist/index.js
 function dropCursor(options = {}) {
   return new Plugin({
     view(editorView) {
@@ -22213,7 +22213,7 @@ var DropCursorView = class {
   }
 };
 
-// node_modules/prosemirror-gapcursor/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/prosemirror-gapcursor/dist/index.js
 var GapCursor = class _GapCursor extends Selection {
   /**
   Create a gap cursor.
@@ -22427,7 +22427,7 @@ function drawGapCursor(state) {
   return DecorationSet.create(state.doc, [Decoration.widget(state.selection.head, node, { key: "gapcursor" })]);
 }
 
-// node_modules/@tiptap/extensions/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extensions/dist/index.js
 var CharacterCount = Extension.create({
   name: "characterCount",
   addOptions() {
@@ -22951,7 +22951,7 @@ var UndoRedo = Extension.create({
   }
 });
 
-// node_modules/@tiptap/starter-kit/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/starter-kit/dist/index.js
 var StarterKit = Extension.create({
   name: "starterKit",
   addExtensions() {
@@ -22995,7 +22995,7 @@ var StarterKit = Extension.create({
 });
 var src_default = StarterKit;
 
-// node_modules/@tiptap/extension-placeholder/dist/index.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tiptap/extension-placeholder/dist/index.js
 var src_default2 = Placeholder;
 
 // src/escritor/editor.js
@@ -23222,7 +23222,8 @@ function montarEditor({
       attributes: {
         lang: "es-CL",
         spellcheck: "true",
-        style: "white-space:pre-wrap;outline:none;min-height:10rem;font-family:inherit;font-size:inherit;line-height:1.55;color:var(--ui-text-primary)"
+        class: "dike-prosemirror-page",
+        style: "white-space:pre-wrap;outline:none;min-height:22rem;font-family:inherit;font-size:inherit;line-height:1.65;color:inherit"
       }
     },
     onUpdate: ({ editor }) => {
@@ -24121,7 +24122,9 @@ function ChatEscritor({
   estrategiaPriv,
   rev,
   onSesion,
-  onAbrirGrafo
+  onAbrirGrafo,
+  onAbrirPrivacidad,
+  modoDock = true
 }) {
   const [perfilOk, setPerfilOk] = useState2(null);
   const [perfilElegido, setPerfilElegido] = useState2(null);
@@ -24134,7 +24137,10 @@ function ChatEscritor({
   const [pregunta, setPregunta] = useState2("");
   const [ocupado, setOcupado] = useState2(false);
   const [error2, setError] = useState2(null);
+  const [verContexto, setVerContexto] = useState2(false);
+  const [avisoCerrado, setAvisoCerrado] = useState2(false);
   const releaseRef = useRef2(null);
+  const endRef = useRef2(null);
   const sesionRef = useRef2(null);
   sesionRef.current = sesion;
   const deltasRef = useRef2([]);
@@ -24362,9 +24368,9 @@ function ChatEscritor({
       hashActual: hashP
     });
     const destino = (perfilRef.current || "perfil sin resolver") + " \xB7 " + etiquetaModelo(modelo && modelo.id);
-    const cfgPriv = registro && registro.privacidad || {};
-    const seudonimizar = cfgPriv.seudonimizar !== false;
-    if (!seudonimizar && cfgPriv.acepto_datos !== true) {
+    const cfgPriv2 = registro && registro.privacidad || {};
+    const seudonimizar = cfgPriv2.seudonimizar !== false;
+    if (!seudonimizar && cfgPriv2.acepto_datos !== true) {
       setError(new Error("Activa la seudonimizaci\xF3n o confirma en el m\xF3dulo Privacidad que aceptas enviar datos personales."));
       setOcupado(false);
       return;
@@ -24374,7 +24380,7 @@ function ChatEscritor({
       texto: turno,
       destino,
       seudonimizar,
-      estrategia: cfgPriv.estrategia || "media"
+      estrategia: cfgPriv2.estrategia || "media"
     }).then((envio) => {
       if (!puedeEnviar()) throw new Error("privacidad bloque\xF3 el env\xEDo");
       return host.requestProfile(
@@ -24427,105 +24433,223 @@ function ChatEscritor({
     const { from: from2 } = ed.state.selection;
     ed.chain().focus().insertContentAt(from2, rehid).run();
   }, [editorRef, registro]);
+  useEffect2(() => {
+    if (endRef.current && typeof endRef.current.scrollIntoView === "function") {
+      endRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [mensajes.length, ocupado, stream]);
+  const cfgPriv = registro && registro.privacidad || {};
+  const seudOn = cfgPriv.seudonimizar !== false;
+  const estrategiaActiva = cfgPriv.estrategia || "media";
+  const largoEscrito = (docInfo && docInfo.texto || "").length;
+  const numCitasVerif = (verificacion && verificacion.resultado && verificacion.resultado.meta || {}).citas_verificadas || 0;
   if (perfilOk && perfilOk.error) {
-    return jsx2("div", { className: S.card, children: jsx2("div", {
-      className: "text-xs text-(--ui-danger)",
-      children: mensajeError(perfilOk.error)
-    }) });
+    return jsxs2("div", {
+      className: modoDock ? "flex h-full w-full flex-col border-l border-slate-200 bg-white text-slate-800" : S.card,
+      children: [
+        jsxs2("div", { className: "flex items-center gap-2 border-b border-slate-200 px-3 py-2 text-xs", children: [
+          jsx2("span", { className: "font-semibold text-slate-800", children: "Hermes" }),
+          jsx2("span", { className: "h-2 w-2 rounded-full bg-amber-500", title: "sin perfil con Dik\xE9" })
+        ] }),
+        jsxs2("div", { className: "p-3 flex flex-col gap-2", children: [
+          jsx2("div", {
+            className: "rounded border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 leading-relaxed",
+            children: mensajeError(perfilOk.error)
+          })
+        ] })
+      ]
+    });
   }
-  return jsxs2("div", { className: S.card, children: [
-    jsxs2("div", { className: "flex items-center gap-2", children: [
-      jsx2("div", { className: S.cardTitle, children: "Chat del escrito" }),
-      perfilElegido ? jsx2("span", {
-        className: "text-xs text-(--ui-text-secondary)",
-        children: "\xB7 " + perfilElegido
+  return jsxs2("div", {
+    className: modoDock ? "flex h-full w-full flex-col bg-white text-slate-800 overflow-hidden" : S.card,
+    children: [
+      // Cabecera superior estilo Hermes Chat (imagen 2)
+      jsxs2("div", {
+        className: "flex items-center gap-2 border-b border-slate-200 px-3 h-9 text-xs shrink-0 bg-slate-50/60",
+        children: [
+          jsx2("span", { className: "font-semibold text-slate-800", children: "Hermes" }),
+          jsx2("span", {
+            className: "text-slate-500 truncate",
+            children: perfilElegido || "abriendo\u2026"
+          }),
+          jsx2("span", {
+            className: "h-2 w-2 rounded-full shrink-0 " + (perfilOk === true ? "bg-emerald-500" : "bg-slate-300"),
+            title: modelo ? etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino : "conectando sesi\xF3n del escrito"
+          }),
+          modelo ? jsx2("span", {
+            className: "text-[10px] text-slate-400 truncate",
+            children: etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino
+          }) : null,
+          jsxs2("div", { className: "ml-auto flex items-center gap-1", children: [
+            mensajes.length > 0 ? jsx2("button", {
+              type: "button",
+              onClick: () => setMensajes([]),
+              className: "rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 cursor-pointer",
+              title: "Limpiar vista de conversaci\xF3n",
+              children: "Limpiar"
+            }) : null,
+            jsx2("button", {
+              type: "button",
+              onClick: () => setVerContexto((v2) => !v2),
+              className: "rounded p-1 text-xs cursor-pointer " + (verContexto ? "bg-indigo-100 text-indigo-700" : "text-slate-500 hover:bg-slate-200/70 hover:text-slate-800"),
+              title: "Qu\xE9 ve el agente en este turno (seudonimizado antes de salir)",
+              children: "\u{1F441}"
+            })
+          ] })
+        ]
+      }),
+      // Inspector de transparencia: qué viaja en el sobre <dike-escritor v="1">
+      verContexto ? jsxs2("div", {
+        className: "border-b border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 flex flex-col gap-1 shrink-0",
+        children: [
+          jsx2("div", { className: "font-semibold text-slate-800", children: 'Lo que ve el agente en este turno (sobre <dike-escritor v="1">)' }),
+          jsx2("div", { children: `Caso: ${caseId} \xB7 Escrito: ${largoEscrito} caracteres \xB7 Citas verificadas: ${numCitasVerif}` }),
+          jsx2("div", {
+            children: seudOn ? `Privacidad activa: seudonimizaci\xF3n \xAB${estrategiaActiva}\xBB antes de enviar.` : "Privacidad desactivada por confirmaci\xF3n expresa del abogado."
+          }),
+          jsx2("div", { className: "text-[10px] text-slate-500", children: "El estado de las citas lo fija Dik\xE9, no el modelo. Hooks fail-closed bloquean herramientas de terminal y archivos." }),
+          onAbrirPrivacidad ? jsx2("button", {
+            type: "button",
+            onClick: onAbrirPrivacidad,
+            className: "self-start text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer",
+            children: "Configurar reglas de seudonimizaci\xF3n \u2192"
+          }) : null
+        ]
       }) : null,
-      modelo ? jsx2("span", { className: S.sub, children: etiquetaModelo(modelo.id) + " \xB7 " + modelo.destino }) : null
-    ] }),
-    jsx2("div", { className: S.sub, children: "El estado de las citas lo fija Dik\xE9, no el modelo." }),
-    perfilOk === null ? jsx2("div", { className: S.sub, children: "abriendo sesi\xF3n\u2026" }) : null,
-    jsxs2("div", { className: "flex max-h-80 flex-col gap-2 overflow-auto", children: [
-      ...mensajes.map((m3, i3) => {
-        const notas = m3.rol === "assistant" ? parsearNotas(m3.texto) : { cuerpo: m3.texto, notas: [], invalidas: [] };
-        return jsxs2("div", {
-          key: i3,
-          className: m3.rol === "user" ? "text-sm" : "rounded border border-(--ui-stroke-secondary) p-2 text-sm",
-          children: [
-            m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { children: "T\xFA: " }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1", children: [
-              jsx2("div", { className: "whitespace-pre-wrap", children: rehidratar(
-                notas.cuerpo,
-                registro && registro.chat && registro.chat.mapa || {}
-              ) }),
-              m3.verificando ? jsx2("span", {
-                className: S.chip + " " + S.chipOff,
-                children: "verificando citas\u2026"
-              }) : null,
-              m3.verif && m3.verif.fallo ? jsx2("div", {
-                className: "text-xs text-(--ui-danger)",
-                children: "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas."
-              }) : null,
-              m3.verif && m3.verif.res ? jsxs2("div", { className: "flex flex-wrap gap-1", children: (m3.verif.res.detalles || []).map((d2, j2) => {
-                const est = estadoCita(d2, m3.verif.hash, m3.verif.hash, registro);
-                const chip = {
-                  key: j2,
-                  className: S.chip + " " + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
-                  title: etiquetaCita(est, d2, m3.verif.res.meta || {}, registro) + (d2.nodo_id ? " \xB7 clic para abrir en el grafo" : ""),
-                  children: d2.cita_raw
-                };
-                return est === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx2("button", {
+      // Área de conversación desplazable
+      jsxs2("div", {
+        className: "flex-1 overflow-y-auto px-3 py-2.5 flex flex-col gap-2.5 min-h-0",
+        children: [
+          // Tarjeta informativa de privacidad y destino (inspirada en la imagen 2)
+          !avisoCerrado && mensajes.length === 0 ? jsxs2("div", {
+            className: "rounded-md border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 flex flex-col gap-2",
+            children: [
+              jsx2("div", { className: "font-semibold text-slate-900", children: "Antes de escribir: \xBFa d\xF3nde va lo que escribas?" }),
+              jsx2("div", { className: "leading-relaxed text-slate-600 text-[11px]", children: "Dik\xE9 seudonimiza los datos personales (RUT, correo, tel\xE9fono, nombres con contexto) antes de enviar al perfil de Hermes. El estado de las citas lo fija Dik\xE9, no el modelo." }),
+              jsxs2("div", { className: "flex flex-col gap-1 rounded border border-slate-200 bg-white p-2 text-[11px]", children: [
+                jsxs2("div", { className: "flex items-center justify-between", children: [
+                  jsx2("span", { className: "font-medium text-slate-800", children: "Destino del perfil:" }),
+                  jsx2("span", { className: "font-mono text-slate-600", children: (perfilElegido || "activo") + (modelo ? " \xB7 " + modelo.destino : "") })
+                ] }),
+                jsxs2("div", { className: "flex items-center justify-between", children: [
+                  jsx2("span", { className: "font-medium text-slate-800", children: "Seudonimizaci\xF3n:" }),
+                  jsx2("span", {
+                    className: seudOn ? "font-semibold text-emerald-700" : "font-semibold text-amber-700",
+                    children: seudOn ? `Activa (${estrategiaActiva})` : "Apagada por el usuario"
+                  })
+                ] })
+              ] }),
+              jsxs2("div", { className: "flex items-center gap-2 pt-0.5", children: [
+                jsx2("button", {
                   type: "button",
-                  className: chip.className + " cursor-pointer",
-                  title: chip.title,
-                  onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
-                  children: d2.cita_raw
-                }) : jsx2("span", chip);
-              }) }) : null,
-              jsx2(NotasAlPie, {
-                notas: notas.notas,
-                invalidas: notas.invalidas,
-                verif: m3.verif,
-                onAbrirGrafo
-              }),
-              jsx2("button", {
-                type: "button",
-                className: S.link,
-                onClick: () => insertar(m3.texto),
-                children: "Insertar en el escrito"
-              })
-            ] })
-          ]
-        });
+                  onClick: () => setAvisoCerrado(true),
+                  className: "rounded bg-slate-700 hover:bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
+                  children: "Entendido, continuar"
+                }),
+                onAbrirPrivacidad ? jsx2("button", {
+                  type: "button",
+                  onClick: onAbrirPrivacidad,
+                  className: "text-[11px] text-indigo-600 hover:underline cursor-pointer",
+                  children: "Ver datos que salen"
+                }) : null
+              ] })
+            ]
+          }) : jsx2("div", {
+            className: "text-[11px] text-slate-400",
+            children: "Chat del escrito \xB7 El estado de las citas lo fija Dik\xE9, no el modelo."
+          }),
+          perfilOk === null ? jsx2("div", { className: S.sub, children: "abriendo sesi\xF3n\u2026" }) : null,
+          ...mensajes.map((m3, i3) => {
+            const notas = m3.rol === "assistant" ? parsearNotas(m3.texto) : { cuerpo: m3.texto, notas: [], invalidas: [] };
+            return jsxs2("div", {
+              key: i3,
+              className: m3.rol === "user" ? "self-end max-w-[90%] rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-xs text-slate-800" : "rounded-lg border border-slate-200 bg-slate-50/70 p-2.5 text-xs text-slate-800",
+              children: [
+                m3.rol === "user" ? jsxs2("span", { children: [jsx2("b", { className: "text-indigo-900", children: "T\xFA: " }), rehidratar(m3.texto, {})] }) : jsxs2("div", { className: "flex flex-col gap-1.5", children: [
+                  jsx2("div", { className: "whitespace-pre-wrap leading-relaxed", children: rehidratar(
+                    notas.cuerpo,
+                    registro && registro.chat && registro.chat.mapa || {}
+                  ) }),
+                  m3.verificando ? jsx2("span", {
+                    className: S.chip + " " + S.chipOff,
+                    children: "verificando citas\u2026"
+                  }) : null,
+                  m3.verif && m3.verif.fallo ? jsx2("div", {
+                    className: "text-xs text-(--ui-danger)",
+                    children: "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas."
+                  }) : null,
+                  m3.verif && m3.verif.res ? jsxs2("div", { className: "flex flex-wrap gap-1", children: (m3.verif.res.detalles || []).map((d2, j2) => {
+                    const est = estadoCita(d2, m3.verif.hash, m3.verif.hash, registro);
+                    const chip = {
+                      key: j2,
+                      className: S.chip + " " + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
+                      title: etiquetaCita(est, d2, m3.verif.res.meta || {}, registro) + (d2.nodo_id ? " \xB7 clic para abrir en el grafo" : ""),
+                      children: d2.cita_raw
+                    };
+                    return est === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx2("button", {
+                      type: "button",
+                      className: chip.className + " cursor-pointer",
+                      title: chip.title,
+                      onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
+                      children: d2.cita_raw
+                    }) : jsx2("span", chip);
+                  }) }) : null,
+                  jsx2(NotasAlPie, {
+                    notas: notas.notas,
+                    invalidas: notas.invalidas,
+                    verif: m3.verif,
+                    onAbrirGrafo
+                  }),
+                  jsx2("button", {
+                    type: "button",
+                    className: S.link + " text-left text-[11px] font-medium pt-0.5",
+                    onClick: () => insertar(m3.texto),
+                    children: "\u21B3 Insertar en el escrito"
+                  })
+                ] })
+              ]
+            });
+          }),
+          stream ? jsx2("div", {
+            className: "rounded-lg border border-indigo-200 bg-indigo-50/30 p-2.5 text-xs whitespace-pre-wrap text-slate-800",
+            children: stream
+          }) : null,
+          jsx2("div", { ref: endRef })
+        ]
       }),
-      stream ? jsx2("div", { className: "rounded border border-(--ui-stroke-secondary) p-2 text-sm whitespace-pre-wrap", children: stream }) : null
-    ] }),
-    error2 ? jsx2("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    jsxs2("div", { className: "flex items-center gap-2", children: [
-      jsx2("input", {
-        className: S.input + " flex-1",
-        value: pregunta,
-        placeholder: "Pregunta sobre el escrito\u2026",
-        disabled: !sesion || ocupado,
-        onChange: (e3) => setPregunta(e3.target.value),
-        onKeyDown: (e3) => {
-          if (e3.key === "Enter") enviar();
-        }
-      }),
-      jsx2("button", {
-        type: "button",
-        className: S.button,
-        onClick: enviar,
-        disabled: !sesion || ocupado || !pregunta.trim(),
-        children: ocupado ? "\u2026" : "Enviar"
-      }),
-      jsx2("button", {
-        type: "button",
-        className: S.ghost,
-        onClick: detener,
-        disabled: !ocupado,
-        children: "Detener"
+      error2 ? jsx2("div", { className: "border-t border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      // Barra de entrada inferior estilo imagen 2 («Escribe a Hermes…»)
+      jsxs2("div", {
+        className: "flex items-center gap-1.5 border-t border-slate-200 bg-white p-2 shrink-0",
+        children: [
+          jsx2("input", {
+            className: "flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100",
+            value: pregunta,
+            placeholder: "Escribe a Hermes\u2026",
+            disabled: !sesion || ocupado,
+            onChange: (e3) => setPregunta(e3.target.value),
+            onKeyDown: (e3) => {
+              if (e3.key === "Enter") enviar();
+            }
+          }),
+          !ocupado ? jsx2("button", {
+            type: "button",
+            onClick: enviar,
+            disabled: !sesion || ocupado || !pregunta.trim(),
+            title: "Enviar mensaje a Hermes (seudonimizado)",
+            className: "flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 hover:bg-slate-900 disabled:opacity-35 text-white text-xs cursor-pointer shrink-0",
+            children: "\u27A4"
+          }) : jsx2("button", {
+            type: "button",
+            onClick: detener,
+            title: "Detener generaci\xF3n",
+            className: "rounded-md border border-red-300 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 cursor-pointer shrink-0",
+            children: "Detener"
+          })
+        ]
       })
-    ] })
-  ] });
+    ]
+  });
 }
 
 // src/escritor/nif-propuestas.js
@@ -25075,6 +25199,247 @@ function NifPropuestas({
       ] }))
     ] }) : null
   ] });
+}
+var SECCIONES_TABLERO_NIF = [
+  ["facts.known", "Hechos conocidos", "HECHO", "#bbf7d0"],
+  ["facts.alleged", "Hechos alegados", "HECHO", "#bfdbfe"],
+  ["facts.missing", "Hechos faltantes", "HECHO", "#fed7aa"],
+  ["norms", "Normas", "NORMA", "#e9d5ff"],
+  ["subjects", "Sujetos", "PARTES", "#bfdbfe"],
+  ["hypotheses", "Hip\xF3tesis", "CONCLUSI\xD3N", "#fef08a"],
+  ["gaps", "Vac\xEDos probatorios/normativos", "PRUEBA", "#fecaca"],
+  ["conflicts", "Conflictos", "NORMA", "#fecaca"],
+  ["principles", "Principios", "NORMA", "#e9d5ff"],
+  ["deontic_positions", "Posiciones de\xF3nticas", "NORMA", "#bbf7d0"]
+];
+function formatearItemNif(v2) {
+  if (typeof v2 === "string") return v2;
+  if (v2 && typeof v2 === "object" && !Array.isArray(v2)) {
+    return [v2.label || v2.id || v2.name || "", v2.description || v2.text || v2.filled_with || ""].filter(Boolean).join(" \u2014 ") || JSON.stringify(v2);
+  }
+  return JSON.stringify(v2);
+}
+function NifInteractivoEscritor({
+  editorRef,
+  caseId,
+  registro,
+  setRegistro,
+  sesion,
+  tieneNif,
+  onCrearCaso,
+  onSembrarDemoCaso,
+  onAgregarAPizarra,
+  onInsertarTexto
+}) {
+  const [data, setData] = useState3(null);
+  const [error2, setError] = useState3(null);
+  const [ocupado, setOcupado] = useState3(false);
+  const [seccionAbierta, setSeccionAbierta] = useState3("facts.known");
+  const [nuevoValor, setNuevoValor] = useState3("");
+  const [nuevoId, setNuevoId] = useState3("");
+  const [nuevaPregunta, setNuevaPregunta] = useState3("");
+  const cargar = useCallback3(() => {
+    if (!tieneNif) {
+      setData(null);
+      return;
+    }
+    setError(null);
+    rest("/nif/snapshot?case_id=" + encodeURIComponent(caseId)).then(setData).catch(setError);
+  }, [caseId, tieneNif]);
+  useEffect3(() => {
+    cargar();
+  }, [cargar]);
+  const agregarItem = useCallback3((campo) => {
+    const raw = nuevoValor.trim();
+    if (!raw || ocupado || !tieneNif) return;
+    let valor = raw;
+    if (!campo.startsWith("facts.")) {
+      try {
+        valor = JSON.parse(raw);
+      } catch {
+        if (campo === "norms" || campo === "subjects") valor = { label: raw };
+        else if (campo === "hypotheses" || campo === "gaps" || campo === "conflicts") valor = { description: raw };
+      }
+    }
+    setOcupado(true);
+    setError(null);
+    rest("/nif/edit", {
+      method: "POST",
+      body: { case_id: caseId, field_path: campo, value: valor },
+      timeoutMs: 6e4
+    }).then(() => {
+      setNuevoValor("");
+      cargar();
+    }).catch(setError).finally(() => setOcupado(false));
+  }, [nuevoValor, ocupado, tieneNif, caseId, cargar]);
+  const alternarValidacion = useCallback3((validadoActual) => {
+    if (!tieneNif || ocupado) return;
+    setOcupado(true);
+    rest("/nif/validar", {
+      method: "POST",
+      body: { case_id: caseId, validated: !validadoActual },
+      timeoutMs: 6e4
+    }).then(cargar).catch(setError).finally(() => setOcupado(false));
+  }, [tieneNif, ocupado, caseId, cargar]);
+  const snap = data && data.snapshot || {};
+  const nif = snap.nif || null;
+  return jsxs3("div", {
+    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+    children: [
+      // 1. Propuestas de NIF Vivo desde el escrito
+      jsx3(NifPropuestas, {
+        editorRef,
+        caseId,
+        registro,
+        setRegistro,
+        sesion,
+        tieneNif
+      }),
+      // 2. Si está en borrador sin caso NIF, permitir crear o sembrar caso aquí mismo
+      !tieneNif ? jsxs3("div", {
+        className: "flex flex-col gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 p-3",
+        children: [
+          jsx3("div", { className: "font-bold text-indigo-900", children: "Vincular o crear Tablero NIF" }),
+          jsx3("div", { className: "text-[11px] text-indigo-800", children: "El documento actual est\xE1 en \xABborrador\xBB. Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo." }),
+          jsx3("input", {
+            value: nuevoId,
+            onChange: (e3) => setNuevoId(e3.target.value),
+            placeholder: "ID del caso (ej. causa-despido-1)",
+            className: "rounded border border-indigo-200 bg-white px-2 py-1 text-xs"
+          }),
+          jsx3("input", {
+            value: nuevaPregunta,
+            onChange: (e3) => setNuevaPregunta(e3.target.value),
+            placeholder: "Pregunta jur\xEDdica principal\u2026",
+            className: "rounded border border-indigo-200 bg-white px-2 py-1 text-xs"
+          }),
+          jsxs3("div", { className: "flex flex-wrap gap-1.5", children: [
+            jsx3("button", {
+              type: "button",
+              disabled: !nuevoId.trim() || !nuevaPregunta.trim(),
+              onClick: () => {
+                if (onCrearCaso) onCrearCaso(nuevoId.trim(), nuevaPregunta.trim());
+                setNuevoId("");
+                setNuevaPregunta("");
+              },
+              className: "rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-xs font-semibold text-white cursor-pointer",
+              children: "Crear caso NIF"
+            }),
+            onSembrarDemoCaso ? jsx3("button", {
+              type: "button",
+              onClick: onSembrarDemoCaso,
+              className: "rounded border border-indigo-300 bg-white hover:bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 cursor-pointer",
+              children: "Cargar caso demo (CT)"
+            }) : null
+          ] })
+        ]
+      }) : null,
+      error2 ? jsx3("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      // 3. Tablero NIF interactivo del caso activo
+      tieneNif && nif ? jsxs3("div", {
+        className: "flex flex-col gap-2.5 rounded-md border border-slate-200 bg-white p-2.5",
+        children: [
+          jsxs3("div", { className: "flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2", children: [
+            jsxs3("div", { className: "flex items-center gap-1.5", children: [
+              jsx3("span", {
+                className: "rounded px-1.5 py-0.5 text-[10px] font-semibold " + (nif.validated_by_human ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"),
+                children: nif.validated_by_human ? "\u2713 validado por humano" : "borrador NIF"
+              }),
+              jsx3("span", {
+                className: "text-[10px] text-slate-500",
+                children: `v${snap.version || 1} \xB7 confianza ${Math.round((nif.confidence || 0) * 100)}%`
+              })
+            ] }),
+            jsx3("button", {
+              type: "button",
+              onClick: () => alternarValidacion(nif.validated_by_human),
+              className: "text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer",
+              children: nif.validated_by_human ? "Retirar validaci\xF3n" : "Marcar validado"
+            })
+          ] }),
+          nif.legal_question ? jsx3("div", {
+            className: "rounded bg-slate-50 p-2 text-xs font-medium text-slate-800 border border-slate-200/80",
+            children: nif.legal_question
+          }) : null,
+          // Acordeón interactivo de secciones del NIF
+          ...SECCIONES_TABLERO_NIF.map(([campo, titulo, tagPizarra, colorPizarra]) => {
+            const lista = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
+            const abierta = seccionAbierta === campo;
+            return jsxs3("div", {
+              key: campo,
+              className: "rounded border border-slate-200 overflow-hidden",
+              children: [
+                jsxs3("button", {
+                  type: "button",
+                  onClick: () => setSeccionAbierta(abierta ? null : campo),
+                  className: "flex w-full items-center justify-between bg-slate-50 px-2.5 py-1.5 text-left hover:bg-slate-100 cursor-pointer",
+                  children: [
+                    jsx3("span", { className: "text-[11px] font-semibold text-slate-700", children: titulo }),
+                    jsx3("span", {
+                      className: "rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700",
+                      children: String(lista.length)
+                    })
+                  ]
+                }),
+                abierta ? jsxs3("div", { className: "flex flex-col gap-1.5 p-2 bg-white", children: [
+                  lista.length === 0 ? jsx3("div", { className: "text-[11px] text-slate-400 italic", children: "Sin elementos registrados en esta secci\xF3n." }) : lista.map((item, idx) => {
+                    const txt = formatearItemNif(item);
+                    return jsxs3("div", {
+                      key: idx,
+                      className: "flex items-start justify-between gap-1.5 border-b border-slate-100 pb-1.5 last:border-0",
+                      children: [
+                        jsx3("div", { className: "flex-1 text-[11px] text-slate-700 leading-relaxed whitespace-pre-wrap", children: txt }),
+                        jsxs3("div", { className: "flex items-center gap-1 shrink-0", children: [
+                          onAgregarAPizarra ? jsx3("button", {
+                            type: "button",
+                            title: "Enviar este elemento a la Pizarra Estrat\xE9gica",
+                            onClick: () => onAgregarAPizarra({
+                              titulo,
+                              tag: tagPizarra,
+                              color: colorPizarra,
+                              texto: txt
+                            }),
+                            className: "rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 cursor-pointer",
+                            children: "+ Pizarra"
+                          }) : null,
+                          onInsertarTexto ? jsx3("button", {
+                            type: "button",
+                            title: "Insertar en el escrito",
+                            onClick: () => onInsertarTexto(txt),
+                            className: "rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700 cursor-pointer",
+                            children: "\u21B3"
+                          }) : null
+                        ] })
+                      ]
+                    });
+                  }),
+                  // Agregar nuevo elemento a la sección
+                  jsxs3("div", { className: "flex gap-1 pt-1", children: [
+                    jsx3("input", {
+                      value: nuevoValor,
+                      onChange: (e3) => setNuevoValor(e3.target.value),
+                      onKeyDown: (e3) => {
+                        if (e3.key === "Enter") agregarItem(campo);
+                      },
+                      placeholder: "Agregar a " + titulo.toLowerCase() + "\u2026",
+                      className: "flex-1 rounded border border-slate-300 px-2 py-1 text-[11px] text-slate-800 outline-none"
+                    }),
+                    jsx3("button", {
+                      type: "button",
+                      onClick: () => agregarItem(campo),
+                      disabled: ocupado || !nuevoValor.trim(),
+                      className: "rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
+                      children: "+ Agregar"
+                    })
+                  ] })
+                ] }) : null
+              ]
+            });
+          })
+        ]
+      }) : null
+    ]
+  });
 }
 
 // src/escritor/prediccion.js
@@ -26270,6 +26635,2183 @@ function PrediccionPanel({
   ] });
 }
 
+// src/escritor/pizarra.js
+import { jsx as jsx5, jsxs as jsxs5 } from "react/jsx-runtime";
+import { useCallback as useCallback5, useEffect as useEffect5, useRef as useRef4, useState as useState5 } from "react";
+
+// src/escritor/pizarra-logica.js
+var COLORES_NOTA = [
+  { id: "amarillo", hex: "#fef08a", borde: "#eab308", texto: "Amarillo" },
+  { id: "verde", hex: "#bbf7d0", borde: "#22c55e", texto: "Verde" },
+  { id: "azul", hex: "#bfdbfe", borde: "#3b82f6", texto: "Azul" },
+  { id: "rojo", hex: "#fecaca", borde: "#ef4444", texto: "Rojo" },
+  { id: "violeta", hex: "#e9d5ff", borde: "#a855f7", texto: "Violeta" },
+  { id: "naranja", hex: "#fed7aa", borde: "#f97316", texto: "Naranja" }
+];
+var PLANTILLAS_PIZARRA = [
+  {
+    id: "demanda",
+    label: "Demanda / Escrito Judicial",
+    descripcion: "Partes \xB7 Hechos \xB7 Fundamentos de Derecho \xB7 Petitorio",
+    columnas: [
+      { titulo: "Partes y Comparecencia", tag: "PARTES", color: "#bfdbfe", texto: "Individualizaci\xF3n del demandante, demandado y representaci\xF3n procesal." },
+      { titulo: "Hechos de la Causa", tag: "HECHO", color: "#bbf7d0", texto: "Relaci\xF3n cronol\xF3gica de hechos acreditados y circunstancias relevantes." },
+      { titulo: "Fundamentos de Derecho", tag: "NORMA", color: "#e9d5ff", texto: "Art\xEDculos aplicables, doctrina y calificaci\xF3n jur\xEDdica de los hechos." },
+      { titulo: "Petitorio y Otros\xEDes", tag: "CONCLUSI\xD3N", color: "#fef08a", texto: "Peticiones concretas sometidas al tribunal y medios de prueba en otros\xEDes." }
+    ],
+    conectarSecuencia: true
+  },
+  {
+    id: "sentencia",
+    label: "Sentencia Judicial",
+    descripcion: "Partes \xB7 Vistos \xB7 Considerandos \xB7 Por Tanto",
+    columnas: [
+      { titulo: "Vistos y Partes", tag: "PARTES", color: "#bfdbfe", texto: "Identificaci\xF3n del proceso, pretensiones y defensas de las partes." },
+      { titulo: "Hechos Acreditados", tag: "HECHO", color: "#bbf7d0", texto: "Hechos probados y valoraci\xF3n de la prueba rendida en el expediente." },
+      { titulo: "Considerandos de Derecho", tag: "NORMA", color: "#e9d5ff", texto: "Subsunci\xF3n normativa y an\xE1lisis de las infracciones o causales." },
+      { titulo: "Resolutivo (Por Tanto)", tag: "CONCLUSI\xD3N", color: "#fef08a", texto: "Decisi\xF3n precisa sobre cada acci\xF3n, excepci\xF3n y costas." }
+    ],
+    conectarSecuencia: true
+  },
+  {
+    id: "contrato",
+    label: "Contrato / Convenci\xF3n",
+    descripcion: "Partes \xB7 Objeto \xB7 Obligaciones \xB7 Garant\xEDas y Terminaci\xF3n",
+    columnas: [
+      { titulo: "Comparecientes", tag: "PARTES", color: "#bfdbfe", texto: "Partes contratantes, personer\xEDas y domicilios." },
+      { titulo: "Objeto y Precio", tag: "HECHO", color: "#bbf7d0", texto: "Prestaci\xF3n principal, contraprestaci\xF3n, plazos y forma de pago." },
+      { titulo: "Obligaciones y Prohibiciones", tag: "NORMA", color: "#fed7aa", texto: "Deberes espec\xEDficos de cada parte y est\xE1ndares de cumplimiento." },
+      { titulo: "Garant\xEDas y Jurisdicci\xF3n", tag: "CONCLUSI\xD3N", color: "#fecaca", texto: "Cl\xE1usula penal, causales de t\xE9rmino, domicilio y arbitraje." }
+    ],
+    conectarSecuencia: true
+  },
+  {
+    id: "resolucion",
+    label: "Resoluci\xF3n / Reclamaci\xF3n Adm.",
+    descripcion: "Antecedentes \xB7 Marco Normativo \xB7 Motivaci\xF3n \xB7 Resolutivo",
+    columnas: [
+      { titulo: "Antecedentes de Hecho", tag: "HECHO", color: "#bfdbfe", texto: "Acto administrativo impugnado, fiscalizaci\xF3n o expediente." },
+      { titulo: "Marco Normativo", tag: "NORMA", color: "#bbf7d0", texto: "Potestades legales, requisitos procedimentales y normas t\xE9cnicas." },
+      { titulo: "An\xE1lisis y Prueba", tag: "PRUEBA", color: "#e9d5ff", texto: "Motivaci\xF3n, proporcionalidad y examen de antecedentes." },
+      { titulo: "Conclusi\xF3n / Lo Pedido", tag: "CONCLUSI\xD3N", color: "#fef08a", texto: "Nulidad, modificaci\xF3n o confirmaci\xF3n solicitada." }
+    ],
+    conectarSecuencia: true
+  }
+];
+function crearIdNota(prefijo = "nota") {
+  return prefijo + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+}
+function construirNodosPlantilla(plantilla) {
+  const cols = plantilla && plantilla.columnas || [];
+  const ancho = 230;
+  const alto = 165;
+  const gap = 34;
+  const nodos = cols.map((c4, i3) => ({
+    id: crearIdNota("n" + i3),
+    x: 24 + i3 * (ancho + gap),
+    y: 22,
+    w: ancho,
+    h: alto,
+    titulo: c4.titulo || "Nota " + (i3 + 1),
+    tag: c4.tag || "NOTA",
+    color: c4.color || "#fef08a",
+    texto: c4.texto || "",
+    minimizada: false
+  }));
+  const aristas = [];
+  if (plantilla && plantilla.conectarSecuencia && nodos.length > 1) {
+    for (let i3 = 0; i3 < nodos.length - 1; i3++) {
+      aristas.push({
+        id: crearIdNota("e" + i3),
+        from: nodos[i3].id,
+        to: nodos[i3 + 1].id,
+        label: i3 === 0 ? "fundamenta" : i3 === 1 ? "verifica" : "sostiene"
+      });
+    }
+  }
+  return { nodos, aristas };
+}
+
+// src/escritor/pizarra.js
+function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
+  const [q2, setQ] = useState5("");
+  const [resultados, setResultados] = useState5([]);
+  const [arbol, setArbol] = useState5(null);
+  const [ocupado, setOcupado] = useState5(false);
+  const [error2, setError] = useState5(null);
+  const timerRef = useRef4(null);
+  const ejecutar = useCallback5((consulta) => {
+    const limpio = (consulta || "").trim();
+    if (!limpio) {
+      setResultados([]);
+      setArbol(null);
+      return;
+    }
+    setOcupado(true);
+    setError(null);
+    rest("/grafo/buscar", {
+      method: "POST",
+      body: { q: limpio, limite: 12 },
+      timeoutMs: 12e4
+    }).then((d2) => {
+      setResultados(d2 && d2.resultados || []);
+      setArbol(d2 && d2.arbol || null);
+    }).catch((e3) => {
+      setError(e3);
+      setResultados([]);
+    }).finally(() => setOcupado(false));
+  }, []);
+  const cambiar = (ev) => {
+    const v2 = ev.target.value;
+    setQ(v2);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => ejecutar(v2), 350);
+  };
+  useEffect5(() => () => clearTimeout(timerRef.current), []);
+  return jsxs5("div", {
+    className: "absolute top-2 right-3 z-30 flex w-96 flex-col rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl",
+    style: { maxHeight: "260px" },
+    children: [
+      jsxs5("div", { className: "flex items-center gap-2 border-b border-slate-700 px-3 py-2", children: [
+        jsx5("span", { className: "text-xs font-semibold text-sky-400", children: "LexO Search \xB7 Corpus Dik\xE9" }),
+        jsx5("input", {
+          className: "flex-1 bg-transparent text-xs text-slate-100 outline-none placeholder-slate-400",
+          placeholder: "Buscar en las 25 leyes (ej. despido necesidades empresa)\u2026",
+          value: q2,
+          autoFocus: true,
+          onChange: cambiar,
+          onKeyDown: (e3) => {
+            if (e3.key === "Enter") ejecutar(q2);
+          }
+        }),
+        jsx5("button", {
+          type: "button",
+          className: "text-xs text-slate-400 hover:text-white px-1",
+          onClick: onCerrar,
+          title: "Cerrar buscador",
+          children: "\u2715"
+        })
+      ] }),
+      arbol && arbol.disponible && (arbol.materias || []).length ? jsxs5("div", { className: "flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300", children: [
+        jsx5("span", { className: "text-slate-400", children: "Materias:" }),
+        ...(arbol.materias || []).slice(0, 3).map((m3, i3) => jsx5("span", {
+          key: i3,
+          className: "rounded bg-slate-800 px-1.5 py-0.5 text-sky-300",
+          children: m3.nombre || m3.nodo_id
+        }))
+      ] }) : null,
+      jsxs5("div", { className: "flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5", children: [
+        ocupado ? jsx5("div", { className: "py-4 text-center text-xs text-slate-400", children: "Buscando en el corpus sellado (BM25)\u2026" }) : null,
+        error2 ? jsx5("div", { className: "rounded bg-red-950/60 p-2 text-xs text-red-300", children: mensajeError(error2) }) : null,
+        !ocupado && !error2 && resultados.length === 0 && q2.trim() ? jsx5("div", { className: "py-4 text-center text-xs text-slate-400", children: "Sin resultados para \xAB" + q2.trim() + "\xBB." }) : null,
+        !ocupado && !q2.trim() ? jsx5("div", { className: "py-3 text-center text-[11px] text-slate-400", children: "Escribe t\xE9rminos jur\xEDdicos para traer normas a la pizarra o al escrito." }) : null,
+        ...resultados.map((r2, i3) => jsxs5("div", {
+          key: r2.nodo_id || i3,
+          className: "flex items-start justify-between gap-2 rounded border border-slate-800 bg-slate-800/60 p-2 hover:border-slate-600",
+          children: [
+            jsxs5("div", { className: "min-w-0 flex-1", children: [
+              jsxs5("div", { className: "flex items-center gap-1.5", children: [
+                jsx5("span", { className: "truncate text-xs font-semibold text-sky-300", children: r2.cita || r2.label || r2.gid }),
+                r2.vigencia ? jsx5("span", {
+                  className: "rounded px-1 py-0.5 text-[9px] uppercase " + (r2.vigencia === "IN_FORCE" ? "bg-emerald-900/70 text-emerald-300" : "bg-amber-900/70 text-amber-300"),
+                  children: r2.vigencia === "IN_FORCE" ? "vigente" : r2.vigencia
+                }) : null
+              ] }),
+              r2.snippet ? jsx5("div", {
+                className: "mt-0.5 line-clamp-2 text-[11px] text-slate-300",
+                children: String(r2.snippet).slice(0, 180)
+              }) : null
+            ] }),
+            jsxs5("div", { className: "flex flex-col gap-1 shrink-0", children: [
+              jsx5("button", {
+                type: "button",
+                className: "rounded bg-sky-600 hover:bg-sky-500 px-2 py-0.5 text-[10px] font-medium text-white",
+                title: "Crear tarjeta de norma en la pizarra",
+                onClick: () => onAgregarNota({
+                  titulo: r2.cita || r2.label || r2.gid || "Norma",
+                  tag: "NORMA",
+                  color: "#bfdbfe",
+                  texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 260) : ""),
+                  nodo_id: r2.nodo_id,
+                  gid: r2.gid
+                }),
+                children: "+ Pizarra"
+              }),
+              r2.citable !== false && r2.cita && onLlevarAlEscrito ? jsx5("button", {
+                type: "button",
+                className: "rounded border border-slate-600 hover:bg-slate-700 px-2 py-0.5 text-[10px] text-slate-200",
+                title: "Insertar cita can\xF3nica en el escrito y verificar",
+                onClick: () => onLlevarAlEscrito(r2),
+                children: "+ Escrito"
+              }) : null
+            ] })
+          ]
+        }))
+      ] })
+    ]
+  });
+}
+function PizarraEstrategica({
+  pizarra,
+  onChange: onChange3,
+  onInsertarTexto,
+  onLlevarCitaAlEscrito,
+  onAbrirGrafo
+}) {
+  const estado = pizarra || {};
+  const nodos = Array.isArray(estado.nodos) ? estado.nodos : [];
+  const aristas = Array.isArray(estado.aristas) ? estado.aristas : [];
+  const colapsada = Boolean(estado.colapsada);
+  const altura = Number(estado.altura) || 235;
+  const [menuPlantillas, setMenuPlantillas] = useState5(false);
+  const [buscadorAbierto, setBuscadorAbierto] = useState5(false);
+  const [conectandoDesde, setConectandoDesde] = useState5(null);
+  const [zoom2, setZoom] = useState5(1);
+  const [pan, setPan] = useState5({ x: 0, y: 0 });
+  const dragRef = useRef4(null);
+  const resizeBarRef = useRef4(null);
+  const canvasRef = useRef4(null);
+  const actualizar = useCallback5((parche) => {
+    if (onChange3) onChange3({ ...estado, nodos, aristas, colapsada, altura, ...parche });
+  }, [estado, nodos, aristas, colapsada, altura, onChange3]);
+  useEffect5(() => {
+    const onMove = (ev) => {
+      if (dragRef.current) {
+        const d2 = dragRef.current;
+        const dx = (ev.clientX - d2.startX) / zoom2;
+        const dy = (ev.clientY - d2.startY) / zoom2;
+        if (d2.modo === "mover") {
+          const nuevos = d2.nodosBase.map((n2) => n2.id === d2.id ? { ...n2, x: Math.max(4, Math.round(d2.origX + dx)), y: Math.max(4, Math.round(d2.origY + dy)) } : n2);
+          actualizar({ nodos: nuevos });
+        } else if (d2.modo === "tamano") {
+          const nuevos = d2.nodosBase.map((n2) => n2.id === d2.id ? { ...n2, w: Math.max(160, Math.round(d2.origW + dx)), h: Math.max(95, Math.round(d2.origH + dy)) } : n2);
+          actualizar({ nodos: nuevos });
+        } else if (d2.modo === "pan") {
+          setPan({
+            x: Math.round(d2.panX + (ev.clientX - d2.startX)),
+            y: Math.round(d2.panY + (ev.clientY - d2.startY))
+          });
+        }
+      }
+      if (resizeBarRef.current) {
+        const r2 = resizeBarRef.current;
+        const nuevaAltura = Math.max(130, Math.min(520, r2.origAltura + (ev.clientY - r2.startY)));
+        actualizar({ altura: nuevaAltura });
+      }
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      resizeBarRef.current = null;
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [zoom2, actualizar]);
+  const agregarNota = useCallback5((datos = {}) => {
+    const idx = nodos.length;
+    const col = idx % 4;
+    const fila = Math.floor(idx / 4);
+    const colorDefault = COLORES_NOTA[idx % COLORES_NOTA.length].hex;
+    const nueva = {
+      id: crearIdNota("nota"),
+      x: datos.x != null ? datos.x : 24 + col * 248,
+      y: datos.y != null ? datos.y : 20 + fila * 175,
+      w: datos.w || 232,
+      h: datos.h || 155,
+      titulo: datos.titulo || "Nota " + (idx + 1),
+      tag: datos.tag || "NOTA",
+      color: datos.color || colorDefault,
+      texto: datos.texto || "",
+      nodo_id: datos.nodo_id || null,
+      gid: datos.gid || null,
+      minimizada: false
+    };
+    actualizar({ nodos: [...nodos, nueva], colapsada: false });
+  }, [nodos, actualizar]);
+  const aplicarPlantilla = useCallback5((pl) => {
+    const { nodos: ns, aristas: as } = construirNodosPlantilla(pl);
+    setPan({ x: 0, y: 0 });
+    setZoom(1);
+    actualizar({ nodos: ns, aristas: as, colapsada: false });
+    setMenuPlantillas(false);
+  }, [actualizar]);
+  const editarNodo = useCallback5((id, parche) => {
+    actualizar({
+      nodos: nodos.map((n2) => n2.id === id ? { ...n2, ...parche } : n2)
+    });
+  }, [nodos, actualizar]);
+  const eliminarNodo = useCallback5((id) => {
+    actualizar({
+      nodos: nodos.filter((n2) => n2.id !== id),
+      aristas: aristas.filter((e3) => e3.from !== id && e3.to !== id)
+    });
+    if (conectandoDesde === id) setConectandoDesde(null);
+  }, [nodos, aristas, conectandoDesde, actualizar]);
+  const clickConectar = useCallback5((id) => {
+    if (!conectandoDesde) {
+      setConectandoDesde(id);
+      return;
+    }
+    if (conectandoDesde === id) {
+      setConectandoDesde(null);
+      return;
+    }
+    const yaExiste = aristas.some((a3) => a3.from === conectandoDesde && a3.to === id);
+    if (!yaExiste) {
+      actualizar({
+        aristas: [...aristas, { id: crearIdNota("arista"), from: conectandoDesde, to: id, label: "apoya" }]
+      });
+    }
+    setConectandoDesde(null);
+  }, [conectandoDesde, aristas, actualizar]);
+  const volcarAlEscrito = useCallback5(() => {
+    if (!onInsertarTexto || !nodos.length) return;
+    const ordenados = [...nodos].sort((a3, b2) => a3.y - b2.y || a3.x - b2.x);
+    const bloques = ordenados.map((n2) => {
+      const tit = (n2.titulo || "").trim();
+      const txt = (n2.texto || "").trim();
+      if (!txt && !tit) return "";
+      return (tit ? tit.toUpperCase() + ":\n" : "") + txt;
+    }).filter(Boolean);
+    if (bloques.length) onInsertarTexto(bloques.join("\n\n"));
+  }, [nodos, onInsertarTexto]);
+  const mapaNodos = new Map(nodos.map((n2) => [n2.id, n2]));
+  return jsxs5("div", {
+    className: "flex flex-col border-b border-slate-300 bg-white select-none shrink-0",
+    children: [
+      // Barra superior de la Pizarra Estratégica (estilo imagen 2)
+      jsxs5("div", {
+        className: "flex flex-wrap items-center gap-1.5 border-b border-slate-200 bg-slate-50 px-3 py-1 text-xs",
+        children: [
+          jsx5("button", {
+            type: "button",
+            onClick: () => actualizar({ colapsada: !colapsada }),
+            className: "flex items-center gap-1 rounded px-2 py-1 font-medium text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer",
+            children: [
+              jsx5("span", { children: colapsada ? "\u25BE" : "\u25B4" }),
+              jsx5("span", { children: "Pizarra Estrat\xE9gica" }),
+              nodos.length > 0 ? jsx5("span", {
+                className: "ml-1 rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] text-slate-600",
+                children: String(nodos.length)
+              }) : null
+            ]
+          }),
+          jsx5("button", {
+            type: "button",
+            onClick: () => agregarNota({}),
+            className: "flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs",
+            title: "Agregar nota adhesiva a la pizarra",
+            children: ["+ Nota"]
+          }),
+          // Selector de Plantillas
+          jsxs5("div", { className: "relative", children: [
+            jsx5("button", {
+              type: "button",
+              onClick: () => setMenuPlantillas((v2) => !v2),
+              className: "flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs",
+              title: "Cargar estructura de escrito en la pizarra",
+              children: ["\u229E Plantillas \u25BE"]
+            }),
+            menuPlantillas ? jsxs5("div", {
+              className: "absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-slate-200 bg-white py-1 shadow-xl",
+              children: [
+                jsx5("div", { className: "px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400", children: "Estructuras jur\xEDdicas" }),
+                ...PLANTILLAS_PIZARRA.map((pl) => jsxs5("button", {
+                  key: pl.id,
+                  type: "button",
+                  onClick: () => aplicarPlantilla(pl),
+                  className: "flex w-full flex-col px-3 py-1.5 text-left hover:bg-slate-100",
+                  children: [
+                    jsx5("span", { className: "text-xs font-semibold text-slate-800", children: pl.label }),
+                    jsx5("span", { className: "text-[10px] text-slate-500", children: pl.descripcion })
+                  ]
+                }))
+              ]
+            }) : null
+          ] }),
+          // Botón LexO Search (conectado al corpus sellado BM25)
+          jsx5("button", {
+            type: "button",
+            onClick: () => {
+              if (colapsada) actualizar({ colapsada: false });
+              setBuscadorAbierto((v2) => !v2);
+            },
+            className: "flex items-center gap-1 rounded border px-2 py-0.5 text-xs cursor-pointer transition-colors " + (buscadorAbierto ? "border-sky-500 bg-sky-50 text-sky-700 font-medium" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"),
+            title: "Buscar normas en el corpus de Dik\xE9 y agregarlas como tarjetas",
+            children: ["\u{1F50D} LexO Search"]
+          }),
+          nodos.length > 0 ? jsx5("button", {
+            type: "button",
+            onClick: volcarAlEscrito,
+            className: "flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 hover:bg-emerald-100 cursor-pointer",
+            title: "Insertar el contenido ordenado de las notas en el escrito",
+            children: ["\u21B3 Llevar notas al escrito"]
+          }) : null,
+          conectandoDesde ? jsx5("span", {
+            className: "rounded bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700",
+            children: "Haz clic en otra nota para conectarlas (o en la misma para cancelar)"
+          }) : null,
+          // Botón limpiar a la derecha (como el icono de papelera en imagen 2)
+          jsxs5("div", { className: "ml-auto flex items-center gap-1", children: [
+            nodos.length > 0 ? jsx5("button", {
+              type: "button",
+              onClick: () => actualizar({ nodos: [], aristas: [] }),
+              className: "rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer",
+              title: "Limpiar pizarra",
+              children: "\u{1F5D1}"
+            }) : null
+          ] })
+        ]
+      }),
+      // Lienzo interactivo con grilla punteada (solo cuando no está colapsada)
+      !colapsada ? jsxs5("div", {
+        ref: canvasRef,
+        onMouseDown: (ev) => {
+          if (ev.target === canvasRef.current || ev.target.getAttribute("data-fondo") === "1") {
+            setMenuPlantillas(false);
+            dragRef.current = {
+              modo: "pan",
+              startX: ev.clientX,
+              startY: ev.clientY,
+              panX: pan.x,
+              panY: pan.y
+            };
+          }
+        },
+        className: "relative w-full overflow-hidden",
+        style: {
+          height: altura + "px",
+          backgroundColor: "#fafafa",
+          backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+          cursor: "grab"
+        },
+        children: [
+          // Estado vacío con invitación rápida
+          nodos.length === 0 ? jsxs5("div", {
+            "data-fondo": "1",
+            className: "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center",
+            children: [
+              jsx5("div", { className: "text-xs font-medium text-slate-400", children: "Pizarra Estrat\xE9gica vac\xEDa \u2014 planifica los bloques de tu escrito antes de redactar" }),
+              jsx5("div", { className: "text-[11px] text-slate-400", children: "Usa \xAB+ Nota\xBB, elige \xABPlantillas\xBB (Demanda, Sentencia, Contrato) o abre \xABLexO Search\xBB para traer art\xEDculos." })
+            ]
+          }) : null,
+          // Capa transformada por pan/zoom
+          jsxs5("div", {
+            "data-fondo": "1",
+            style: {
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom2})`,
+              transformOrigin: "0 0",
+              width: "100%",
+              height: "100%",
+              position: "relative"
+            },
+            children: [
+              // Aristas dirigidas SVG entre tarjetas
+              jsx5("svg", {
+                className: "pointer-events-none absolute inset-0 h-[1200px] w-[2400px] overflow-visible",
+                children: [
+                  jsx5("defs", {
+                    children: jsx5("marker", {
+                      id: "dike-arrow",
+                      viewBox: "0 0 10 10",
+                      refX: "8",
+                      refY: "5",
+                      markerWidth: "6",
+                      markerHeight: "6",
+                      orient: "auto-start-reverse",
+                      children: jsx5("path", { d: "M 0 1 L 10 5 L 0 9 z", fill: "#6366f1" })
+                    })
+                  }),
+                  ...aristas.map((ar) => {
+                    const n1 = mapaNodos.get(ar.from);
+                    const n2 = mapaNodos.get(ar.to);
+                    if (!n1 || !n2) return null;
+                    const x1 = n1.x + (n1.w || 220);
+                    const y1 = n1.y + (n1.minimizada ? 18 : (n1.h || 150) / 2);
+                    const x22 = n2.x;
+                    const y22 = n2.y + (n2.minimizada ? 18 : (n2.h || 150) / 2);
+                    const cx1 = x1 + Math.max(30, Math.abs(x22 - x1) * 0.4);
+                    const cx2 = x22 - Math.max(30, Math.abs(x22 - x1) * 0.4);
+                    const d2 = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y22}, ${x22} ${y22}`;
+                    const mx = (x1 + x22) / 2;
+                    const my = (y1 + y22) / 2 - 6;
+                    return jsxs5("g", { key: ar.id, children: [
+                      jsx5("path", {
+                        d: d2,
+                        fill: "none",
+                        stroke: "#6366f1",
+                        strokeWidth: "2",
+                        strokeDasharray: "4 2",
+                        markerEnd: "url(#dike-arrow)"
+                      }),
+                      ar.label ? jsx5("text", {
+                        x: mx,
+                        y: my,
+                        textAnchor: "middle",
+                        fill: "#4f46e5",
+                        fontSize: "10",
+                        fontWeight: "600",
+                        children: ar.label
+                      }) : null
+                    ] });
+                  })
+                ]
+              }),
+              // Notas / Tarjetas en el lienzo
+              ...nodos.map((n2) => {
+                const esOrigen = conectandoDesde === n2.id;
+                return jsxs5("div", {
+                  key: n2.id,
+                  style: {
+                    position: "absolute",
+                    left: n2.x + "px",
+                    top: n2.y + "px",
+                    width: (n2.w || 230) + "px",
+                    height: n2.minimizada ? "auto" : (n2.h || 155) + "px",
+                    backgroundColor: n2.color || "#fef08a",
+                    boxShadow: esOrigen ? "0 0 0 2px #4f46e5, 0 4px 12px rgba(0,0,0,0.12)" : "0 2px 6px rgba(0,0,0,0.10)"
+                  },
+                  className: "flex flex-col rounded-md border border-slate-300/90 text-slate-800 transition-shadow",
+                  children: [
+                    // Cabecera arrastrable de la tarjeta
+                    jsxs5("div", {
+                      onMouseDown: (ev) => {
+                        if (ev.target.tagName === "BUTTON" || ev.target.tagName === "INPUT") return;
+                        ev.stopPropagation();
+                        dragRef.current = {
+                          modo: "mover",
+                          id: n2.id,
+                          startX: ev.clientX,
+                          startY: ev.clientY,
+                          origX: n2.x,
+                          origY: n2.y,
+                          nodosBase: nodos
+                        };
+                      },
+                      className: "flex items-center gap-1 border-b border-black/10 px-2 py-1 cursor-move",
+                      children: [
+                        jsx5("span", {
+                          className: "rounded bg-black/10 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider text-slate-700",
+                          children: n2.tag || "NOTA"
+                        }),
+                        jsx5("input", {
+                          value: n2.titulo || "",
+                          onChange: (ev) => editarNodo(n2.id, { titulo: ev.target.value }),
+                          className: "min-w-0 flex-1 bg-transparent text-xs font-semibold text-slate-800 outline-none",
+                          placeholder: "T\xEDtulo\u2026"
+                        }),
+                        // Cambiar color
+                        jsx5("button", {
+                          type: "button",
+                          title: "Cambiar color de la nota",
+                          onClick: () => {
+                            const idx = COLORES_NOTA.findIndex((c4) => c4.hex === n2.color);
+                            const sig = COLORES_NOTA[(idx + 1) % COLORES_NOTA.length];
+                            editarNodo(n2.id, { color: sig.hex });
+                          },
+                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-black/10",
+                          children: "\u{1F3A8}"
+                        }),
+                        // Conectar con otra tarjeta
+                        jsx5("button", {
+                          type: "button",
+                          title: esOrigen ? "Cancelar conexi\xF3n" : "Conectar con otra tarjeta",
+                          onClick: () => clickConectar(n2.id),
+                          className: "rounded px-1 text-[10px] " + (esOrigen ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-black/10"),
+                          children: "\u{1F517}"
+                        }),
+                        // Insertar esta tarjeta en el escrito
+                        onInsertarTexto ? jsx5("button", {
+                          type: "button",
+                          title: "Insertar texto de esta nota en el escrito",
+                          onClick: () => {
+                            const txt = (n2.texto || n2.titulo || "").trim();
+                            if (txt) onInsertarTexto(txt);
+                          },
+                          className: "rounded px-1 text-[10px] font-bold text-emerald-800 hover:bg-black/10",
+                          children: "\u21B3"
+                        }) : null,
+                        // Abrir en el grafo si es tarjeta de norma con nodo_id
+                        n2.nodo_id && onAbrirGrafo ? jsx5("button", {
+                          type: "button",
+                          title: "Abrir art\xEDculo en el grafo 3D",
+                          onClick: () => onAbrirGrafo({ nodo_id: n2.nodo_id }),
+                          className: "rounded px-1 text-[10px] text-sky-800 hover:bg-black/10",
+                          children: "\u25C8"
+                        }) : null,
+                        // Minimizar
+                        jsx5("button", {
+                          type: "button",
+                          title: n2.minimizada ? "Expandir nota" : "Minimizar nota",
+                          onClick: () => editarNodo(n2.id, { minimizada: !n2.minimizada }),
+                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-black/10",
+                          children: n2.minimizada ? "\u25A2" : "\u2013"
+                        }),
+                        // Cerrar/Eliminar
+                        jsx5("button", {
+                          type: "button",
+                          title: "Eliminar nota",
+                          onClick: () => eliminarNodo(n2.id),
+                          className: "rounded px-1 text-[10px] text-slate-600 hover:bg-red-200 hover:text-red-700",
+                          children: "\u2715"
+                        })
+                      ]
+                    }),
+                    // Cuerpo de texto de la tarjeta
+                    !n2.minimizada ? jsx5("textarea", {
+                      value: n2.texto || "",
+                      onChange: (ev) => editarNodo(n2.id, { texto: ev.target.value }),
+                      placeholder: "Escribe ideas, hechos o art\xEDculos para esta secci\xF3n\u2026",
+                      className: "flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-slate-800 outline-none"
+                    }) : null,
+                    // Esquina de redimensionado de tarjeta
+                    !n2.minimizada ? jsx5("div", {
+                      onMouseDown: (ev) => {
+                        ev.stopPropagation();
+                        dragRef.current = {
+                          modo: "tamano",
+                          id: n2.id,
+                          startX: ev.clientX,
+                          startY: ev.clientY,
+                          origW: n2.w || 230,
+                          origH: n2.h || 155,
+                          nodosBase: nodos
+                        };
+                      },
+                      title: "Arrastrar para cambiar tama\xF1o",
+                      className: "absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-[9px] leading-none text-slate-500/70",
+                      children: "\u25E2"
+                    }) : null
+                  ]
+                });
+              })
+            ]
+          }),
+          // Controles de zoom abajo a la izquierda (exactamente como en la imagen 2)
+          jsxs5("div", {
+            className: "absolute bottom-2 left-2 z-20 flex flex-col overflow-hidden rounded border border-slate-300 bg-white shadow-sm",
+            children: [
+              jsx5("button", {
+                type: "button",
+                title: "Acercar",
+                onClick: () => setZoom((z3) => Math.min(1.6, +(z3 + 0.15).toFixed(2))),
+                className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
+                children: "+"
+              }),
+              jsx5("button", {
+                type: "button",
+                title: "Alejar",
+                onClick: () => setZoom((z3) => Math.max(0.55, +(z3 - 0.15).toFixed(2))),
+                className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
+                children: "\u2212"
+              }),
+              jsx5("button", {
+                type: "button",
+                title: "Restablecer vista",
+                onClick: () => {
+                  setZoom(1);
+                  setPan({ x: 0, y: 0 });
+                },
+                className: "px-2 py-1 text-[10px] text-slate-700 hover:bg-slate-100",
+                children: "\u26F6"
+              })
+            ]
+          }),
+          // Panel flotante LexO Search
+          buscadorAbierto ? jsx5(BuscadorCorpusPizarra, {
+            onAgregarNota: (item) => agregarNota(item),
+            onLlevarAlEscrito: onLlevarCitaAlEscrito,
+            onCerrar: () => setBuscadorAbierto(false)
+          }) : null
+        ]
+      }) : null,
+      // Tirador inferior para redimensionar la altura de la pizarra (estilo imagen 2)
+      !colapsada ? jsx5("div", {
+        onMouseDown: (ev) => {
+          ev.preventDefault();
+          resizeBarRef.current = { startY: ev.clientY, origAltura: altura };
+        },
+        title: "Arrastra para ajustar la altura de la Pizarra Estrat\xE9gica",
+        className: "flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-slate-200 bg-slate-100 hover:bg-slate-200",
+        children: jsx5("span", { className: "text-[10px] tracking-widest text-slate-400", children: "\u22EE\u22EE\u22EE" })
+      }) : null
+    ]
+  });
+}
+
+// src/escritor/barra-formato.js
+import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
+import { useEffect as useEffect6, useRef as useRef5, useState as useState6 } from "react";
+var FUENTES = [
+  { label: "Predeterminada (Serif)", value: "Georgia, 'Times New Roman', serif" },
+  { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Arial / Sans", value: "Arial, Helvetica, sans-serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+  { label: "Courier New (Mono)", value: "'Courier New', Courier, monospace" }
+];
+var TAMANOS = ["10", "11", "12", "13", "14", "16", "18", "20"];
+var FORMALISMOS_RAPIDOS = [
+  { label: "EN LO PRINCIPAL:", texto: "EN LO PRINCIPAL: " },
+  { label: "PRIMER OTROS\xCD:", texto: "PRIMER OTROS\xCD: " },
+  { label: "SEGUNDO OTROS\xCD:", texto: "SEGUNDO OTROS\xCD: " },
+  { label: "S. J. L.", texto: "S. J. L.\n\n" },
+  { label: "VISTOS:", texto: "VISTOS:\n\n" },
+  { label: "CONSIDERANDO:", texto: "CONSIDERANDO:\n\n" },
+  { label: "POR TANTO,", texto: "POR TANTO,\nEn m\xE9rito de lo expuesto y de lo dispuesto en las normas citadas, RUEGO A US.: " }
+];
+var TEXTO_GUARDADO = {
+  cargando: { label: "cargando\u2026", cls: "bg-slate-100 text-slate-500" },
+  guardado: { label: "guardado", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  guardando: { label: "guardando\u2026", cls: "bg-sky-50 text-sky-700 border border-sky-200" },
+  "sin-guardar": { label: "sin guardar", cls: "bg-amber-50 text-amber-700 border border-amber-200" },
+  conflicto: { label: "conflicto", cls: "bg-red-50 text-red-700 border border-red-200" }
+};
+function Separador() {
+  return jsx6("div", { className: "mx-1 h-5 w-px self-center bg-slate-300" });
+}
+function BotonBarra({ onClick, activo, disabled, title, children: children2 }) {
+  return jsx6("button", {
+    type: "button",
+    onClick,
+    disabled,
+    title,
+    className: "flex h-7 min-w-7 items-center justify-center rounded px-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed " + (activo ? "bg-indigo-100 text-indigo-700 font-semibold" : "text-slate-700 hover:bg-slate-200/80"),
+    children: children2
+  });
+}
+function BarraFormato({
+  editorRef,
+  caseId,
+  casos,
+  onCambiarCaso,
+  onCrearCaso,
+  onSembrarDemoCaso,
+  onCargarEscritoDemo,
+  onGuardarAhora,
+  estadoDoc,
+  verificando,
+  onVerificar,
+  verificacion,
+  modoVista,
+  onCambiarModoVista,
+  prefs,
+  onCambiarPrefs,
+  docInfo,
+  onAbrirHerramienta
+}) {
+  const [menuArchivo, setMenuArchivo] = useState6(false);
+  const [menuFormalismos, setMenuFormalismos] = useState6(false);
+  const [modalNuevoCaso, setModalNuevoCaso] = useState6(false);
+  const [nuevoCaseId, setNuevoCaseId] = useState6("");
+  const [nuevaPregunta, setNuevaPregunta] = useState6("");
+  const [, setTick] = useState6(0);
+  const refArchivo = useRef5(null);
+  const refFormalismo = useRef5(null);
+  const ed = editorRef && editorRef.current;
+  useEffect6(() => {
+    const cerrar = (ev) => {
+      if (refArchivo.current && !refArchivo.current.contains(ev.target)) {
+        setMenuArchivo(false);
+      }
+      if (refFormalismo.current && !refFormalismo.current.contains(ev.target)) {
+        setMenuFormalismos(false);
+      }
+    };
+    document.addEventListener("mousedown", cerrar);
+    return () => document.removeEventListener("mousedown", cerrar);
+  }, []);
+  const comando = (fn) => {
+    const editor = editorRef && editorRef.current;
+    if (!editor) return;
+    fn(editor);
+    setTick((t4) => t4 + 1);
+  };
+  const exportarArchivo = (ext, mime, contenido) => {
+    const blob = new Blob([contenido], { type: mime + ";charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a3 = document.createElement("a");
+    a3.href = url;
+    a3.download = `escrito-${caseId || "borrador"}.${ext}`;
+    a3.click();
+    URL.revokeObjectURL(url);
+    setMenuArchivo(false);
+  };
+  const importarArchivoLocal = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".txt,.md,.html,.json";
+    input.onchange = async (ev) => {
+      const f2 = ev.target.files && ev.target.files[0];
+      const editor = editorRef && editorRef.current;
+      if (!f2 || !editor) return;
+      const raw = await f2.text();
+      const ext = (f2.name.split(".").pop() || "").toLowerCase();
+      if (ext === "json") {
+        try {
+          const parsed = JSON.parse(raw);
+          editor.commands.setContent(parsed.html || parsed.texto || parsed);
+        } catch {
+          editor.commands.setContent(raw);
+        }
+      } else if (ext === "html") {
+        editor.commands.setContent(raw);
+      } else {
+        const html = raw.split(/\n\s*\n/).filter((p2) => p2.trim()).map((p2) => "<p>" + p2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</p>").join("");
+        editor.commands.setContent(html || "<p></p>");
+      }
+    };
+    input.click();
+    setMenuArchivo(false);
+  };
+  const opcionesCaso = [{ case_id: "borrador", legal_question: "borrador (sin caso)" }].concat(casos || []);
+  const infoGuardado = TEXTO_GUARDADO[estadoDoc] || { label: estadoDoc, cls: "bg-slate-100 text-slate-600" };
+  const textoPlano = docInfo && docInfo.texto || (ed ? textoDelEditor(ed) : "");
+  const numPalabras = textoPlano.trim() ? textoPlano.trim().split(/\s+/).length : 0;
+  const metaVerif = verificacion && verificacion.resultado && verificacion.resultado.meta || null;
+  return jsxs6("div", {
+    className: "flex flex-col border-b border-slate-300 bg-white text-slate-800 select-none shrink-0",
+    children: [
+      // ── FILA 1: Archivo · Escribir/Leer · Documento/Caso · Fuente/Tamaño · Verificar ──
+      jsxs6("div", {
+        className: "flex flex-wrap items-center gap-1 border-b border-slate-100 px-3 py-1",
+        children: [
+          // Menú Archivo
+          jsxs6("div", { ref: refArchivo, className: "relative", children: [
+            jsx6("button", {
+              type: "button",
+              onClick: () => setMenuArchivo((v2) => !v2),
+              className: "flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 cursor-pointer",
+              children: ["\u{1F4C4} Archivo \u25BE"]
+            }),
+            menuArchivo ? jsxs6("div", {
+              className: "absolute left-0 top-full z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white py-1 shadow-xl text-xs",
+              children: [
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    if (onCargarEscritoDemo) onCargarEscritoDemo();
+                    setMenuArchivo(false);
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u2728 Cargar escrito de demostraci\xF3n (CT)"]
+                }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: importarArchivoLocal,
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u{1F4C2} Abrir archivo (.md, .txt, .html)\u2026"]
+                }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    if (onGuardarAhora) onGuardarAhora();
+                    setMenuArchivo(false);
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u{1F4BE} Guardar ahora"]
+                }),
+                jsx6("div", { className: "my-1 h-px bg-slate-200" }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    const editor = editorRef && editorRef.current;
+                    if (editor) exportarArchivo("md", "text/markdown", textoDelEditor(editor));
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u2B07 Exportar como Markdown (.md)"]
+                }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    const editor = editorRef && editorRef.current;
+                    if (editor) exportarArchivo("txt", "text/plain", textoDelEditor(editor));
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u2B07 Exportar como Texto (.txt)"]
+                }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    const editor = editorRef && editorRef.current;
+                    if (editor) exportarArchivo("html", "text/html", editor.getHTML());
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u2B07 Exportar como HTML (.html)"]
+                }),
+                jsx6("div", { className: "my-1 h-px bg-slate-200" }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    const editor = editorRef && editorRef.current;
+                    if (editor) editor.commands.setContent("<p></p>");
+                    setMenuArchivo(false);
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-red-600 hover:bg-red-50",
+                  children: ["\u{1F9F9} Vaciar escrito actual"]
+                }),
+                jsx6("button", {
+                  type: "button",
+                  onClick: () => {
+                    setMenuArchivo(false);
+                    window.print();
+                  },
+                  className: "flex w-full items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-100",
+                  children: ["\u{1F5A8} Imprimir / Guardar PDF"]
+                })
+              ]
+            }) : null
+          ] }),
+          // Toggle Escribir | Leer (exactamente como en imagen 2)
+          jsxs6("div", {
+            className: "flex items-center gap-0.5 rounded-md bg-slate-100 p-0.5 border border-slate-200",
+            children: [
+              jsx6("button", {
+                type: "button",
+                onClick: () => onCambiarModoVista && onCambiarModoVista("write"),
+                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista !== "read" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"),
+                children: ["\u270E Escribir"]
+              }),
+              jsx6("button", {
+                type: "button",
+                onClick: () => onCambiarModoVista && onCambiarModoVista("read"),
+                className: "flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer " + (modoVista === "read" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"),
+                children: ["\u{1F4D6} Leer"]
+              })
+            ]
+          }),
+          jsx6(Separador, {}),
+          // Selector de Documento / Caso + Crear caso
+          jsxs6("div", { className: "flex items-center gap-1.5", children: [
+            jsx6("span", { className: "text-xs text-slate-500", children: "Documento" }),
+            jsx6("select", {
+              value: caseId,
+              onChange: (e3) => onCambiarCaso && onCambiarCaso(e3.target.value),
+              ariaLabel: "Documento o caso activo",
+              className: "h-7 max-w-56 rounded border border-slate-300 bg-white px-2 text-xs text-slate-800 outline-none focus:border-indigo-500",
+              children: casos === null ? jsx6("option", { value: caseId, children: "Cargando casos\u2026" }) : opcionesCaso.map((c4) => jsx6("option", {
+                key: c4.case_id,
+                value: c4.case_id,
+                children: c4.case_id === "borrador" ? "default \u2014 borrador (sin caso)" : c4.case_id + (c4.legal_question ? " \u2014 " + String(c4.legal_question).slice(0, 48) : "")
+              }))
+            }),
+            jsx6("button", {
+              type: "button",
+              onClick: () => setModalNuevoCaso((v2) => !v2),
+              title: "Crear o sembrar un caso NIF para vincular el escrito",
+              className: "flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-700 hover:bg-slate-100 cursor-pointer",
+              children: "+"
+            }),
+            jsx6("span", {
+              className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + infoGuardado.cls,
+              children: infoGuardado.label
+            })
+          ] }),
+          jsx6(Separador, {}),
+          // Deshacer / Rehacer
+          jsx6(BotonBarra, {
+            title: "Deshacer (Ctrl+Z)",
+            disabled: !ed || !ed.can().undo(),
+            onClick: () => comando((e3) => e3.chain().focus().undo().run()),
+            children: "\u21B6"
+          }),
+          jsx6(BotonBarra, {
+            title: "Rehacer (Ctrl+Y)",
+            disabled: !ed || !ed.can().redo(),
+            onClick: () => comando((e3) => e3.chain().focus().redo().run()),
+            children: "\u21B7"
+          }),
+          jsx6(Separador, {}),
+          // Selector de fuente del papel
+          jsx6("select", {
+            value: prefs && prefs.fuente || FUENTES[0].value,
+            onChange: (e3) => onCambiarPrefs && onCambiarPrefs({ fuente: e3.target.value }),
+            title: "Tipograf\xEDa de la hoja del escrito",
+            className: "h-7 max-w-40 rounded border border-slate-300 bg-white px-1.5 text-xs text-slate-700 cursor-pointer",
+            children: FUENTES.map((f2) => jsx6("option", { key: f2.label, value: f2.value, children: f2.label }))
+          }),
+          // Selector de tamaño de fuente
+          jsx6("select", {
+            value: prefs && prefs.tamano_fuente || "12",
+            onChange: (e3) => onCambiarPrefs && onCambiarPrefs({ tamano_fuente: e3.target.value }),
+            title: "Tama\xF1o de letra (pt)",
+            className: "h-7 w-16 rounded border border-slate-300 bg-white px-1 text-xs text-slate-700 cursor-pointer",
+            children: TAMANOS.map((t4) => jsx6("option", { key: t4, value: t4, children: t4 + " pt" }))
+          }),
+          // Acciones rápidas a la derecha de la fila 1
+          jsxs6("div", { className: "ml-auto flex items-center gap-1.5", children: [
+            metaVerif ? jsx6("button", {
+              type: "button",
+              onClick: () => onAbrirHerramienta && onAbrirHerramienta("citas"),
+              title: "Abrir detalle de verificaci\xF3n de citas",
+              className: "rounded px-2 py-1 text-[11px] font-medium cursor-pointer " + ((metaVerif.citas_fallidas || 0) > 0 ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"),
+              children: `\u2713 ${metaVerif.citas_verificadas || 0}/${metaVerif.total_citas || 0} citas`
+            }) : null,
+            jsx6("button", {
+              type: "button",
+              onClick: onVerificar,
+              disabled: verificando || estadoDoc === "cargando",
+              className: "rounded-md bg-teal-700 hover:bg-teal-800 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white shadow-2xs cursor-pointer transition-colors",
+              children: verificando ? "Verificando\u2026" : "Verificar citas"
+            }),
+            jsx6("button", {
+              type: "button",
+              onClick: () => onAbrirHerramienta && onAbrirHerramienta("ajustes"),
+              title: "Configurar copilot jur\xEDdico (predicci\xF3n) y personalizaci\xF3n de vista",
+              className: "flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer",
+              children: "\u2699"
+            })
+          ] })
+        ]
+      }),
+      // Modal inline para crear o sembrar un caso NIF desde la barra
+      modalNuevoCaso ? jsxs6("div", {
+        className: "flex flex-wrap items-center gap-2 border-b border-indigo-100 bg-indigo-50/70 px-3 py-1.5 text-xs",
+        children: [
+          jsx6("span", { className: "font-semibold text-indigo-800", children: "Vincular caso NIF:" }),
+          jsx6("input", {
+            value: nuevoCaseId,
+            onChange: (e3) => setNuevoCaseId(e3.target.value),
+            placeholder: "id-del-caso (ej. causa-despido)",
+            className: "h-7 w-44 rounded border border-indigo-200 bg-white px-2 text-xs text-slate-800 outline-none"
+          }),
+          jsx6("input", {
+            value: nuevaPregunta,
+            onChange: (e3) => setNuevaPregunta(e3.target.value),
+            placeholder: "Pregunta jur\xEDdica del caso\u2026",
+            className: "h-7 flex-1 min-w-52 rounded border border-indigo-200 bg-white px-2 text-xs text-slate-800 outline-none"
+          }),
+          jsx6("button", {
+            type: "button",
+            disabled: !nuevoCaseId.trim() || !nuevaPregunta.trim(),
+            onClick: () => {
+              if (!onCrearCaso) return;
+              onCrearCaso(nuevoCaseId.trim(), nuevaPregunta.trim());
+              setNuevoCaseId("");
+              setNuevaPregunta("");
+              setModalNuevoCaso(false);
+            },
+            className: "rounded bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-40 cursor-pointer",
+            children: "Crear caso"
+          }),
+          onSembrarDemoCaso ? jsx6("button", {
+            type: "button",
+            onClick: () => {
+              onSembrarDemoCaso();
+              setModalNuevoCaso(false);
+            },
+            className: "rounded border border-indigo-300 bg-white px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100 cursor-pointer",
+            children: "Cargar caso demo (CT)"
+          }) : null,
+          jsx6("button", {
+            type: "button",
+            onClick: () => setModalNuevoCaso(false),
+            className: "ml-auto text-slate-500 hover:text-slate-800 px-1",
+            children: "\u2715"
+          })
+        ]
+      }) : null,
+      // ── FILA 2: Formato de texto + Formalismos + Estadísticas rápidas ──
+      jsxs6("div", {
+        className: "flex flex-wrap items-center gap-0.5 px-3 py-1 bg-slate-50/50",
+        children: [
+          jsx6(BotonBarra, {
+            title: "Negrita (Ctrl+B)",
+            activo: ed && ed.isActive("bold"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleBold().run()),
+            children: jsx6("b", { className: "font-serif text-sm", children: "B" })
+          }),
+          jsx6(BotonBarra, {
+            title: "Cursiva (Ctrl+I)",
+            activo: ed && ed.isActive("italic"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleItalic().run()),
+            children: jsx6("i", { className: "font-serif text-sm", children: "I" })
+          }),
+          jsx6(BotonBarra, {
+            title: "Tachado",
+            activo: ed && ed.isActive("strike"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleStrike().run()),
+            children: jsx6("s", { className: "font-serif text-sm", children: "S" })
+          }),
+          jsx6(Separador, {}),
+          jsx6(BotonBarra, {
+            title: "T\xEDtulo 1",
+            activo: ed && ed.isActive("heading", { level: 1 }),
+            onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 1 }).run()),
+            children: "H\u2081"
+          }),
+          jsx6(BotonBarra, {
+            title: "T\xEDtulo 2",
+            activo: ed && ed.isActive("heading", { level: 2 }),
+            onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 2 }).run()),
+            children: "H\u2082"
+          }),
+          jsx6(BotonBarra, {
+            title: "T\xEDtulo 3",
+            activo: ed && ed.isActive("heading", { level: 3 }),
+            onClick: () => comando((e3) => e3.chain().focus().toggleHeading({ level: 3 }).run()),
+            children: "H\u2083"
+          }),
+          jsx6(BotonBarra, {
+            title: "P\xE1rrafo normal",
+            activo: ed && ed.isActive("paragraph"),
+            onClick: () => comando((e3) => e3.chain().focus().setParagraph().run()),
+            children: "\xB6"
+          }),
+          jsx6(Separador, {}),
+          jsx6(BotonBarra, {
+            title: "Lista con vi\xF1etas",
+            activo: ed && ed.isActive("bulletList"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleBulletList().run()),
+            children: "\u2022 Lista"
+          }),
+          jsx6(BotonBarra, {
+            title: "Lista numerada",
+            activo: ed && ed.isActive("orderedList"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleOrderedList().run()),
+            children: "1. Lista"
+          }),
+          jsx6(BotonBarra, {
+            title: "Bloque de cita / sangr\xEDa",
+            activo: ed && ed.isActive("blockquote"),
+            onClick: () => comando((e3) => e3.chain().focus().toggleBlockquote().run()),
+            children: "\u275D Cita"
+          }),
+          jsx6(BotonBarra, {
+            title: "L\xEDnea divisoria horizontal",
+            onClick: () => comando((e3) => e3.chain().focus().setHorizontalRule().run()),
+            children: "\u2015"
+          }),
+          jsx6(Separador, {}),
+          // Menú de inserción rápida de formalismos procesales
+          jsxs6("div", { ref: refFormalismo, className: "relative", children: [
+            jsx6("button", {
+              type: "button",
+              onClick: () => setMenuFormalismos((v2) => !v2),
+              className: "flex h-7 items-center gap-1 rounded border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-700 hover:bg-slate-100 cursor-pointer",
+              title: "Insertar encabezado o f\xF3rmula procesal chilena",
+              children: ["\xA7 Formalismo \u25BE"]
+            }),
+            menuFormalismos ? jsxs6("div", {
+              className: "absolute left-0 top-full z-40 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-xl text-xs",
+              children: FORMALISMOS_RAPIDOS.map((f2) => jsx6("button", {
+                key: f2.label,
+                type: "button",
+                onClick: () => {
+                  comando((e3) => e3.chain().focus().insertContent(f2.texto).run());
+                  setMenuFormalismos(false);
+                },
+                className: "flex w-full items-center px-3 py-1.5 text-left font-mono text-[11px] text-slate-700 hover:bg-slate-100",
+                children: f2.label
+              }))
+            }) : null
+          ] }),
+          // Cargar escrito demo rápido si el documento está vacío
+          numPalabras === 0 && onCargarEscritoDemo ? jsx6("button", {
+            type: "button",
+            onClick: onCargarEscritoDemo,
+            className: "ml-1 rounded border border-teal-200 bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-800 hover:bg-teal-100 cursor-pointer",
+            children: "\u2728 Cargar escrito demo"
+          }) : null,
+          // Resumen rápido a la derecha de la fila 2
+          jsxs6("div", {
+            className: "ml-auto flex items-center gap-3 text-[11px] text-slate-500",
+            children: [
+              jsx6("span", { children: `${numPalabras} palabras` }),
+              jsx6("button", {
+                type: "button",
+                onClick: () => onAbrirHerramienta && onAbrirHerramienta("estilo"),
+                className: "text-teal-700 hover:underline cursor-pointer font-medium",
+                title: "Abrir revisi\xF3n de estilo LexO Escribe Claro",
+                children: "\u270D Escribe Claro"
+              }),
+              jsx6("button", {
+                type: "button",
+                onClick: () => onAbrirHerramienta && onAbrirHerramienta("privacidad"),
+                className: "text-amber-700 hover:underline cursor-pointer font-medium",
+                title: "Abrir control de seudonimizaci\xF3n y privacidad",
+                children: "\u{1F6E1} Privacidad"
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+}
+
+// src/escritor/escribe-claro-panel.js
+import { jsx as jsx7, jsxs as jsxs7 } from "react/jsx-runtime";
+import { useCallback as useCallback6, useEffect as useEffect7, useRef as useRef6, useState as useState7 } from "react";
+var ETIQUETA_CAT = {
+  arcaismo: "Arca\xEDsmos y f\xF3rmulas burocr\xE1ticas",
+  nominalizacion: "Nominalizaciones verbales",
+  legibilidad: "Legibilidad y extensi\xF3n",
+  voz_pasiva: "Voz pasiva",
+  alineacion_judicial: "Alineaci\xF3n judicial"
+};
+var META_NODO_ARG = {
+  hecho: { label: "HECHO", corto: "H", color: "#bbf7d0", badge: "bg-emerald-100 text-emerald-800 border-emerald-300" },
+  norma: { label: "NORMA", corto: "N", color: "#bfdbfe", badge: "bg-sky-100 text-sky-800 border-sky-300" },
+  prueba: { label: "PRUEBA", corto: "P", color: "#fed7aa", badge: "bg-amber-100 text-amber-800 border-amber-300" },
+  conclusion: { label: "CONCLUSI\xD3N", corto: "C", color: "#fef08a", badge: "bg-violet-100 text-violet-800 border-violet-300" },
+  orphan: { label: "SIN TIPO", corto: "?", color: "#f1f5f9", badge: "bg-slate-100 text-slate-600 border-slate-300" }
+};
+function colorPuntaje(score) {
+  if (score >= 75) return "text-emerald-600";
+  if (score >= 50) return "text-amber-600";
+  return "text-red-600";
+}
+function barraPuntaje(score) {
+  if (score >= 75) return "bg-emerald-500";
+  if (score >= 50) return "bg-amber-500";
+  return "bg-red-500";
+}
+function FilaMetrica({ label: label2, valor, sub: sub2, claseValor }) {
+  return jsxs7("div", {
+    className: "flex items-center justify-between border-b border-slate-100 py-1.5 text-xs last:border-0",
+    children: [
+      jsx7("span", { className: "text-slate-600", children: label2 }),
+      jsxs7("div", { className: "flex items-center gap-1.5", children: [
+        sub2 ? jsx7("span", { className: "text-[10px] text-slate-400", children: sub2 }) : null,
+        jsx7("span", { className: "font-semibold " + (claseValor || "text-slate-800"), children: String(valor) })
+      ] })
+    ]
+  });
+}
+function PanelEscribeClaro({
+  editorRef,
+  docInfo,
+  contextoInicial,
+  autoAnalizarInicial,
+  onEnviarAPizarra
+}) {
+  const [subTab, setSubTab] = useState7("estilo");
+  const [contexto, setContexto] = useState7(contextoInicial || "escrito");
+  const [autoAnalizar, setAutoAnalizar] = useState7(Boolean(autoAnalizarInicial));
+  const [vistaOraciones, setVistaOraciones] = useState7(false);
+  const [resultado, setResultado] = useState7(null);
+  const [grafoArg, setGrafoArg] = useState7(null);
+  const [ocupado, setOcupado] = useState7(false);
+  const [error2, setError] = useState7(null);
+  const timerRef = useRef6(null);
+  const ejecutarAnalisis = useCallback6((ctx = contexto) => {
+    const ed = editorRef && editorRef.current;
+    if (!ed) return;
+    const texto = textoDelEditor(ed).trim();
+    if (!texto) {
+      setResultado(null);
+      setGrafoArg(null);
+      return;
+    }
+    setOcupado(true);
+    setError(null);
+    Promise.all([
+      rest("/estilo/analizar", {
+        method: "POST",
+        body: { texto, contexto: ctx, detallado: true }
+      }),
+      rest("/estilo/grafo", {
+        method: "POST",
+        body: { texto }
+      })
+    ]).then(([resEstilo, resGrafo]) => {
+      setResultado(resEstilo);
+      setGrafoArg(resGrafo);
+    }).catch((e3) => {
+      setError(e3);
+    }).finally(() => setOcupado(false));
+  }, [editorRef, contexto]);
+  useEffect7(() => {
+    if (!autoAnalizar) return;
+    if (!(docInfo && docInfo.texto && docInfo.texto.trim())) return;
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => ejecutarAnalisis(contexto), 1200);
+    return () => clearTimeout(timerRef.current);
+  }, [autoAnalizar, docInfo && docInfo.texto, contexto, ejecutarAnalisis]);
+  const reemplazarTermino = useCallback6((termino, reemplazo) => {
+    const ed = editorRef && editorRef.current;
+    if (!ed || !termino || !reemplazo) return;
+    const texto = textoDelEditor(ed);
+    const segs = segmentosDeDoc(ed.state.doc);
+    const hallazgos = localizarCitas(texto, [{ cita_raw: termino }]);
+    if (!hallazgos.length) return;
+    const primero = hallazgos[0];
+    const rango = rangoAPos(segs, primero.inicio, primero.fin);
+    if (!rango) return;
+    const original = texto.slice(primero.inicio, primero.fin);
+    const textoFinal = original[0] && original[0] === original[0].toUpperCase() && original[0] !== original[0].toLowerCase() ? reemplazo.charAt(0).toUpperCase() + reemplazo.slice(1) : reemplazo;
+    reemplazarRangos(ed, [rango], textoFinal);
+    setTimeout(() => ejecutarAnalisis(contexto), 250);
+  }, [editorRef, contexto, ejecutarAnalisis]);
+  const volcarGrafoAPizarra = useCallback6(() => {
+    if (!grafoArg || !onEnviarAPizarra) return;
+    const nodosOrig = grafoArg.nodes || [];
+    if (!nodosOrig.length) return;
+    const nodosPizarra = nodosOrig.map((n2, i3) => {
+      const meta = META_NODO_ARG[n2.node_type] || META_NODO_ARG.orphan;
+      const col = i3 % 4;
+      const fila = Math.floor(i3 / 4);
+      return {
+        id: "arg-" + n2.id,
+        x: 24 + col * 248,
+        y: 22 + fila * 175,
+        w: 232,
+        h: 155,
+        titulo: `${meta.label} \xB7 \xA7${n2.paragraph_index + 1}`,
+        tag: meta.label,
+        color: meta.color,
+        texto: n2.text,
+        minimizada: false
+      };
+    });
+    const aristasPizarra = (grafoArg.edges || []).map((e3, i3) => ({
+      id: "arg-edge-" + i3,
+      from: "arg-" + e3.source_id,
+      to: "arg-" + e3.target_id,
+      label: e3.relation_type
+    }));
+    onEnviarAPizarra({ nodos: nodosPizarra, aristas: aristasPizarra, colapsada: false });
+  }, [grafoArg, onEnviarAPizarra]);
+  const stats = resultado && resultado.global_stats || null;
+  const sugerencias = resultado && resultado.suggestions || [];
+  const oraciones = resultado && resultado.sentences || [];
+  const categorias = Array.from(new Set(sugerencias.map((s2) => s2.category)));
+  return jsxs7("div", {
+    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+    children: [
+      // Selector de sub-pestaña: Estilo y Claridad vs Teoría del Caso (Argumentos)
+      jsxs7("div", {
+        className: "flex items-center gap-1 rounded-md bg-slate-100 p-1 border border-slate-200",
+        children: [
+          jsx7("button", {
+            type: "button",
+            onClick: () => setSubTab("estilo"),
+            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "estilo" ? "bg-teal-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"),
+            children: "\u270D Estilo y Claridad"
+          }),
+          jsx7("button", {
+            type: "button",
+            onClick: () => setSubTab("argumentos"),
+            className: "flex-1 rounded py-1 text-xs font-semibold transition-colors cursor-pointer " + (subTab === "argumentos" ? "bg-violet-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"),
+            children: "\u25C8 Estructura Argumentativa"
+          })
+        ]
+      }),
+      // Controles de análisis
+      jsxs7("div", {
+        className: "flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-2",
+        children: [
+          jsx7("label", { className: "text-[11px] font-medium text-slate-600", children: "Contexto:" }),
+          jsx7("select", {
+            value: contexto,
+            onChange: (e3) => {
+              const nuevo = e3.target.value;
+              setContexto(nuevo);
+              ejecutarAnalisis(nuevo);
+            },
+            className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700",
+            children: [
+              jsx7("option", { key: "escrito", value: "escrito", children: "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)" }),
+              jsx7("option", { key: "demanda", value: "demanda", children: "Demanda (m\xE1x. 25 pal/oraci\xF3n)" }),
+              jsx7("option", { key: "sentencia", value: "sentencia", children: "Sentencia (m\xE1x. 20 pal/oraci\xF3n)" }),
+              jsx7("option", { key: "general", value: "general", children: "General (m\xE1x. 25 pal/oraci\xF3n)" })
+            ]
+          }),
+          jsxs7("label", { className: "flex items-center gap-1 text-[11px] text-slate-600 ml-auto", children: [
+            jsx7("input", {
+              type: "checkbox",
+              checked: autoAnalizar,
+              onChange: (e3) => setAutoAnalizar(e3.target.checked)
+            }),
+            "Auto"
+          ] }),
+          jsx7("button", {
+            type: "button",
+            onClick: () => ejecutarAnalisis(contexto),
+            disabled: ocupado,
+            className: "rounded bg-teal-600 hover:bg-teal-700 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white cursor-pointer",
+            children: ocupado ? "Analizando\u2026" : "Analizar ahora"
+          })
+        ]
+      }),
+      error2 ? jsx7("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      // ── VISTA 1: ESTILO Y CLARIDAD ──
+      subTab === "estilo" ? jsxs7("div", { className: "flex flex-col gap-3", children: [
+        !resultado && !ocupado ? jsx7("div", {
+          className: "rounded-md border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500",
+          children: "Pulsa \xABAnalizar ahora\xBB para evaluar legibilidad, voz pasiva, nominalizaciones, arca\xEDsmos y alineaci\xF3n judicial con LexO Escribe Claro."
+        }) : null,
+        resultado && !vistaOraciones ? jsxs7("div", { className: "flex flex-col gap-3", children: [
+          // Medidor de puntaje global
+          jsxs7("div", {
+            className: "flex flex-col items-center rounded-md border border-slate-200 bg-slate-50/70 p-3",
+            children: [
+              jsxs7("div", { className: "flex items-baseline gap-1", children: [
+                jsx7("span", { className: "text-3xl font-black " + colorPuntaje(resultado.score), children: String(resultado.score) }),
+                jsx7("span", { className: "text-xs text-slate-400", children: "/ 100" })
+              ] }),
+              jsx7("span", { className: "text-[10px] uppercase tracking-wider text-slate-500 mt-0.5", children: "Puntaje ScribeClaro de Claridad Jur\xEDdica" }),
+              jsx7("div", {
+                className: "mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200",
+                children: jsx7("div", {
+                  className: "h-full rounded-full transition-all " + barraPuntaje(resultado.score),
+                  style: { width: Math.max(4, Math.min(100, resultado.score)) + "%" }
+                })
+              })
+            ]
+          }),
+          // Métricas globales
+          stats ? jsxs7("div", {
+            className: "rounded-md border border-slate-200 bg-white px-3 py-2",
+            children: [
+              jsx7("div", { className: "pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "M\xE9tricas del escrito" }),
+              jsx7(FilaMetrica, { label: "Total de oraciones", valor: stats.total_sentences, sub: stats.total_words + " palabras" }),
+              jsx7(FilaMetrica, {
+                label: "Promedio palabras / oraci\xF3n",
+                valor: stats.avg_words_per_sentence,
+                sub: "m\xE1x. " + stats.max_words_per_sentence,
+                claseValor: stats.avg_words_per_sentence > stats.max_words_per_sentence ? "text-amber-600" : "text-emerald-600"
+              }),
+              jsx7(FilaMetrica, {
+                label: "Oraciones que exceden el l\xEDmite",
+                valor: stats.sentences_exceeding_limit,
+                claseValor: stats.sentences_exceeding_limit > 0 ? "text-amber-600" : "text-emerald-600"
+              }),
+              jsx7(FilaMetrica, {
+                label: "Voz pasiva perifr\xE1stica",
+                valor: Math.round((stats.passive_ratio || 0) * 100) + "%",
+                claseValor: (stats.passive_ratio || 0) > 0.15 ? "text-amber-600" : "text-emerald-600"
+              }),
+              jsx7(FilaMetrica, {
+                label: "Nominalizaciones detectadas",
+                valor: stats.nominalization_count,
+                claseValor: stats.nominalization_count > 0 ? "text-amber-600" : "text-emerald-600"
+              }),
+              jsx7(FilaMetrica, {
+                label: "Arca\xEDsmos y f\xF3rmulas burocr\xE1ticas",
+                valor: stats.archaism_count,
+                claseValor: stats.archaism_count > 0 ? "text-red-600" : "text-emerald-600"
+              }),
+              jsx7(FilaMetrica, {
+                label: "Alineaci\xF3n judicial (\xABcopiabilidad\xBB)",
+                valor: stats.judicial_alignment_score + "/100",
+                claseValor: colorPuntaje(stats.judicial_alignment_score)
+              })
+            ]
+          }) : null,
+          // Sugerencias accionables con reemplazo en 1 clic
+          jsxs7("div", {
+            className: "flex flex-col gap-2 rounded-md border border-slate-200 bg-white p-2.5",
+            children: [
+              jsxs7("div", { className: "flex items-center justify-between", children: [
+                jsx7("span", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: `Sugerencias (${sugerencias.length})` }),
+                oraciones.length > 0 ? jsx7("button", {
+                  type: "button",
+                  onClick: () => setVistaOraciones(true),
+                  className: "text-[11px] font-medium text-teal-700 hover:underline cursor-pointer",
+                  children: `Ver desglose por oraci\xF3n (${oraciones.length}) \u2192`
+                }) : null
+              ] }),
+              sugerencias.length === 0 ? jsx7("div", { className: "py-2 text-center text-xs text-emerald-600 font-medium", children: "\u2713 Sin observaciones de estilo \u2014 redacci\xF3n clara y directa." }) : categorias.map((cat) => {
+                const lista = sugerencias.filter((s2) => s2.category === cat);
+                return jsxs7("div", {
+                  key: cat,
+                  className: "flex flex-col gap-1 border-t border-slate-100 pt-2 first:border-0 first:pt-0",
+                  children: [
+                    jsxs7("div", { className: "flex items-center gap-1.5", children: [
+                      jsx7("span", { className: "rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-bold text-teal-800 border border-teal-200", children: String(lista.length) }),
+                      jsx7("span", { className: "text-xs font-semibold text-slate-700", children: ETIQUETA_CAT[cat] || cat })
+                    ] }),
+                    ...lista.map((s2, idx) => jsxs7("div", {
+                      key: idx,
+                      className: "flex flex-col gap-1 rounded border border-slate-200 bg-slate-50/70 p-2 text-[11px]",
+                      children: [
+                        jsx7("div", { className: "text-slate-700 leading-relaxed", children: s2.message }),
+                        s2.term && s2.replacement ? jsxs7("div", { className: "flex items-center gap-2 mt-0.5", children: [
+                          jsx7("button", {
+                            type: "button",
+                            onClick: () => reemplazarTermino(s2.term, s2.replacement),
+                            className: "rounded bg-teal-600 hover:bg-teal-700 px-2 py-0.5 text-[10px] font-medium text-white cursor-pointer",
+                            children: `Reemplazar \xAB${s2.term}\xBB por \xAB${s2.replacement}\xBB`
+                          })
+                        ] }) : null
+                      ]
+                    }))
+                  ]
+                });
+              })
+            ]
+          }),
+          // Avisos de coherencia / formato de citas
+          (resultado.coherence_warnings || []).length > 0 ? jsxs7("div", {
+            className: "flex flex-col gap-1 rounded-md border border-amber-200 bg-amber-50 p-2.5",
+            children: [
+              jsx7("div", { className: "text-[10px] font-bold uppercase tracking-wider text-amber-800", children: "Observaciones de alineaci\xF3n y formato" }),
+              ...(resultado.coherence_warnings || []).map((w4, i3) => jsx7("div", {
+                key: i3,
+                className: "text-[11px] text-amber-900 leading-relaxed",
+                children: "\u2022 " + w4
+              }))
+            ]
+          }) : null
+        ] }) : null,
+        // Vista detallada por oración
+        resultado && vistaOraciones ? jsxs7("div", { className: "flex flex-col gap-2", children: [
+          jsxs7("div", { className: "flex items-center justify-between border-b border-slate-200 pb-1.5", children: [
+            jsx7("button", {
+              type: "button",
+              onClick: () => setVistaOraciones(false),
+              className: "text-xs font-semibold text-teal-700 hover:underline cursor-pointer",
+              children: "\u2190 Volver al resumen"
+            }),
+            jsx7("span", { className: "text-[11px] text-slate-500", children: `${oraciones.length} oraciones analizadas` })
+          ] }),
+          ...oraciones.map((o2, idx) => {
+            const tieneObs = o2.exceeds_limit || o2.is_passive || (o2.nominalizations || []).length > 0 || (o2.archaisms || []).length > 0;
+            return jsxs7("div", {
+              key: idx,
+              className: "rounded border p-2 text-[11px] " + (tieneObs ? "border-amber-200 bg-amber-50/40" : "border-slate-200 bg-white"),
+              children: [
+                jsxs7("div", { className: "flex items-start gap-1.5", children: [
+                  jsx7("span", { className: "font-mono text-[10px] text-slate-400 shrink-0", children: "#" + (idx + 1) }),
+                  jsx7("div", { className: "flex-1 text-slate-800 leading-relaxed", children: o2.text })
+                ] }),
+                jsxs7("div", { className: "mt-1.5 flex flex-wrap gap-1", children: [
+                  jsx7("span", {
+                    className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (o2.exceeds_limit ? "bg-amber-100 text-amber-800" : "bg-emerald-50 text-emerald-700"),
+                    children: o2.word_count + " palabras" + (o2.exceeds_limit ? " (excede l\xEDmite)" : "")
+                  }),
+                  o2.is_passive ? jsx7("span", {
+                    className: "rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-medium text-sky-800",
+                    children: "Voz pasiva"
+                  }) : null,
+                  ...(o2.nominalizations || []).map((n2, ni) => jsx7("span", {
+                    key: "n" + ni,
+                    className: "rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800",
+                    children: `nominalizaci\xF3n: ${n2.noun_phrase} \u2192 ${n2.suggested_verb}`
+                  })),
+                  ...(o2.archaisms || []).map((a3, ai) => jsx7("button", {
+                    key: "a" + ai,
+                    type: "button",
+                    onClick: () => reemplazarTermino(a3.term, a3.replacement),
+                    className: "rounded bg-red-100 hover:bg-red-200 px-1.5 py-0.5 text-[10px] font-medium text-red-800 cursor-pointer",
+                    title: "Clic para reemplazar en el escrito",
+                    children: `arca\xEDsmo: \xAB${a3.term}\xBB \u2192 \xAB${a3.replacement}\xBB`
+                  }))
+                ] })
+              ]
+            });
+          })
+        ] }) : null
+      ] }) : null,
+      // ── VISTA 2: TEORÍA DEL CASO / ESTRUCTURA ARGUMENTATIVA ──
+      subTab === "argumentos" ? jsxs7("div", { className: "flex flex-col gap-3", children: [
+        !grafoArg && !ocupado ? jsx7("div", {
+          className: "rounded-md border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500",
+          children: "Pulsa \xABAnalizar ahora\xBB para extraer la cadena argumentativa (Hecho \u2192 Norma \u2192 Prueba \u2192 Conclusi\xF3n) de los p\xE1rrafos del escrito."
+        }) : null,
+        grafoArg ? jsxs7("div", { className: "flex flex-col gap-2.5", children: [
+          jsxs7("div", { className: "flex flex-wrap items-center justify-between gap-2 rounded-md border border-violet-200 bg-violet-50/70 p-2.5", children: [
+            jsxs7("div", { className: "flex items-center gap-2", children: [
+              jsx7("span", {
+                className: "rounded px-2 py-0.5 text-xs font-bold " + (grafoArg.coverage_ratio >= 0.7 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"),
+                children: Math.round((grafoArg.coverage_ratio || 0) * 100) + "% cobertura argumentativa"
+              }),
+              grafoArg.has_complete_chain ? jsx7("span", {
+                className: "rounded bg-violet-600 px-2 py-0.5 text-[10px] font-semibold text-white",
+                children: "\u2713 Cadena Hecho \u2192 Norma \u2192 Conclusi\xF3n"
+              }) : null
+            ] }),
+            onEnviarAPizarra && (grafoArg.nodes || []).length > 0 ? jsx7("button", {
+              type: "button",
+              onClick: volcarGrafoAPizarra,
+              className: "rounded bg-violet-700 hover:bg-violet-800 px-2.5 py-1 text-[11px] font-semibold text-white cursor-pointer",
+              title: "Crear tarjetas conectadas en la Pizarra Estrat\xE9gica a partir de los p\xE1rrafos del escrito",
+              children: "\u21B3 Enviar estructura a la Pizarra"
+            }) : null
+          ] }),
+          // Contadores por tipo
+          jsxs7("div", {
+            className: "flex flex-wrap gap-1.5",
+            children: ["hecho", "norma", "prueba", "conclusion", "orphan"].map((t4) => {
+              const meta = META_NODO_ARG[t4];
+              const n2 = grafoArg.counts && grafoArg.counts[t4] || 0;
+              return jsx7("span", {
+                key: t4,
+                className: "rounded border px-2 py-0.5 text-[10px] font-semibold " + meta.badge,
+                children: `${meta.corto} \xB7 ${meta.label}: ${n2}`
+              });
+            })
+          }),
+          // Lista de bloques clasificados
+          jsxs7("div", {
+            className: "flex flex-col gap-1.5",
+            children: (grafoArg.nodes || []).map((n2) => {
+              const meta = META_NODO_ARG[n2.node_type] || META_NODO_ARG.orphan;
+              return jsxs7("div", {
+                key: n2.id,
+                className: "rounded border border-slate-200 bg-white p-2 text-[11px]",
+                children: [
+                  jsxs7("div", { className: "flex items-center justify-between gap-2 mb-1", children: [
+                    jsx7("span", { className: "rounded border px-1.5 py-0.2 text-[9px] font-bold " + meta.badge, children: meta.label }),
+                    jsx7("span", { className: "text-[10px] text-slate-400", children: "P\xE1rrafo " + (n2.paragraph_index + 1) })
+                  ] }),
+                  jsx7("div", { className: "text-slate-700 leading-relaxed", children: n2.text }),
+                  (n2.markers_found || []).length > 0 ? jsxs7("div", {
+                    className: "mt-1 flex flex-wrap gap-1",
+                    children: n2.markers_found.map((m3, mi) => jsx7("span", {
+                      key: mi,
+                      className: "rounded bg-slate-100 px-1.5 py-0.2 font-mono text-[9px] text-slate-600",
+                      children: "\xAB" + m3 + "\xBB"
+                    }))
+                  }) : null
+                ]
+              });
+            })
+          }),
+          // Avisos de coherencia argumentativa
+          (grafoArg.coherence_warnings || []).length > 0 ? jsxs7("div", {
+            className: "flex flex-col gap-1 rounded border border-amber-200 bg-amber-50 p-2",
+            children: [
+              jsx7("div", { className: "text-[10px] font-bold uppercase text-amber-800", children: "Avisos de estructura" }),
+              ...(grafoArg.coherence_warnings || []).map((w4, i3) => jsx7("div", {
+                key: i3,
+                className: "text-[11px] text-amber-900",
+                children: "\u2022 " + (w4.message || w4)
+              }))
+            ]
+          }) : null
+        ] }) : null
+      ] }) : null
+    ]
+  });
+}
+
+// src/escritor/grafos-herramientas.js
+import { jsx as jsx8, jsxs as jsxs8 } from "react/jsx-runtime";
+import { useCallback as useCallback7, useEffect as useEffect8, useState as useState8 } from "react";
+function PanelHerramientasGrafos({
+  onLlevarCitaAlEscrito,
+  onAgregarAPizarra,
+  onAbrirGrafo3D
+}) {
+  const [herramienta, setHerramienta] = useState8("corpus");
+  return jsxs8("div", {
+    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+    children: [
+      // Selector de herramientas diferenciadas de grafos
+      jsxs8("div", {
+        className: "flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 p-1.5",
+        children: [
+          jsx8("div", { className: "px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Herramientas de Grafos" }),
+          jsxs8("div", { className: "flex gap-1", children: [
+            jsx8("button", {
+              type: "button",
+              onClick: () => setHerramienta("corpus"),
+              className: "flex-1 rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "corpus" ? "bg-sky-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
+              children: "\u{1F50D} Grafo del Corpus"
+            }),
+            jsx8("button", {
+              type: "button",
+              onClick: () => setHerramienta("constructor"),
+              className: "flex-1 rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "constructor" ? "bg-indigo-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
+              children: "\u{1F3D7} Crear Grafo (Pack)"
+            }),
+            jsx8("button", {
+              type: "button",
+              onClick: () => setHerramienta("fuentes"),
+              className: "rounded py-1.5 px-2 text-[11px] font-semibold transition-colors cursor-pointer " + (herramienta === "fuentes" ? "bg-emerald-600 text-white shadow-2xs" : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"),
+              children: "\u25C8 Capas / 3D"
+            })
+          ] })
+        ]
+      }),
+      herramienta === "corpus" ? jsx8(SubHerramientaCorpus, {
+        onLlevarCitaAlEscrito,
+        onAgregarAPizarra,
+        onAbrirGrafo3D
+      }) : null,
+      herramienta === "constructor" ? jsx8(SubHerramientaConstructorOrdenamiento, {}) : null,
+      herramienta === "fuentes" ? jsx8(SubHerramientaFuentes, { onAbrirGrafo3D }) : null
+    ]
+  });
+}
+function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbrirGrafo3D }) {
+  const [q2, setQ] = useState8("");
+  const [resultados, setResultados] = useState8([]);
+  const [arbol, setArbol] = useState8(null);
+  const [ocupado, setOcupado] = useState8(false);
+  const [error2, setError] = useState8(null);
+  const [articuloLeido, setArticuloLeido] = useState8(null);
+  const [leyendoId, setLeyendoId] = useState8(null);
+  const buscar = useCallback7(() => {
+    const limpio = q2.trim();
+    if (!limpio || ocupado) return;
+    setOcupado(true);
+    setError(null);
+    setArticuloLeido(null);
+    rest("/grafo/buscar", {
+      method: "POST",
+      body: { q: limpio, limite: 15 },
+      timeoutMs: 12e4
+    }).then((d2) => {
+      setResultados(d2 && d2.resultados || []);
+      setArbol(d2 && d2.arbol || null);
+    }).catch((e3) => {
+      setError(e3);
+      setResultados([]);
+    }).finally(() => setOcupado(false));
+  }, [q2, ocupado]);
+  const leerNodo = useCallback7((r2) => {
+    const nid = r2.nodo_id;
+    if (!nid) return;
+    setLeyendoId(nid);
+    rest("/grafo/leer", {
+      method: "POST",
+      body: { nodo_id: nid },
+      timeoutMs: 12e4
+    }).then((d2) => {
+      setArticuloLeido({ ...d2, _res: r2 });
+    }).catch((e3) => {
+      setError(e3);
+    }).finally(() => setLeyendoId(null));
+  }, []);
+  return jsxs8("div", {
+    className: "flex flex-col gap-2.5",
+    children: [
+      jsxs8("div", { className: "flex items-center justify-between", children: [
+        jsx8("span", { className: "text-[11px] text-slate-500", children: "B\xFAsqueda l\xE9xica BM25 + \xE1rbol de materias IndexO (sin modelo)" }),
+        onAbrirGrafo3D ? jsx8("button", {
+          type: "button",
+          onClick: () => onAbrirGrafo3D(null),
+          className: "rounded border border-sky-300 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 hover:bg-sky-100 cursor-pointer",
+          children: "Abrir lienzo Grafo 3D \u2192"
+        }) : null
+      ] }),
+      jsxs8("div", { className: "flex gap-1.5", children: [
+        jsx8("input", {
+          value: q2,
+          onChange: (e3) => setQ(e3.target.value),
+          onKeyDown: (e3) => {
+            if (e3.key === "Enter") buscar();
+          },
+          placeholder: "Ej. indemnizaci\xF3n a\xF1os de servicio art\xEDculo 163\u2026",
+          className: "flex-1 rounded border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-sky-500"
+        }),
+        jsx8("button", {
+          type: "button",
+          onClick: buscar,
+          disabled: ocupado || !q2.trim(),
+          className: "rounded bg-sky-600 hover:bg-sky-700 disabled:opacity-50 px-3 py-1.5 text-xs font-semibold text-white cursor-pointer",
+          children: ocupado ? "\u2026" : "Buscar"
+        })
+      ] }),
+      error2 ? jsx8("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      // Clasificación del Árbol de Derecho IndexO
+      arbol && arbol.disponible && (arbol.materias || []).length > 0 ? jsxs8("div", {
+        className: "flex flex-col gap-1 rounded border border-sky-200 bg-sky-50/60 p-2",
+        children: [
+          jsx8("span", { className: "text-[10px] font-bold uppercase tracking-wider text-sky-800", children: "\xC1rbol de materias (IndexO)" }),
+          jsxs8("div", {
+            className: "flex flex-wrap gap-1",
+            children: (arbol.materias || []).map((m3, i3) => jsxs8("span", {
+              key: i3,
+              className: "rounded bg-white border border-sky-200 px-1.5 py-0.5 text-[10px] text-sky-900",
+              children: [
+                jsx8("b", { children: m3.nombre || m3.nodo_id }),
+                (m3.terminos || []).length ? " (" + m3.terminos.join(", ") + ")" : ""
+              ]
+            }))
+          })
+        ]
+      }) : null,
+      // Visor del artículo leído y sus unidades normativas
+      articuloLeido ? jsxs8("div", {
+        className: "flex flex-col gap-2 rounded-md border border-indigo-300 bg-indigo-50/40 p-2.5",
+        children: [
+          jsxs8("div", { className: "flex items-center justify-between gap-2", children: [
+            jsx8("span", { className: "font-bold text-indigo-900", children: articuloLeido.cita || articuloLeido.gid || articuloLeido.nodo_id }),
+            jsx8("button", {
+              type: "button",
+              onClick: () => setArticuloLeido(null),
+              className: "text-xs text-slate-500 hover:text-slate-800",
+              children: "\u2715 cerrar lectura"
+            })
+          ] }),
+          jsx8("div", {
+            className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-slate-200 bg-white p-2 font-serif text-xs leading-relaxed text-slate-800",
+            children: articuloLeido.texto || "(sin texto disponible)"
+          }),
+          (articuloLeido.unidades || []).length > 0 ? jsxs8("details", { className: "text-[11px]", children: [
+            jsx8("summary", { className: "cursor-pointer font-medium text-indigo-800", children: `Unidades normativas m\xEDnimas (${articuloLeido.unidades.length})` }),
+            jsxs8("div", {
+              className: "mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto",
+              children: articuloLeido.unidades.map((u2, ui) => jsxs8("div", {
+                key: u2.id || ui,
+                className: "rounded border border-slate-200 bg-white p-1.5 text-[11px]",
+                children: [
+                  jsxs8("div", { className: "flex items-center justify-between gap-1 font-mono text-[10px] text-slate-500", children: [
+                    jsx8("span", { children: u2.id }),
+                    u2.modalidad ? jsx8("span", { className: "rounded bg-slate-100 px-1 uppercase", children: u2.modalidad }) : null
+                  ] }),
+                  jsx8("div", { className: "mt-0.5 text-slate-700", children: u2.texto })
+                ]
+              }))
+            })
+          ] }) : null
+        ]
+      }) : null,
+      // Lista de resultados
+      jsxs8("div", { className: "flex flex-col gap-1.5", children: [
+        resultados.map((r2, i3) => jsxs8("div", {
+          key: r2.nodo_id || i3,
+          className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
+          children: [
+            jsxs8("div", { className: "flex items-start justify-between gap-2", children: [
+              jsxs8("div", { className: "min-w-0 flex-1", children: [
+                jsx8("div", { className: "font-semibold text-slate-800", children: r2.cita || r2.label || r2.gid }),
+                jsx8("div", { className: "font-mono text-[10px] text-slate-400", children: [r2.nodo_id, r2.gid].filter(Boolean).join(" \xB7 ") })
+              ] }),
+              r2.vigencia ? jsx8("span", {
+                className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (r2.vigencia === "IN_FORCE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"),
+                children: r2.vigencia === "IN_FORCE" ? "vigente" : r2.vigencia
+              }) : null
+            ] }),
+            r2.snippet ? jsx8("div", { className: "text-[11px] text-slate-600 leading-relaxed line-clamp-3", children: String(r2.snippet).slice(0, 260) }) : null,
+            jsxs8("div", { className: "flex flex-wrap items-center gap-1.5 pt-1", children: [
+              jsx8("button", {
+                type: "button",
+                onClick: () => leerNodo(r2),
+                disabled: leyendoId === r2.nodo_id,
+                className: "rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700 cursor-pointer",
+                children: leyendoId === r2.nodo_id ? "Leyendo\u2026" : "\u{1F4D6} Leer art\xEDculo"
+              }),
+              r2.citable !== false && r2.cita && onLlevarCitaAlEscrito ? jsx8("button", {
+                type: "button",
+                onClick: () => onLlevarCitaAlEscrito(r2),
+                className: "rounded bg-teal-600 hover:bg-teal-700 px-2 py-0.5 text-[11px] font-medium text-white cursor-pointer",
+                title: "Inserta la cita can\xF3nica al final del escrito y la pasa por el verificador",
+                children: "+ Llevar al escrito"
+              }) : null,
+              onAgregarAPizarra ? jsx8("button", {
+                type: "button",
+                onClick: () => onAgregarAPizarra({
+                  titulo: r2.cita || r2.label || "Norma",
+                  tag: "NORMA",
+                  color: "#bfdbfe",
+                  texto: (r2.cita ? r2.cita + ".\n" : "") + (r2.snippet ? String(r2.snippet).slice(0, 240) : ""),
+                  nodo_id: r2.nodo_id,
+                  gid: r2.gid
+                }),
+                className: "rounded border border-sky-300 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 text-[11px] text-sky-800 cursor-pointer",
+                children: "+ Pizarra"
+              }) : null,
+              r2.nodo_id && onAbrirGrafo3D ? jsx8("button", {
+                type: "button",
+                onClick: () => onAbrirGrafo3D({ nodo_id: r2.nodo_id }),
+                className: "rounded border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 text-[11px] text-indigo-700 cursor-pointer",
+                children: "\u25C8 Abrir en 3D"
+              }) : null
+            ] })
+          ]
+        }))
+      ] })
+    ]
+  });
+}
+function SubHerramientaConstructorOrdenamiento() {
+  const [catalogo, setCatalogo] = useState8(null);
+  const [jurInput, setJurInput] = useState8("ar");
+  const [perfilJson, setPerfilJson] = useState8("");
+  const [paqueteJson, setPaqueteJson] = useState8("");
+  const [textoNormaNombre, setTextoNormaNombre] = useState8("xx-ley-1.txt");
+  const [textoNormaContenido, setTextoNormaContenido] = useState8("");
+  const [validacion, setValidacion] = useState8(null);
+  const [resultadoBuild, setResultadoBuild] = useState8(null);
+  const [ocupado, setOcupado] = useState8(false);
+  const [error2, setError] = useState8(null);
+  useEffect8(() => {
+    rest("/ordenamiento/perfiles").then((d2) => {
+      setCatalogo(d2);
+      const xx = (d2 && d2.perfiles || []).find((p2) => p2.jurisdiccion === "xx") || d2 && d2.perfiles && d2.perfiles[0];
+      if (xx && xx.perfil) {
+        setPerfilJson(JSON.stringify(xx.perfil, null, 2));
+      }
+      if (d2 && d2.ejemplo_xx) {
+        setPaqueteJson(JSON.stringify(d2.ejemplo_xx.paquete, null, 2));
+        const entradas = Object.entries(d2.ejemplo_xx.textos || {});
+        if (entradas.length) {
+          setTextoNormaNombre(entradas[0][0].replace(/^textos\//, ""));
+          setTextoNormaContenido(entradas[0][1]);
+        }
+      }
+    }).catch(setError);
+  }, []);
+  const generarPlantilla = useCallback7(() => {
+    setOcupado(true);
+    setError(null);
+    setValidacion(null);
+    setResultadoBuild(null);
+    rest("/ordenamiento/plantilla", {
+      method: "POST",
+      body: { jur: jurInput.trim().toLowerCase() }
+    }).then((d2) => {
+      setPerfilJson(JSON.stringify(d2.perfil, null, 2));
+      setPaqueteJson(JSON.stringify(d2.paquete, null, 2));
+    }).catch(setError).finally(() => setOcupado(false));
+  }, [jurInput]);
+  const validarPerfilActual = useCallback7(() => {
+    setError(null);
+    setValidacion(null);
+    let obj;
+    try {
+      obj = JSON.parse(perfilJson);
+    } catch (e3) {
+      setError(new Error("El JSON del perfil tiene un error de sintaxis: " + e3.message));
+      return;
+    }
+    setOcupado(true);
+    rest("/ordenamiento/validar-perfil", {
+      method: "POST",
+      body: { perfil: obj }
+    }).then(setValidacion).catch(setError).finally(() => setOcupado(false));
+  }, [perfilJson]);
+  const construirYValidarPack = useCallback7(() => {
+    setError(null);
+    setResultadoBuild(null);
+    let objPerfil;
+    let objPaquete;
+    try {
+      objPerfil = JSON.parse(perfilJson);
+      objPaquete = JSON.parse(paqueteJson);
+    } catch (e3) {
+      setError(new Error("JSON inv\xE1lido en perfil o paquete: " + e3.message));
+      return;
+    }
+    const textos = {};
+    if (catalogo && catalogo.ejemplo_xx && catalogo.ejemplo_xx.textos) {
+      Object.assign(textos, catalogo.ejemplo_xx.textos);
+    }
+    if (textoNormaNombre.trim() && textoNormaContenido.trim()) {
+      textos["textos/" + textoNormaNombre.trim().replace(/^textos\//, "")] = textoNormaContenido;
+    }
+    setOcupado(true);
+    rest("/ordenamiento/construir", {
+      method: "POST",
+      body: { perfil: objPerfil, paquete: objPaquete, textos }
+    }).then(setResultadoBuild).catch(setError).finally(() => setOcupado(false));
+  }, [perfilJson, paqueteJson, textoNormaNombre, textoNormaContenido, catalogo]);
+  const perfiles = catalogo && catalogo.perfiles || [];
+  return jsxs8("div", {
+    className: "flex flex-col gap-3",
+    children: [
+      jsx8("div", {
+        className: "rounded border border-indigo-200 bg-indigo-50/70 p-2.5 text-[11px] text-indigo-950 leading-relaxed",
+        children: "Crea y valida paquetes de grafos normativos (dike-ordenamiento-pack-v1) para cualquier pa\xEDs o sistema jur\xEDdico. Todo corre offline con el detector de privacidad integrado."
+      }),
+      // Perfiles instalados
+      perfiles.length > 0 ? jsxs8("div", {
+        className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
+        children: [
+          jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Perfiles de ordenamiento incluidos" }),
+          ...perfiles.map((p2) => jsxs8("div", {
+            key: p2.id,
+            className: "flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0",
+            children: [
+              jsxs8("div", { className: "min-w-0", children: [
+                jsxs8("div", { className: "flex items-center gap-1.5", children: [
+                  jsx8("span", { className: "font-bold text-slate-800", children: `${p2.nombre} (${p2.jurisdiccion})` }),
+                  jsx8("span", {
+                    className: "rounded px-1.5 py-0.2 text-[9px] font-semibold " + (p2.valido ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"),
+                    children: p2.valido ? "perfil v\xE1lido" : "con errores"
+                  })
+                ] }),
+                jsx8("div", {
+                  className: "text-[10px] text-slate-500",
+                  children: (p2.tipos_norma || []).map((t4) => t4.etiqueta || t4.id).join(" \xB7 ")
+                })
+              ] }),
+              jsx8("button", {
+                type: "button",
+                onClick: () => {
+                  setPerfilJson(JSON.stringify(p2.perfil, null, 2));
+                  setValidacion(null);
+                  setResultadoBuild(null);
+                },
+                className: "rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 cursor-pointer shrink-0",
+                children: "Cargar en editor"
+              })
+            ]
+          }))
+        ]
+      }) : null,
+      // Paso 1: Generar plantilla para nuevo país
+      jsxs8("div", {
+        className: "flex flex-wrap items-center gap-1.5 rounded border border-slate-200 bg-white p-2",
+        children: [
+          jsx8("span", { className: "text-[11px] font-semibold text-slate-700", children: "1. Nueva plantilla de pa\xEDs:" }),
+          jsx8("input", {
+            value: jurInput,
+            onChange: (e3) => setJurInput(e3.target.value),
+            placeholder: "c\xF3digo ISO (ej. ar, pe, es, mx)",
+            className: "w-24 rounded border border-slate-300 px-2 py-1 font-mono text-xs text-slate-800"
+          }),
+          jsx8("button", {
+            type: "button",
+            onClick: generarPlantilla,
+            disabled: ocupado || !jurInput.trim(),
+            className: "rounded bg-slate-800 hover:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer",
+            children: "Generar plantilla"
+          })
+        ]
+      }),
+      // Paso 2: Editor de perfil JSON y validación
+      jsxs8("div", {
+        className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5",
+        children: [
+          jsxs8("div", { className: "flex items-center justify-between", children: [
+            jsx8("span", { className: "text-[11px] font-semibold text-slate-700", children: "2. Perfil del ordenamiento (JSON)" }),
+            jsx8("button", {
+              type: "button",
+              onClick: validarPerfilActual,
+              disabled: ocupado || !perfilJson.trim(),
+              className: "rounded border border-indigo-300 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700 cursor-pointer",
+              children: "Validar perfil"
+            })
+          ] }),
+          jsx8("textarea", {
+            value: perfilJson,
+            onChange: (e3) => setPerfilJson(e3.target.value),
+            rows: 6,
+            className: "w-full rounded border border-slate-300 bg-slate-50 p-2 font-mono text-[11px] text-slate-800 outline-none focus:border-indigo-500"
+          }),
+          validacion ? jsxs8("div", {
+            className: "rounded p-2 text-[11px] " + (validacion.ok ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-amber-50 text-amber-900 border border-amber-200"),
+            children: [
+              jsx8("div", {
+                className: "font-bold",
+                children: validacion.ok ? "\u2713 Perfil v\xE1lido conforme a dike-perfil-ordenamiento-v1" : `\u2717 ${validacion.errores.length} observaci\xF3n(es) en el perfil:`
+              }),
+              ...(validacion.errores || []).slice(0, 6).map((er, i3) => jsx8("div", {
+                key: i3,
+                className: "mt-0.5 font-mono text-[10px]",
+                children: `[${er.codigo}] ${er.ruta}: ${er.explicacion}`
+              }))
+            ]
+          }) : null
+        ]
+      }),
+      // Paso 3: Construir y validar pack C0-C3
+      jsxs8("details", {
+        className: "rounded border border-slate-200 bg-white p-2.5",
+        children: [
+          jsx8("summary", { className: "cursor-pointer text-[11px] font-semibold text-slate-700", children: "3. Configuraci\xF3n de paquete y texto de norma (Construir grafo)" }),
+          jsxs8("div", { className: "mt-2 flex flex-col gap-2", children: [
+            jsx8("div", { className: "text-[10px] font-semibold uppercase text-slate-400", children: "paquete.json" }),
+            jsx8("textarea", {
+              value: paqueteJson,
+              onChange: (e3) => setPaqueteJson(e3.target.value),
+              rows: 4,
+              className: "w-full rounded border border-slate-300 bg-slate-50 p-1.5 font-mono text-[10px] text-slate-800"
+            }),
+            jsxs8("div", { className: "flex items-center gap-2", children: [
+              jsx8("span", { className: "text-[10px] text-slate-500", children: "Archivo:" }),
+              jsx8("input", {
+                value: textoNormaNombre,
+                onChange: (e3) => setTextoNormaNombre(e3.target.value),
+                className: "rounded border border-slate-300 px-2 py-0.5 font-mono text-[11px]"
+              })
+            ] }),
+            jsx8("textarea", {
+              value: textoNormaContenido,
+              onChange: (e3) => setTextoNormaContenido(e3.target.value),
+              rows: 4,
+              placeholder: "Art\xEDculo 1. Texto del primer art\xEDculo\u2026\nArt\xEDculo 2. Texto del segundo art\xEDculo\u2026",
+              className: "w-full rounded border border-slate-300 bg-slate-50 p-1.5 font-mono text-[10px] text-slate-800"
+            })
+          ] })
+        ]
+      }),
+      jsx8("button", {
+        type: "button",
+        onClick: construirYValidarPack,
+        disabled: ocupado || !perfilJson.trim() || !paqueteJson.trim(),
+        className: "rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 py-2 px-3 text-xs font-semibold text-white cursor-pointer shadow-2xs",
+        children: ocupado ? "Construyendo y validando pack\u2026" : "\u{1F3D7} Construir pack de grafo y validar niveles C0\u2013C3"
+      }),
+      error2 ? jsx8("div", { className: "rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700", children: mensajeError(error2) }) : null,
+      resultadoBuild ? jsxs8("div", {
+        className: "flex flex-col gap-1.5 rounded-md border p-2.5 text-[11px] " + (resultadoBuild.ok ? "border-emerald-300 bg-emerald-50/70 text-emerald-950" : "border-amber-300 bg-amber-50 text-amber-950"),
+        children: [
+          jsx8("div", {
+            className: "font-bold",
+            children: resultadoBuild.ok ? `\u2713 Pack construido y validado \u2014 Nivel alcanzado: ${resultadoBuild.compatibilidad.nivelAlcanzado}` : `\u2717 Construcci\xF3n detenida (${resultadoBuild.etapa || "validaci\xF3n"}): ${resultadoBuild.error || "revisa los errores"}`
+          }),
+          resultadoBuild.construccion ? jsxs8("div", { className: "grid grid-cols-2 gap-1 text-[11px] mt-1", children: [
+            jsx8("div", { children: `Normas: ${resultadoBuild.construccion.normas}` }),
+            jsx8("div", { children: `Art\xEDculos acu\xF1ados: ${resultadoBuild.construccion.articulos}` }),
+            jsx8("div", { children: `Aristas: ${resultadoBuild.construccion.aristas}` }),
+            jsx8("div", { children: `Vigencias: ${resultadoBuild.construccion.ventanasVigencia}` })
+          ] }) : null,
+          resultadoBuild.construccion && resultadoBuild.construccion.manifestCoreSha256 ? jsx8("div", { className: "font-mono text-[10px] text-slate-600 break-all", children: "manifestCoreSha256: " + resultadoBuild.construccion.manifestCoreSha256 }) : null
+        ]
+      }) : null
+    ]
+  });
+}
+function SubHerramientaFuentes({ onAbrirGrafo3D }) {
+  const [fuentes, setFuentes] = useState8([]);
+  const [personal, setPersonal] = useState8(null);
+  const [error2, setError] = useState8(null);
+  useEffect8(() => {
+    rest("/grafo/fuentes").then(setFuentes).catch(setError);
+    rest("/grafo/personal").then(setPersonal).catch(() => {
+    });
+  }, []);
+  return jsxs8("div", {
+    className: "flex flex-col gap-2.5",
+    children: [
+      jsxs8("div", { className: "flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2.5", children: [
+        jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Capas de grafo disponibles" }),
+        ...(fuentes || []).map((f2) => jsxs8("div", {
+          key: f2.id,
+          className: "flex items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0",
+          children: [
+            jsxs8("div", { children: [
+              jsx8("div", { className: "font-semibold text-slate-800", children: f2.label }),
+              jsx8("div", { className: "text-[10px] text-slate-500", children: f2.local_only ? "Capa local en este equipo" : "Corpus sellado por hash" })
+            ] }),
+            jsx8("span", {
+              className: "rounded px-1.5 py-0.5 text-[10px] font-medium " + (f2.disponible ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"),
+              children: f2.disponible ? "disponible" : "no construida"
+            })
+          ]
+        })),
+        onAbrirGrafo3D ? jsx8("button", {
+          type: "button",
+          onClick: () => onAbrirGrafo3D(null),
+          className: "mt-1 rounded bg-emerald-600 hover:bg-emerald-700 py-1.5 px-3 text-xs font-semibold text-white cursor-pointer",
+          children: "Abrir Explorador 3D a pantalla completa"
+        }) : null
+      ] }),
+      personal ? jsxs8("div", { className: "flex flex-col gap-1 rounded border border-slate-200 bg-white p-2.5", children: [
+        jsx8("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-400", children: "Grafo de Revisi\xF3n Personal (GRE)" }),
+        jsx8("div", {
+          className: "text-xs text-slate-700",
+          children: `Nodos candidatos: ${(personal.nodes || []).length} \xB7 Aristas: ${(personal.edges || []).length}`
+        }),
+        jsx8("div", { className: "text-[11px] text-slate-500", children: "Los candidatos del grafo personal viven en plugin-data fuera del corpus sellado." })
+      ] }) : null,
+      error2 ? jsx8("div", { className: "text-xs text-red-600", children: mensajeError(error2) }) : null
+    ]
+  });
+}
+
 // src/puente.js
 var cola = [];
 function encolarCita(item) {
@@ -26319,13 +28861,84 @@ var ESTILOS_ESTADO = {
   retirada: { chip: "chipOff", texto: "retirada" },
   escalada: { chip: "chipOff", texto: "escalada" }
 };
-var TEXTO_GUARDADO = {
-  cargando: "cargando\u2026",
-  guardado: "guardado",
-  guardando: "guardando\u2026",
-  "sin-guardar": "sin guardar",
-  conflicto: "conflicto (recargar)"
+var TEMAS_HOJA = {
+  clasico: {
+    label: "Papel cl\xE1sico",
+    entorno: "#e5e7eb",
+    hojaBg: "#ffffff",
+    hojaTexto: "#1a1a1a",
+    hojaBorde: "rgba(0,0,0,0.08)"
+  },
+  sepia: {
+    label: "Sepia lectura",
+    entorno: "#e4ddd0",
+    hojaBg: "#fdf6e3",
+    hojaTexto: "#2b2118",
+    hojaBorde: "rgba(120,90,40,0.18)"
+  },
+  nocturno: {
+    label: "Tinta oscura",
+    entorno: "#0f172a",
+    hojaBg: "#1e293b",
+    hojaTexto: "#f1f5f9",
+    hojaBorde: "rgba(148,163,184,0.2)"
+  }
 };
+var ANCHOS_HOJA = {
+  a4: { label: "A4 (210 mm)", width: "210mm", padding: "2.2cm 2.6cm" },
+  carta: { label: "Carta (216 mm)", width: "216mm", padding: "2.0cm 2.4cm" },
+  ancho: { label: "Ancho fluido", width: "100%", padding: "1.6rem 2.2rem" }
+};
+var HERRAMIENTAS_BARRA = [
+  {
+    id: "citas",
+    icono: "\u2713",
+    label: "Verificador de Citas",
+    titulo: "Verificador de Citas Dik\xE9",
+    headerCls: "bg-emerald-50 border-emerald-200 text-emerald-800",
+    activeCls: "bg-emerald-600 text-white shadow-xs"
+  },
+  {
+    id: "privacidad",
+    icono: "\u{1F6E1}",
+    label: "Privacidad y Anonimizado",
+    titulo: "Seudonimizaci\xF3n y Privacidad (Ley 21.719)",
+    headerCls: "bg-amber-50 border-amber-200 text-amber-900",
+    activeCls: "bg-amber-600 text-white shadow-xs"
+  },
+  {
+    id: "estilo",
+    icono: "\u270D",
+    label: "Revisi\xF3n de Estilo (LexO Escribe Claro)",
+    titulo: "Revisi\xF3n de Estilo \xB7 LexO Escribe Claro",
+    headerCls: "bg-teal-50 border-teal-200 text-teal-800",
+    activeCls: "bg-teal-600 text-white shadow-xs"
+  },
+  {
+    id: "nif",
+    icono: "\u2442",
+    label: "NIF Interactivo y NIF Vivo",
+    titulo: "Tablero NIF Interactivo y Propuestas",
+    headerCls: "bg-indigo-50 border-indigo-200 text-indigo-800",
+    activeCls: "bg-indigo-600 text-white shadow-xs"
+  },
+  {
+    id: "grafos",
+    icono: "\u25C8",
+    label: "Herramientas de Grafos y Ordenamientos",
+    titulo: "Grafos del Corpus y Constructor de Ordenamientos",
+    headerCls: "bg-sky-50 border-sky-200 text-sky-900",
+    activeCls: "bg-sky-600 text-white shadow-xs"
+  },
+  {
+    id: "ajustes",
+    icono: "\u2699",
+    label: "Copilot y Personalizaci\xF3n",
+    titulo: "Personalizaci\xF3n de Estudio y Predicci\xF3n",
+    headerCls: "bg-violet-50 border-violet-200 text-violet-900",
+    activeCls: "bg-violet-600 text-white shadow-xs"
+  }
+];
 function esConflicto(e3) {
   if (!e3) return false;
   if (e3.status === 409 || e3.statusCode === 409) return true;
@@ -26334,51 +28947,46 @@ function esConflicto(e3) {
 }
 function AccionesFallo({ detalle, acciones, onAccion }) {
   const a3 = acciones || {};
-  const [reparar, setReparar] = useState5(detalle.cita_raw || "");
-  const [motivo, setMotivo] = useState5("");
-  const [nota, setNota] = useState5("");
+  const [reparar, setReparar] = useState9(detalle.cita_raw || "");
+  const [motivo, setMotivo] = useState9("");
+  const [nota, setNota] = useState9("");
   const agotados = (a3.intentos || 0) >= MAX_INTENTOS_REPARAR;
-  return jsxs5("div", { className: "flex flex-col gap-1.5 mt-1", children: [
-    // Reparar: probar el reemplazo solo contra el motor; si lo da VERIFICADA
-    // se habilita Aplicar (el texto cambia → todo queda desactualizada).
-    jsxs5("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx5("input", {
-        className: S.input + " flex-1 min-w-40",
+  return jsxs9("div", { className: "flex flex-col gap-1.5 mt-1.5 rounded border border-red-200 bg-red-50/40 p-2", children: [
+    jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx9("input", {
+        className: "flex-1 min-w-36 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
         value: reparar,
         placeholder: "texto de reemplazo",
         disabled: agotados,
         onChange: (e3) => setReparar(e3.target.value)
       }),
-      jsx5("button", {
+      jsx9("button", {
         type: "button",
-        className: S.ghost,
+        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
         disabled: agotados || a3.ocupado || !reparar.trim(),
         onClick: () => onAccion("probar", reparar.trim()),
         children: a3.ocupado ? "probando\u2026" : "Probar reemplazo"
       }),
-      jsx5("button", {
+      jsx9("button", {
         type: "button",
-        className: S.button,
-        // Solo se aplica el texto exacto que el motor verificó: si el input
-        // cambia después de probar, el botón se apaga solo.
+        className: "rounded bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-40 cursor-pointer",
         disabled: !a3.probado || agotados || reparar.trim() !== a3.probadoTexto,
         onClick: () => onAccion("aplicar", a3.probadoTexto),
         children: "Aplicar"
       })
     ] }),
-    a3.resumenPrueba ? jsx5("div", { className: S.sub, children: a3.resumenPrueba }) : null,
-    agotados ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
-    // Retirar con motivo + escalar con nota.
-    jsxs5("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx5("input", {
-        className: S.input + " flex-1 min-w-32",
+    a3.resumenPrueba ? jsx9("div", { className: "text-[11px] text-slate-600", children: a3.resumenPrueba }) : null,
+    agotados ? jsx9("div", { className: "text-xs text-red-700 font-medium", children: "Dos intentos de reparaci\xF3n sin \xE9xito: conviene escalar." }) : null,
+    jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx9("input", {
+        className: "flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
         value: motivo,
         placeholder: "motivo para retirarla",
         onChange: (e3) => setMotivo(e3.target.value)
       }),
-      jsx5("button", {
+      jsx9("button", {
         type: "button",
-        className: S.ghost,
+        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
         disabled: !motivo.trim(),
         onClick: () => {
           onAccion("retirar", motivo.trim());
@@ -26386,15 +28994,15 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
         },
         children: "Retirar"
       }),
-      jsx5("input", {
-        className: S.input + " flex-1 min-w-32",
+      jsx9("input", {
+        className: "flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none",
         value: nota,
         placeholder: "nota para revisi\xF3n humana",
         onChange: (e3) => setNota(e3.target.value)
       }),
-      jsx5("button", {
+      jsx9("button", {
         type: "button",
-        className: S.ghost,
+        className: "rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer",
         disabled: !nota.trim(),
         onClick: () => {
           onAccion("escalar", nota.trim());
@@ -26406,30 +29014,69 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
   ] });
 }
 function SeccionEscritor({ onAbrirGrafo }) {
-  const hostRef = useRef4(null);
-  const editorRef = useRef4(null);
-  const revRef = useRef4(0);
-  const [chatSesion, setChatSesion] = useState5(null);
-  const registroRef = useRef4({});
-  const casoRef = useRef4(BORRADOR);
-  const textoGuardadoRef = useRef4("");
-  const timerGuardado = useRef4(null);
-  const timerInfo = useRef4(null);
-  const infoDocRef = useRef4({ texto: "", hash: null });
-  const verificacionRef = useRef4(null);
-  const verificarRef = useRef4(null);
-  const [casos, setCasos] = useState5(null);
-  const [caseId, setCaseId] = useState5(BORRADOR);
-  const [estadoDoc, setEstadoDoc] = useState5("cargando");
-  const [error2, setError] = useState5(null);
-  const [aviso, setAviso] = useState5(null);
-  const [verificacion, setVerificacion] = useState5(null);
-  const [docInfo, setDocInfo] = useState5({ texto: "", hash: null });
-  const [verificando, setVerificando] = useState5(false);
-  const [acciones, setAcciones] = useState5({});
-  const [conflictoRev, setConflictoRev] = useState5(null);
-  const [registro, setRegistro] = useState5({});
-  const actualizarInfoDoc = useCallback5((ed) => {
+  const hostRef = useRef7(null);
+  const editorRef = useRef7(null);
+  const revRef = useRef7(0);
+  const [chatSesion, setChatSesion] = useState9(null);
+  const registroRef = useRef7({});
+  const casoRef = useRef7(BORRADOR);
+  const textoGuardadoRef = useRef7("");
+  const timerGuardado = useRef7(null);
+  const timerInfo = useRef7(null);
+  const infoDocRef = useRef7({ texto: "", hash: null });
+  const verificacionRef = useRef7(null);
+  const verificarRef = useRef7(null);
+  const [casos, setCasos] = useState9(null);
+  const [caseId, setCaseId] = useState9(BORRADOR);
+  const [estadoDoc, setEstadoDoc] = useState9("cargando");
+  const [error2, setError] = useState9(null);
+  const [aviso, setAviso] = useState9(null);
+  const [verificacion, setVerificacion] = useState9(null);
+  const [docInfo, setDocInfo] = useState9({ texto: "", hash: null });
+  const [verificando, setVerificando] = useState9(false);
+  const [acciones, setAcciones] = useState9({});
+  const [conflictoRev, setConflictoRev] = useState9(null);
+  const [registro, setRegistro] = useState9({});
+  const [modoVista, setModoVista] = useState9("write");
+  const [herramientaActiva, setHerramientaActiva] = useState9(null);
+  const [chatAbierto, setChatAbierto] = useState9(true);
+  const [prefs, setPrefs] = useState9({
+    tema_papel: "clasico",
+    fuente: "Georgia, 'Times New Roman', serif",
+    tamano_fuente: "12",
+    ancho_hoja: "a4",
+    estrategia_privacidad: "media",
+    contexto_estilo: "escrito",
+    mostrar_pizarra: true,
+    mostrar_chat: true,
+    auto_detectar_privacidad: true,
+    auto_analizar_estilo: false
+  });
+  useEffect9(() => {
+    rest("/preferencias").then((d2) => {
+      if (d2 && typeof d2 === "object") {
+        setPrefs((p2) => ({ ...p2, ...d2 }));
+        if (typeof d2.mostrar_chat === "boolean") setChatAbierto(d2.mostrar_chat);
+      }
+    }).catch(() => {
+    });
+  }, []);
+  const guardarPrefs = useCallback8((parche) => {
+    setPrefs((prev) => {
+      const sig = { ...prev, ...parche };
+      rest("/preferencias", { method: "POST", body: sig }).catch(() => {
+      });
+      if (storage && typeof storage.set === "function") {
+        try {
+          storage.set("dike.preferencias", sig);
+        } catch {
+        }
+      }
+      return sig;
+    });
+    if ("mostrar_chat" in parche) setChatAbierto(Boolean(parche.mostrar_chat));
+  }, []);
+  const actualizarInfoDoc = useCallback8((ed) => {
     const texto = textoDelEditor(ed);
     sha256Hex(texto).then((hash) => {
       const info = { texto, hash };
@@ -26438,13 +29085,13 @@ function SeccionEscritor({ onAbrirGrafo }) {
     }).catch(() => {
     });
   }, []);
-  const programarInfoDoc = useCallback5((ed) => {
+  const programarInfoDoc = useCallback8((ed) => {
     clearTimeout(timerInfo.current);
     timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO);
   }, [actualizarInfoDoc]);
-  const estadoRef = useRef4("cargando");
+  const estadoRef = useRef7("cargando");
   estadoRef.current = estadoDoc;
-  const guardar = useCallback5(() => {
+  const guardar = useCallback8(() => {
     const ed = editorRef.current;
     clearTimeout(timerGuardado.current);
     if (!ed || estadoRef.current === "conflicto") return Promise.resolve();
@@ -26474,13 +29121,44 @@ function SeccionEscritor({ onAbrirGrafo }) {
       }
     });
   }, []);
-  const programarGuardado = useCallback5(() => {
+  const programarGuardado = useCallback8(() => {
     clearTimeout(timerGuardado.current);
     timerGuardado.current = setTimeout(() => {
       guardar();
     }, DEBOUNCE_GUARDADO);
   }, [guardar]);
-  const cargarEscrito = useCallback5((cid) => {
+  const actualizarRegistro = useCallback8((updater) => {
+    const base2 = registroRef.current || {};
+    const nuevo = typeof updater === "function" ? updater(base2) : updater;
+    registroRef.current = nuevo;
+    setRegistro(nuevo);
+    if (estadoRef.current !== "cargando" && estadoRef.current !== "conflicto") {
+      setEstadoDoc("sin-guardar");
+      programarGuardado();
+    }
+  }, [programarGuardado]);
+  const insertarCitaEnEscrito = useCallback8((p2) => {
+    const ed = editorRef.current;
+    if (!ed || !p2 || !p2.cita) return;
+    const ahora = (/* @__PURE__ */ new Date()).toISOString();
+    const seguro = String(p2.cita).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    ed.chain().insertContentAt(ed.state.doc.content.size, "<p>" + seguro + ".</p>").run();
+    const reg = registroRef.current || {};
+    registroRef.current = {
+      ...reg,
+      pistas: [
+        ...reg.pistas || [],
+        { cita: p2.cita, gid: p2.gid, nodo_id: p2.nodo_id, fecha: ahora, origen: "busqueda" }
+      ]
+    };
+    setRegistro(registroRef.current);
+    estadoRef.current = "sin-guardar";
+    setEstadoDoc("sin-guardar");
+    programarGuardado();
+    setAviso("Cita tra\xEDda desde la b\xFAsqueda: es una pista; se est\xE1 verificando.");
+    if (verificarRef.current) verificarRef.current();
+  }, [programarGuardado]);
+  const cargarEscrito = useCallback8((cid) => {
     const ed = editorRef.current;
     if (!ed) return;
     setEstadoDoc("cargando");
@@ -26539,11 +29217,25 @@ function SeccionEscritor({ onAbrirGrafo }) {
       setError(e3);
     });
   }, [actualizarInfoDoc, programarGuardado]);
-  useEffect5(() => {
+  const recargarListaCasos = useCallback8((seleccionarId = null) => {
+    return rest("/nif/casos").then((d2) => {
+      const lista = d2 && d2.cases || [];
+      setCasos(lista);
+      if (seleccionarId) {
+        setCaseId(seleccionarId);
+        cargarEscrito(seleccionarId);
+      }
+      return lista;
+    }).catch(() => {
+      setCasos([]);
+      return [];
+    });
+  }, [cargarEscrito]);
+  useEffect9(() => {
     const ed = montarEditor({
       element: hostRef.current,
       content: "",
-      placeholder: "Escribe o pega el escrito\u2026",
+      placeholder: "Comience a redactar su escrito aqu\xED\u2026",
       onUpdate: (editor) => {
         const texto = textoDelEditor(editor);
         if (texto === textoGuardadoRef.current) {
@@ -26585,7 +29277,12 @@ function SeccionEscritor({ onAbrirGrafo }) {
       editorRef.current = null;
     };
   }, [cargarEscrito, programarGuardado, programarInfoDoc]);
-  useEffect5(() => {
+  useEffect9(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    ed.setEditable(modoVista !== "read", false);
+  }, [modoVista]);
+  useEffect9(() => {
     const ed = editorRef.current;
     if (!ed) return;
     const v3 = verificacionRef.current;
@@ -26606,7 +29303,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
     fijarMarcas(ed, marcas);
   }, [verificacion, docInfo, registro]);
   verificacionRef.current = verificacion;
-  const verificar = useCallback5(() => {
+  const verificar = useCallback8(() => {
     const ed = editorRef.current;
     if (!ed || verificando) return;
     setVerificando(true);
@@ -26616,10 +29313,13 @@ function SeccionEscritor({ onAbrirGrafo }) {
       setVerificacion({ resultado, hash });
       setAcciones({});
       actualizarInfoDoc(ed);
+      if (resultado && resultado.meta && resultado.meta.citas_fallidas > 0) {
+        setHerramientaActiva((prev) => prev || "citas");
+      }
     })).catch(setError).finally(() => setVerificando(false));
   }, [verificando, actualizarInfoDoc]);
   verificarRef.current = verificar;
-  const cambiarCaso = useCallback5((cid) => {
+  const cambiarCaso = useCallback8((cid) => {
     clearTimeout(timerGuardado.current);
     const continuar = () => {
       setCaseId(cid);
@@ -26633,15 +29333,70 @@ function SeccionEscritor({ onAbrirGrafo }) {
       continuar();
     }
   }, [cargarEscrito, guardar]);
-  const recargarTrasConflicto = useCallback5(() => {
+  const crearNuevoCasoNif = useCallback8((nuevoId, pregunta) => {
+    rest("/nif/init", {
+      method: "POST",
+      body: { case_id: nuevoId, pregunta },
+      timeoutMs: 6e4
+    }).then(() => recargarListaCasos(nuevoId)).catch(setError);
+  }, [recargarListaCasos]);
+  const sembrarCasoDemo = useCallback8(() => {
+    rest("/nif/seed", {
+      method: "POST",
+      body: { case_id: "demo-panel" },
+      timeoutMs: 6e4
+    }).then(() => recargarListaCasos("demo-panel")).catch(setError);
+  }, [recargarListaCasos]);
+  const cargarEscritoDemo = useCallback8(() => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    rest("/escrito/demo").then((d2) => {
+      if (d2 && (d2.html || d2.texto)) {
+        ed.commands.setContent(d2.html || d2.texto);
+        setAviso("Escrito sint\xE9tico de demostraci\xF3n cargado. Pulsa \xABVerificar citas\xBB para probar el motor.");
+      }
+    }).catch(setError);
+  }, []);
+  const insertarTextoEnEditor = useCallback8((texto) => {
+    const ed = editorRef.current;
+    if (!ed || !texto) return;
+    const limpio = String(texto).trim();
+    if (!limpio) return;
+    const parrafos = limpio.split(/\n\s*\n/).map((p2) => "<p>" + p2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>") + "</p>").join("");
+    ed.chain().focus().insertContentAt(ed.state.doc.content.size, parrafos).run();
+  }, []);
+  const agregarNotaAPizarra = useCallback8((datosNota) => {
+    const actual = registroRef.current && registroRef.current.pizarra || {};
+    const nodos = Array.isArray(actual.nodos) ? actual.nodos : [];
+    const idx = nodos.length;
+    const nueva = {
+      id: "nota-" + Date.now().toString(36) + "-" + idx,
+      x: 24 + idx % 4 * 248,
+      y: 22 + Math.floor(idx / 4) * 175,
+      w: 232,
+      h: 155,
+      titulo: datosNota.titulo || "Nota " + (idx + 1),
+      tag: datosNota.tag || "NOTA",
+      color: datosNota.color || "#bfdbfe",
+      texto: datosNota.texto || "",
+      nodo_id: datosNota.nodo_id || null,
+      gid: datosNota.gid || null,
+      minimizada: false
+    };
+    actualizarRegistro((r2) => ({
+      ...r2 || {},
+      pizarra: { ...actual, nodos: [...nodos, nueva], colapsada: false }
+    }));
+  }, [actualizarRegistro]);
+  const recargarTrasConflicto = useCallback8(() => {
     cargarEscrito(casoRef.current);
   }, [cargarEscrito]);
-  const fijarRegistro = useCallback5((nuevo) => {
+  const fijarRegistro = useCallback8((nuevo) => {
     registroRef.current = nuevo;
     setRegistro(nuevo);
     return guardar();
   }, [guardar]);
-  const accionCita = useCallback5((indice, tipo, valor) => {
+  const accionCita = useCallback8((indice, tipo, valor) => {
     const ed = editorRef.current;
     const v3 = verificacionRef.current;
     if (!ed || !v3) return;
@@ -26713,136 +29468,447 @@ function SeccionEscritor({ onAbrirGrafo }) {
   const meta = res && res.meta || {};
   const detalles = res && res.detalles || [];
   const msgVeredicto = res && mensajeVeredicto(res.veredicto);
-  const opciones = [{ case_id: BORRADOR, legal_question: "borrador (sin caso)" }].concat(casos || []);
-  return jsxs5("div", { className: "flex flex-col gap-3", children: [
-    jsxs5("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx5("select", {
-        className: S.input,
-        value: caseId,
-        onChange: (e3) => cambiarCaso(e3.target.value),
-        children: casos === null ? jsx5("option", { value: caseId, children: "Cargando casos\u2026" }) : opciones.map((c4) => jsx5("option", {
-          key: c4.case_id,
-          value: c4.case_id,
-          children: c4.case_id === BORRADOR ? "borrador (sin caso)" : c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
-        }))
+  const temaActual = TEMAS_HOJA[prefs.tema_papel] || TEMAS_HOJA.clasico;
+  const anchoActual = ANCHOS_HOJA[prefs.ancho_hoja] || ANCHOS_HOJA.a4;
+  const cfgHerramienta = HERRAMIENTAS_BARRA.find((h3) => h3.id === herramientaActiva) || null;
+  const pizarraEstado = registro && registro.pizarra || { nodos: [], aristas: [], colapsada: false, altura: 225 };
+  return jsxs9("div", {
+    className: "flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-slate-300 bg-white shadow-xs",
+    style: { minHeight: "760px" },
+    children: [
+      // 1. Barra de formato y documento estilo Word (2 filas, como imagen 2)
+      jsx9(BarraFormato, {
+        editorRef,
+        caseId,
+        casos,
+        onCambiarCaso: cambiarCaso,
+        onCrearCaso: crearNuevoCasoNif,
+        onSembrarDemoCaso: sembrarCasoDemo,
+        onCargarEscritoDemo: cargarEscritoDemo,
+        onGuardarAhora: guardar,
+        estadoDoc,
+        verificando,
+        onVerificar: verificar,
+        verificacion,
+        modoVista,
+        onCambiarModoVista: setModoVista,
+        prefs,
+        onCambiarPrefs: guardarPrefs,
+        docInfo,
+        onAbrirHerramienta: (id) => setHerramientaActiva((prev) => prev === id ? null : id)
       }),
-      jsx5("span", { className: S.sub, children: TEXTO_GUARDADO[estadoDoc] || estadoDoc }),
-      estadoDoc === "conflicto" ? jsxs5("span", { className: "flex items-center gap-1", children: [
-        jsx5("span", { className: "text-xs text-(--ui-danger)", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
-        jsx5("button", {
-          type: "button",
-          className: S.link,
-          onClick: recargarTrasConflicto,
-          children: "descargar y perder mis cambios"
-        })
-      ] }) : null,
-      jsx5("button", {
-        type: "button",
-        className: S.button,
-        onClick: verificar,
-        disabled: verificando || estadoDoc === "cargando",
-        children: verificando ? "Verificando\u2026" : "Verificar citas"
-      }),
-      verificando ? jsx5("span", { className: S.sub, children: "La primera llamada instala el corpus (~1 min)." }) : null
-    ] }),
-    error2 ? jsx5("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    aviso ? jsx5("div", { className: S.sub, children: aviso }) : null,
-    jsxs5("div", { className: S.card, children: [
-      jsx5("div", { className: S.cardTitle, children: "Escrito" }),
-      jsx5("div", { ref: hostRef })
-    ] }),
-    jsx5(ModuloPrivacidad, {
-      editorRef,
-      caseId,
-      docInfo,
-      registro,
-      setRegistro
-    }),
-    jsx5(ChatEscritor, {
-      editorRef,
-      caseId,
-      docInfo,
-      verificacion,
-      registro,
-      setRegistro,
-      estrategiaPriv: ((registro || {}).privacidad || {}).estrategia,
-      rev: revRef.current,
-      onSesion: setChatSesion,
-      onAbrirGrafo
-    }),
-    jsx5(NifPropuestas, {
-      editorRef,
-      caseId,
-      registro,
-      setRegistro,
-      sesion: chatSesion,
-      tieneNif: caseId !== "borrador"
-    }),
-    jsx5(PrediccionPanel, {
-      editorRef,
-      caseId,
-      docInfo,
-      verificacion,
-      registro,
-      setRegistro,
-      sesion: chatSesion
-    }),
-    res && res.error ? jsxs5("div", { className: S.card, children: [
-      jsx5("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
-      jsx5("div", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
-    ] }) : null,
-    res && !res.error ? jsxs5("div", { className: "flex flex-col gap-2", children: [
-      jsxs5("div", { className: "font-medium", children: [
-        "Dik\xE9: " + (meta.citas_verificadas || 0) + " de " + (meta.total_citas || 0) + " citas verificadas" + (res.veredicto ? " (" + res.veredicto + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? " \xB7 al " + meta.as_of : "")
-      ] }),
-      msgVeredicto ? jsx5("div", { className: S.sub, children: msgVeredicto }) : null,
-      detalles.map((d2, i3) => {
-        const estado = estadoCita(d2, v2.hash, docInfo.hash, registro);
-        const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo;
-        return jsxs5("div", { key: i3, className: S.row, children: [
-          jsx5("span", {
-            className: S.mark + " " + (estado === "verificada" ? S.ok : estado === "fallo" ? S.bad : ""),
-            children: estado === "verificada" ? "\u2713" : estado === "fallo" ? "\u2717" : "\xB7"
+      // 2. Pizarra Estratégica encima del editor (colapsable y redimensionable)
+      modoVista !== "read" && prefs.mostrar_pizarra !== false ? jsx9(PizarraEstrategica, {
+        pizarra: pizarraEstado,
+        onChange: (nuevaPizarra) => actualizarRegistro((r2) => ({ ...r2 || {}, pizarra: nuevaPizarra })),
+        onInsertarTexto: insertarTextoEnEditor,
+        onLlevarCitaAlEscrito: insertarCitaEnEscrito,
+        onAbrirGrafo
+      }) : null,
+      // Banners de conflicto, error o aviso
+      estadoDoc === "conflicto" ? jsxs9("div", {
+        className: "flex items-center gap-3 border-b border-amber-300 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 shrink-0",
+        children: [
+          jsx9("span", { className: "flex-1", children: "Otro proceso guard\xF3 este escrito" + (conflictoRev != null ? " (rev " + conflictoRev + ")" : "") + "." }),
+          jsx9("button", {
+            type: "button",
+            onClick: recargarTrasConflicto,
+            className: "rounded border border-amber-400 bg-white px-2 py-0.5 font-medium text-amber-900 hover:bg-amber-100 cursor-pointer",
+            children: "descargar y perder mis cambios"
+          })
+        ]
+      }) : null,
+      error2 ? jsxs9("div", {
+        className: "flex items-center justify-between border-b border-red-200 bg-red-50 px-4 py-1.5 text-xs text-red-700 shrink-0",
+        children: [
+          jsx9("span", { children: mensajeError(error2) }),
+          jsx9("button", { type: "button", onClick: () => setError(null), className: "text-red-500 hover:text-red-800", children: "\u2715" })
+        ]
+      }) : null,
+      aviso ? jsxs9("div", {
+        className: "flex items-center justify-between border-b border-sky-200 bg-sky-50 px-4 py-1 text-xs text-sky-800 shrink-0",
+        children: [
+          jsx9("span", { children: aviso }),
+          jsx9("button", { type: "button", onClick: () => setAviso(null), className: "text-sky-600 hover:text-sky-900", children: "\u2715" })
+        ]
+      }) : null,
+      // 3. Área principal: Centro (Hoja Word) + Cajón de Herramienta + Barra de Iconos + Chat Hermes
+      jsxs9("div", {
+        className: "flex flex-1 min-h-0 overflow-hidden",
+        children: [
+          // ── COLUMNA CENTRAL: Lienzo gris con Hoja de Papel tipo Word ──
+          jsxs9("div", {
+            className: "flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden",
+            children: [
+              // Entorno gris desplazable con la hoja centrada
+              jsxs9("div", {
+                className: "flex-1 overflow-y-auto flex justify-center py-6 px-4",
+                style: { backgroundColor: temaActual.entorno },
+                children: [
+                  jsxs9("div", {
+                    className: "dike-editor-page transition-all",
+                    style: {
+                      width: anchoActual.width,
+                      maxWidth: "100%",
+                      minHeight: "297mm",
+                      backgroundColor: temaActual.hojaBg,
+                      color: temaActual.hojaTexto,
+                      border: "1px solid " + temaActual.hojaBorde,
+                      boxShadow: "0 2px 12px rgba(0, 0, 0, 0.14)",
+                      padding: anchoActual.padding,
+                      fontFamily: prefs.fuente || "Georgia, 'Times New Roman', serif",
+                      fontSize: (prefs.tamano_fuente || "12") + "pt",
+                      lineHeight: "1.65"
+                    },
+                    children: [
+                      modoVista === "read" ? jsxs9("div", {
+                        className: "mb-4 flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-3 py-1.5 font-sans text-xs text-slate-600",
+                        children: [
+                          jsx9("span", { children: "\u{1F4D6} Modo lectura \u2014 edici\xF3n bloqueada para revisar texto y citas" }),
+                          jsx9("button", {
+                            type: "button",
+                            onClick: () => setModoVista("write"),
+                            className: "font-semibold text-indigo-600 hover:underline cursor-pointer",
+                            children: "Volver a Escribir"
+                          })
+                        ]
+                      }) : null,
+                      // Contenedor Tiptap ProseMirror
+                      jsx9("div", { ref: hostRef })
+                    ]
+                  })
+                ]
+              }),
+              // Barra flotante de estado de citas (como CitationStatus en imagen 2)
+              res ? jsxs9("div", {
+                className: "flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-xs shrink-0 " + (res.error || (meta.citas_fallidas || 0) > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"),
+                children: [
+                  res.error ? jsx9("span", { children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) }) : jsxs9("div", { className: "flex flex-wrap items-center gap-2", children: [
+                    jsx9("span", { className: "font-semibold", children: `\u{1F6E1} Dik\xE9: ${meta.citas_verificadas || 0} de ${meta.total_citas || 0} citas verificadas` + (res.veredicto ? ` (${res.veredicto})` : "") }),
+                    jsx9("span", { className: "text-[11px] opacity-80", children: `corpus ${meta.pack_hash || "?"}` + (meta.as_of ? ` \xB7 al ${meta.as_of}` : "") })
+                  ] }),
+                  jsx9("button", {
+                    type: "button",
+                    onClick: () => setHerramientaActiva("citas"),
+                    className: "rounded bg-white/80 hover:bg-white px-2 py-0.5 text-[11px] font-semibold border border-current/20 cursor-pointer",
+                    children: herramientaActiva === "citas" ? "Viendo detalle en barra derecha" : "Ver detalle y reparar citas \u2192"
+                  })
+                ]
+              }) : null,
+              // Barra inferior de custodia y persistencia local (como PersistenceBar en imagen 2)
+              jsxs9("div", {
+                className: "flex flex-wrap items-center gap-2 border-t border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-600 select-none shrink-0",
+                children: [
+                  jsx9("span", { className: "text-slate-400", children: "Datos:" }),
+                  jsx9("span", {
+                    className: "inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 font-medium text-slate-700",
+                    children: "\u{1F512} Guardado local en este equipo (plugin-data)"
+                  }),
+                  jsx9("span", {
+                    className: "text-slate-400 hidden sm:inline truncate",
+                    children: "El escrito vive en tu equipo; hacia el modelo viaja seudonimizado."
+                  }),
+                  jsxs9("div", { className: "ml-auto flex items-center gap-1.5", children: [
+                    jsx9("span", { className: "text-slate-400", children: "Papel:" }),
+                    ...Object.entries(TEMAS_HOJA).map(([tid, tmeta]) => jsx9("button", {
+                      key: tid,
+                      type: "button",
+                      onClick: () => guardarPrefs({ tema_papel: tid }),
+                      className: "rounded px-1.5 py-0.2 text-[10px] cursor-pointer " + (prefs.tema_papel === tid ? "bg-slate-800 text-white font-semibold" : "text-slate-500 hover:bg-slate-200"),
+                      children: tmeta.label.split(" ")[1] || tmeta.label
+                    }))
+                  ] })
+                ]
+              })
+            ]
           }),
-          jsxs5("div", { className: "min-w-0", children: [
-            jsxs5("div", { className: "flex items-center gap-2", children: [
-              jsx5("div", { children: d2.cita_raw }),
-              estado === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx5("button", {
+          // ── CAJÓN DESLIZANTE DE LA HERRAMIENTA ACTIVA (a la izquierda de la barra de iconos) ──
+          jsxs9("div", {
+            className: (herramientaActiva ? "flex " : "hidden ") + "w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden",
+            children: [
+              // Cabecera del cajón
+              cfgHerramienta ? jsxs9("div", {
+                className: "flex items-center justify-between border-b px-3 py-2 shrink-0 " + cfgHerramienta.headerCls,
+                children: [
+                  jsxs9("div", { className: "flex items-center gap-2 min-w-0", children: [
+                    jsx9("span", { className: "text-sm font-bold", children: cfgHerramienta.icono }),
+                    jsx9("span", { className: "text-xs font-bold uppercase tracking-wide truncate", children: cfgHerramienta.titulo })
+                  ] }),
+                  jsx9("button", {
+                    type: "button",
+                    onClick: () => setHerramientaActiva(null),
+                    title: "Cerrar panel de herramienta",
+                    className: "rounded p-1 text-xs opacity-70 hover:opacity-100 hover:bg-black/5 cursor-pointer",
+                    children: "\u2715"
+                  })
+                ]
+              }) : null,
+              // Contenido del cajón (Privacidad y Predicción permanecen montados para mantener efectos)
+              jsxs9("div", {
+                className: "flex-1 min-h-0 overflow-y-auto",
+                children: [
+                  // 1. Herramienta: Verificador de Citas Diké
+                  herramientaActiva === "citas" ? jsxs9("div", {
+                    className: "flex flex-col gap-3 p-3 text-xs text-slate-800",
+                    children: [
+                      jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
+                        jsx9("span", { className: "text-slate-600", children: "Verificaci\xF3n determinista contra las 25 leyes del corpus sellado." }),
+                        jsx9("button", {
+                          type: "button",
+                          onClick: verificar,
+                          disabled: verificando || estadoDoc === "cargando",
+                          className: "rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white cursor-pointer shrink-0",
+                          children: verificando ? "Verificando\u2026" : "Verificar citas"
+                        })
+                      ] }),
+                      !res && !verificando ? jsx9("div", {
+                        className: "rounded border border-dashed border-slate-300 p-4 text-center text-slate-500",
+                        children: "Pulsa \xABVerificar citas\xBB para comprobar todas las referencias normativas del escrito."
+                      }) : null,
+                      res && res.error ? jsxs9("div", {
+                        className: "rounded border border-red-200 bg-red-50 p-2.5 text-red-800",
+                        children: [
+                          jsx9("span", { className: S.chip + " " + S.chipBad, children: "sin revisar" }),
+                          jsx9("div", { className: "mt-1", children: "Dik\xE9 no pudo revisar el escrito: " + String(res.error) })
+                        ]
+                      }) : null,
+                      res && !res.error ? jsxs9("div", { className: "flex flex-col gap-2", children: [
+                        jsx9("div", { className: "font-semibold text-slate-900", children: "Dik\xE9: " + (meta.citas_verificadas || 0) + " de " + (meta.total_citas || 0) + " citas verificadas" + (res.veredicto ? " (" + res.veredicto + ")" : "") + " \xB7 corpus " + (meta.pack_hash || "?") + (meta.as_of ? " \xB7 al " + meta.as_of : "") }),
+                        msgVeredicto ? jsx9("div", { className: "text-[11px] text-slate-600", children: msgVeredicto }) : null,
+                        ...detalles.map((d2, i3) => {
+                          const estado = estadoCita(d2, v2.hash, docInfo.hash, registro);
+                          const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo;
+                          return jsxs9("div", { key: i3, className: "flex items-start gap-2 border-b border-slate-200 py-2 last:border-0", children: [
+                            jsx9("span", {
+                              className: "w-4 shrink-0 text-center font-bold " + (estado === "verificada" ? "text-emerald-600" : estado === "fallo" ? "text-red-600" : "text-slate-400"),
+                              children: estado === "verificada" ? "\u2713" : estado === "fallo" ? "\u2717" : "\xB7"
+                            }),
+                            jsxs9("div", { className: "min-w-0 flex-1", children: [
+                              jsxs9("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                                jsx9("span", { className: "font-medium text-slate-900", children: d2.cita_raw }),
+                                estado === "verificada" && d2.nodo_id && onAbrirGrafo ? jsx9("button", {
+                                  type: "button",
+                                  className: S.chip + " " + S[es.chip] + " cursor-pointer",
+                                  title: "Abrir el art\xEDculo en el grafo 3D",
+                                  onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
+                                  children: es.texto + " \xB7 grafo"
+                                }) : jsx9("span", { className: S.chip + " " + S[es.chip], children: es.texto })
+                              ] }),
+                              jsx9("div", { className: "mt-0.5 break-all text-[11px] text-slate-500", children: etiquetaCita(estado, d2, meta, registro) }),
+                              estado === "fallo" ? jsx9(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
+                            ] })
+                          ] });
+                        }),
+                        res.problemas && res.problemas.length ? jsxs9("div", {
+                          className: "rounded border border-amber-200 bg-amber-50 p-2",
+                          children: [
+                            jsx9("div", { className: "text-[10px] font-bold uppercase text-amber-800", children: "Problemas del motor" }),
+                            ...res.problemas.map((p2, i3) => jsx9("div", { key: i3, className: "text-[11px] text-amber-900", children: String(p2) }))
+                          ]
+                        }) : null,
+                        res.no_verificadas && res.no_verificadas.length ? jsx9("div", {
+                          className: "text-[11px] text-slate-500",
+                          children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ")
+                        }) : null,
+                        registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs9("details", {
+                          className: "text-xs",
+                          children: [
+                            jsx9("summary", { className: "cursor-pointer text-slate-500", children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
+                            ...(registro.retiros || []).map((r2, i3) => jsxs9("div", { key: "r" + i3, className: "py-0.5 text-[11px]", children: [
+                              jsx9("span", { className: "text-slate-400", children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+                              jsx9("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
+                            ] })),
+                            ...(registro.escaladas || []).map((e3, i3) => jsxs9("div", { key: "e" + i3, className: "py-0.5 text-[11px]", children: [
+                              jsx9("span", { className: "text-slate-400", children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+                              jsx9("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
+                            ] }))
+                          ]
+                        }) : null,
+                        jsx9("div", { className: "text-[11px] text-slate-400 pt-1 border-t border-slate-100", children: AVISO_JUICIO }),
+                        res.alcance ? jsx9("div", { className: "text-[11px] text-slate-400", children: res.alcance }) : null
+                      ] }) : null
+                    ]
+                  }) : null,
+                  // 2. Herramienta: Privacidad y Anonimizado (siempre montada para mantener autodetección)
+                  jsx9("div", {
+                    className: herramientaActiva === "privacidad" ? "p-3" : "hidden",
+                    children: jsx9(ModuloPrivacidad, {
+                      editorRef,
+                      caseId,
+                      docInfo,
+                      registro,
+                      setRegistro: actualizarRegistro
+                    })
+                  }),
+                  // 3. Herramienta: Revisión de Estilo — LexO Escribe Claro
+                  herramientaActiva === "estilo" ? jsx9(PanelEscribeClaro, {
+                    editorRef,
+                    docInfo,
+                    contextoInicial: prefs.contexto_estilo,
+                    autoAnalizarInicial: prefs.auto_analizar_estilo,
+                    onEnviarAPizarra: (nuevaPizarra) => {
+                      actualizarRegistro((r2) => ({ ...r2 || {}, pizarra: nuevaPizarra }));
+                      guardarPrefs({ mostrar_pizarra: true });
+                    }
+                  }) : null,
+                  // 4. Herramienta: NIF Interactivo + NIF Vivo
+                  herramientaActiva === "nif" ? jsx9(NifInteractivoEscritor, {
+                    editorRef,
+                    caseId,
+                    registro,
+                    setRegistro: actualizarRegistro,
+                    sesion: chatSesion,
+                    tieneNif: caseId !== BORRADOR,
+                    onCrearCaso: crearNuevoCasoNif,
+                    onSembrarDemoCaso: sembrarCasoDemo,
+                    onAgregarAPizarra: agregarNotaAPizarra,
+                    onInsertarTexto: insertarTextoEnEditor
+                  }) : null,
+                  // 5. Herramienta: Grafos (Corpus BM25 + Constructor de Ordenamientos + 3D)
+                  herramientaActiva === "grafos" ? jsx9(PanelHerramientasGrafos, {
+                    onLlevarCitaAlEscrito: insertarCitaEnEscrito,
+                    onAgregarAPizarra: agregarNotaAPizarra,
+                    onAbrirGrafo3D: (foco2) => {
+                      if (onAbrirGrafo) onAbrirGrafo(foco2 || { nodo_id: "n:207436" });
+                    }
+                  }) : null,
+                  // 6. Herramienta: Personalización de Usuario + Predicción (siempre montada para ghost text)
+                  jsxs9("div", {
+                    className: herramientaActiva === "ajustes" ? "flex flex-col gap-3 p-3 text-xs text-slate-800" : "hidden",
+                    children: [
+                      // Bloque de personalización pensado para usuarios terceros
+                      jsxs9("div", {
+                        className: "flex flex-col gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3",
+                        children: [
+                          jsx9("div", { className: "text-[10px] font-bold uppercase tracking-wider text-slate-500", children: "Personalizaci\xF3n del Estudio (Preferencias de Usuario)" }),
+                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx9("label", { className: "text-slate-700", children: "Tema de la hoja:" }),
+                            jsx9("select", {
+                              value: prefs.tema_papel,
+                              onChange: (e3) => guardarPrefs({ tema_papel: e3.target.value }),
+                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
+                              children: Object.entries(TEMAS_HOJA).map(([k, v3]) => jsx9("option", { key: k, value: k, children: v3.label }))
+                            })
+                          ] }),
+                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx9("label", { className: "text-slate-700", children: "Formato de p\xE1gina:" }),
+                            jsx9("select", {
+                              value: prefs.ancho_hoja,
+                              onChange: (e3) => guardarPrefs({ ancho_hoja: e3.target.value }),
+                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
+                              children: Object.entries(ANCHOS_HOJA).map(([k, v3]) => jsx9("option", { key: k, value: k, children: v3.label }))
+                            })
+                          ] }),
+                          jsxs9("div", { className: "flex items-center justify-between gap-2", children: [
+                            jsx9("label", { className: "text-slate-700", children: "Estrategia de privacidad inicial:" }),
+                            jsx9("select", {
+                              value: prefs.estrategia_privacidad,
+                              onChange: (e3) => {
+                                const est = e3.target.value;
+                                guardarPrefs({ estrategia_privacidad: est });
+                                actualizarRegistro((r2) => ({ ...r2 || {}, privacidad: { ...(r2 || {}).privacidad, estrategia: est } }));
+                              },
+                              className: "rounded border border-slate-300 bg-white px-2 py-1 text-xs",
+                              children: [
+                                jsx9("option", { key: "ligera", value: "ligera", children: "Ligera (solo cr\xEDticos)" }),
+                                jsx9("option", { key: "media", value: "media", children: "Media (cr\xEDticos + altos)" }),
+                                jsx9("option", { key: "estricta", value: "estricta", children: "Estricta (+ medios y nombres)" })
+                              ]
+                            })
+                          ] }),
+                          jsxs9("label", { className: "flex items-center gap-2 text-slate-700 pt-1", children: [
+                            jsx9("input", {
+                              type: "checkbox",
+                              checked: prefs.mostrar_pizarra !== false,
+                              onChange: (e3) => guardarPrefs({ mostrar_pizarra: e3.target.checked })
+                            }),
+                            "Mostrar Pizarra Estrat\xE9gica encima del escrito"
+                          ] }),
+                          jsxs9("label", { className: "flex items-center gap-2 text-slate-700", children: [
+                            jsx9("input", {
+                              type: "checkbox",
+                              checked: chatAbierto,
+                              onChange: (e3) => guardarPrefs({ mostrar_chat: e3.target.checked })
+                            }),
+                            "Mostrar panel de Chat Hermes a la derecha"
+                          ] })
+                        ]
+                      }),
+                      // Panel de Predicción por capas (L0/L1/L2)
+                      jsx9(PrediccionPanel, {
+                        editorRef,
+                        caseId,
+                        docInfo,
+                        verificacion,
+                        registro,
+                        setRegistro: actualizarRegistro,
+                        sesion: chatSesion
+                      })
+                    ]
+                  })
+                ]
+              })
+            ]
+          }),
+          // ── BARRA VERTICAL DE HERRAMIENTAS A LA DERECHA (estilo VS Code / imagen 2) ──
+          jsxs9("div", {
+            className: "flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-slate-200 bg-slate-50 py-2 select-none",
+            children: [
+              ...HERRAMIENTAS_BARRA.map((t4) => {
+                const activa = herramientaActiva === t4.id;
+                let badge = null;
+                if (t4.id === "citas" && res && !res.error) {
+                  const fallos = meta.citas_fallidas || 0;
+                  badge = fallos > 0 ? jsx9("span", { className: "absolute -top-1 -right-1 rounded-full bg-red-600 px-1 text-[9px] font-bold text-white", children: String(fallos) }) : meta.total_citas > 0 ? jsx9("span", { className: "absolute -top-1 -right-1 rounded-full bg-emerald-600 px-1 text-[9px] font-bold text-white", children: String(meta.citas_verificadas) }) : null;
+                }
+                return jsxs9("button", {
+                  key: t4.id,
+                  type: "button",
+                  title: t4.label,
+                  onClick: () => setHerramientaActiva((prev) => prev === t4.id ? null : t4.id),
+                  className: "relative flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors cursor-pointer " + (activa ? t4.activeCls : "text-slate-500 hover:bg-slate-200/80 hover:text-slate-900"),
+                  children: [
+                    jsx9("span", { children: t4.icono }),
+                    badge
+                  ]
+                });
+              }),
+              jsx9("div", { className: "my-1 h-px w-6 bg-slate-200" }),
+              // Botón para mostrar/ocultar el panel de Chat Hermes a la derecha
+              jsx9("button", {
                 type: "button",
-                className: S.chip + " " + S[es.chip] + " cursor-pointer",
-                title: "Abrir el art\xEDculo en el grafo",
-                onClick: () => onAbrirGrafo({ nodo_id: d2.nodo_id }),
-                children: es.texto
-              }) : jsx5("span", { className: S.chip + " " + S[es.chip], children: es.texto })
-            ] }),
-            jsx5("div", { className: S.meta, children: etiquetaCita(estado, d2, meta, registro) }),
-            estado === "fallo" ? jsx5(AccionesFallo, { detalle: d2, acciones: acciones[i3], onAccion: (t4, val) => accionCita(i3, t4, val) }) : null
-          ] })
-        ] });
-      }),
-      res.problemas && res.problemas.length ? jsxs5("div", { className: S.section, children: [
-        jsx5("div", { className: S.sectionTitle, children: "Problemas del motor" }),
-        ...res.problemas.map((p2, i3) => jsx5("div", { key: i3, className: "text-xs", children: String(p2) }))
-      ] }) : null,
-      res.no_verificadas && res.no_verificadas.length ? jsx5("div", { className: S.sub, children: "Menciones sin art\xEDculo, no verificadas: " + res.no_verificadas.join(", ") }) : null,
-      registro.retiros && registro.retiros.length || registro.escaladas && registro.escaladas.length ? jsxs5("details", { className: "text-xs", children: [
-        jsx5("summary", { className: "cursor-pointer " + S.sub, children: "Registro: " + (registro.retiros || []).length + " retiradas \xB7 " + (registro.escaladas || []).length + " escaladas" }),
-        ...(registro.retiros || []).map((r2, i3) => jsxs5("div", { key: "r" + i3, className: "py-0.5", children: [
-          jsx5("span", { className: S.sub, children: String(r2.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx5("span", { children: "Retirada \u2014 " + r2.cita_raw + " \xB7 " + r2.motivo })
-        ] })),
-        ...(registro.escaladas || []).map((e3, i3) => jsxs5("div", { key: "e" + i3, className: "py-0.5", children: [
-          jsx5("span", { className: S.sub, children: String(e3.fecha || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx5("span", { children: "Escalada \u2014 " + e3.cita_raw + " \xB7 " + e3.nota })
-        ] }))
-      ] }) : null,
-      jsx5("div", { className: S.sub, children: AVISO_JUICIO }),
-      res.alcance ? jsx5("div", { className: S.sub, children: res.alcance }) : null
-    ] }) : null
-  ] });
+                title: chatAbierto ? "Ocultar panel de Chat Hermes" : "Mostrar panel de Chat Hermes a la derecha",
+                onClick: () => guardarPrefs({ mostrar_chat: !chatAbierto }),
+                className: "flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors cursor-pointer " + (chatAbierto ? "bg-slate-800 text-white shadow-xs" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"),
+                children: "\u{1F4AC}"
+              })
+            ]
+          }),
+          // ── PANEL DERECHO CONECTADO CON HERMES (Chat del escrito, siempre montado) ──
+          jsx9("div", {
+            className: (chatAbierto ? "flex " : "hidden ") + "w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden",
+            children: jsx9(ChatEscritor, {
+              editorRef,
+              caseId,
+              docInfo,
+              verificacion,
+              registro,
+              setRegistro: actualizarRegistro,
+              estrategiaPriv: ((registro || {}).privacidad || {}).estrategia || prefs.estrategia_privacidad,
+              rev: revRef.current,
+              onSesion: setChatSesion,
+              onAbrirGrafo,
+              onAbrirPrivacidad: () => setHerramientaActiva("privacidad"),
+              modoDock: true
+            })
+          })
+        ]
+      })
+    ]
+  });
 }
 
-// node_modules/three/build/three.core.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.core.js
 var REVISION = "183";
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
 var TOUCH = { ROTATE: 0, PAN: 1, DOLLY_PAN: 2, DOLLY_ROTATE: 3 };
@@ -46527,7 +49593,7 @@ if (typeof window !== "undefined") {
   }
 }
 
-// node_modules/three/build/three.module.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.module.js
 function WebGLAnimation() {
   let context2 = null;
   let isAnimating = false;
@@ -57814,7 +60880,7 @@ var WebGLRenderer = class {
   }
 };
 
-// node_modules/three/examples/jsm/controls/DragControls.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/DragControls.js
 var _plane = new Plane();
 var _pointer = new Vector2();
 var _offset2 = new Vector3();
@@ -58018,7 +61084,7 @@ function findGroup(obj, group = null) {
   return findGroup(obj.parent, group);
 }
 
-// node_modules/d3-force-3d/src/center.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/center.js
 function center_default(x3, y3, z3) {
   var nodes, strength = 1;
   if (x3 == null) x3 = 0;
@@ -58060,7 +61126,7 @@ function center_default(x3, y3, z3) {
   return force;
 }
 
-// node_modules/d3-binarytree/src/add.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/add.js
 function add_default(d2) {
   const x3 = +this._x.call(null, d2);
   return add(this.cover(x3), x3, d2);
@@ -58102,7 +61168,7 @@ function addAll(data) {
   return this;
 }
 
-// node_modules/d3-binarytree/src/cover.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/cover.js
 function cover_default(x3) {
   if (isNaN(x3 = +x3)) return this;
   var x0 = this._x0, x1 = this._x1;
@@ -58129,7 +61195,7 @@ function cover_default(x3) {
   return this;
 }
 
-// node_modules/d3-binarytree/src/data.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/data.js
 function data_default() {
   var data = [];
   this.visit(function(node) {
@@ -58140,19 +61206,19 @@ function data_default() {
   return data;
 }
 
-// node_modules/d3-binarytree/src/extent.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/extent.js
 function extent_default(_2) {
   return arguments.length ? this.cover(+_2[0][0]).cover(+_2[1][0]) : isNaN(this._x0) ? void 0 : [[this._x0], [this._x1]];
 }
 
-// node_modules/d3-binarytree/src/half.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/half.js
 function half_default(node, x0, x1) {
   this.node = node;
   this.x0 = x0;
   this.x1 = x1;
 }
 
-// node_modules/d3-binarytree/src/find.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/find.js
 function find_default(x3, radius) {
   var data, x0 = this._x0, x1, x22, x32 = this._x1, halves = [], node = this._root, q2, i3;
   if (node) halves.push(new half_default(node, x0, x32));
@@ -58187,7 +61253,7 @@ function find_default(x3, radius) {
   return data;
 }
 
-// node_modules/d3-binarytree/src/remove.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/remove.js
 function remove_default(d2) {
   if (isNaN(x3 = +this._x.call(null, d2))) return this;
   var parent, node = this._root, retainer, previous, next, x0 = this._x0, x1 = this._x1, x3, xm, right, i3, j2;
@@ -58215,12 +61281,12 @@ function removeAll(data) {
   return this;
 }
 
-// node_modules/d3-binarytree/src/root.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/root.js
 function root_default() {
   return this._root;
 }
 
-// node_modules/d3-binarytree/src/size.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/size.js
 function size_default() {
   var size = 0;
   this.visit(function(node) {
@@ -58231,7 +61297,7 @@ function size_default() {
   return size;
 }
 
-// node_modules/d3-binarytree/src/visit.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/visit.js
 function visit_default(callback) {
   var halves = [], q2, node = this._root, child, x0, x1;
   if (node) halves.push(new half_default(node, this._x0, this._x1));
@@ -58245,7 +61311,7 @@ function visit_default(callback) {
   return this;
 }
 
-// node_modules/d3-binarytree/src/visitAfter.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/visitAfter.js
 function visitAfter_default(callback) {
   var halves = [], next = [], q2;
   if (this._root) halves.push(new half_default(this._root, this._x0, this._x1));
@@ -58264,7 +61330,7 @@ function visitAfter_default(callback) {
   return this;
 }
 
-// node_modules/d3-binarytree/src/x.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/x.js
 function defaultX(d2) {
   return d2[0];
 }
@@ -58272,7 +61338,7 @@ function x_default(_2) {
   return arguments.length ? (this._x = _2, this) : this._x;
 }
 
-// node_modules/d3-binarytree/src/binarytree.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-binarytree/src/binarytree.js
 function binarytree(nodes, x3) {
   var tree = new Binarytree(x3 == null ? defaultX : x3, NaN, NaN);
   return nodes == null ? tree : tree.addAll(nodes);
@@ -58318,7 +61384,7 @@ treeProto.visit = visit_default;
 treeProto.visitAfter = visitAfter_default;
 treeProto.x = x_default;
 
-// node_modules/d3-quadtree/dist/d3-quadtree.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-quadtree/dist/d3-quadtree.mjs
 function tree_add(d2) {
   const x3 = +this._x.call(null, d2), y3 = +this._y.call(null, d2);
   return add2(this.cover(x3, y3), x3, y3, d2);
@@ -58594,7 +61660,7 @@ treeProto2.visitAfter = tree_visitAfter;
 treeProto2.x = tree_x;
 treeProto2.y = tree_y;
 
-// node_modules/d3-octree/src/add.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/add.js
 function add_default2(d2) {
   const x3 = +this._x.call(null, d2), y3 = +this._y.call(null, d2), z3 = +this._z.call(null, d2);
   return add3(this.cover(x3, y3, z3), x3, y3, z3, d2);
@@ -58654,7 +61720,7 @@ function addAll3(data) {
   return this;
 }
 
-// node_modules/d3-octree/src/cover.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/cover.js
 function cover_default2(x3, y3, z3) {
   if (isNaN(x3 = +x3) || isNaN(y3 = +y3) || isNaN(z3 = +z3)) return this;
   var x0 = this._x0, y0 = this._y0, z0 = this._z0, x1 = this._x1, y1 = this._y1, z1 = this._z1;
@@ -58705,7 +61771,7 @@ function cover_default2(x3, y3, z3) {
   return this;
 }
 
-// node_modules/d3-octree/src/data.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/data.js
 function data_default2() {
   var data = [];
   this.visit(function(node) {
@@ -58716,12 +61782,12 @@ function data_default2() {
   return data;
 }
 
-// node_modules/d3-octree/src/extent.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/extent.js
 function extent_default2(_2) {
   return arguments.length ? this.cover(+_2[0][0], +_2[0][1], +_2[0][2]).cover(+_2[1][0], +_2[1][1], +_2[1][2]) : isNaN(this._x0) ? void 0 : [[this._x0, this._y0, this._z0], [this._x1, this._y1, this._z1]];
 }
 
-// node_modules/d3-octree/src/octant.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/octant.js
 function octant_default(node, x0, y0, z0, x1, y1, z1) {
   this.node = node;
   this.x0 = x0;
@@ -58732,7 +61798,7 @@ function octant_default(node, x0, y0, z0, x1, y1, z1) {
   this.z1 = z1;
 }
 
-// node_modules/d3-octree/src/find.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/find.js
 function find_default2(x3, y3, z3, radius) {
   var data, x0 = this._x0, y0 = this._y0, z0 = this._z0, x1, y1, z1, x22, y22, z22, x32 = this._x1, y32 = this._y1, z32 = this._z1, octs = [], node = this._root, q2, i3;
   if (node) octs.push(new octant_default(node, x0, y0, z0, x32, y32, z32));
@@ -58774,7 +61840,7 @@ function find_default2(x3, y3, z3, radius) {
   return data;
 }
 
-// node_modules/d3-octree/src/findAll.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/findAll.js
 var distance = (x1, y1, z1, x22, y22, z22) => Math.sqrt((x1 - x22) ** 2 + (y1 - y22) ** 2 + (z1 - z22) ** 2);
 function findAllWithinRadius(x3, y3, z3, radius) {
   const result = [];
@@ -58798,7 +61864,7 @@ function findAllWithinRadius(x3, y3, z3, radius) {
   return result;
 }
 
-// node_modules/d3-octree/src/remove.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/remove.js
 function remove_default2(d2) {
   if (isNaN(x3 = +this._x.call(null, d2)) || isNaN(y3 = +this._y.call(null, d2)) || isNaN(z3 = +this._z.call(null, d2))) return this;
   var parent, node = this._root, retainer, previous, next, x0 = this._x0, y0 = this._y0, z0 = this._z0, x1 = this._x1, y1 = this._y1, z1 = this._z1, x3, y3, z3, xm, ym, zm, right, bottom, deep, i3, j2;
@@ -58830,12 +61896,12 @@ function removeAll3(data) {
   return this;
 }
 
-// node_modules/d3-octree/src/root.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/root.js
 function root_default2() {
   return this._root;
 }
 
-// node_modules/d3-octree/src/size.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/size.js
 function size_default2() {
   var size = 0;
   this.visit(function(node) {
@@ -58846,7 +61912,7 @@ function size_default2() {
   return size;
 }
 
-// node_modules/d3-octree/src/visit.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/visit.js
 function visit_default2(callback) {
   var octs = [], q2, node = this._root, child, x0, y0, z0, x1, y1, z1;
   if (node) octs.push(new octant_default(node, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1));
@@ -58866,7 +61932,7 @@ function visit_default2(callback) {
   return this;
 }
 
-// node_modules/d3-octree/src/visitAfter.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/visitAfter.js
 function visitAfter_default2(callback) {
   var octs = [], next = [], q2;
   if (this._root) octs.push(new octant_default(this._root, this._x0, this._y0, this._z0, this._x1, this._y1, this._z1));
@@ -58891,7 +61957,7 @@ function visitAfter_default2(callback) {
   return this;
 }
 
-// node_modules/d3-octree/src/x.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/x.js
 function defaultX3(d2) {
   return d2[0];
 }
@@ -58899,7 +61965,7 @@ function x_default2(_2) {
   return arguments.length ? (this._x = _2, this) : this._x;
 }
 
-// node_modules/d3-octree/src/y.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/y.js
 function defaultY2(d2) {
   return d2[1];
 }
@@ -58907,7 +61973,7 @@ function y_default(_2) {
   return arguments.length ? (this._y = _2, this) : this._y;
 }
 
-// node_modules/d3-octree/src/z.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/z.js
 function defaultZ(d2) {
   return d2[2];
 }
@@ -58915,7 +61981,7 @@ function z_default(_2) {
   return arguments.length ? (this._z = _2, this) : this._z;
 }
 
-// node_modules/d3-octree/src/octree.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-octree/src/octree.js
 function octree(nodes, x3, y3, z3) {
   var tree = new Octree(x3 == null ? defaultX3 : x3, y3 == null ? defaultY2 : y3, z3 == null ? defaultZ : z3, NaN, NaN, NaN, NaN, NaN, NaN);
   return nodes == null ? tree : tree.addAll(nodes);
@@ -58970,19 +62036,19 @@ treeProto3.x = x_default2;
 treeProto3.y = y_default;
 treeProto3.z = z_default;
 
-// node_modules/d3-force-3d/src/constant.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/constant.js
 function constant_default(x3) {
   return function() {
     return x3;
   };
 }
 
-// node_modules/d3-force-3d/src/jiggle.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/jiggle.js
 function jiggle_default(random) {
   return (random() - 0.5) * 1e-6;
 }
 
-// node_modules/d3-force-3d/src/link.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/link.js
 function index(d2) {
   return d2.index;
 }
@@ -59080,7 +62146,7 @@ function link_default(links) {
   return force;
 }
 
-// node_modules/d3-dispatch/dist/d3-dispatch.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-dispatch/dist/d3-dispatch.mjs
 var noop2 = { value: () => {
 } };
 function dispatch() {
@@ -59149,7 +62215,7 @@ function set(type, name, callback) {
   return type;
 }
 
-// node_modules/d3-timer/dist/d3-timer.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-timer/dist/d3-timer.mjs
 var frame = 0;
 var timeout$1 = 0;
 var interval$1 = 0;
@@ -59251,7 +62317,7 @@ function sleep(time) {
   }
 }
 
-// node_modules/d3-force-3d/src/lcg.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/lcg.js
 var a = 1664525;
 var c = 1013904223;
 var m = 4294967296;
@@ -59260,7 +62326,7 @@ function lcg_default() {
   return () => (s2 = (a * s2 + c) % m) / m;
 }
 
-// node_modules/d3-force-3d/src/simulation.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/simulation.js
 var MAX_DIMENSIONS = 3;
 function x(d2) {
   return d2.x;
@@ -59401,7 +62467,7 @@ function simulation_default(nodes, numDimensions) {
   };
 }
 
-// node_modules/d3-force-3d/src/manyBody.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/manyBody.js
 function manyBody_default() {
   var nodes, nDim, node, random, alpha2, strength = constant_default(-30), strengths, distanceMin2 = 1, distanceMax2 = Infinity, theta2 = 0.81;
   function force(_2) {
@@ -59506,7 +62572,7 @@ function manyBody_default() {
   return force;
 }
 
-// node_modules/d3-force-3d/src/radial.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-force-3d/src/radial.js
 function radial_default(radius, x3, y3, z3) {
   var nodes, nDim, strength = constant_default(0.1), strengths, radiuses;
   if (typeof radius !== "function") radius = constant_default(+radius);
@@ -59563,29 +62629,29 @@ function ngraphNoIncluido() {
   throw new Error("forceEngine 'ngraph' no est\xE1 incluido en este bundle; usa el motor d3");
 }
 
-// node_modules/lodash-es/isObject.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isObject.js
 function isObject(value) {
   var type = typeof value;
   return value != null && (type == "object" || type == "function");
 }
 var isObject_default = isObject;
 
-// node_modules/lodash-es/_freeGlobal.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeGlobal_default = freeGlobal;
 
-// node_modules/lodash-es/_root.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_root.js
 var freeSelf = typeof self == "object" && self && self.Object === Object && self;
 var root = freeGlobal_default || freeSelf || Function("return this")();
 var root_default3 = root;
 
-// node_modules/lodash-es/now.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/now.js
 var now2 = function() {
   return root_default3.Date.now();
 };
 var now_default = now2;
 
-// node_modules/lodash-es/_trimmedEndIndex.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_trimmedEndIndex.js
 var reWhitespace = /\s/;
 function trimmedEndIndex(string) {
   var index5 = string.length;
@@ -59595,18 +62661,18 @@ function trimmedEndIndex(string) {
 }
 var trimmedEndIndex_default = trimmedEndIndex;
 
-// node_modules/lodash-es/_baseTrim.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_baseTrim.js
 var reTrimStart = /^\s+/;
 function baseTrim(string) {
   return string ? string.slice(0, trimmedEndIndex_default(string) + 1).replace(reTrimStart, "") : string;
 }
 var baseTrim_default = baseTrim;
 
-// node_modules/lodash-es/_Symbol.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_Symbol.js
 var Symbol2 = root_default3.Symbol;
 var Symbol_default = Symbol2;
 
-// node_modules/lodash-es/_getRawTag.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_getRawTag.js
 var objectProto = Object.prototype;
 var hasOwnProperty = objectProto.hasOwnProperty;
 var nativeObjectToString = objectProto.toString;
@@ -59630,7 +62696,7 @@ function getRawTag(value) {
 }
 var getRawTag_default = getRawTag;
 
-// node_modules/lodash-es/_objectToString.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_objectToString.js
 var objectProto2 = Object.prototype;
 var nativeObjectToString2 = objectProto2.toString;
 function objectToString(value) {
@@ -59638,7 +62704,7 @@ function objectToString(value) {
 }
 var objectToString_default = objectToString;
 
-// node_modules/lodash-es/_baseGetTag.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/_baseGetTag.js
 var nullTag = "[object Null]";
 var undefinedTag = "[object Undefined]";
 var symToStringTag2 = Symbol_default ? Symbol_default.toStringTag : void 0;
@@ -59650,20 +62716,20 @@ function baseGetTag(value) {
 }
 var baseGetTag_default = baseGetTag;
 
-// node_modules/lodash-es/isObjectLike.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isObjectLike.js
 function isObjectLike(value) {
   return value != null && typeof value == "object";
 }
 var isObjectLike_default = isObjectLike;
 
-// node_modules/lodash-es/isSymbol.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/isSymbol.js
 var symbolTag = "[object Symbol]";
 function isSymbol(value) {
   return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
 }
 var isSymbol_default = isSymbol;
 
-// node_modules/lodash-es/toNumber.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/toNumber.js
 var NAN = 0 / 0;
 var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
 var reIsBinary = /^0b[01]+$/i;
@@ -59689,7 +62755,7 @@ function toNumber(value) {
 }
 var toNumber_default = toNumber;
 
-// node_modules/lodash-es/debounce.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/lodash-es/debounce.js
 var FUNC_ERROR_TEXT = "Expected a function";
 var nativeMax = Math.max;
 var nativeMin = Math.min;
@@ -59776,7 +62842,7 @@ function debounce(func, wait, options) {
 }
 var debounce_default = debounce;
 
-// node_modules/kapsule/dist/kapsule.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/kapsule/dist/kapsule.mjs
 function _arrayLikeToArray(r2, a3) {
   (null == a3 || a3 > r2.length) && (a3 = r2.length);
   for (var e3 = 0, n2 = Array(a3); e3 < a3; e3++) n2[e3] = r2[e3];
@@ -59922,7 +62988,7 @@ function index2(_ref2) {
   };
 }
 
-// node_modules/accessor-fn/dist/accessor-fn.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/accessor-fn/dist/accessor-fn.mjs
 var index3 = (function(p2) {
   return typeof p2 === "function" ? p2 : typeof p2 === "string" ? function(obj) {
     return obj[p2];
@@ -59931,7 +62997,7 @@ var index3 = (function(p2) {
   };
 });
 
-// node_modules/d3-array/dist/d3-array.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-array/dist/d3-array.mjs
 function ascending(a3, b2) {
   return a3 == null || b2 == null ? NaN : a3 < b2 ? -1 : a3 > b2 ? 1 : a3 >= b2 ? 0 : NaN;
 }
@@ -60169,7 +63235,7 @@ function shuffler(random) {
   };
 }
 
-// node_modules/data-bind-mapper/dist/data-bind-mapper.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/data-bind-mapper/dist/data-bind-mapper.mjs
 function _arrayLikeToArray2(r2, a3) {
   (null == a3 || a3 > r2.length) && (a3 = r2.length);
   for (var e3 = 0, n2 = Array(a3); e3 < a3; e3++) n2[e3] = r2[e3];
@@ -60364,7 +63430,7 @@ var DataBindMapper = /* @__PURE__ */ (function() {
   }]);
 })();
 
-// node_modules/d3-color/dist/d3-color.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-color/dist/d3-color.mjs
 function define(constructor, factory, prototype) {
   constructor.prototype = factory.prototype = prototype;
   prototype.constructor = constructor;
@@ -60847,7 +63913,7 @@ define(Cubehelix, cubehelix, extend(Color2, {
   }
 }));
 
-// node_modules/d3-interpolate/dist/d3-interpolate.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-interpolate/dist/d3-interpolate.mjs
 function basis(t12, v0, v1, v2, v3) {
   var t22 = t12 * t12, t32 = t22 * t12;
   return ((1 - 3 * t12 + 3 * t22 - t32) * v0 + (4 - 6 * t22 + 3 * t32) * v1 + (1 + 3 * t12 + 3 * t22 - 3 * t32) * v2 + t32 * v3) / 6;
@@ -61116,7 +64182,7 @@ function cubehelix2(hue) {
 var cubehelix_default = cubehelix2(hue$1);
 var cubehelixLong = cubehelix2(nogamma);
 
-// node_modules/d3-scale/dist/d3-scale.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-scale/dist/d3-scale.mjs
 function initRange(domain2, range2) {
   switch (arguments.length) {
     case 0:
@@ -61163,7 +64229,7 @@ function ordinal() {
   return scale2;
 }
 
-// node_modules/d3-scale-chromatic/dist/d3-scale-chromatic.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-scale-chromatic/dist/d3-scale-chromatic.mjs
 function colors(specifier) {
   var n2 = specifier.length / 6 | 0, colors2 = new Array(n2), i3 = 0;
   while (i3 < n2) colors2[i3] = "#" + specifier.slice(i3 * 6, ++i3 * 6);
@@ -61487,7 +64553,7 @@ var magma = ramp(colors("00000401000501010601010802010902020b02020d03030f0303120
 var inferno = ramp(colors("00000401000501010601010802010a02020c02020e03021004031204031405041706041907051b08051d09061f0a07220b07240c08260d08290e092b10092d110a30120a32140b34150b37160b39180c3c190c3e1b0c411c0c431e0c451f0c48210c4a230c4c240c4f260c51280b53290b552b0b572d0b592f0a5b310a5c320a5e340a5f3609613809623909633b09643d09653e0966400a67420a68440a68450a69470b6a490b6a4a0c6b4c0c6b4d0d6c4f0d6c510e6c520e6d540f6d550f6d57106e59106e5a116e5c126e5d126e5f136e61136e62146e64156e65156e67166e69166e6a176e6c186e6d186e6f196e71196e721a6e741a6e751b6e771c6d781c6d7a1d6d7c1d6d7d1e6d7f1e6c801f6c82206c84206b85216b87216b88226a8a226a8c23698d23698f24699025689225689326679526679727669827669a28659b29649d29649f2a63a02a63a22b62a32c61a52c60a62d60a82e5fa92e5eab2f5ead305dae305cb0315bb1325ab3325ab43359b63458b73557b93556ba3655bc3754bd3853bf3952c03a51c13a50c33b4fc43c4ec63d4dc73e4cc83f4bca404acb4149cc4248ce4347cf4446d04545d24644d34743d44842d54a41d74b3fd84c3ed94d3dda4e3cdb503bdd513ade5238df5337e05536e15635e25734e35933e45a31e55c30e65d2fe75e2ee8602de9612bea632aeb6429eb6628ec6726ed6925ee6a24ef6c23ef6e21f06f20f1711ff1731df2741cf3761bf37819f47918f57b17f57d15f67e14f68013f78212f78410f8850ff8870ef8890cf98b0bf98c0af98e09fa9008fa9207fa9407fb9606fb9706fb9906fb9b06fb9d07fc9f07fca108fca309fca50afca60cfca80dfcaa0ffcac11fcae12fcb014fcb216fcb418fbb61afbb81dfbba1ffbbc21fbbe23fac026fac228fac42afac62df9c72ff9c932f9cb35f8cd37f8cf3af7d13df7d340f6d543f6d746f5d949f5db4cf4dd4ff4df53f4e156f3e35af3e55df2e661f2e865f2ea69f1ec6df1ed71f1ef75f1f179f2f27df2f482f3f586f3f68af4f88ef5f992f6fa96f8fb9af9fc9dfafda1fcffa4"));
 var plasma = ramp(colors("0d088710078813078916078a19068c1b068d1d068e20068f2206902406912605912805922a05932c05942e05952f059631059733059735049837049938049a3a049a3c049b3e049c3f049c41049d43039e44039e46039f48039f4903a04b03a14c02a14e02a25002a25102a35302a35502a45601a45801a45901a55b01a55c01a65e01a66001a66100a76300a76400a76600a76700a86900a86a00a86c00a86e00a86f00a87100a87201a87401a87501a87701a87801a87a02a87b02a87d03a87e03a88004a88104a78305a78405a78606a68707a68808a68a09a58b0aa58d0ba58e0ca48f0da4910ea3920fa39410a29511a19613a19814a099159f9a169f9c179e9d189d9e199da01a9ca11b9ba21d9aa31e9aa51f99a62098a72197a82296aa2395ab2494ac2694ad2793ae2892b02991b12a90b22b8fb32c8eb42e8db52f8cb6308bb7318ab83289ba3388bb3488bc3587bd3786be3885bf3984c03a83c13b82c23c81c33d80c43e7fc5407ec6417dc7427cc8437bc9447aca457acb4679cc4778cc4977cd4a76ce4b75cf4c74d04d73d14e72d24f71d35171d45270d5536fd5546ed6556dd7566cd8576bd9586ada5a6ada5b69db5c68dc5d67dd5e66de5f65de6164df6263e06363e16462e26561e26660e3685fe4695ee56a5de56b5de66c5ce76e5be76f5ae87059e97158e97257ea7457eb7556eb7655ec7754ed7953ed7a52ee7b51ef7c51ef7e50f07f4ff0804ef1814df1834cf2844bf3854bf3874af48849f48948f58b47f58c46f68d45f68f44f79044f79143f79342f89441f89540f9973ff9983ef99a3efa9b3dfa9c3cfa9e3bfb9f3afba139fba238fca338fca537fca636fca835fca934fdab33fdac33fdae32fdaf31fdb130fdb22ffdb42ffdb52efeb72dfeb82cfeba2cfebb2bfebd2afebe2afec029fdc229fdc328fdc527fdc627fdc827fdca26fdcb26fccd25fcce25fcd025fcd225fbd324fbd524fbd724fad824fada24f9dc24f9dd25f8df25f8e125f7e225f7e425f6e626f6e826f5e926f5eb27f4ed27f3ee27f3f027f2f227f1f426f1f525f0f724f0f921"));
 
-// node_modules/tinycolor2/esm/tinycolor.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/tinycolor2/esm/tinycolor.js
 function _typeof(obj) {
   "@babel/helpers - typeof";
   return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj2) {
@@ -62452,7 +65518,7 @@ function validateWCAG2Parms(parms) {
   };
 }
 
-// node_modules/three-forcegraph/dist/three-forcegraph.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three-forcegraph/dist/three-forcegraph.mjs
 var materialDispose = (material) => {
   if (material instanceof Array) {
     material.forEach(materialDispose);
@@ -63527,7 +66593,7 @@ var three = window.THREE ? window.THREE : {
 };
 var threeForcegraph = fromKapsule(ForceGraph, three.Group, true);
 
-// node_modules/three/build/three.webgpu.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/build/three.webgpu.js
 var refreshUniforms = [
   "alphaMap",
   "alphaTest",
@@ -101604,7 +104670,7 @@ var WebGPURenderer = class extends Renderer {
   }
 };
 
-// node_modules/three/examples/jsm/controls/TrackballControls.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/TrackballControls.js
 var _changeEvent = { type: "change" };
 var _startEvent = { type: "start" };
 var _endEvent = { type: "end" };
@@ -102108,7 +105174,7 @@ function onTouchEnd(event) {
   this.dispatchEvent(_endEvent);
 }
 
-// node_modules/three/examples/jsm/controls/OrbitControls.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/OrbitControls.js
 var _changeEvent2 = { type: "change" };
 var _startEvent2 = { type: "start" };
 var _endEvent2 = { type: "end" };
@@ -103018,7 +106084,7 @@ function interceptControlUp(event) {
   }
 }
 
-// node_modules/three/examples/jsm/controls/FlyControls.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/controls/FlyControls.js
 var _changeEvent3 = { type: "change" };
 var _EPS3 = 1e-6;
 var _tmpQuaternion = new Quaternion();
@@ -103274,7 +106340,7 @@ function onContextMenu4(event) {
   event.preventDefault();
 }
 
-// node_modules/three/examples/jsm/shaders/CopyShader.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/shaders/CopyShader.js
 var CopyShader = {
   name: "CopyShader",
   uniforms: {
@@ -103314,7 +106380,7 @@ var CopyShader = {
   )
 };
 
-// node_modules/three/examples/jsm/postprocessing/Pass.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/Pass.js
 var Pass = class {
   /**
    * Constructs a new pass.
@@ -103405,7 +106471,7 @@ var FullScreenQuad = class {
   }
 };
 
-// node_modules/three/examples/jsm/postprocessing/ShaderPass.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/ShaderPass.js
 var ShaderPass = class extends Pass {
   /**
    * Constructs a new shader pass.
@@ -103470,7 +106536,7 @@ var ShaderPass = class extends Pass {
   }
 };
 
-// node_modules/three/examples/jsm/postprocessing/MaskPass.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/MaskPass.js
 var MaskPass = class extends Pass {
   /**
    * Constructs a new mask pass.
@@ -103558,7 +106624,7 @@ var ClearMaskPass = class extends Pass {
   }
 };
 
-// node_modules/three/examples/jsm/postprocessing/EffectComposer.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/EffectComposer.js
 var EffectComposer = class {
   /**
    * Constructs a new effect composer.
@@ -103743,7 +106809,7 @@ var EffectComposer = class {
   }
 };
 
-// node_modules/three/examples/jsm/postprocessing/RenderPass.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three/examples/jsm/postprocessing/RenderPass.js
 var RenderPass = class extends Pass {
   /**
    * Constructs a new render pass.
@@ -103816,7 +106882,7 @@ var RenderPass = class extends Pass {
   }
 };
 
-// node_modules/@babel/runtime/helpers/esm/extends.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/extends.js
 function _extends() {
   return _extends = Object.assign ? Object.assign.bind() : function(n2) {
     for (var e3 = 1; e3 < arguments.length; e3++) {
@@ -103827,32 +106893,32 @@ function _extends() {
   }, _extends.apply(null, arguments);
 }
 
-// node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js
 function _assertThisInitialized(e3) {
   if (void 0 === e3) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
   return e3;
 }
 
-// node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/setPrototypeOf.js
 function _setPrototypeOf(t4, e3) {
   return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t5, e4) {
     return t5.__proto__ = e4, t5;
   }, _setPrototypeOf(t4, e3);
 }
 
-// node_modules/@babel/runtime/helpers/esm/inheritsLoose.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/inheritsLoose.js
 function _inheritsLoose(t4, o2) {
   t4.prototype = Object.create(o2.prototype), t4.prototype.constructor = t4, _setPrototypeOf(t4, o2);
 }
 
-// node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/getPrototypeOf.js
 function _getPrototypeOf(t4) {
   return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function(t5) {
     return t5.__proto__ || Object.getPrototypeOf(t5);
   }, _getPrototypeOf(t4);
 }
 
-// node_modules/@babel/runtime/helpers/esm/isNativeFunction.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/isNativeFunction.js
 function _isNativeFunction(t4) {
   try {
     return -1 !== Function.toString.call(t4).indexOf("[native code]");
@@ -103861,7 +106927,7 @@ function _isNativeFunction(t4) {
   }
 }
 
-// node_modules/@babel/runtime/helpers/esm/isNativeReflectConstruct.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/isNativeReflectConstruct.js
 function _isNativeReflectConstruct() {
   try {
     var t4 = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function() {
@@ -103873,7 +106939,7 @@ function _isNativeReflectConstruct() {
   })();
 }
 
-// node_modules/@babel/runtime/helpers/esm/construct.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/construct.js
 function _construct(t4, e3, r2) {
   if (_isNativeReflectConstruct()) return Reflect.construct.apply(null, arguments);
   var o2 = [null];
@@ -103882,7 +106948,7 @@ function _construct(t4, e3, r2) {
   return r2 && _setPrototypeOf(p2, r2.prototype), p2;
 }
 
-// node_modules/@babel/runtime/helpers/esm/wrapNativeSuper.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@babel/runtime/helpers/esm/wrapNativeSuper.js
 function _wrapNativeSuper(t4) {
   var r2 = "function" == typeof Map ? /* @__PURE__ */ new Map() : void 0;
   return _wrapNativeSuper = function _wrapNativeSuper2(t5) {
@@ -103906,7 +106972,7 @@ function _wrapNativeSuper(t4) {
   }, _wrapNativeSuper(t4);
 }
 
-// node_modules/polished/dist/polished.esm.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/polished/dist/polished.esm.js
 var ERRORS = {
   "1": "Passed invalid arguments to hsl, please pass multiple numbers e.g. hsl(360, 0.75, 0.4) or an object e.g. rgb({ hue: 255, saturation: 0.4, lightness: 0.75 }).\n\n",
   "2": "Passed invalid arguments to hsla, please pass multiple numbers e.g. hsla(360, 0.75, 0.4, 0.7) or an object e.g. rgb({ hue: 255, saturation: 0.4, lightness: 0.75, alpha: 0.7 }).\n\n",
@@ -104617,7 +107683,7 @@ function transparentize(amount, color3) {
 }
 var curriedTransparentize = curry(transparentize);
 
-// node_modules/@tweenjs/tween.js/dist/tween.esm.js
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/@tweenjs/tween.js/dist/tween.esm.js
 var Easing = Object.freeze({
   Linear: Object.freeze({
     None: function(amount) {
@@ -105449,7 +108515,7 @@ var add5 = TWEEN.add.bind(TWEEN);
 var remove = TWEEN.remove.bind(TWEEN);
 var update = TWEEN.update.bind(TWEEN);
 
-// node_modules/d3-selection/dist/d3-selection.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/d3-selection/dist/d3-selection.mjs
 var xhtml = "http://www.w3.org/1999/xhtml";
 var namespaces = {
   svg: "http://www.w3.org/2000/svg",
@@ -106193,7 +109259,7 @@ function pointer(event, node) {
   return [event.pageX, event.pageY];
 }
 
-// node_modules/preact/dist/preact.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/preact/dist/preact.mjs
 var n;
 var t;
 var r;
@@ -106464,7 +109530,7 @@ n = { __e: function(n2, t4, r2, u2) {
   return n2.__v.__b - t4.__v.__b;
 }, e = /* @__PURE__ */ Symbol(), l = /(PointerCapture)$|Capture$/i, c3 = 0, a2 = {}, s = 0;
 
-// node_modules/float-tooltip/dist/float-tooltip.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/float-tooltip/dist/float-tooltip.mjs
 var reactElement2VNode = (el) => {
   if (!(typeof el === "object")) return el;
   const res = b(el);
@@ -106479,9 +109545,9 @@ var reactElement2VNode = (el) => {
   return res;
 };
 var isReactRenderable = (o2) => r(b(o2));
-var render2 = (jsx8, domEl) => {
+var render2 = (jsx12, domEl) => {
   delete domEl.__k;
-  Q(reactElement2VNode(jsx8), domEl);
+  Q(reactElement2VNode(jsx12), domEl);
 };
 function styleInject(css, ref) {
   if (ref === void 0) ref = {};
@@ -106579,7 +109645,7 @@ var index4 = index2({
   }
 });
 
-// node_modules/three-render-objects/dist/three-render-objects.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/three-render-objects/dist/three-render-objects.mjs
 function styleInject2(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
@@ -107094,7 +110160,7 @@ var threeRenderObjects = index2({
   }
 });
 
-// node_modules/3d-force-graph/dist/3d-force-graph.mjs
+// ../../hermes-dike-sandbox-terceros/desktop/node_modules/3d-force-graph/dist/3d-force-graph.mjs
 function styleInject3(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
@@ -107575,8 +110641,8 @@ function getGraphObj(object) {
 }
 
 // src/grafo3d.js
-import { jsx as jsx6, jsxs as jsxs6 } from "react/jsx-runtime";
-import { useCallback as useCallback6, useEffect as useEffect6, useMemo, useRef as useRef5, useState as useState6 } from "react";
+import { jsx as jsx10, jsxs as jsxs10 } from "react/jsx-runtime";
+import { useCallback as useCallback9, useEffect as useEffect10, useMemo, useRef as useRef8, useState as useState10 } from "react";
 var COLORES_NODO = {
   instrumento: "#60a5fa",
   articulo: "#a78bfa",
@@ -107660,26 +110726,26 @@ function LienzoGrafo({
   onFallo,
   apiRef
 }) {
-  const hostEl = useRef5(null);
-  const engine = useRef5(null);
-  const [listo, setListo] = useState6(false);
-  const clickRef = useRef5(alClickNodo);
+  const hostEl = useRef8(null);
+  const engine = useRef8(null);
+  const [listo, setListo] = useState10(false);
+  const clickRef = useRef8(alClickNodo);
   clickRef.current = alClickNodo;
-  const conteosRef = useRef5(conteos);
+  const conteosRef = useRef8(conteos);
   conteosRef.current = conteos;
-  const padresRef = useRef5(padres);
+  const padresRef = useRef8(padres);
   padresRef.current = padres;
-  const clickAristaRef = useRef5(alClickArista);
+  const clickAristaRef = useRef8(alClickArista);
   clickAristaRef.current = alClickArista;
-  const hoverRef = useRef5(alHover);
+  const hoverRef = useRef8(alHover);
   hoverRef.current = alHover;
-  const fondoRef = useRef5(alFondo);
+  const fondoRef = useRef8(alFondo);
   fondoRef.current = alFondo;
-  const resalteRef = useRef5(resalte);
+  const resalteRef = useRef8(resalte);
   resalteRef.current = resalte;
-  const pool = useRef5(/* @__PURE__ */ new Map());
-  const primerAjuste = useRef5(false);
-  useEffect6(() => {
+  const pool = useRef8(/* @__PURE__ */ new Map());
+  const primerAjuste = useRef8(false);
+  useEffect10(() => {
     if (!hostEl.current) return void 0;
     if (!hayWebGL()) {
       onFallo("WebGL no est\xE1 disponible: no se puede dibujar el grafo 3D. Abajo queda la lista de texto.");
@@ -107770,7 +110836,7 @@ function LienzoGrafo({
       apiRef.current = null;
     };
   }, []);
-  useEffect6(() => {
+  useEffect10(() => {
     const g3 = engine.current;
     if (!listo || !g3) return;
     const visibles = /* @__PURE__ */ new Set();
@@ -107802,77 +110868,77 @@ function LienzoGrafo({
     });
     if (agregados && g3.d3ReheatSimulation) g3.d3ReheatSimulation();
   }, [proyeccion, listo]);
-  useEffect6(() => {
+  useEffect10(() => {
     const g3 = engine.current;
     if (g3 && g3.refresh) g3.refresh();
   }, [resalte, listo]);
-  return jsxs6("div", { className: "relative min-w-0", children: [
-    jsx6("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
-    !listo ? jsx6("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
+  return jsxs10("div", { className: "relative min-w-0", children: [
+    jsx10("div", { ref: hostEl, className: "h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]" }),
+    !listo ? jsx10("div", { className: S.sub + " absolute left-3 top-3", children: "Dibujando el grafo\u2026" }) : null
   ] });
 }
 function UnidadDetalle({ nodo, fuente }) {
-  const [data, setData] = useState6(null);
-  const [error2, setError] = useState6(null);
-  useEffect6(() => {
+  const [data, setData] = useState10(null);
+  const [error2, setError] = useState10(null);
+  useEffect10(() => {
     setData(null);
     setError(null);
     rest("/grafo/unidad?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(setError);
   }, [nodo.id, fuente]);
-  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx6("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
-  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx6("div", {
+  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx10("div", { className: S.sub, children: "Cargando el texto de la unidad\u2026" });
+  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx10("div", {
       className: "max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs",
       children: data.texto
     }),
-    jsx6("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
-    data.articulo_url ? jsx6("a", {
+    jsx10("div", { className: S.sub, children: "offsets " + data.char_start + "\u2013" + data.char_end + (data.articulo_url ? " \xB7 " : "") }),
+    data.articulo_url ? jsx10("a", {
       className: S.link,
       href: data.articulo_url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Art\xEDculo fuente \u2197"
     }) : null,
-    data.sha256 ? jsx6("div", {
+    data.sha256 ? jsx10("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 unidad " + data.sha256
     }) : null,
-    data.articulo_sha256 ? jsx6("div", {
+    data.articulo_sha256 ? jsx10("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 art\xEDculo " + data.articulo_sha256
     }) : null
   ] });
 }
 function NodoDetalle({ nodo, fuente }) {
-  const [data, setData] = useState6(null);
-  useEffect6(() => {
+  const [data, setData] = useState10(null);
+  useEffect10(() => {
     setData(null);
     rest("/grafo/nodo?fuente=" + (fuente || "corpus") + "&id=" + encodeURIComponent(nodo.id)).then(setData).catch(() => {
     });
   }, [nodo.id, fuente]);
   if (!data) return null;
-  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    data.titulo ? jsx6("div", { className: S.sub, children: data.titulo }) : null,
-    data.vigencia && data.vigencia.estado ? jsx6("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
-    data.url ? jsx6("a", {
+  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    data.titulo ? jsx10("div", { className: S.sub, children: data.titulo }) : null,
+    data.vigencia && data.vigencia.estado ? jsx10("div", { className: S.sub, children: "Vigencia: " + data.vigencia.estado + (data.vigencia.desde ? " desde " + data.vigencia.desde : "") }) : null,
+    data.url ? jsx10("a", {
       className: S.link,
       href: data.url,
       target: "_blank",
       rel: "noopener noreferrer",
       children: "Fuente original \u2197"
     }) : null,
-    data.sha256 ? jsx6("div", {
+    data.sha256 ? jsx10("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: "sha256 " + data.sha256
     }) : null
   ] });
 }
 function TarjetaArista({ arista, fuente }) {
-  const [ev, setEv] = useState6(null);
-  const [err, setErr] = useState6(null);
+  const [ev, setEv] = useState10(null);
+  const [err, setErr] = useState10(null);
   const clave = arista ? arista.source + "|" + arista.target + "|" + arista.tipo : "";
-  useEffect6(() => {
+  useEffect10(() => {
     setEv(null);
     setErr(null);
     if (!arista) return void 0;
@@ -107882,15 +110948,15 @@ function TarjetaArista({ arista, fuente }) {
   }, [clave, fuente, arista]);
   if (!arista) return null;
   const e3 = arista.evidencia || {};
-  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    jsx6("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
-    jsx6("div", {
+  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    jsx10("span", { className: S.chip + " " + S.chipOff, children: (arista.tipo || "") + " \xB7 " + (arista.estado || "") }),
+    jsx10("div", {
       className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)",
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) + " \u2192 " + (arista.target && arista.target.id ? arista.target.id : arista.target)
     }),
-    e3.regla ? jsx6("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
-    err ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
-    ev ? jsxs6("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
+    e3.regla ? jsx10("div", { className: S.sub, children: "regla " + e3.regla + (e3.nivel ? " \xB7 nivel " + e3.nivel : "") }) : null,
+    err ? jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(err) }) : null,
+    ev ? jsxs10("div", { className: "max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs", children: [
       ev.snippet || "",
       ev.n_evidencias ? " (" + ev.n_evidencias + " evidencias)" : ""
     ] }) : null
@@ -107910,18 +110976,18 @@ function vigenteDe(v2) {
 }
 function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
   if (!nodo) {
-    return jsx6("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
+    return jsx10("div", { className: S.sub, children: "Haz clic en un nodo (o b\xFAscalo) para ver su ficha. Un clic en un art\xEDculo expande sus unidades." });
   }
   const n2 = nodo;
   const esUnidad = n2.tipo === "unidad";
-  return jsxs6("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
-    busqueda ? jsxs6("div", { className: "flex flex-col gap-0.5", children: [
-      jsx6("span", { className: S.chip + " " + S.chipOff, children: "Resultado de b\xFAsqueda: es una pista, no una fuente verificada" }),
-      (busqueda.terminos || []).length ? jsx6("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null,
-      jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-        jsx6("span", {
+  return jsxs10("div", { className: "flex min-w-0 flex-col gap-1.5", children: [
+    busqueda ? jsxs10("div", { className: "flex flex-col gap-0.5", children: [
+      jsx10("span", { className: S.chip + " " + S.chipOff, children: "Resultado de b\xFAsqueda: es una pista, no una fuente verificada" }),
+      (busqueda.terminos || []).length ? jsx10("div", { className: S.sub, children: "t\xE9rminos: " + busqueda.terminos.join(", ") }) : null,
+      jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+        jsx10("span", {
           title: busqueda.cita ? void 0 : busqueda.cita_motivo || "sin forma de cita",
-          children: jsx6("button", {
+          children: jsx10("button", {
             type: "button",
             className: S.ghost,
             disabled: !busqueda.cita || !onLlevar,
@@ -107931,37 +110997,37 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
             children: "Llevar al escrito"
           })
         }),
-        jsx6("span", { className: S.sub, children: vigenteDe(busqueda.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+        jsx10("span", { className: S.sub, children: vigenteDe(busqueda.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
       ] })
     ] }) : null,
-    jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx6("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
-      esUnidad ? jsx6("span", {
+    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx10("span", { className: S.chip + " " + S.chipOff, children: NOMBRE_TIPO[n2.tipo] || n2.tipo }),
+      esUnidad ? jsx10("span", {
         className: S.chip + " " + S.chipOff,
         style: { borderLeft: "3px solid " + (COLORES_MODALIDAD[n2.modalidad] || "#64748b") },
         children: (n2.modalidad || "otra") + (n2.modalidad_regla ? " \xB7 " + n2.modalidad_regla : "")
       }) : null,
-      esUnidad ? jsx6("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
+      esUnidad ? jsx10("span", { className: S.chip + " " + S.chipOff, children: "candidata" }) : null
     ] }),
-    jsx6("div", { className: "font-medium", children: n2.label }),
-    n2.tipo === "instrumento" ? jsx6("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
-    n2.tipo === "articulo" ? jsx6("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx6("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
-    n2.tipo === "resolucion" ? jsx6("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
-    esUnidad && n2.articulo ? jsx6("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
-    jsx6("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
-    esUnidad ? jsx6(UnidadDetalle, { nodo: n2, fuente }) : jsx6(NodoDetalle, { nodo: n2, fuente })
+    jsx10("div", { className: "font-medium", children: n2.label }),
+    n2.tipo === "instrumento" ? jsx10("div", { className: S.sub, children: (n2.n_articulos || conteos.get(n2.id) || 0) + " art\xEDculos" }) : null,
+    n2.tipo === "articulo" ? jsx10("div", { className: S.sub, children: (n2.n_unidades || 0) + " unidades" + (fuente === "corpus" ? " \xB7 clic para expandir/plegar" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx10("div", { className: S.sub, children: (n2.organismo ? n2.organismo + " \xB7 " : "") + "N\xB0 " + n2.numero + "/" + n2.anio + " \xB7 " + (n2.menciones || 0) + " menciones" + (n2.rca ? " \xB7 RCA" : "") }) : null,
+    n2.tipo === "resolucion" ? jsx10("div", { className: S.sub, children: "sin texto local: inferida de menciones en sentencias" }) : null,
+    esUnidad && n2.articulo ? jsx10("div", { className: S.sub, children: "Unidad " + (n2.etiqueta || "") + (n2.clase === "judicial" ? " de la sentencia" : " del art\xEDculo") }) : null,
+    jsx10("div", { className: "break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)", children: n2.id }),
+    esUnidad ? jsx10(UnidadDetalle, { nodo: n2, fuente }) : jsx10(NodoDetalle, { nodo: n2, fuente })
   ] });
 }
 function NormaDetalle({ data, error: error2 }) {
-  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
-  if (!data) return jsx6("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
+  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (!data) return jsx10("div", { className: S.sub, children: "Cargando art\xEDculos\u2026" });
   const arts = data.articulos || [];
-  return jsxs6("div", { className: "flex flex-col gap-1 pl-4", children: [
-    jsx6("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
-    ...arts.map((a3, i3) => jsxs6("details", { key: i3, className: "text-xs", children: [
-      jsx6("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
-      jsx6("div", {
+  return jsxs10("div", { className: "flex flex-col gap-1 pl-4", children: [
+    jsx10("div", { className: S.sub, children: (data.articulos_total || arts.length) + " art\xEDculos" + (data.articulos_truncados ? " (mostrando " + arts.length + ")" : "") }),
+    ...arts.map((a3, i3) => jsxs10("details", { key: i3, className: "text-xs", children: [
+      jsx10("summary", { className: "cursor-pointer py-0.5", children: "art. " + (a3.label || a3.eId) + (a3.estado ? " \xB7 " + a3.estado : "") + (a3.vigente_desde ? " \xB7 desde " + String(a3.vigente_desde).slice(0, 10) : "") }),
+      jsx10("div", {
         className: S.sub + " pl-3 pb-1 whitespace-pre-wrap",
         children: String(a3.texto || "").slice(0, 1200)
       })
@@ -107969,11 +111035,11 @@ function NormaDetalle({ data, error: error2 }) {
   ] });
 }
 function NormaRow({ norma }) {
-  const [abierta, setAbierta] = useState6(false);
-  const [detalle, setDetalle] = useState6(null);
-  const [error2, setError] = useState6(null);
-  const [cargando, setCargando] = useState6(false);
-  const abrir = useCallback6(() => {
+  const [abierta, setAbierta] = useState10(false);
+  const [detalle, setDetalle] = useState10(null);
+  const [error2, setError] = useState10(null);
+  const [cargando, setCargando] = useState10(false);
+  const abrir = useCallback9(() => {
     if (abierta) {
       setAbierta(false);
       return;
@@ -107985,32 +111051,32 @@ function NormaRow({ norma }) {
     rest("/grafo/corpus/norma/" + norma.leychileCode).then(setDetalle).catch(setError).finally(() => setCargando(false));
   }, [abierta, detalle, cargando, norma.leychileCode]);
   const rotulo = (norma.tipo && norma.numero ? norma.tipo + " " + norma.numero : norma.tipo) + (norma.anio ? "/" + norma.anio : "") + " \xB7 " + norma.articulos + " art.";
-  return jsxs6("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
-    jsxs6("button", {
+  return jsxs10("div", { className: "border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0", children: [
+    jsxs10("button", {
       type: "button",
       className: "flex w-full items-start gap-2 text-left hover:opacity-80",
       onClick: abrir,
       children: [
-        jsx6("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
-        jsxs6("div", { className: "min-w-0", children: [
-          jsx6("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
-          jsx6("div", { className: S.sub + " truncate", children: norma.titulo })
+        jsx10("span", { className: S.sub, children: abierta ? "\u25BE" : "\u25B8" }),
+        jsxs10("div", { className: "min-w-0", children: [
+          jsx10("div", { children: rotulo + (norma.estado ? " \xB7 " + norma.estado : "") }),
+          jsx10("div", { className: S.sub + " truncate", children: norma.titulo })
         ] })
       ]
     }),
-    abierta ? jsx6(NormaDetalle, { data: detalle, error: error2 }) : null
+    abierta ? jsx10(NormaDetalle, { data: detalle, error: error2 }) : null
   ] });
 }
 function ListaCorpus() {
-  const [corpus, setCorpus] = useState6(null);
-  const [error2, setError] = useState6(null);
-  useEffect6(() => {
+  const [corpus, setCorpus] = useState10(null);
+  const [error2, setError] = useState10(null);
+  useEffect10(() => {
     rest("/grafo/corpus").then(setCorpus).catch(setError);
   }, []);
-  if (error2) return jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+  if (error2) return jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   const pack = corpus && corpus.packs && corpus.packs[0];
-  if (!pack) return jsx6("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
-  return jsx6("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx6(NormaRow, { key: n2.leychileCode, norma: n2 })) });
+  if (!pack) return jsx10("div", { className: S.sub, children: "Leyendo el corpus\u2026" });
+  return jsx10("div", { className: "flex flex-col", children: (pack.normas || []).map((n2) => jsx10(NormaRow, { key: n2.leychileCode, norma: n2 })) });
 }
 function _segmentos(texto, marcas) {
   const puntos = /* @__PURE__ */ new Set([0, texto.length]);
@@ -108031,10 +111097,10 @@ function _segmentos(texto, marcas) {
   return out;
 }
 function TextoArticulo({ foco: foco2 }) {
-  const [data, setData] = useState6(null);
-  const [error2, setError] = useState6(null);
+  const [data, setData] = useState10(null);
+  const [error2, setError] = useState10(null);
   const nodoId = foco2 && foco2.nodo_id;
-  useEffect6(() => {
+  useEffect10(() => {
     setData(null);
     setError(null);
     if (!nodoId) return void 0;
@@ -108053,14 +111119,14 @@ function TextoArticulo({ foco: foco2 }) {
     };
   }, [nodoId]);
   if (error2) {
-    return jsx6("div", {
+    return jsx10("div", {
       className: "text-xs text-(--ui-danger)",
       children: "No se pudo leer el art\xEDculo: " + mensajeError(error2)
     });
   }
-  if (!data) return jsx6("div", { className: S.sub, children: "Leyendo el art\xEDculo\u2026" });
+  if (!data) return jsx10("div", { className: S.sub, children: "Leyendo el art\xEDculo\u2026" });
   if (data.resolucion !== "RESOLVED") {
-    return jsx6("div", { className: S.sub, children: "El art\xEDculo no se resolvi\xF3 en el corpus (" + (data.resolucion || "?") + (data.motivo ? ": " + data.motivo : "") + ")." });
+    return jsx10("div", { className: S.sub, children: "El art\xEDculo no se resolvi\xF3 en el corpus (" + (data.resolucion || "?") + (data.motivo ? ": " + data.motivo : "") + ")." });
   }
   const texto = data.texto || "";
   const unidades = data.unidades || [];
@@ -108077,21 +111143,21 @@ function TextoArticulo({ foco: foco2 }) {
   }
   const segmentos = _segmentos(texto, marcas);
   const etiquetaUnidad = unidad ? unidad.etiqueta : null;
-  return jsxs6("div", { className: "flex flex-col gap-1.5", children: [
-    jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-      jsx6("span", { className: S.cardTitle, children: "Texto del art\xEDculo" }),
-      jsx6("span", {
+  return jsxs10("div", { className: "flex flex-col gap-1.5", children: [
+    jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+      jsx10("span", { className: S.cardTitle, children: "Texto del art\xEDculo" }),
+      jsx10("span", {
         className: S.chip + " " + S.chipOff,
         children: data.articulo || data.nodo_id || ""
       }),
-      data.pack_hash ? jsx6("span", {
+      data.pack_hash ? jsx10("span", {
         className: S.sub,
         children: "pack " + data.pack_hash
       }) : null
     ] }),
-    jsxs6("div", { className: S.sub, children: [
+    jsxs10("div", { className: S.sub, children: [
       data.norma && (data.norma.nombre_corto || data.norma.titulo) ? (data.norma.nombre_corto || data.norma.titulo) + " \u2014 " : "",
-      jsx6("a", {
+      jsx10("a", {
         href: data.fuente_url,
         target: "_blank",
         rel: "noopener noreferrer",
@@ -108100,11 +111166,11 @@ function TextoArticulo({ foco: foco2 }) {
       }),
       " \xB7 Copia fechada: verifica t\xFA el texto vigente"
     ] }),
-    unidad ? jsx6("div", { className: S.sub, children: "Unidad resaltada: " + (etiquetaUnidad || foco2.unidad_id) }) : null,
-    fragEstado ? jsx6("div", { className: S.sub, children: fragEstado.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (fragEstado.motivo === "corto" ? " (muy corto para comparar)" : fragEstado.motivo === "largo" ? " (demasiado largo)" : "") }) : null,
-    jsxs6("div", {
+    unidad ? jsx10("div", { className: S.sub, children: "Unidad resaltada: " + (etiquetaUnidad || foco2.unidad_id) }) : null,
+    fragEstado ? jsx10("div", { className: S.sub, children: fragEstado.ok ? "Fragmento encontrado en el art\xEDculo" : "El fragmento no est\xE1 en ese art\xEDculo" + (fragEstado.motivo === "corto" ? " (muy corto para comparar)" : fragEstado.motivo === "largo" ? " (demasiado largo)" : "") }) : null,
+    jsxs10("div", {
       className: "max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md border border-(--ui-stroke-secondary) p-2 text-xs leading-relaxed",
-      children: segmentos.map((s2, i3) => jsx6("span", {
+      children: segmentos.map((s2, i3) => jsx10("span", {
         key: i3,
         style: s2.cls === "frag" ? { background: "rgba(250,204,21,0.35)" } : s2.cls === "unit" ? { background: "rgba(96,165,250,0.18)" } : void 0,
         children: s2.texto
@@ -108113,39 +111179,39 @@ function TextoArticulo({ foco: foco2 }) {
   ] });
 }
 function SeccionGrafo({ onLlevarAlEscrito }) {
-  const [red, setRed] = useState6(null);
-  const [redErr, setRedErr] = useState6(null);
-  const [personal, setPersonal] = useState6(null);
-  const [personalErr, setPersonalErr] = useState6(null);
-  const [seleccion, setSeleccion] = useState6(null);
-  const [expandidos, setExpandidos] = useState6(() => /* @__PURE__ */ new Set());
-  const [unidadesMap, setUnidadesMap] = useState6(() => /* @__PURE__ */ new Map());
-  const [ocultarArts, setOcultarArts] = useState6(false);
-  const [fuente, setFuenteState] = useState6("corpus");
-  const [fuentes, setFuentes] = useState6(null);
-  const [aristaSel, setAristaSel] = useState6(null);
-  const [hover, setHover] = useState6(null);
-  const [caminoOn, setCaminoOn] = useState6(false);
-  const [caminoIdx, setCaminoIdx] = useState6(0);
-  const [rotar, setRotar] = useState6(false);
-  const setFuente = useCallback6((f2) => {
+  const [red, setRed] = useState10(null);
+  const [redErr, setRedErr] = useState10(null);
+  const [personal, setPersonal] = useState10(null);
+  const [personalErr, setPersonalErr] = useState10(null);
+  const [seleccion, setSeleccion] = useState10(null);
+  const [expandidos, setExpandidos] = useState10(() => /* @__PURE__ */ new Set());
+  const [unidadesMap, setUnidadesMap] = useState10(() => /* @__PURE__ */ new Map());
+  const [ocultarArts, setOcultarArts] = useState10(false);
+  const [fuente, setFuenteState] = useState10("corpus");
+  const [fuentes, setFuentes] = useState10(null);
+  const [aristaSel, setAristaSel] = useState10(null);
+  const [hover, setHover] = useState10(null);
+  const [caminoOn, setCaminoOn] = useState10(false);
+  const [caminoIdx, setCaminoIdx] = useState10(0);
+  const [rotar, setRotar] = useState10(false);
+  const setFuente = useCallback9((f2) => {
     setFuenteState(f2);
     try {
       storage && storage.set("grafo.fuente", f2);
     } catch (e3) {
     }
   }, []);
-  const [query, setQuery] = useState6("");
-  const [modoBusqueda, setModoBusqueda] = useState6("nombre");
-  const [busqueda, setBusqueda] = useState6(null);
-  const [busquedaPorNodo, setBusquedaPorNodo] = useState6(() => /* @__PURE__ */ new Map());
-  const [materiaFiltro, setMateriaFiltro] = useState6(null);
-  const [fallo3d, setFallo3d] = useState6(null);
-  const [listaAbierta, setListaAbierta] = useState6(false);
-  const apiRef = useRef5(null);
-  const [foco2] = useState6(() => tomarFoco());
-  const focoAplicado = useRef5(false);
-  const cargar = useCallback6(() => {
+  const [query, setQuery] = useState10("");
+  const [modoBusqueda, setModoBusqueda] = useState10("nombre");
+  const [busqueda, setBusqueda] = useState10(null);
+  const [busquedaPorNodo, setBusquedaPorNodo] = useState10(() => /* @__PURE__ */ new Map());
+  const [materiaFiltro, setMateriaFiltro] = useState10(null);
+  const [fallo3d, setFallo3d] = useState10(null);
+  const [listaAbierta, setListaAbierta] = useState10(false);
+  const apiRef = useRef8(null);
+  const [foco2] = useState10(() => tomarFoco());
+  const focoAplicado = useRef8(false);
+  const cargar = useCallback9(() => {
     setRedErr(null);
     setPersonalErr(null);
     setRed(null);
@@ -108154,8 +111220,8 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     rest("/grafo/red?fuente=" + fuente, { timeoutMs: 12e4 }).then(setRed).catch(setRedErr);
     rest("/grafo/personal").then(setPersonal).catch(setPersonalErr);
   }, [fuente]);
-  useEffect6(cargar, [cargar]);
-  useEffect6(() => {
+  useEffect10(cargar, [cargar]);
+  useEffect10(() => {
     rest("/grafo/fuentes").then((fs) => {
       setFuentes(fs);
       if (foco2) return;
@@ -108172,7 +111238,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }).catch(() => {
     });
   }, [foco2]);
-  useEffect6(() => {
+  useEffect10(() => {
     if (!foco2 || focoAplicado.current) return;
     if (fuente !== "corpus") {
       setFuenteState("corpus");
@@ -108190,7 +111256,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }
     if (apiRef.current) apiRef.current.enfocar(foco2.nodo_id);
   }, [foco2, fuente, red, expandidos, unidadesMap]);
-  const alFallo3d = useCallback6((msg) => {
+  const alFallo3d = useCallback9((msg) => {
     setFallo3d(msg);
     setListaAbierta(true);
   }, []);
@@ -108236,7 +111302,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       links: links.filter((l2) => ids.has(l2.source) && ids.has(l2.target))
     };
   }, [nodos, aristas, ocultarArts, expandidos, unidadesMap]);
-  const alClickNodo = useCallback6((n2) => {
+  const alClickNodo = useCallback9((n2) => {
     setSeleccion(n2.id);
     if (n2.tipo === "articulo" && fuente === "corpus") {
       if (expandidos.has(n2.id)) {
@@ -108254,15 +111320,15 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       }
     }
   }, [expandidos, unidadesMap, fuente]);
-  const alClickArista = useCallback6((l2) => {
+  const alClickArista = useCallback9((l2) => {
     setAristaSel(l2);
   }, []);
-  const alFondo = useCallback6(() => {
+  const alFondo = useCallback9(() => {
     setSeleccion(null);
     setCaminoOn(false);
     setRotar(false);
   }, []);
-  const alHover = useCallback6((id) => setHover(id), []);
+  const alHover = useCallback9((id) => setHover(id), []);
   const resalte = useMemo(() => {
     const cam = red && (red.caminos_demo || [])[caminoIdx];
     if (caminoOn && cam && (cam.ids || []).length) {
@@ -108309,20 +111375,20 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }
     return { ids, links };
   }, [caminoOn, caminoIdx, red, seleccion, hover, proyeccion, busqueda, busquedaPorNodo, materiaFiltro]);
-  useEffect6(() => {
+  useEffect10(() => {
     if (!rotar) return void 0;
     const id = setInterval(() => {
       if (apiRef.current && apiRef.current.orbita) apiRef.current.orbita();
     }, 40);
     return () => clearInterval(id);
   }, [rotar]);
-  const alBuscar = useCallback6((id) => {
+  const alBuscar = useCallback9((id) => {
     const n2 = indice.get(id);
     if (!n2) return;
     setSeleccion(id);
     if (apiRef.current) apiRef.current.enfocar(id);
   }, [indice]);
-  const buscarContenido = useCallback6(() => {
+  const buscarContenido = useCallback9(() => {
     const q3 = query.trim();
     if (!q3 || fuente !== "corpus") return;
     setBusqueda({ estado: "cargando" });
@@ -108346,7 +111412,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
       setMateriaFiltro(null);
     });
   }, [query, fuente]);
-  const alElegirResultado = useCallback6((r2) => {
+  const alElegirResultado = useCallback9((r2) => {
     setBusquedaPorNodo((prev) => new Map(prev).set(r2.nodo_id, r2));
     setSeleccion(r2.nodo_id);
     if (fuente === "corpus" && !expandidos.has(r2.nodo_id)) {
@@ -108358,7 +111424,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
     }
     if (apiRef.current) apiRef.current.enfocar(r2.nodo_id);
   }, [expandidos, unidadesMap, fuente]);
-  const alLlevar = useCallback6((r2) => {
+  const alLlevar = useCallback9((r2) => {
     if (onLlevarAlEscrito && r2 && r2.cita) onLlevarAlEscrito(r2);
   }, [onLlevarAlEscrito]);
   const q2 = query.trim().toLocaleLowerCase();
@@ -108368,11 +111434,11 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
   const candidatos = personal && personal.candidates || [];
   const aristasP = personal && personal.edges || [];
   const totales = red && red.conteos || {};
-  return jsxs6("div", { className: "flex flex-col gap-3", children: [
-    jsxs6("div", { className: S.card, children: [
-      jsxs6("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
-        jsx6("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
-        jsxs6("select", {
+  return jsxs10("div", { className: "flex flex-col gap-3", children: [
+    jsxs10("div", { className: S.card, children: [
+      jsxs10("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [
+        jsx10("div", { className: S.cardTitle, children: "Red del corpus (3D)" }),
+        jsxs10("select", {
           className: S.input,
           title: "Fuente del grafo",
           value: fuente,
@@ -108386,8 +111452,8 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
             }
           },
           children: [
-            jsx6("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
-            jsx6("option", {
+            jsx10("option", { value: "corpus", children: "Corpus Dik\xE9 (25 leyes)" }),
+            jsx10("option", {
               value: "ambiental",
               disabled: !(fuentes && fuentes.find((f2) => f2.id === "ambiental" && f2.disponible)),
               title: "solo en este equipo \u2014 no publicada",
@@ -108395,56 +111461,56 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
             })
           ]
         }),
-        fuente === "ambiental" ? jsx6("span", {
+        fuente === "ambiental" ? jsx10("span", {
           className: S.chip + " " + S.chipOff,
           children: "local \u2014 no publicado \xB7 sentencias anonimizadas \xB7 relaciones candidatas, sin validar"
         }) : null,
-        red ? jsx6("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
+        red ? jsx10("div", { className: S.sub, children: (red.pack_hash ? "pack " + red.pack_hash + " \xB7 " : "") + (totales.nodes || 0) + " nodos \xB7 " + (totales.links || 0) + " aristas" + (red.truncado ? " \xB7 truncado" : "") }) : null
       ] }),
-      redErr ? jsxs6("div", { className: "flex flex-col items-start gap-1.5", children: [
-        jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
-        jsx6("button", {
+      redErr ? jsxs10("div", { className: "flex flex-col items-start gap-1.5", children: [
+        jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(redErr) }),
+        jsx10("button", {
           type: "button",
           className: S.ghost,
           onClick: cargar,
           children: "Reintentar"
         })
-      ] }) : !red ? jsx6("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs6("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
-        jsxs6("div", { className: "min-w-0", children: [
-          jsxs6("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
-            Object.keys(COLORES_NODO).map((tipo) => jsxs6("span", {
+      ] }) : !red ? jsx10("div", { className: S.sub, children: "Cargando la red del corpus: la primera carga puede tardar hasta un minuto mientras se verifica el corpus\u2026" }) : jsxs10("div", { className: "grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]", children: [
+        jsxs10("div", { className: "min-w-0", children: [
+          jsxs10("div", { className: "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs", children: [
+            Object.keys(COLORES_NODO).map((tipo) => jsxs10("span", {
               key: tipo,
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx6("span", {
+                jsx10("span", {
                   className: "inline-block h-2.5 w-2.5 rounded-full",
                   style: { background: COLORES_NODO[tipo] }
                 }),
                 NOMBRE_TIPO[tipo]
               ]
             })),
-            jsxs6("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
-              jsx6("input", {
+            jsxs10("label", { className: "flex items-center gap-1.5 " + S.sub, children: [
+              jsx10("input", {
                 type: "checkbox",
                 checked: ocultarArts,
                 onChange: (e3) => setOcultarArts(e3.target.checked)
               }),
               "ocultar art\xEDculos"
             ] }),
-            jsx6("span", { className: S.sub, children: "|" }),
-            jsx6("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
-            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs6("span", {
+            jsx10("span", { className: S.sub, children: "|" }),
+            jsx10("span", { className: S.sub, children: "modalidad de\xF3ntica (candidata, sin validar):" }),
+            Object.keys(COLORES_MODALIDAD).map((mod2) => jsxs10("span", {
               key: mod2,
               className: "flex items-center gap-1 " + S.sub,
               children: [
-                jsx6("span", {
+                jsx10("span", {
                   className: "inline-block h-2 w-2 rounded-full",
                   style: { background: COLORES_MODALIDAD[mod2] }
                 }),
                 mod2
               ]
             })),
-            jsx6("button", {
+            jsx10("button", {
               type: "button",
               className: S.link,
               onClick: () => {
@@ -108452,8 +111518,8 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
               },
               children: "encajar"
             }),
-            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs6("span", { className: "flex items-center gap-1", children: [
-              jsxs6("select", {
+            fuente === "ambiental" && red && (red.caminos_demo || []).length ? jsxs10("span", { className: "flex items-center gap-1", children: [
+              jsxs10("select", {
                 className: S.input,
                 title: "Camino destacado",
                 value: caminoIdx,
@@ -108465,13 +111531,13 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                     apiRef.current.encuadrar(cm.ids);
                   }
                 },
-                children: (red.caminos_demo || []).map((cm, i3) => jsx6("option", {
+                children: (red.caminos_demo || []).map((cm, i3) => jsx10("option", {
                   key: i3,
                   value: i3,
                   children: cm.titulo + " \xB7 " + cm.relajacion
                 }))
               }),
-              jsx6("button", {
+              jsx10("button", {
                 type: "button",
                 className: caminoOn ? S.chip + " " + S.chipOk : S.link,
                 onClick: () => {
@@ -108486,10 +111552,10 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                 children: "camino destacado"
               })
             ] }) : null,
-            fuente === "ambiental" ? jsxs6("label", {
+            fuente === "ambiental" ? jsxs10("label", {
               className: "flex items-center gap-1.5 " + S.sub,
               children: [
-                jsx6("input", {
+                jsx10("input", {
                   type: "checkbox",
                   checked: rotar,
                   onChange: (e3) => setRotar(e3.target.checked)
@@ -108497,12 +111563,12 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                 "rotar"
               ]
             }) : null,
-            jsx6("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
+            jsx10("span", { className: S.sub + " ml-auto", children: proyeccion.nodes.length + " visibles \xB7 " + proyeccion.links.length + " aristas" })
           ] }),
-          fallo3d ? jsxs6("div", { className: S.card, children: [
-            jsx6("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
-            jsx6("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
-          ] }) : jsx6(LienzoGrafo, {
+          fallo3d ? jsxs10("div", { className: S.card, children: [
+            jsx10("div", { className: "text-xs text-(--ui-danger)", children: fallo3d }),
+            jsx10("div", { className: S.sub, children: "El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus." })
+          ] }) : jsx10(LienzoGrafo, {
             proyeccion,
             padres,
             conteos,
@@ -108515,23 +111581,23 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
             apiRef
           })
         ] }),
-        jsxs6("div", { className: "flex min-w-0 flex-col gap-2", children: [
-          jsxs6("div", { className: "flex items-center gap-1", children: [
-            jsx6("select", {
+        jsxs10("div", { className: "flex min-w-0 flex-col gap-2", children: [
+          jsxs10("div", { className: "flex items-center gap-1", children: [
+            jsx10("select", {
               className: S.input,
               title: "Modo de b\xFAsqueda",
               value: modoBusqueda,
               onChange: (e3) => setModoBusqueda(e3.target.value),
               children: [
-                jsx6("option", { value: "nombre", children: "por nombre" }),
-                jsx6("option", {
+                jsx10("option", { value: "nombre", children: "por nombre" }),
+                jsx10("option", {
                   value: "contenido",
                   disabled: fuente !== "corpus",
                   children: "por contenido"
                 })
               ]
             }),
-            jsx6("input", {
+            jsx10("input", {
               className: S.input + " w-full",
               placeholder: modoBusqueda === "contenido" ? "Buscar por contenido en los art\xEDculos\u2026" : "Buscar ley, c\xF3digo o art\xEDculo\u2026",
               value: query,
@@ -108542,7 +111608,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                 }
               }
             }),
-            modoBusqueda === "contenido" ? jsx6("button", {
+            modoBusqueda === "contenido" ? jsx10("button", {
               type: "button",
               className: S.ghost,
               disabled: !query.trim() || busqueda?.estado === "cargando",
@@ -108550,34 +111616,34 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
               children: busqueda?.estado === "cargando" ? "Buscando\u2026" : "Buscar"
             }) : null
           ] }),
-          modoBusqueda === "contenido" && fuente !== "corpus" ? jsx6("div", { className: S.sub, children: "la b\xFAsqueda por contenido cubre solo el corpus Dik\xE9" }) : null,
-          modoBusqueda === "nombre" && q2 ? jsxs6("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
-            coincidencias.map((n2) => jsxs6("button", {
+          modoBusqueda === "contenido" && fuente !== "corpus" ? jsx10("div", { className: S.sub, children: "la b\xFAsqueda por contenido cubre solo el corpus Dik\xE9" }) : null,
+          modoBusqueda === "nombre" && q2 ? jsxs10("div", { className: "max-h-44 overflow-y-auto rounded-md border border-(--ui-stroke-secondary)", children: [
+            coincidencias.map((n2) => jsxs10("button", {
               key: n2.id,
               type: "button",
               className: "block w-full px-2 py-1 text-left text-xs hover:bg-(--ui-bg-quaternary) truncate",
               onClick: () => alBuscar(n2.id),
               children: [
-                jsx6("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
+                jsx10("span", { style: { color: COLORES_NODO[n2.tipo] }, children: "\u25CF " }),
                 n2.label
               ]
             })),
-            coincidencias.length === 0 ? jsx6("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
+            coincidencias.length === 0 ? jsx10("div", { className: S.sub + " p-2", children: "Sin coincidencias." }) : null
           ] }) : null,
-          modoBusqueda === "contenido" && busqueda ? jsxs6("div", {
+          modoBusqueda === "contenido" && busqueda ? jsxs10("div", {
             className: "flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-(--ui-stroke-secondary) p-1.5",
             children: [
-              busqueda.estado === "cargando" ? jsx6("div", { className: S.sub + " p-1", children: "Buscando en el corpus\u2026" }) : null,
-              busqueda.estado === "error" ? jsx6("div", { className: "text-xs text-(--ui-danger) p-1", children: busqueda.mensaje }) : null,
-              busqueda.estado === "lista" ? jsxs6("div", { className: "flex flex-col gap-1", children: [
-                jsx6("span", {
+              busqueda.estado === "cargando" ? jsx10("div", { className: S.sub + " p-1", children: "Buscando en el corpus\u2026" }) : null,
+              busqueda.estado === "error" ? jsx10("div", { className: "text-xs text-(--ui-danger) p-1", children: busqueda.mensaje }) : null,
+              busqueda.estado === "lista" ? jsxs10("div", { className: "flex flex-col gap-1", children: [
+                jsx10("span", {
                   className: S.chip + " " + S.chipOff,
                   children: busqueda.data && busqueda.data.rotulo || "Resultado de b\xFAsqueda: es una pista, no una fuente verificada"
                 }),
-                arbolData ? arbolData.disponible ? jsxs6("div", { className: "flex flex-col gap-0.5 px-1", children: [
-                  jsxs6("div", { className: "flex flex-wrap items-center gap-1", children: [
-                    jsx6("span", { className: S.sub, children: "Materias de la consulta" }),
-                    ...(arbolData.clasificacion || []).map((c4) => jsx6("button", {
+                arbolData ? arbolData.disponible ? jsxs10("div", { className: "flex flex-col gap-0.5 px-1", children: [
+                  jsxs10("div", { className: "flex flex-wrap items-center gap-1", children: [
+                    jsx10("span", { className: S.sub, children: "Materias de la consulta" }),
+                    ...(arbolData.clasificacion || []).map((c4) => jsx10("button", {
                       key: c4.nodo,
                       type: "button",
                       className: S.chip + " " + (materiaFiltro === c4.nodo ? S.chipOk : S.chipOff),
@@ -108587,25 +111653,25 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                       ),
                       children: c4.nombre + " \xB7 " + c4.score
                     })),
-                    !arbolData.clara ? jsx6("span", {
+                    !arbolData.clara ? jsx10("span", {
                       className: S.chip + " " + S.chipOff,
                       children: "clasificaci\xF3n ambigua"
                     }) : null
                   ] }),
-                  ...(arbolData.clasificacion || []).map((c4) => jsx6("div", {
+                  ...(arbolData.clasificacion || []).map((c4) => jsx10("div", {
                     key: "t-" + c4.nodo,
                     className: S.sub + " truncate",
                     children: c4.nombre + " \u2014 " + ((c4.terminos || []).join(", ") || "sin t\xE9rminos") + " \xB7 cobertura " + Math.round((c4.cobertura || 0) * 100) + "%"
                   })),
-                  jsx6("div", { className: S.sub + " truncate", children: "clasificaci\xF3n l\xE9xica por \xE1rbol de materias: explica, no reordena" })
-                ] }) : jsx6("div", { className: S.sub + " px-1", children: "\xE1rbol de materias no disponible" + (arbolData.motivo ? " \u2014 " + arbolData.motivo : "") }) : null,
-                (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx6("div", { className: S.sub + " p-1", children: "Sin resultados." }) : null,
+                  jsx10("div", { className: S.sub + " truncate", children: "clasificaci\xF3n l\xE9xica por \xE1rbol de materias: explica, no reordena" })
+                ] }) : jsx10("div", { className: S.sub + " px-1", children: "\xE1rbol de materias no disponible" + (arbolData.motivo ? " \u2014 " + arbolData.motivo : "") }) : null,
+                (busqueda.data && busqueda.data.resultados || []).length === 0 ? jsx10("div", { className: S.sub + " p-1", children: "Sin resultados." }) : null,
                 (busqueda.data && busqueda.data.resultados || []).map((r2) => {
                   const metodo = busqueda.data && busqueda.data.metodo || {};
                   const rel = Math.max(0, Math.min(1, r2.score_rel || 0));
                   const vig = etiquetaVigencia(r2.vigencia);
                   const fueraDelFiltro = materiaFiltro && !(r2.materias || []).some((m3) => m3.nodo === materiaFiltro);
-                  return jsxs6("div", {
+                  return jsxs10("div", {
                     key: r2.nodo_id,
                     role: "button",
                     tabIndex: 0,
@@ -108619,34 +111685,34 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                       }
                     },
                     children: [
-                      jsxs6("div", { className: "flex items-center gap-1.5", children: [
-                        jsx6("span", { className: S.sub, children: "#" + r2.rank }),
-                        jsx6("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
-                        jsx6("span", { className: S.chip + " " + S.chipOff, children: r2.canal }),
-                        vig ? jsx6("span", {
+                      jsxs10("div", { className: "flex items-center gap-1.5", children: [
+                        jsx10("span", { className: S.sub, children: "#" + r2.rank }),
+                        jsx10("span", { className: "min-w-0 flex-1 truncate", children: r2.label }),
+                        jsx10("span", { className: S.chip + " " + S.chipOff, children: r2.canal }),
+                        vig ? jsx10("span", {
                           className: S.chip + " " + (vig.malo ? S.chipBad : S.chipOff),
                           children: vig.texto
                         }) : null
                       ] }),
-                      jsxs6("div", { className: "flex items-center gap-1.5", children: [
-                        jsx6("span", {
+                      jsxs10("div", { className: "flex items-center gap-1.5", children: [
+                        jsx10("span", {
                           className: "inline-block h-1.5 rounded-sm bg-(--ui-accent)",
                           style: { width: Math.max(3, Math.round(rel * 64)) + "px" }
                         }),
-                        jsx6("span", { className: S.sub, children: Math.round(rel * 100) + "%" })
+                        jsx10("span", { className: S.sub, children: Math.round(rel * 100) + "%" })
                       ] }),
-                      (r2.terminos || []).length ? jsx6("div", { className: S.sub + " truncate", children: "t\xE9rminos: " + r2.terminos.join(", ") }) : null,
-                      (r2.unidades || []).length ? jsx6("div", { className: S.sub + " truncate", children: "unidades: " + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
-                      (r2.materias || []).length ? jsx6("div", { className: "flex flex-wrap gap-1", children: r2.materias.map((m3, i3) => jsx6("span", {
+                      (r2.terminos || []).length ? jsx10("div", { className: S.sub + " truncate", children: "t\xE9rminos: " + r2.terminos.join(", ") }) : null,
+                      (r2.unidades || []).length ? jsx10("div", { className: S.sub + " truncate", children: "unidades: " + r2.unidades.map((u2) => u2.etiqueta).join(", ") }) : null,
+                      (r2.materias || []).length ? jsx10("div", { className: "flex flex-wrap gap-1", children: r2.materias.map((m3, i3) => jsx10("span", {
                         key: m3.nodo + "-" + i3,
                         className: S.chip + " " + S.chipOff,
                         children: (m3.relacion === "ancla" ? "ancla" : "territorio") + " \xB7 " + m3.nombre
                       })) }) : null,
-                      jsx6("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") }),
-                      jsxs6("div", { className: "flex flex-wrap items-center gap-1.5", children: [
-                        jsx6("span", {
+                      jsx10("div", { className: S.sub + " truncate", children: (metodo.motor || "bm25") + " \xB7 canal " + (r2.canal || "") + (r2.evidencia ? " \u2014 " + r2.evidencia : "") }),
+                      jsxs10("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                        jsx10("span", {
                           title: r2.cita ? void 0 : r2.cita_motivo || "sin forma de cita",
-                          children: jsx6("button", {
+                          children: jsx10("button", {
                             type: "button",
                             className: S.ghost,
                             disabled: !r2.cita,
@@ -108657,7 +111723,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                             children: "Llevar al escrito"
                           })
                         }),
-                        jsx6("span", { className: S.sub, children: vigenteDe(r2.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
+                        jsx10("span", { className: S.sub, children: vigenteDe(r2.vigencia) ? "entra como cita sin verificar; el verificador la revisa" : "el verificador la marcar\xE1 FALLO: el art\xEDculo no est\xE1 vigente" })
                       ] })
                     ]
                   });
@@ -108665,23 +111731,23 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
               ] }) : null
             ]
           }) : null,
-          foco2 ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TextoArticulo, { foco: foco2 }) }) : null,
-          jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaNodo, {
+          foco2 ? jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TextoArticulo, { foco: foco2 }) }) : null,
+          jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TarjetaNodo, {
             nodo: actual,
             conteos,
             fuente,
             busqueda: seleccion ? busquedaPorNodo.get(seleccion) || null : null,
             onLlevar: alLlevar
           }) }),
-          aristaSel ? jsx6("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx6(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
-          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs6("div", {
+          aristaSel ? jsx10("div", { className: "rounded-md border border-(--ui-stroke-secondary) p-2", children: jsx10(TarjetaArista, { arista: aristaSel, fuente }) }) : null,
+          caminoOn && red && (red.caminos_demo || [])[caminoIdx] ? jsxs10("div", {
             className: "rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1",
             children: [
-              jsx6("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
+              jsx10("div", { className: S.cardTitle, children: "Camino destacado \xB7 " + ((red.caminos_demo || [])[caminoIdx].relajacion || "") }),
               ...(red.caminos_demo[caminoIdx].ids || []).map((id, i3) => {
                 const n2 = indice.get(id);
                 const paso = i3 > 0 ? " " + ((red.caminos_demo[caminoIdx].links[i3 - 1] || "").split("|")[2] || "\u2192") + " " : "";
-                return jsxs6("button", {
+                return jsxs10("button", {
                   key: id,
                   type: "button",
                   className: "text-left text-xs hover:bg-(--ui-bg-quaternary) truncate " + S.link,
@@ -108690,7 +111756,7 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
                   },
                   children: [
                     i3 + 1 + ". " + (n2 ? n2.label : id),
-                    paso ? jsx6("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
+                    paso ? jsx10("span", { className: S.sub, children: " \xB7" + paso.trim() }) : null
                   ]
                 });
               })
@@ -108699,26 +111765,26 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
         ] })
       ] })
     ] }),
-    fuente === "corpus" ? jsxs6("details", {
+    fuente === "corpus" ? jsxs10("details", {
       className: S.card,
       open: listaAbierta,
       onToggle: (e3) => setListaAbierta(e3.currentTarget.open),
       children: [
-        jsx6("summary", {
+        jsx10("summary", {
           className: "cursor-pointer " + S.cardTitle + " normal-case",
           children: "Lista del corpus (texto)"
         }),
-        listaAbierta ? jsx6("div", { className: "mt-2", children: jsx6(ListaCorpus, {}) }) : null
+        listaAbierta ? jsx10("div", { className: "mt-2", children: jsx10(ListaCorpus, {}) }) : null
       ]
     }) : null,
-    fuente === "corpus" ? jsxs6("div", { className: S.card, children: [
-      jsx6("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
-      personalErr ? jsx6("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx6("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs6("div", { className: "flex flex-col gap-1", children: [
-        jsx6("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
-        candidatos.length === 0 ? jsx6("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx6("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs6("div", { key: i3, className: S.row, children: [
-          jsxs6("div", { className: "min-w-0", children: [
-            jsx6("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
-            jsx6("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
+    fuente === "corpus" ? jsxs10("div", { className: S.card, children: [
+      jsx10("div", { className: S.cardTitle, children: "Grafo personal (GRE)" }),
+      personalErr ? jsx10("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(personalErr) }) : !personal ? jsx10("div", { className: S.sub, children: "Consultando\u2026" }) : jsxs10("div", { className: "flex flex-col gap-1", children: [
+        jsx10("div", { className: S.sub, children: candidatos.length + " candidatos \xB7 " + aristasP.length + " aristas" }),
+        candidatos.length === 0 ? jsx10("div", { className: S.sub, children: "Sin candidatos todav\xEDa: el grafo personal se llena cuando agentes o el escrito alimentan evidencia al pipeline GRE." }) : jsx10("div", { className: "flex flex-col", children: candidatos.map((c4, i3) => jsxs10("div", { key: i3, className: S.row, children: [
+          jsxs10("div", { className: "min-w-0", children: [
+            jsx10("div", { children: (c4.candidate_id || "") + " \xB7 " + (c4.state_human || c4.state || "") }),
+            jsx10("div", { className: S.meta, children: String(c4.text || c4.summary || "").slice(0, 160) })
           ] })
         ] })) })
       ] })
@@ -108729,34 +111795,34 @@ function SeccionGrafo({ onLlevarAlEscrito }) {
 // src/plugin.src.js
 var ID = "dike";
 function Estado() {
-  const [estado, setEstado] = useState7(null);
-  const [err, setErr] = useState7(null);
-  const cargar = useCallback7(() => {
+  const [estado, setEstado] = useState11(null);
+  const [err, setErr] = useState11(null);
+  const cargar = useCallback10(() => {
     setErr(null);
     rest("/estado").then(setEstado).catch(setErr);
   }, []);
-  useEffect7(cargar, [cargar]);
+  useEffect11(cargar, [cargar]);
   if (err) {
     const perfil = host4.state && host4.state.profile && host4.state.profile.get() || "";
-    return jsxs7("div", { className: "flex flex-col gap-2", children: [
-      jsx7("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
-      jsx7("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
-      jsx7("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
+    return jsxs11("div", { className: "flex flex-col gap-2", children: [
+      jsx11("div", { className: S.sub, children: "El backend de Dik\xE9 no responde en el perfil activo" + (perfil ? " (" + perfil + ")" : "") + ": " + mensajeError(err) + "." }),
+      jsx11("div", { className: S.sub, children: "Comprueba que el plugin Dik\xE9 est\xE9 instalado y habilitado en el perfil activo con versi\xF3n 0.4.0 o superior (la pesta\xF1a del panel existe desde esa versi\xF3n)." }),
+      jsx11("button", { type: "button", className: S.ghost, onClick: cargar, children: "Reintentar" })
     ] });
   }
-  if (!estado) return jsx7("div", { className: S.sub, children: "Consultando el corpus\u2026" });
+  if (!estado) return jsx11("div", { className: S.sub, children: "Consultando el corpus\u2026" });
   const aislado = estado.aislamiento && estado.aislamiento.modo === "bwrap";
   const motivo = estado.aislamiento && estado.aislamiento.motivo || "";
-  return jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
-    jsx7("span", {
+  return jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
+    jsx11("span", {
       className: S.chip + " " + (estado.corpus_instalado ? S.chipOk : S.chipOff),
       children: estado.corpus_instalado ? "corpus instalado" : "corpus sin instalar"
     }),
-    jsx7("span", {
+    jsx11("span", {
       className: S.chip + " " + (aislado ? S.chipOk : S.chipOff),
       children: aislado ? "aislado (bubblewrap)" : "sin aislamiento: " + motivo
     }),
-    jsx7("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
+    jsx11("span", { className: S.sub, children: "pack " + estado.pack_hash + " \xB7 " + estado.leyes + " leyes \xB7 " + estado.articulos + " art\xEDculos" + (estado.version ? " \xB7 v" + estado.version : "") })
   ] });
 }
 var SECCIONES_NIF = [
@@ -108782,32 +111848,32 @@ function ItemNif({ valor }) {
   else if (v2 && typeof v2 === "object" && !Array.isArray(v2)) {
     texto = [v2.label || v2.id || v2.name || "", v2.description || v2.text || v2.filled_with || ""].filter(Boolean).join(" \u2014 ") || JSON.stringify(v2);
   } else texto = JSON.stringify(v2);
-  return jsx7("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx7("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
+  return jsx11("div", { className: "border-b border-(--ui-stroke-tertiary) py-1 text-xs last:border-0", children: jsx11("div", { className: "whitespace-pre-wrap", children: String(texto).slice(0, 400) }) });
 }
 function SeccionNif({ titulo, valores, campo, onAgregar }) {
-  const [nuevo, setNuevo] = useState7("");
-  const [editando, setEditando] = useState7(false);
+  const [nuevo, setNuevo] = useState11("");
+  const [editando, setEditando] = useState11(false);
   const lista = Array.isArray(valores) ? valores : [];
-  return jsxs7("div", { className: S.section, children: [
-    jsxs7("div", { className: "flex items-center justify-between", children: [
-      jsx7("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
-      jsx7("button", {
+  return jsxs11("div", { className: S.section, children: [
+    jsxs11("div", { className: "flex items-center justify-between", children: [
+      jsx11("span", { className: S.sectionTitle, children: titulo + " (" + lista.length + ")" }),
+      jsx11("button", {
         type: "button",
         className: S.link + " normal-case",
         onClick: () => setEditando(!editando),
         children: editando ? "cerrar" : "+ agregar"
       })
     ] }),
-    ...lista.map((v2, i3) => jsx7(ItemNif, { key: i3, valor: v2 })),
-    lista.length === 0 ? jsx7("div", { className: S.sub, children: "\u2014" }) : null,
-    editando ? jsxs7("div", { className: "flex flex-col gap-1 mt-1", children: [
-      jsx7("textarea", {
+    ...lista.map((v2, i3) => jsx11(ItemNif, { key: i3, valor: v2 })),
+    lista.length === 0 ? jsx11("div", { className: S.sub, children: "\u2014" }) : null,
+    editando ? jsxs11("div", { className: "flex flex-col gap-1 mt-1", children: [
+      jsx11("textarea", {
         className: "min-h-16 w-full rounded border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-1.5 font-mono text-xs",
         placeholder: SECCIONES_OBJETO.has(campo) ? 'JSON del \xEDtem, ej. {"label": "Trabajador"}' : "Texto del \xEDtem",
         value: nuevo,
         onChange: (ev) => setNuevo(ev.target.value)
       }),
-      jsx7("button", {
+      jsx11("button", {
         type: "button",
         className: S.ghost,
         onClick: () => {
@@ -108829,25 +111895,25 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
   ] });
 }
 function GapRow({ gap, index: index5, ocupado, onResolver }) {
-  const [by, setBy] = useState7("");
-  const [with_, setWith] = useState7("");
-  return jsxs7("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
-    jsx7("div", { children: gap.description || JSON.stringify(gap) }),
-    jsx7("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
-    jsxs7("div", { className: "flex gap-1", children: [
-      jsx7("input", {
+  const [by, setBy] = useState11("");
+  const [with_, setWith] = useState11("");
+  return jsxs11("div", { className: "flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs", children: [
+    jsx11("div", { children: gap.description || JSON.stringify(gap) }),
+    jsx11("div", { className: S.sub, children: "impacto " + (gap.impact || "?") + (gap.demanded_by ? " \xB7 pide " + gap.demanded_by : "") }),
+    jsxs11("div", { className: "flex gap-1", children: [
+      jsx11("input", {
         className: S.input + " w-28",
         placeholder: "qui\xE9n",
         value: by,
         onChange: (e3) => setBy(e3.target.value)
       }),
-      jsx7("input", {
+      jsx11("input", {
         className: S.input + " flex-1",
         placeholder: "con qu\xE9 se llena",
         value: with_,
         onChange: (e3) => setWith(e3.target.value)
       }),
-      jsx7("button", {
+      jsx11("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado || !by.trim() || !with_.trim(),
@@ -108858,16 +111924,16 @@ function GapRow({ gap, index: index5, ocupado, onResolver }) {
   ] });
 }
 function NifBoard({ caso, onCambio }) {
-  const [data, setData] = useState7(null);
-  const [error2, setError] = useState7(null);
-  const [conf, setConf] = useState7("");
-  const [ocupado, setOcupado] = useState7(false);
-  const cargar = useCallback7(() => {
+  const [data, setData] = useState11(null);
+  const [error2, setError] = useState11(null);
+  const [conf, setConf] = useState11("");
+  const [ocupado, setOcupado] = useState11(false);
+  const cargar = useCallback10(() => {
     setError(null);
     rest("/nif/snapshot?case_id=" + encodeURIComponent(caso.case_id)).then(setData).catch(setError);
   }, [caso.case_id]);
-  useEffect7(cargar, [cargar]);
-  const accion = useCallback7((fn) => (...args) => {
+  useEffect11(cargar, [cargar]);
+  const accion = useCallback10((fn) => (...args) => {
     if (ocupado) return;
     setOcupado(true);
     setError(null);
@@ -108878,31 +111944,31 @@ function NifBoard({ caso, onCambio }) {
   }, [ocupado, cargar, onCambio]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   if (error2 && !data) {
-    return jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
+    return jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) });
   }
-  if (!data) return jsx7("div", { className: S.sub, children: "Cargando NIF\u2026" });
+  if (!data) return jsx11("div", { className: S.sub, children: "Cargando NIF\u2026" });
   const snap = data.snapshot || {};
   const nif = snap.nif;
   if (!snap.exists || !nif) {
-    return jsx7("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
+    return jsx11("div", { className: "text-sm text-(--ui-text-secondary)", children: "Este caso no tiene NIF todav\xEDa." });
   }
   const patches = data.patches && data.patches.patches || [];
   const gaps = nif.gaps || [];
-  return jsxs7("div", { className: "flex flex-col gap-3", children: [
-    jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx7("span", {
+  return jsxs11("div", { className: "flex flex-col gap-3", children: [
+    jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx11("span", {
         className: S.chip + " " + (nif.validated_by_human ? S.chipOk : S.chipOff),
         children: nif.validated_by_human ? "validado por humano" : "sin validaci\xF3n humana"
       }),
-      jsx7("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
-      jsx7("button", {
+      jsx11("span", { className: S.sub, children: "v" + snap.version + " \xB7 confianza " + Math.round((nif.confidence || 0) * 100) + "%" }),
+      jsx11("button", {
         type: "button",
         className: S.link,
         onClick: accion(() => post("/nif/validar", { case_id: caso.case_id, validated: !nif.validated_by_human })),
         children: nif.validated_by_human ? "retirar validaci\xF3n" : "marcar validado"
       }),
-      jsxs7("span", { className: "flex items-center gap-1", children: [
-        jsx7("input", {
+      jsxs11("span", { className: "flex items-center gap-1", children: [
+        jsx11("input", {
           type: "number",
           min: "0",
           max: "1",
@@ -108912,7 +111978,7 @@ function NifBoard({ caso, onCambio }) {
           value: conf,
           onChange: (e3) => setConf(e3.target.value)
         }),
-        jsx7("button", {
+        jsx11("button", {
           type: "button",
           className: S.link,
           onClick: accion(() => post("/nif/confianza", { case_id: caso.case_id, confidence: parseFloat(conf) })),
@@ -108920,10 +111986,10 @@ function NifBoard({ caso, onCambio }) {
         })
       ] })
     ] }),
-    jsx7("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
-    jsx7("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
+    jsx11("div", { className: "font-medium", children: nif.legal_question || caso.legal_question || "" }),
+    jsx11("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: SECCIONES_NIF.map(([campo, titulo]) => {
       const valores = campo.startsWith("facts.") ? (nif.facts || {})[campo.slice(6)] || [] : nif[campo] || [];
-      return jsx7(SeccionNif, {
+      return jsx11(SeccionNif, {
         key: campo,
         titulo,
         valores,
@@ -108935,9 +112001,9 @@ function NifBoard({ caso, onCambio }) {
         }))()
       });
     }) }),
-    gaps.length ? jsxs7("div", { className: S.section, children: [
-      jsx7("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
-      ...gaps.map((g3, i3) => g3.status === "filled" ? null : jsx7(GapRow, {
+    gaps.length ? jsxs11("div", { className: S.section, children: [
+      jsx11("div", { className: S.sectionTitle, children: "Resolver vac\xEDos" }),
+      ...gaps.map((g3, i3) => g3.status === "filled" ? null : jsx11(GapRow, {
         key: i3,
         gap: g3,
         index: i3,
@@ -108950,32 +112016,32 @@ function NifBoard({ caso, onCambio }) {
         }))
       }))
     ] }) : null,
-    patches.length ? jsxs7("details", { className: "text-xs", children: [
-      jsx7("summary", {
+    patches.length ? jsxs11("details", { className: "text-xs", children: [
+      jsx11("summary", {
         className: "cursor-pointer " + S.sub,
         children: "Historial de parches (" + patches.length + ")"
       }),
-      ...patches.slice(-12).reverse().map((p2, i3) => jsxs7("div", {
+      ...patches.slice(-12).reverse().map((p2, i3) => jsxs11("div", {
         key: i3,
         className: "border-b border-(--ui-stroke-tertiary) py-1",
         children: [
-          jsx7("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
-          jsx7("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
-          p2.reason ? jsx7("div", { className: S.sub, children: p2.reason }) : null
+          jsx11("span", { className: S.sub, children: (p2.timestamp || "").slice(0, 19).replace("T", " ") + " \xB7 " }),
+          jsx11("span", { children: p2.agent_id + " \u2192 " + p2.field_path + " (" + p2.operation + ")" }),
+          p2.reason ? jsx11("div", { className: S.sub, children: p2.reason }) : null
         ]
       }))
     ] }) : null,
-    error2 ? jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
+    error2 ? jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null
   ] });
 }
 function SeccionNifPanel() {
-  const [lista, setLista] = useState7({ cases: [] });
-  const [error2, setError] = useState7(null);
-  const [casoSel, setCasoSel] = useState7(null);
-  const [nuevoId, setNuevoId] = useState7("");
-  const [nuevaPregunta, setNuevaPregunta] = useState7("");
-  const [ocupado, setOcupado] = useState7(false);
-  const cargar = useCallback7(() => {
+  const [lista, setLista] = useState11({ cases: [] });
+  const [error2, setError] = useState11(null);
+  const [casoSel, setCasoSel] = useState11(null);
+  const [nuevoId, setNuevoId] = useState11("");
+  const [nuevaPregunta, setNuevaPregunta] = useState11("");
+  const [ocupado, setOcupado] = useState11(false);
+  const cargar = useCallback10(() => {
     setError(null);
     rest("/nif/casos").then((d2) => {
       setLista(d2);
@@ -108986,25 +112052,25 @@ function SeccionNifPanel() {
       });
     }).catch(setError);
   }, []);
-  useEffect7(cargar, [cargar]);
+  useEffect11(cargar, [cargar]);
   const post = (ruta, body) => rest(ruta, { method: "POST", body, timeoutMs: 6e4 });
   const casos = lista.cases || [];
-  return jsxs7("div", { className: "flex flex-col gap-3", children: [
-    jsxs7("div", { className: "flex flex-wrap items-center gap-2", children: [
-      jsx7("select", {
+  return jsxs11("div", { className: "flex flex-col gap-3", children: [
+    jsxs11("div", { className: "flex flex-wrap items-center gap-2", children: [
+      jsx11("select", {
         className: S.input,
         value: casoSel ? casoSel.case_id : "",
         onChange: (ev) => {
           const c4 = casos.filter((x3) => x3.case_id === ev.target.value)[0];
           setCasoSel(c4 || null);
         },
-        children: casos.length === 0 ? jsx7("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx7("option", {
+        children: casos.length === 0 ? jsx11("option", { value: "", children: "Sin casos" }) : casos.map((c4) => jsx11("option", {
           key: c4.case_id,
           value: c4.case_id,
           children: c4.case_id + " \u2014 " + String(c4.legal_question || "").slice(0, 60)
         }))
       }),
-      jsx7("button", {
+      jsx11("button", {
         type: "button",
         className: S.ghost,
         disabled: ocupado,
@@ -109014,19 +112080,19 @@ function SeccionNifPanel() {
         },
         children: ocupado ? "\u2026" : "Cargar caso demo"
       }),
-      jsx7("input", {
+      jsx11("input", {
         className: S.input + " w-32",
         placeholder: "id del caso",
         value: nuevoId,
         onChange: (e3) => setNuevoId(e3.target.value)
       }),
-      jsx7("input", {
+      jsx11("input", {
         className: S.input + " w-64",
         placeholder: "pregunta jur\xEDdica",
         value: nuevaPregunta,
         onChange: (e3) => setNuevaPregunta(e3.target.value)
       }),
-      jsx7("button", {
+      jsx11("button", {
         type: "button",
         className: S.button,
         disabled: ocupado || !nuevoId.trim() || !nuevaPregunta.trim(),
@@ -109041,10 +112107,139 @@ function SeccionNifPanel() {
         children: "Nuevo caso"
       })
     ] }),
-    error2 ? jsx7("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
-    casos.length === 0 && !error2 ? jsx7("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
-    casoSel ? jsx7(NifBoard, { caso: casoSel, onCambio: cargar }) : null
+    error2 ? jsx11("div", { className: "text-xs text-(--ui-danger)", children: mensajeError(error2) }) : null,
+    casos.length === 0 && !error2 ? jsx11("div", { className: S.card, children: "No hay casos todav\xEDa. Siembra el caso demo (despido injustificado, art. 161/168 CT) o crea uno con la pregunta jur\xEDdica del caso." }) : null,
+    casoSel ? jsx11(NifBoard, { caso: casoSel, onCambio: cargar }) : null
   ] });
+}
+function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
+  const [prefs, setPrefs] = useState11(null);
+  const [estado, setEstado] = useState11(null);
+  const [guardadoMsg, setGuardadoMsg] = useState11("");
+  useEffect11(() => {
+    rest("/preferencias").then(setPrefs).catch(() => {
+    });
+    rest("/estado").then(setEstado).catch(() => {
+    });
+  }, []);
+  const actualizarPref = useCallback10((parche) => {
+    setPrefs((prev) => {
+      const nuevo = { ...prev || {}, ...parche };
+      rest("/preferencias", { method: "POST", body: nuevo }).then(() => {
+        setGuardadoMsg("Preferencias guardadas");
+        setTimeout(() => setGuardadoMsg(""), 2e3);
+      }).catch(() => {
+      });
+      return nuevo;
+    });
+  }, []);
+  const p2 = prefs || {};
+  return jsxs11("div", {
+    className: "grid grid-cols-1 lg:grid-cols-2 gap-4",
+    children: [
+      // Columna 1: Personalización del plugin y diagnóstico para terceros
+      jsxs11("div", { className: "flex flex-col gap-3", children: [
+        jsxs11("div", { className: S.card, children: [
+          jsxs11("div", { className: "flex items-center justify-between", children: [
+            jsx11("div", { className: S.cardTitle, children: "Personalizaci\xF3n de Experiencia (Estudio Dik\xE9)" }),
+            guardadoMsg ? jsx11("span", { className: S.chip + " " + S.chipOk, children: guardadoMsg }) : null
+          ] }),
+          jsx11("div", { className: S.sub, children: "Ajusta la apariencia de la hoja del Case Writer, la estrategia de privacidad inicial y los paneles visibles." }),
+          jsxs11("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs", children: [
+            jsxs11("label", { className: "flex flex-col gap-1", children: [
+              jsx11("span", { className: S.sub, children: "Tema del papel" }),
+              jsx11("select", {
+                className: S.input,
+                value: p2.tema_papel || "clasico",
+                onChange: (e3) => actualizarPref({ tema_papel: e3.target.value }),
+                children: [
+                  jsx11("option", { key: "clasico", value: "clasico", children: "Papel cl\xE1sico (blanco sobre gris)" }),
+                  jsx11("option", { key: "sepia", value: "sepia", children: "Sepia lectura c\xE1lida" }),
+                  jsx11("option", { key: "nocturno", value: "nocturno", children: "Tinta oscura (modo noche)" })
+                ]
+              })
+            ] }),
+            jsxs11("label", { className: "flex flex-col gap-1", children: [
+              jsx11("span", { className: S.sub, children: "Formato de hoja" }),
+              jsx11("select", {
+                className: S.input,
+                value: p2.ancho_hoja || "a4",
+                onChange: (e3) => actualizarPref({ ancho_hoja: e3.target.value }),
+                children: [
+                  jsx11("option", { key: "a4", value: "a4", children: "A4 Est\xE1ndar (210 mm)" }),
+                  jsx11("option", { key: "carta", value: "carta", children: "Carta Judicial (216 mm)" }),
+                  jsx11("option", { key: "ancho", value: "ancho", children: "Ancho completo fluido" })
+                ]
+              })
+            ] }),
+            jsxs11("label", { className: "flex flex-col gap-1", children: [
+              jsx11("span", { className: S.sub, children: "Estrategia de seudonimizaci\xF3n por defecto" }),
+              jsx11("select", {
+                className: S.input,
+                value: p2.estrategia_privacidad || "media",
+                onChange: (e3) => actualizarPref({ estrategia_privacidad: e3.target.value }),
+                children: [
+                  jsx11("option", { key: "ligera", value: "ligera", children: "Ligera (solo cr\xEDticos: RUT, correo, fono)" }),
+                  jsx11("option", { key: "media", value: "media", children: "Media (cr\xEDticos + altos)" }),
+                  jsx11("option", { key: "estricta", value: "estricta", children: "Estricta (+ medios y nombres)" })
+                ]
+              })
+            ] }),
+            jsxs11("label", { className: "flex flex-col gap-1", children: [
+              jsx11("span", { className: S.sub, children: "Contexto de LexO Escribe Claro" }),
+              jsx11("select", {
+                className: S.input,
+                value: p2.contexto_estilo || "escrito",
+                onChange: (e3) => actualizarPref({ contexto_estilo: e3.target.value }),
+                children: [
+                  jsx11("option", { key: "escrito", value: "escrito", children: "Escrito judicial (m\xE1x. 30 pal/oraci\xF3n)" }),
+                  jsx11("option", { key: "demanda", value: "demanda", children: "Demanda (m\xE1x. 25 pal/oraci\xF3n)" }),
+                  jsx11("option", { key: "sentencia", value: "sentencia", children: "Sentencia (m\xE1x. 20 pal/oraci\xF3n)" }),
+                  jsx11("option", { key: "general", value: "general", children: "General (m\xE1x. 25 pal/oraci\xF3n)" })
+                ]
+              })
+            ] })
+          ] }),
+          jsxs11("div", { className: "flex flex-wrap gap-4 pt-1 text-xs", children: [
+            jsxs11("label", { className: "flex items-center gap-1.5", children: [
+              jsx11("input", {
+                type: "checkbox",
+                checked: p2.mostrar_pizarra !== false,
+                onChange: (e3) => actualizarPref({ mostrar_pizarra: e3.target.checked })
+              }),
+              "Mostrar Pizarra Estrat\xE9gica al abrir el Case Writer"
+            ] }),
+            jsxs11("label", { className: "flex items-center gap-1.5", children: [
+              jsx11("input", {
+                type: "checkbox",
+                checked: p2.mostrar_chat !== false,
+                onChange: (e3) => actualizarPref({ mostrar_chat: e3.target.checked })
+              }),
+              "Anclar Chat Hermes a la derecha"
+            ] })
+          ] })
+        ] }),
+        // Diagnóstico de instalación para usuarios terceros
+        jsxs11("div", { className: S.card, children: [
+          jsx11("div", { className: S.cardTitle, children: "Estado del Entorno para Terceros" }),
+          estado ? jsxs11("div", { className: "flex flex-col gap-1.5 text-xs", children: [
+            jsx11("div", { children: `Versi\xF3n del plugin: v${estado.version || "0.9.0"} \xB7 Pack sellado: ${estado.pack_hash}` }),
+            jsx11("div", { children: `Cobertura instalada: ${estado.leyes} leyes chilenas \xB7 ${estado.articulos} art\xEDculos` }),
+            jsx11("div", { children: `Perfil configurado para el chat (perfil_chat): ${estado.perfil_chat || "(usa el perfil activo de Hermes)"}` }),
+            jsx11("div", { className: S.sub, children: "Para fijar un perfil dedicado de abogado: hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>" })
+          ] }) : jsx11("div", { className: S.sub, children: "Consultando estado\u2026" })
+        ] })
+      ] }),
+      // Columna 2: Paquete para crear grafos / ordenamientos (dike-perfil-ordenamiento-v1)
+      jsxs11("div", { className: S.card, children: [
+        jsx11("div", { className: S.cardTitle, children: "Constructor de Grafos y Ordenamientos Jur\xEDdicos" }),
+        jsx11(PanelHerramientasGrafos, {
+          onLlevarCitaAlEscrito: onLlevarAlEscrito,
+          onAbrirGrafo3D: onAbrirGrafo
+        })
+      ] })
+    ]
+  });
 }
 var plugin_src_default = {
   id: ID,
@@ -109055,51 +112250,65 @@ var plugin_src_default = {
     setRest(ctx.rest);
     setStorage(ctx.storage || null);
     function DikePage() {
-      const [pestana, setPestana] = useState7("escritor");
+      const [pestana, setPestana] = useState11("escritor");
       const pestanas = [
-        ["escritor", "Case Writer"],
-        ["grafo", "Grafo"],
-        ["nif", "NIF"]
+        ["escritor", "Escritos (Case Writer)"],
+        ["grafo", "Grafo 3D"],
+        ["nif", "Tablero NIF"],
+        ["personalizacion", "Ordenamientos y Ajustes"]
       ];
       const onAbrirGrafo = (foco2) => {
-        if (pedirFoco(foco2)) setPestana("grafo");
+        if (foco2) {
+          if (pedirFoco(foco2)) setPestana("grafo");
+        } else {
+          setPestana("grafo");
+        }
       };
-      return jsxs7("div", { className: S.page, children: [
-        jsxs7("div", { children: [
-          jsx7("div", { className: S.title, children: "Dik\xE9" }),
-          jsx7("div", { className: S.sub, children: "Verificaci\xF3n local de citas, mapa del corpus y tablero NIF. No es consejo legal." })
-        ] }),
-        jsxs7("div", { className: S.card, children: [
-          jsx7("div", { className: S.cardTitle, children: "Corpus" }),
-          jsx7(Estado, {})
-        ] }),
-        jsxs7("div", {
-          className: S.tabs,
-          children: pestanas.map(([id, label2]) => jsx7("button", {
-            key: id,
-            type: "button",
-            className: S.tab + " " + (pestana === id ? S.tabOn : S.tabOff),
-            onClick: () => setPestana(id),
-            children: label2
-          }))
-        }),
-        pestana === "escritor" ? jsx7(SeccionEscritor, { onAbrirGrafo }) : null,
-        pestana === "grafo" ? jsx7(SeccionGrafo, {
-          // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
-          // y cambia de pestaña; el escritor la inserta y la verifica.
-          onLlevarAlEscrito: (r2) => {
-            if (encolarCita(r2)) setPestana("escritor");
-          }
-        }) : null,
-        pestana === "nif" ? jsx7(SeccionNifPanel, {}) : null
-      ] });
+      const onLlevarAlEscrito = (r2) => {
+        if (encolarCita(r2)) setPestana("escritor");
+      };
+      return jsxs11("div", {
+        className: "flex h-full flex-col gap-2 overflow-y-auto p-2 text-sm text-(--ui-text-primary)",
+        children: [
+          // Barra superior compacta estilo Estudio Diké (imagen 2)
+          jsxs11("div", {
+            className: "flex flex-wrap items-center justify-between gap-3 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) px-3 py-1.5 shrink-0",
+            children: [
+              jsxs11("div", { className: "flex items-center gap-3", children: [
+                jsxs11("div", { className: "flex items-baseline gap-2", children: [
+                  jsx11("span", { className: "text-base font-bold tracking-tight", children: "Dik\xE9" }),
+                  jsx11("span", { className: S.sub + " hidden md:inline", children: "Estudio jur\xEDdico local \xB7 No es consejo legal" })
+                ] }),
+                jsxs11("div", {
+                  className: "flex items-center gap-1",
+                  children: pestanas.map(([id, label2]) => jsx11("button", {
+                    key: id,
+                    type: "button",
+                    className: "rounded px-2.5 py-1 text-xs transition-colors cursor-pointer " + (pestana === id ? "bg-(--ui-accent) text-(--ui-bg-primary) font-semibold" : "text-(--ui-text-secondary) hover:bg-(--ui-bg-tertiary) hover:text-(--ui-text-primary)"),
+                    onClick: () => setPestana(id),
+                    children: label2
+                  }))
+                })
+              ] }),
+              jsx11(Estado, {})
+            ]
+          }),
+          pestana === "escritor" ? jsx11(SeccionEscritor, { onAbrirGrafo }) : null,
+          pestana === "grafo" ? jsx11(SeccionGrafo, { onLlevarAlEscrito }) : null,
+          pestana === "nif" ? jsx11(SeccionNifPanel, {}) : null,
+          pestana === "personalizacion" ? jsx11(SeccionPersonalizacionTerceros, {
+            onAbrirGrafo,
+            onLlevarAlEscrito
+          }) : null
+        ]
+      });
     }
     ctx.registerMany([
       {
         id: "page",
         area: ROUTES_AREA,
         data: { path: "/dike" },
-        render: () => jsx7(DikePage, {})
+        render: () => jsx11(DikePage, {})
       },
       {
         id: "nav",

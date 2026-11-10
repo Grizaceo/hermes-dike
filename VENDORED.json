@@ -252,6 +252,30 @@
           ]
         }
       ]
+    },
+    "escritor/escribe_claro.py": {
+      "descripcion": "Analizador determinista de estilo, claridad y estructura argumentativa (LexO Escribe Claro / ScribeClaro).",
+      "fuentes": [
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/LexO-ClearWriter",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "licencia": "MIT",
+          "archivos_origen": [
+            "src/clearwriter/core/analyzer.py",
+            "src/clearwriter/core/config.py",
+            "src/clearwriter/metrics/archaisms.py",
+            "src/clearwriter/metrics/environmental_terms.py",
+            "src/clearwriter/metrics/nominalizations.py",
+            "src/clearwriter/metrics/passive_voice.py",
+            "src/clearwriter/metrics/judicial_alignment.py",
+            "src/clearwriter/metrics/argument_extractor.py"
+          ],
+          "nota": "Portado a biblioteca estándar de Python (sin spaCy ni servidor externo). Conserva los catálogos de nominalizaciones, arcaísmos judiciales y ambientales, pesos por contexto y extracción de estructura argumentativa Hecho→Norma→Prueba→Conclusión.",
+          "archivos_destino": [
+            "escritor/escribe_claro.py"
+          ]
+        }
+      ]
     }
   }
 }

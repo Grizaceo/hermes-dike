@@ -14,6 +14,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
 import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
+import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
 import { SeccionGrafo } from './grafo3d.js'
 import { encolarCita, pedirFoco } from './puente.js'
 
@@ -337,6 +338,145 @@ function SeccionNifPanel() {
 }
 
 // ---------------------------------------------------------------------------
+// Sección de Personalización y Ordenamientos para terceros
+// ---------------------------------------------------------------------------
+
+function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
+  const [prefs, setPrefs] = useState(null)
+  const [estado, setEstado] = useState(null)
+  const [guardadoMsg, setGuardadoMsg] = useState('')
+
+  useEffect(() => {
+    rest('/preferencias').then(setPrefs).catch(() => {})
+    rest('/estado').then(setEstado).catch(() => {})
+  }, [])
+
+  const actualizarPref = useCallback((parche) => {
+    setPrefs((prev) => {
+      const nuevo = { ...(prev || {}), ...parche }
+      rest('/preferencias', { method: 'POST', body: nuevo })
+        .then(() => {
+          setGuardadoMsg('Preferencias guardadas')
+          setTimeout(() => setGuardadoMsg(''), 2000)
+        })
+        .catch(() => {})
+      return nuevo
+    })
+  }, [])
+
+  const p = prefs || {}
+
+  return jsxs('div', {
+    className: 'grid grid-cols-1 lg:grid-cols-2 gap-4',
+    children: [
+      // Columna 1: Personalización del plugin y diagnóstico para terceros
+      jsxs('div', { className: 'flex flex-col gap-3', children: [
+        jsxs('div', { className: S.card, children: [
+          jsxs('div', { className: 'flex items-center justify-between', children: [
+            jsx('div', { className: S.cardTitle, children: 'Personalización de Experiencia (Estudio Diké)' }),
+            guardadoMsg ? jsx('span', { className: S.chip + ' ' + S.chipOk, children: guardadoMsg }) : null,
+          ] }),
+          jsx('div', { className: S.sub, children:
+            'Ajusta la apariencia de la hoja del Case Writer, la estrategia de privacidad inicial y los paneles visibles.' }),
+          jsxs('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs', children: [
+            jsxs('label', { className: 'flex flex-col gap-1', children: [
+              jsx('span', { className: S.sub, children: 'Tema del papel' }),
+              jsx('select', {
+                className: S.input,
+                value: p.tema_papel || 'clasico',
+                onChange: (e) => actualizarPref({ tema_papel: e.target.value }),
+                children: [
+                  jsx('option', { key: 'clasico', value: 'clasico', children: 'Papel clásico (blanco sobre gris)' }),
+                  jsx('option', { key: 'sepia', value: 'sepia', children: 'Sepia lectura cálida' }),
+                  jsx('option', { key: 'nocturno', value: 'nocturno', children: 'Tinta oscura (modo noche)' }),
+                ],
+              }),
+            ] }),
+            jsxs('label', { className: 'flex flex-col gap-1', children: [
+              jsx('span', { className: S.sub, children: 'Formato de hoja' }),
+              jsx('select', {
+                className: S.input,
+                value: p.ancho_hoja || 'a4',
+                onChange: (e) => actualizarPref({ ancho_hoja: e.target.value }),
+                children: [
+                  jsx('option', { key: 'a4', value: 'a4', children: 'A4 Estándar (210 mm)' }),
+                  jsx('option', { key: 'carta', value: 'carta', children: 'Carta Judicial (216 mm)' }),
+                  jsx('option', { key: 'ancho', value: 'ancho', children: 'Ancho completo fluido' }),
+                ],
+              }),
+            ] }),
+            jsxs('label', { className: 'flex flex-col gap-1', children: [
+              jsx('span', { className: S.sub, children: 'Estrategia de seudonimización por defecto' }),
+              jsx('select', {
+                className: S.input,
+                value: p.estrategia_privacidad || 'media',
+                onChange: (e) => actualizarPref({ estrategia_privacidad: e.target.value }),
+                children: [
+                  jsx('option', { key: 'ligera', value: 'ligera', children: 'Ligera (solo críticos: RUT, correo, fono)' }),
+                  jsx('option', { key: 'media', value: 'media', children: 'Media (críticos + altos)' }),
+                  jsx('option', { key: 'estricta', value: 'estricta', children: 'Estricta (+ medios y nombres)' }),
+                ],
+              }),
+            ] }),
+            jsxs('label', { className: 'flex flex-col gap-1', children: [
+              jsx('span', { className: S.sub, children: 'Contexto de LexO Escribe Claro' }),
+              jsx('select', {
+                className: S.input,
+                value: p.contexto_estilo || 'escrito',
+                onChange: (e) => actualizarPref({ contexto_estilo: e.target.value }),
+                children: [
+                  jsx('option', { key: 'escrito', value: 'escrito', children: 'Escrito judicial (máx. 30 pal/oración)' }),
+                  jsx('option', { key: 'demanda', value: 'demanda', children: 'Demanda (máx. 25 pal/oración)' }),
+                  jsx('option', { key: 'sentencia', value: 'sentencia', children: 'Sentencia (máx. 20 pal/oración)' }),
+                  jsx('option', { key: 'general', value: 'general', children: 'General (máx. 25 pal/oración)' }),
+                ],
+              }),
+            ] }),
+          ] }),
+          jsxs('div', { className: 'flex flex-wrap gap-4 pt-1 text-xs', children: [
+            jsxs('label', { className: 'flex items-center gap-1.5', children: [
+              jsx('input', {
+                type: 'checkbox',
+                checked: p.mostrar_pizarra !== false,
+                onChange: (e) => actualizarPref({ mostrar_pizarra: e.target.checked }),
+              }),
+              'Mostrar Pizarra Estratégica al abrir el Case Writer',
+            ] }),
+            jsxs('label', { className: 'flex items-center gap-1.5', children: [
+              jsx('input', {
+                type: 'checkbox',
+                checked: p.mostrar_chat !== false,
+                onChange: (e) => actualizarPref({ mostrar_chat: e.target.checked }),
+              }),
+              'Anclar Chat Hermes a la derecha',
+            ] }),
+          ] }),
+        ] }),
+
+        // Diagnóstico de instalación para usuarios terceros
+        jsxs('div', { className: S.card, children: [
+          jsx('div', { className: S.cardTitle, children: 'Estado del Entorno para Terceros' }),
+          estado ? jsxs('div', { className: 'flex flex-col gap-1.5 text-xs', children: [
+            jsx('div', { children: `Versión del plugin: v${estado.version || '0.9.0'} · Pack sellado: ${estado.pack_hash}` }),
+            jsx('div', { children: `Cobertura instalada: ${estado.leyes} leyes chilenas · ${estado.articulos} artículos` }),
+            jsx('div', { children: `Perfil configurado para el chat (perfil_chat): ${estado.perfil_chat || '(usa el perfil activo de Hermes)'}` }),
+            jsx('div', { className: S.sub, children:
+              'Para fijar un perfil dedicado de abogado: hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>' }),
+          ] }) : jsx('div', { className: S.sub, children: 'Consultando estado…' }),
+        ] }),
+      ] }),
+
+      // Columna 2: Paquete para crear grafos / ordenamientos (dike-perfil-ordenamiento-v1)
+      jsxs('div', { className: S.card, children: [
+        jsx('div', { className: S.cardTitle, children: 'Constructor de Grafos y Ordenamientos Jurídicos' }),
+        jsx(PanelHerramientasGrafos, {
+          onLlevarCitaAlEscrito: onLlevarAlEscrito,
+          onAbrirGrafo3D: onAbrirGrafo,
+        }),
+      ] }),
+    ],
+  })
+}
 
 export default {
   id: ID,
@@ -350,43 +490,61 @@ export default {
     function DikePage() {
       const [pestana, setPestana] = useState('escritor')
       const pestanas = [
-        ['escritor', 'Case Writer'],
-        ['grafo', 'Grafo'],
-        ['nif', 'NIF'],
+        ['escritor', 'Escritos (Case Writer)'],
+        ['grafo', 'Grafo 3D'],
+        ['nif', 'Tablero NIF'],
+        ['personalizacion', 'Ordenamientos y Ajustes'],
       ]
       // «Abrir en el grafo» desde una nota del chat o una cita verificada:
       // deja el foco en memoria y cambia a la pestaña Grafo.
       const onAbrirGrafo = (foco) => {
-        if (pedirFoco(foco)) setPestana('grafo')
+        if (foco) {
+          if (pedirFoco(foco)) setPestana('grafo')
+        } else {
+          setPestana('grafo')
+        }
       }
-      return jsxs('div', { className: S.page, children: [
-        jsxs('div', { children: [
-          jsx('div', { className: S.title, children: 'Diké' }),
-          jsx('div', { className: S.sub, children:
-            'Verificación local de citas, mapa del corpus y tablero NIF. No es consejo legal.' }),
-        ] }),
-        jsxs('div', { className: S.card, children: [
-          jsx('div', { className: S.cardTitle, children: 'Corpus' }),
-          jsx(Estado, {}),
-        ] }),
-        jsxs('div', { className: S.tabs, children:
-          pestanas.map(([id, label]) => jsx('button', {
-            key: id, type: 'button',
-            className: S.tab + ' ' + (pestana === id ? S.tabOn : S.tabOff),
-            onClick: () => setPestana(id),
-            children: label,
-          })),
-        }),
-        pestana === 'escritor' ? jsx(SeccionEscritor, { onAbrirGrafo }) : null,
-        pestana === 'grafo' ? jsx(SeccionGrafo, {
-          // «Llevar al escrito»: encola la cita canónica (nunca la consulta)
-          // y cambia de pestaña; el escritor la inserta y la verifica.
-          onLlevarAlEscrito: (r) => {
-            if (encolarCita(r)) setPestana('escritor')
-          },
-        }) : null,
-        pestana === 'nif' ? jsx(SeccionNifPanel, {}) : null,
-      ] })
+      const onLlevarAlEscrito = (r) => {
+        if (encolarCita(r)) setPestana('escritor')
+      }
+      return jsxs('div', {
+        className: 'flex h-full flex-col gap-2 overflow-y-auto p-2 text-sm text-(--ui-text-primary)',
+        children: [
+          // Barra superior compacta estilo Estudio Diké (imagen 2)
+          jsxs('div', {
+            className: 'flex flex-wrap items-center justify-between gap-3 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) px-3 py-1.5 shrink-0',
+            children: [
+              jsxs('div', { className: 'flex items-center gap-3', children: [
+                jsxs('div', { className: 'flex items-baseline gap-2', children: [
+                  jsx('span', { className: 'text-base font-bold tracking-tight', children: 'Diké' }),
+                  jsx('span', { className: S.sub + ' hidden md:inline', children: 'Estudio jurídico local · No es consejo legal' }),
+                ] }),
+                jsxs('div', { className: 'flex items-center gap-1', children:
+                  pestanas.map(([id, label]) => jsx('button', {
+                    key: id,
+                    type: 'button',
+                    className: 'rounded px-2.5 py-1 text-xs transition-colors cursor-pointer ' +
+                      (pestana === id
+                        ? 'bg-(--ui-accent) text-(--ui-bg-primary) font-semibold'
+                        : 'text-(--ui-text-secondary) hover:bg-(--ui-bg-tertiary) hover:text-(--ui-text-primary)'),
+                    onClick: () => setPestana(id),
+                    children: label,
+                  })),
+                }),
+              ] }),
+              jsx(Estado, {}),
+            ],
+          }),
+
+          pestana === 'escritor' ? jsx(SeccionEscritor, { onAbrirGrafo }) : null,
+          pestana === 'grafo' ? jsx(SeccionGrafo, { onLlevarAlEscrito }) : null,
+          pestana === 'nif' ? jsx(SeccionNifPanel, {}) : null,
+          pestana === 'personalizacion' ? jsx(SeccionPersonalizacionTerceros, {
+            onAbrirGrafo,
+            onLlevarAlEscrito,
+          }) : null,
+        ],
+      })
     }
 
     ctx.registerMany([

@@ -918,3 +918,367 @@ def prediccion_evento(body: dict):
         f.write(json.dumps(evento, ensure_ascii=False) + "\n")
     os.chmod(ruta, 0o600)
     return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Escrito demo, Revisión de estilo (LexO Escribe Claro), Constructor de
+# Ordenamientos y Preferencias de usuario (personalización para terceros)
+# ---------------------------------------------------------------------------
+
+_DEMO_FALLBACK = (
+    "EN LO PRINCIPAL: demanda por despido improcedente. "
+    "(Escrito SINTÉTICO de demostración; partes ficticias.)\n\n"
+    "S. J. L. DEL TRABAJO DE SANTIAGO\n\n"
+    "A. B. C., trabajadora, a US. respetuosamente digo:\n\n"
+    "PRIMERO.- La demandada puso término a mi contrato invocando la causal "
+    "de necesidades de la empresa del artículo 161 del Código del Trabajo.\n\n"
+    "SEGUNDO.- El artículo 162 del Código del Trabajo dispone que, cuando el "
+    "empleador invoque esa causal, el aviso deberá darse al trabajador, con "
+    "copia a la Inspección del Trabajo respectiva, a lo menos con treinta "
+    "días de anticipación.\n\n"
+    "TERCERO.- Conforme al artículo 163 del Código del Trabajo, si el "
+    "contrato hubiere estado vigente un año o más y el empleador le pusiere "
+    "término por necesidades de la empresa, deberá pagar la indemnización "
+    "por años de servicio.\n\n"
+    "CUARTO.- El artículo 168 del Código del Trabajo permite al trabajador "
+    "que considere improcedente la aplicación de la causal recurrir al "
+    "juzgado competente, dentro del plazo de sesenta días hábiles contado "
+    "desde la separación.\n\n"
+    "QUINTO.- A mayor abundamiento, el artículo 60 obliga al empleador a lo "
+    "solicitado.\n\n"
+    "SEXTO.- Lo anterior se refuerza con el artículo 9999 del Código del "
+    "Trabajo."
+)
+
+
+@router.get("/escrito/demo")
+def escrito_demo():
+    """Devuelve el escrito sintético de demostración en texto y HTML."""
+    ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo.md"
+    try:
+        texto = ruta.read_text(encoding="utf-8").strip() if ruta.is_file() else _DEMO_FALLBACK
+    except OSError:
+        texto = _DEMO_FALLBACK
+    parrafos = [p.strip() for p in re.split(r"\n\s*\n", texto) if p.strip()]
+    html = "".join(
+        "<p>" + (p.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")) + "</p>"
+        for p in parrafos
+    )
+    return {"texto": texto, "html": html}
+
+
+def _escribe_claro():
+    """Carga ``escritor/escribe_claro.py`` por ruta como ``dike_escribe_claro``."""
+    if "dike_escribe_claro" in sys.modules:
+        return sys.modules["dike_escribe_claro"]
+    spec = importlib.util.spec_from_file_location(
+        "dike_escribe_claro", _RAIZ / "escritor" / "escribe_claro.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    try:
+        spec.loader.exec_module(mod)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
+    return mod
+
+
+@router.post("/estilo/analizar")
+def estilo_analizar(body: dict):
+    """Analiza claridad, voz pasiva, nominalizaciones, arcaísmos y alineación judicial."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    texto = _texto_privacidad(body)
+    if not texto.strip():
+        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+    contexto = body.get("contexto") or "escrito"
+    if not isinstance(contexto, str):
+        raise HTTPException(status_code=400, detail="contexto debe ser string.")
+    detallado = body.get("detallado", True)
+    if not isinstance(detallado, bool):
+        raise HTTPException(status_code=400, detail="detallado debe ser booleano.")
+    ec = _escribe_claro()
+    return ec.analizar_estilo(texto, contexto=contexto, detallado=detallado)
+
+
+@router.post("/estilo/grafo")
+def estilo_grafo(body: dict):
+    """Extrae el grafo de estructura argumentativa (Hecho → Norma → Prueba → Conclusión)."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    texto = _texto_privacidad(body)
+    if not texto.strip():
+        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+    ec = _escribe_claro()
+    return ec.extraer_grafo_argumentos(texto)
+
+
+def _ordenamiento():
+    """Carga ``ordenamiento/`` por ruta como ``dike_ordenamiento``."""
+    if "dike_ordenamiento" in sys.modules:
+        return sys.modules["dike_ordenamiento"]
+    spec = importlib.util.spec_from_file_location(
+        "dike_ordenamiento",
+        _RAIZ / "ordenamiento" / "__init__.py",
+        submodule_search_locations=[str(_RAIZ / "ordenamiento")])
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    try:
+        spec.loader.exec_module(mod)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
+    return mod
+
+
+_JUR_ID = re.compile(r"^[a-z]{2,8}$")
+_NOMBRE_TXT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}\.txt$")
+
+
+@router.get("/ordenamiento/perfiles")
+def ordenamiento_perfiles():
+    """Lista los perfiles de ordenamiento disponibles (referencia Chile y ejemplo xx)."""
+    ord_mod = _ordenamiento()
+    candidatos = [
+        ("cl", _RAIZ / "ordenamiento" / "perfiles" / "cl.json", "referencia"),
+        ("xx", _RAIZ / "ordenamiento" / "ejemplos" / "pais-ficticio" / "perfil-xx.json", "ejemplo"),
+    ]
+    perfiles = []
+    for codigo, ruta, origen in candidatos:
+        if not ruta.is_file():
+            continue
+        try:
+            perfil = ord_mod.cargar_perfil(ruta)
+            errores = ord_mod.validar_perfil(perfil)
+            tipos = [
+                {"id": t.get("id"), "etiqueta": t.get("etiqueta"), "nivel": t.get("nivel")}
+                for t in ((perfil.get("normas") or {}).get("tipos") or [])
+                if isinstance(t, dict)
+            ]
+            perfiles.append({
+                "id": perfil.get("id") or codigo,
+                "jurisdiccion": perfil.get("jurisdiccion") or codigo,
+                "nombre": perfil.get("nombre") or codigo.upper(),
+                "idioma": perfil.get("idioma") or "es",
+                "version": perfil.get("version") or "1.0.0",
+                "origen": origen,
+                "valido": len(errores) == 0,
+                "errores": errores,
+                "tipos_norma": tipos,
+                "perfil": perfil,
+            })
+        except Exception:
+            continue
+    # Incluir ejemplo de paquete y textos de muestra para pruebas rápidas
+    ej_dir = _RAIZ / "ordenamiento" / "ejemplos" / "pais-ficticio"
+    ejemplo = None
+    try:
+        paq_path = ej_dir / "paquete.json"
+        if paq_path.is_file():
+            paq = json.loads(paq_path.read_text(encoding="utf-8"))
+            textos = {}
+            for tp in sorted((ej_dir / "textos").glob("*.txt")):
+                textos[f"textos/{tp.name}"] = tp.read_text(encoding="utf-8")
+            ejemplo = {"paquete": paq, "textos": textos}
+    except Exception:
+        ejemplo = None
+    return {"perfiles": perfiles, "ejemplo_xx": ejemplo}
+
+
+@router.post("/ordenamiento/plantilla")
+def ordenamiento_plantilla(body: dict):
+    """Genera una plantilla de perfil y paquete para un código de jurisdicción."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    jur = str(body.get("jur") or "").strip().lower()
+    if not _JUR_ID.match(jur):
+        raise HTTPException(
+            status_code=400,
+            detail="jur debe tener entre 2 y 8 letras minúsculas (ej. ar, pe, es, mx, xx).",
+        )
+    ord_mod = _ordenamiento()
+    return {
+        "ok": True,
+        "jur": jur,
+        "perfil": ord_mod.plantilla_perfil(jur),
+        "paquete": ord_mod.plantilla_paquete(),
+    }
+
+
+@router.post("/ordenamiento/validar-perfil")
+def ordenamiento_validar_perfil(body: dict):
+    """Valida un objeto JSON de perfil de ordenamiento contra dike-perfil-ordenamiento-v1."""
+    if not isinstance(body, dict) or not isinstance(body.get("perfil"), dict):
+        raise HTTPException(status_code=400, detail="Falta el objeto perfil.")
+    ord_mod = _ordenamiento()
+    errores = ord_mod.validar_perfil(body["perfil"])
+    return {"ok": len(errores) == 0, "errores": errores}
+
+
+@router.post("/ordenamiento/construir")
+def ordenamiento_construir(body: dict):
+    """Construye y valida (C0–C3) un pack de normas en un directorio aislado."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    perfil = body.get("perfil")
+    paquete = body.get("paquete")
+    textos = body.get("textos")
+    if not isinstance(perfil, dict):
+        raise HTTPException(status_code=400, detail="Falta el objeto perfil.")
+    if not isinstance(paquete, dict):
+        raise HTTPException(status_code=400, detail="Falta el objeto paquete.")
+    if not isinstance(textos, dict) or not textos or len(textos) > 25:
+        raise HTTPException(status_code=400, detail="textos debe tener entre 1 y 25 archivos.")
+    ord_mod = _ordenamiento()
+    errores_perfil = ord_mod.validar_perfil(perfil)
+    if errores_perfil:
+        return {"ok": False, "etapa": "perfil", "errores": errores_perfil}
+
+    mod = _adaptador()
+    base_tmp = mod._carpeta_de_datos() / "tmp-ordenamiento"
+    base_tmp.mkdir(parents=True, exist_ok=True)
+    os.chmod(base_tmp, 0o700)
+    with tempfile.TemporaryDirectory(dir=base_tmp, prefix="build-") as tmp_str:
+        tmp = Path(tmp_str)
+        dir_in = tmp / "entrada"
+        dir_in.mkdir()
+        (dir_in / "textos").mkdir()
+        for rel_name, contenido in textos.items():
+            if not isinstance(rel_name, str) or not isinstance(contenido, str):
+                raise HTTPException(status_code=400, detail="textos inválidos.")
+            if len(contenido.encode("utf-8")) > 200_000:
+                raise HTTPException(status_code=400, detail="Texto de norma demasiado grande.")
+            limpio = rel_name.removeprefix("textos/").strip()
+            if not _NOMBRE_TXT.match(limpio):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Nombre de archivo no permitido: {rel_name}")
+            destino_txt = (dir_in / "textos" / limpio) if rel_name.startswith("textos/") else (dir_in / limpio)
+            destino_txt.write_text(contenido, encoding="utf-8")
+
+        perfil_path = dir_in / "perfil.json"
+        config_path = dir_in / "paquete.json"
+        perfil_path.write_text(json.dumps(perfil, ensure_ascii=False), encoding="utf-8")
+        config_path.write_text(json.dumps(paquete, ensure_ascii=False), encoding="utf-8")
+        salida_dir = tmp / "pack-salida"
+        try:
+            construccion = ord_mod.construir(perfil_path, config_path, salida_dir, force=True)
+            informe = ord_mod.validar_pack(salida_dir, perfil_path)
+        except (ValueError, FileNotFoundError, KeyError) as exc:
+            return {"ok": False, "etapa": "construccion", "error": _limpio(str(exc))}
+        return {
+            "ok": informe.get("nivelAlcanzado") == "C1",
+            "construccion": {
+                "packId": construccion.get("packId"),
+                "jurisdiccion": construccion.get("jurisdiccion"),
+                "normas": construccion.get("normas"),
+                "articulos": construccion.get("articulos"),
+                "ventanasVigencia": construccion.get("ventanasVigencia"),
+                "aristas": construccion.get("aristas"),
+                "manifestCoreSha256": construccion.get("manifestCoreSha256"),
+            },
+            "compatibilidad": {
+                "nivelAlcanzado": informe.get("nivelAlcanzado"),
+                "niveles": informe.get("niveles"),
+                "gid": informe.get("gid"),
+                "advertencias": informe.get("advertencias") or [],
+            },
+        }
+
+
+_PREFS_DEFAULT = {
+    "tema_papel": "clasico",
+    "fuente": "Georgia, 'Times New Roman', serif",
+    "tamano_fuente": "12",
+    "ancho_hoja": "a4",
+    "estrategia_privacidad": "media",
+    "contexto_estilo": "escrito",
+    "mostrar_pizarra": True,
+    "mostrar_chat": True,
+    "auto_detectar_privacidad": True,
+    "auto_analizar_estilo": False,
+}
+_PREFS_TEMAS = {"clasico", "sepia", "nocturno"}
+_PREFS_ANCHOS = {"a4", "carta", "ancho"}
+_PREFS_ESTRATEGIAS = {"ligera", "media", "estricta"}
+_PREFS_CONTEXTOS = {"escrito", "demanda", "sentencia", "general"}
+_prefs_lock = threading.Lock()
+
+
+def _ruta_prefs(mod) -> Path:
+    return mod._carpeta_de_datos() / "preferencias.json"
+
+
+@router.get("/preferencias")
+def preferencias_obtener():
+    """Lee las preferencias visuales y operativas del usuario."""
+    mod = _adaptador()
+    p = _ruta_prefs(mod)
+    guardado = {}
+    if p.is_file():
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                guardado = data
+        except (OSError, json.JSONDecodeError):
+            guardado = {}
+    return {**_PREFS_DEFAULT, **guardado}
+
+
+@router.post("/preferencias")
+def preferencias_guardar(body: dict):
+    """Guarda preferencias personalizadas del usuario en plugin-data."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    actual = preferencias_obtener()
+    nuevo = dict(actual)
+    if "tema_papel" in body:
+        if body["tema_papel"] not in _PREFS_TEMAS:
+            raise HTTPException(status_code=400, detail="tema_papel inválido.")
+        nuevo["tema_papel"] = body["tema_papel"]
+    if "fuente" in body:
+        if not isinstance(body["fuente"], str) or len(body["fuente"]) > 120:
+            raise HTTPException(status_code=400, detail="fuente inválida.")
+        nuevo["fuente"] = body["fuente"]
+    if "tamano_fuente" in body:
+        t = str(body["tamano_fuente"])
+        if t not in {"10", "11", "12", "13", "14", "16", "18", "20"}:
+            raise HTTPException(status_code=400, detail="tamano_fuente inválido.")
+        nuevo["tamano_fuente"] = t
+    if "ancho_hoja" in body:
+        if body["ancho_hoja"] not in _PREFS_ANCHOS:
+            raise HTTPException(status_code=400, detail="ancho_hoja inválido.")
+        nuevo["ancho_hoja"] = body["ancho_hoja"]
+    if "estrategia_privacidad" in body:
+        if body["estrategia_privacidad"] not in _PREFS_ESTRATEGIAS:
+            raise HTTPException(status_code=400, detail="estrategia_privacidad inválida.")
+        nuevo["estrategia_privacidad"] = body["estrategia_privacidad"]
+    if "contexto_estilo" in body:
+        if body["contexto_estilo"] not in _PREFS_CONTEXTOS:
+            raise HTTPException(status_code=400, detail="contexto_estilo inválido.")
+        nuevo["contexto_estilo"] = body["contexto_estilo"]
+    for bkey in ("mostrar_pizarra", "mostrar_chat", "auto_detectar_privacidad", "auto_analizar_estilo"):
+        if bkey in body:
+            if not isinstance(body[bkey], bool):
+                raise HTTPException(status_code=400, detail=f"{bkey} debe ser booleano.")
+            nuevo[bkey] = body[bkey]
+
+    mod = _adaptador()
+    destino = _ruta_prefs(mod)
+    with _prefs_lock:
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=destino.parent, prefix=".prefs.", suffix=".tmp")
+        try:
+            os.chmod(tmp, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(json.dumps(nuevo, ensure_ascii=False, indent=2))
+            os.replace(tmp, destino)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
+        os.chmod(destino, 0o600)
+    return nuevo
+

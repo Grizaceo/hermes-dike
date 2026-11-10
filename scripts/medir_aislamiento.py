@@ -111,9 +111,15 @@ def _una_corrida(plugin_home: Path, escenario: str, modo: str,
         ' print(json.dumps({"escenario":"buscar","modo":modo,"segundos":round(elapsed,3),'
         '"rc":proc.returncode,"resultados":data.get("total"),"error":data.get("error")}));'
     )
-    proc = subprocess.run(
-        [sys.executable, '-c', codigo, escenario], env=env,
-        capture_output=True, text=True, timeout=600)
+    with tempfile.NamedTemporaryFile('w', suffix='.py', delete=False) as f:
+        f.write(codigo)
+        payload = f.name
+    try:
+        proc = subprocess.run(
+            [sys.executable, payload, escenario], env=env,
+            capture_output=True, text=True, timeout=600)
+    finally:
+        os.unlink(payload)
     if proc.returncode != 0:
         return {'error': (proc.stderr or proc.stdout).strip()[-300:]}
     return json.loads(proc.stdout.strip().splitlines()[-1])

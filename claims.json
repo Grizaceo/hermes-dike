@@ -129,7 +129,7 @@
   },
   {
    "claim": "Clean-room third-party install verified end to end on Hermes v0.23.0: the public install.sh builds a working agent, `hermes plugins install file://<clone> --ref <sha> --yes-deps` + `plugins enable dike` installs dike 0.9.0, and the registered handlers return 4/6 with bubblewrap isolation — identical inside `unshare -rn`, where bubblewrap still succeeded on this kernel (no degraded fallback was needed). Minimum bubblewrap 0.6.1.",
-   "command": "HERMES_HOME=.workshop/tmp/cleanroom/home bash install.sh --non-interactive --skip-browser --skip-computer-use && hermes plugins install file://.workshop/tmp/cleanroom/dike-clone --ref 9cfe20c6afd5843a81dc2c6c868e36888df26294 --yes-deps && hermes plugins enable dike && python dispatch.py (and under unshare -rn). bwrap --version >= 0.6.1",
+   "command": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh -o install.sh && HERMES_HOME=.workshop/tmp/cleanroom/home bash install.sh --non-interactive --skip-browser --skip-computer-use && hermes plugins install file://.workshop/tmp/cleanroom/dike-clone --ref 9cfe20c6afd5843a81dc2c6c868e36888df26294 --yes-deps && hermes plugins enable dike && python dispatch.py (and under unshare -rn). bwrap --version >= 0.6.1",
    "value": "install OK; dike 0.9.0; 4/6; modo bwrap (normal y unshare -rn)",
    "date": "2026-11-09"
   }

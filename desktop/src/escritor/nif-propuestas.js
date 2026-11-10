@@ -7,6 +7,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { host } from '@hermes/plugin-sdk'
 import { mensajeError, rest, S } from '../common.js'
+import { t } from '../i18n.js'
 import { textoDelEditor } from './editor.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import { neutralizar } from './chat-logica.js'
@@ -18,10 +19,11 @@ import PROMPT_NIF from '../../../escritor/nif_propuestas.md'
 
 const TIMEOUT_RPC = 120000
 const ETIQUETAS = {
-  'facts.known': 'Hechos acreditados', 'facts.alleged': 'Hechos alegados',
-  'facts.missing': 'Hechos por conocer', subjects: 'Sujetos', norms: 'Normas',
-  hypotheses: 'Hipótesis', gaps: 'Vacíos', principles: 'Principios',
-  conflicts: 'Conflictos',
+  'facts.known': 'nifp.etiqueta.acreditados', 'facts.alleged': 'nif.seccion.factsAlleged',
+  'facts.missing': 'nifp.etiqueta.porConocer', subjects: 'nif.seccion.subjects',
+  norms: 'nif.seccion.norms', hypotheses: 'nif.seccion.hypotheses',
+  gaps: 'nif.seccion.gaps', principles: 'nif.seccion.principles',
+  conflicts: 'nif.seccion.conflicts',
 }
 const ORDEN = [
   'facts.known', 'facts.alleged', 'facts.missing', 'subjects', 'norms',
@@ -31,7 +33,7 @@ const ORDEN = [
 
 function ChipSeccion({ fp, n }) {
   return jsxs('span', { className: S.chip + ' ' + S.chipOff, children: [
-    ETIQUETAS[fp] || fp, ' · ', n,
+    (ETIQUETAS[fp] ? t(ETIQUETAS[fp]) : fp), ' · ', n,
   ] })
 }
 
@@ -62,9 +64,9 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
   const rechazadas = (registro && registro.nif_rechazadas) || []
   const mapa = (registro && registro.chat && registro.chat.mapa) || {}
   const deshabilitado = !tieneNif
-    ? 'Elige o crea un caso con NIF.'
+    ? t('nifp.deshabilitadoCaso')
     : !sesion
-      ? 'Abre primero el chat del escrito: las propuestas usan su modelo.'
+      ? t('nifp.deshabilitadoChat')
       : null
 
   // Guardia de secuencia: un cambio de caso rápido no puede dejar el
@@ -99,13 +101,12 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       const cfgPriv = (registro && registro.privacidad) || {}
       const seudonimizar = cfgPriv.seudonimizar !== false
       if (!seudonimizar && cfgPriv.acepto_datos !== true) {
-        throw new Error('Activa la seudonimización o confirma en el módulo ' +
-          'Privacidad que aceptas enviar datos personales.')
+        throw new Error(t('nifp.errorPrivacidad'))
       }
       const envio = await prepararEnvio({
         caseId, texto: input,
-        destino: (sesion.perfil || 'perfil sin resolver') + ' · '
-          + (modeloLabel || 'modelo') + ' · NIF',
+        destino: (sesion.perfil || t('pred.perfilSinResolver')) + ' · '
+          + (modeloLabel || t('nifp.modelo')) + ' · ' + t('nifp.tablero'),
         seudonimizar, estrategia: cfgPriv.estrategia || 'media',
       })
       if (!puedeEnviar()) throw new Error('privacidad bloqueó el envío')
@@ -218,7 +219,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
         disabled: Boolean(deshabilitado) || ocupado,
         title: deshabilitado || '',
         onClick: proponer,
-        children: ocupado ? 'Pidiendo propuestas…' : 'Proponer NIF desde el escrito',
+        children: ocupado ? t('nifp.pidiendo') : t('nifp.proponer'),
       }),
     ] }),
     deshabilitado && tieneNif ? jsx('div', { className: 'text-xs',
@@ -245,7 +246,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
             children: [
               jsxs('div', { className: 'flex items-center gap-2', children: [
                 jsx('span', { className: S.chip + ' ' + S.chipOff,
-                  children: ETIQUETAS[p.field_path] || p.field_path }),
+                  children: (ETIQUETAS[p.field_path] ? t(ETIQUETAS[p.field_path]) : p.field_path) }),
                 editando === idx
                   ? jsxs('div', { className: 'flex flex-col gap-1', children: [
                       jsx('textarea', {
@@ -254,10 +255,10 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
                       jsxs('div', { className: 'flex gap-1', children: [
                         jsx('button', { type: 'button', className: S.button,
                           onClick: () => guardarEdicion(p, idx),
-                          children: 'Guardar' }),
+                          children: t('nif.guardar') }),
                         jsx('button', { type: 'button', className: S.button,
                           onClick: () => setEditando(null),
-                          children: 'Cancelar' }),
+                          children: t('nifp.cancelar') }),
                       ] }),
                     ] })
                   : jsxs('div', { className: 'flex-1', children: [
@@ -274,14 +275,14 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
               editando !== idx ? jsxs('div', { className: 'mt-1 flex gap-1',
                 children: [
                   jsx('button', { type: 'button', className: S.button,
-                    onClick: () => aceptar(p, idx), children: 'Aceptar' }),
+                    onClick: () => aceptar(p, idx), children: t('nifp.aceptar') }),
                   jsx('button', { type: 'button', className: S.button,
                     onClick: () => { setEditando(idx)
                       setTextoEdit(typeof p.value === 'string'
                         ? p.value : JSON.stringify(p.value)) },
-                    children: 'Editar' }),
+                    children: t('nifp.editar') }),
                   jsx('button', { type: 'button', className: S.button,
-                    onClick: () => rechazar(p, idx), children: 'Rechazar' }),
+                    onClick: () => rechazar(p, idx), children: t('nifp.rechazar') }),
                 ] }) : null,
               verifica[keyNorma] ? jsxs('div', { className: 'mt-1 text-xs',
                 children: [
@@ -291,7 +292,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
                     ? jsx('button', { type: 'button', className: S.button,
                         onClick: () => verificarNorma(
                           verifica[keyNorma].label, keyNorma),
-                        children: 'Verificar norma' }) : null,
+                        children: t('nifp.verificarNorma') }) : null,
                 ] }) : null,
             ] })
         }),
@@ -299,7 +300,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
 
     descartadas.length ? jsxs('details', { className: 'text-xs', children: [
       jsxs('summary', { children: [
-        descartadas.length, ' descartadas por la validación'] }),
+        t('nifp.descartadas', { n: descartadas.length })] }),
       descartadas.map((d, i) => jsxs('div', { key: i, children: [
         (d.field_path || '?') + ': ' + (d.motivo || ''),
       ] })),
@@ -314,16 +315,16 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
 // ---------------------------------------------------------------------------
 
 const SECCIONES_TABLERO_NIF = [
-  ['facts.known', 'Hechos conocidos', 'HECHO', '#bbf7d0'],
-  ['facts.alleged', 'Hechos alegados', 'HECHO', '#bfdbfe'],
-  ['facts.missing', 'Hechos faltantes', 'HECHO', '#fed7aa'],
-  ['norms', 'Normas', 'NORMA', '#e9d5ff'],
-  ['subjects', 'Sujetos', 'PARTES', '#bfdbfe'],
-  ['hypotheses', 'Hipótesis', 'CONCLUSIÓN', '#fef08a'],
-  ['gaps', 'Vacíos probatorios/normativos', 'PRUEBA', '#fecaca'],
-  ['conflicts', 'Conflictos', 'NORMA', '#fecaca'],
-  ['principles', 'Principios', 'NORMA', '#e9d5ff'],
-  ['deontic_positions', 'Posiciones deónticas', 'NORMA', '#bbf7d0'],
+  ['facts.known', 'nif.seccion.factsKnown', 'nifp.tagHecho', '#bbf7d0'],
+  ['facts.alleged', 'nif.seccion.factsAlleged', 'nifp.tagHecho', '#bfdbfe'],
+  ['facts.missing', 'nif.seccion.factsMissing', 'nifp.tagHecho', '#fed7aa'],
+  ['norms', 'nif.seccion.norms', 'piz.tagNorma', '#e9d5ff'],
+  ['subjects', 'nif.seccion.subjects', 'nifp.tagPartes', '#bfdbfe'],
+  ['hypotheses', 'nif.seccion.hypotheses', 'nifp.tagConclusion', '#fef08a'],
+  ['gaps', 'nifp.seccion.gaps', 'nifp.tagPrueba', '#fecaca'],
+  ['conflicts', 'nif.seccion.conflicts', 'piz.tagNorma', '#fecaca'],
+  ['principles', 'nif.seccion.principles', 'piz.tagNorma', '#e9d5ff'],
+  ['deontic_positions', 'nif.seccion.deonticPositions', 'piz.tagNorma', '#bbf7d0'],
 ]
 
 function formatearItemNif(v) {
@@ -422,18 +423,18 @@ export function NifInteractivoEscritor({
       !tieneNif ? jsxs('div', {
         className: S.notice + ' flex flex-col gap-2',
         children: [
-          jsx('div', { className: 'font-bold', children: 'Vincular o crear Tablero NIF' }),
-          jsx('div', { className: 'dk-meta', children: 'El documento actual está en «borrador». Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo.' }),
+          jsx('div', { className: 'font-bold', children: t('nifp.vincularTitulo') }),
+          jsx('div', { className: 'dk-meta', children: t('nifp.vincularAyuda') }),
           jsx('input', {
             value: nuevoId,
             onChange: (e) => setNuevoId(e.target.value),
-            placeholder: 'ID del caso (ej. causa-despido-1)',
+            placeholder: t('nifp.idCaso'),
             className: S.input,
           }),
           jsx('input', {
             value: nuevaPregunta,
             onChange: (e) => setNuevaPregunta(e.target.value),
-            placeholder: 'Pregunta jurídica principal…',
+            placeholder: t('nifp.pregunta'),
             className: S.input,
           }),
           jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
@@ -446,13 +447,13 @@ export function NifInteractivoEscritor({
                 setNuevaPregunta('')
               },
               className: 'dk-btn dk-btn--primario',
-              children: 'Crear caso NIF',
+              children: t('nifp.crearCaso'),
             }),
             onSembrarDemoCaso ? jsx('button', {
               type: 'button',
               onClick: onSembrarDemoCaso,
               className: 'dk-btn dk-btn--borde',
-              children: 'Cargar caso demo (CT)',
+              children: t('nifp.cargarDemo'),
             }) : null,
           ] }),
         ],
@@ -468,18 +469,18 @@ export function NifInteractivoEscritor({
             jsxs('div', { className: 'flex items-center gap-1.5', children: [
               jsx('span', {
                 className: S.chip + ' ' + (nif.validated_by_human ? S.chipOk : S.chipOff),
-                children: nif.validated_by_human ? '✓ validado por humano' : 'borrador NIF',
+                children: nif.validated_by_human ? t('nifp.validado') : t('nifp.borrador'),
               }),
               jsx('span', {
                 className: 'dk-meta',
-                children: `v${snap.version || 1} · confianza ${Math.round((nif.confidence || 0) * 100)}%`,
+                children: t('nif.versionConf', { version: snap.version || 1, pct: Math.round((nif.confidence || 0) * 100) }),
               }),
             ] }),
             jsx('button', {
               type: 'button',
               onClick: () => alternarValidacion(nif.validated_by_human),
               className: S.link,
-              children: nif.validated_by_human ? 'Retirar validación' : 'Marcar validado',
+              children: nif.validated_by_human ? t('nif.quitarValidacion') : t('nif.marcarValidado'),
             }),
           ] }),
 
@@ -489,7 +490,9 @@ export function NifInteractivoEscritor({
           }) : null,
 
           // Acordeón interactivo de secciones del NIF
-          ...SECCIONES_TABLERO_NIF.map(([campo, titulo, tagPizarra, colorPizarra]) => {
+          ...SECCIONES_TABLERO_NIF.map(([campo, claveTitulo, claveTag, colorPizarra]) => {
+            const titulo = t(claveTitulo)
+            const tagPizarra = t(claveTag)
             const lista = campo.startsWith('facts.')
               ? ((nif.facts || {})[campo.slice(6)] || [])
               : (nif[campo] || [])
@@ -512,7 +515,7 @@ export function NifInteractivoEscritor({
                 }),
                 abierta ? jsxs('div', { className: 'flex flex-col gap-1.5 p-2 bg-(--dk-elevada)', children: [
                   lista.length === 0
-                    ? jsx('div', { className: 'text-xs text-(--dk-texto-3) italic', children: 'Sin elementos registrados en esta sección.' })
+                    ? jsx('div', { className: 'text-xs text-(--dk-texto-3) italic', children: t('nifp.seccionVacia') })
                     : lista.map((item, idx) => {
                         const txt = formatearItemNif(item)
                         return jsxs('div', {
@@ -523,7 +526,7 @@ export function NifInteractivoEscritor({
                             jsxs('div', { className: 'flex items-center gap-1 shrink-0', children: [
                               onAgregarAPizarra ? jsx('button', {
                                 type: 'button',
-                                title: 'Enviar este elemento a la Pizarra Estratégica',
+                                title: t('nifp.aPizarra'),
                                 onClick: () => onAgregarAPizarra({
                                   titulo: titulo,
                                   tag: tagPizarra,
@@ -531,14 +534,14 @@ export function NifInteractivoEscritor({
                                   texto: txt,
                                 }),
                                 className: 'rounded border border-(--dk-borde) bg-(--dk-superficie) hover:bg-(--dk-sobre) px-1.5 py-0.5 text-xs text-(--dk-texto-2) cursor-pointer',
-                                children: '+ Pizarra',
+                                children: t('nifp.masPizarra'),
                               }) : null,
                               onInsertarTexto ? jsx('button', {
                                 type: 'button',
-                                title: 'Insertar en el escrito',
+                                title: t('nifp.aEscrito'),
                                 onClick: () => onInsertarTexto(txt),
                                 className: 'dk-btn dk-btn--borde dk-btn--chico',
-                                children: '+ Escrito',
+                                children: t('piz.escritoBoton'),
                               }) : null,
                             ] }),
                           ],
@@ -550,7 +553,7 @@ export function NifInteractivoEscritor({
                       value: nuevoValor,
                       onChange: (e) => setNuevoValor(e.target.value),
                       onKeyDown: (e) => { if (e.key === 'Enter') agregarItem(campo) },
-                      placeholder: 'Agregar a ' + titulo.toLowerCase() + '…',
+                      placeholder: t('nifp.agregarA', { seccion: titulo.toLowerCase() }),
                       className: 'flex-1 rounded border border-(--dk-borde) px-2 py-1 text-xs text-(--dk-texto) outline-none',
                     }),
                     jsx('button', {
@@ -558,7 +561,7 @@ export function NifInteractivoEscritor({
                       onClick: () => agregarItem(campo),
                       disabled: ocupado || !nuevoValor.trim(),
                       className: 'dk-btn dk-btn--primario dk-btn--chico',
-                      children: '+ Agregar',
+                      children: t('nifp.agregar'),
                     }),
                   ] }),
                 ] }) : null,

@@ -26734,6 +26734,14 @@ function construirNodosPlantilla(plantilla) {
 
 // src/escritor/pizarra.js
 var _vig = (v2) => (v2 && typeof v2 === "object" ? v2.estado : v2) || null;
+var zoomDeEstado = (e3) => {
+  const z3 = Number(e3 && e3.zoom);
+  return Number.isFinite(z3) && z3 >= 0.4 && z3 <= 2.5 ? z3 : 1;
+};
+var panDeEstado = (e3) => {
+  const p2 = e3 && e3.pan;
+  return p2 && Number.isFinite(p2.x) && Number.isFinite(p2.y) ? { x: Math.round(p2.x), y: Math.round(p2.y) } : { x: 0, y: 0 };
+};
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [q2, setQ] = useState5("");
   const [resultados, setResultados] = useState5([]);
@@ -26874,14 +26882,18 @@ function PizarraEstrategica({
   const [menuPlantillas, setMenuPlantillas] = useState5(false);
   const [buscadorAbierto, setBuscadorAbierto] = useState5(false);
   const [conectandoDesde, setConectandoDesde] = useState5(null);
-  const [zoom2, setZoom] = useState5(1);
-  const [pan, setPan] = useState5({ x: 0, y: 0 });
+  const [zoom2, setZoom] = useState5(() => zoomDeEstado(estado));
+  const [pan, setPan] = useState5(() => panDeEstado(estado));
   const dragRef = useRef4(null);
   const resizeBarRef = useRef4(null);
   const canvasRef = useRef4(null);
   const actualizar = useCallback5((parche) => {
     if (onChange3) onChange3({ ...estado, nodos, aristas, colapsada, altura, ...parche });
   }, [estado, nodos, aristas, colapsada, altura, onChange3]);
+  useEffect5(() => {
+    setZoom(zoomDeEstado(estado));
+    setPan(panDeEstado(estado));
+  }, [estado.zoom, estado.pan]);
   useEffect5(() => {
     const onMove = (ev) => {
       if (dragRef.current) {
@@ -26895,10 +26907,12 @@ function PizarraEstrategica({
           const nuevos = d2.nodosBase.map((n2) => n2.id === d2.id ? { ...n2, w: Math.max(160, Math.round(d2.origW + dx)), h: Math.max(95, Math.round(d2.origH + dy)) } : n2);
           actualizar({ nodos: nuevos });
         } else if (d2.modo === "pan") {
-          setPan({
+          const next = {
             x: Math.round(d2.panX + (ev.clientX - d2.startX)),
             y: Math.round(d2.panY + (ev.clientY - d2.startY))
-          });
+          };
+          d2.lastPan = next;
+          setPan(next);
         }
       }
       if (resizeBarRef.current) {
@@ -26908,8 +26922,12 @@ function PizarraEstrategica({
       }
     };
     const onUp = () => {
+      const d2 = dragRef.current;
       dragRef.current = null;
       resizeBarRef.current = null;
+      if (d2 && d2.modo === "pan" && d2.lastPan) {
+        actualizar({ pan: d2.lastPan });
+      }
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -26943,7 +26961,7 @@ function PizarraEstrategica({
     const { nodos: ns, aristas: as } = construirNodosPlantilla(pl);
     setPan({ x: 0, y: 0 });
     setZoom(1);
-    actualizar({ nodos: ns, aristas: as, colapsada: false });
+    actualizar({ nodos: ns, aristas: as, colapsada: false, zoom: 1, pan: { x: 0, y: 0 } });
     setMenuPlantillas(false);
   }, [actualizar]);
   const editarNodo = useCallback5((id, parche) => {
@@ -27306,14 +27324,22 @@ function PizarraEstrategica({
               jsx5("button", {
                 type: "button",
                 title: "Acercar",
-                onClick: () => setZoom((z3) => Math.min(1.6, +(z3 + 0.15).toFixed(2))),
+                onClick: () => {
+                  const z3 = Math.min(1.6, +(zoom2 + 0.15).toFixed(2));
+                  setZoom(z3);
+                  actualizar({ zoom: z3 });
+                },
                 className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
                 children: "+"
               }),
               jsx5("button", {
                 type: "button",
                 title: "Alejar",
-                onClick: () => setZoom((z3) => Math.max(0.55, +(z3 - 0.15).toFixed(2))),
+                onClick: () => {
+                  const z3 = Math.max(0.55, +(zoom2 - 0.15).toFixed(2));
+                  setZoom(z3);
+                  actualizar({ zoom: z3 });
+                },
                 className: "border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100",
                 children: "\u2212"
               }),
@@ -27323,6 +27349,7 @@ function PizarraEstrategica({
                 onClick: () => {
                   setZoom(1);
                   setPan({ x: 0, y: 0 });
+                  actualizar({ zoom: 1, pan: { x: 0, y: 0 } });
                 },
                 className: "px-2 py-1 text-[10px] text-slate-700 hover:bg-slate-100",
                 children: "\u26F6"
@@ -29282,10 +29309,13 @@ function SeccionEscritor({ onAbrirGrafo }) {
     return () => {
       clearTimeout(timerGuardado.current);
       clearTimeout(timerInfo.current);
+      if (estadoRef.current === "sin-guardar") {
+        guardar();
+      }
       ed.destroy();
       editorRef.current = null;
     };
-  }, [cargarEscrito, programarGuardado, programarInfoDoc]);
+  }, [cargarEscrito, guardar, programarGuardado, programarInfoDoc]);
   useEffect9(() => {
     const ed = editorRef.current;
     if (!ed) return;

@@ -476,10 +476,15 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     return () => {
       clearTimeout(timerGuardado.current)
       clearTimeout(timerInfo.current)
+      // Al desmontar (otra pestaña, Grafo 3D) el debounce pendiente se pierde:
+      // volcar los cambios de registro/documento antes de destruir el editor.
+      if (estadoRef.current === 'sin-guardar') {
+        guardar()
+      }
       ed.destroy()
       editorRef.current = null
     }
-  }, [cargarEscrito, programarGuardado, programarInfoDoc])
+  }, [cargarEscrito, guardar, programarGuardado, programarInfoDoc])
 
   // Modo Escribir vs Leer
   useEffect(() => {

@@ -16,6 +16,18 @@ export { COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla }
 // emiten como string. Normalizar al estado legible antes de pintar.
 const _vig = (v) => (v && typeof v === 'object' ? v.estado : v) || null
 
+// La vista de la pizarra (zoom/pan) se persiste dentro de registro.pizarra.
+const zoomDeEstado = (e) => {
+  const z = Number(e && e.zoom)
+  return Number.isFinite(z) && z >= 0.4 && z <= 2.5 ? z : 1
+}
+const panDeEstado = (e) => {
+  const p = e && e.pan
+  return p && Number.isFinite(p.x) && Number.isFinite(p.y)
+    ? { x: Math.round(p.x), y: Math.round(p.y) }
+    : { x: 0, y: 0 }
+}
+
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const [q, setQ] = useState('')
   const [resultados, setResultados] = useState([])
@@ -169,8 +181,8 @@ export function PizarraEstrategica({
   const [menuPlantillas, setMenuPlantillas] = useState(false)
   const [buscadorAbierto, setBuscadorAbierto] = useState(false)
   const [conectandoDesde, setConectandoDesde] = useState(null)
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(() => zoomDeEstado(estado))
+  const [pan, setPan] = useState(() => panDeEstado(estado))
   const dragRef = useRef(null)
   const resizeBarRef = useRef(null)
   const canvasRef = useRef(null)
@@ -178,6 +190,13 @@ export function PizarraEstrategica({
   const actualizar = useCallback((parche) => {
     if (onChange) onChange({ ...estado, nodos, aristas, colapsada, altura, ...parche })
   }, [estado, nodos, aristas, colapsada, altura, onChange])
+
+  // Resincronizar la vista cuando llega el registro persistido del caso
+  // (carga inicial asíncrona o cambio de caso sin remontar).
+  useEffect(() => {
+    setZoom(zoomDeEstado(estado))
+    setPan(panDeEstado(estado))
+  }, [estado.zoom, estado.pan])
 
   // Arrastre de notas y redimensionado de la pizarra
   useEffect(() => {
@@ -197,10 +216,12 @@ export function PizarraEstrategica({
             : n)
           actualizar({ nodos: nuevos })
         } else if (d.modo === 'pan') {
-          setPan({
+          const next = {
             x: Math.round(d.panX + (ev.clientX - d.startX)),
             y: Math.round(d.panY + (ev.clientY - d.startY)),
-          })
+          }
+          d.lastPan = next
+          setPan(next)
         }
       }
       if (resizeBarRef.current) {
@@ -210,8 +231,12 @@ export function PizarraEstrategica({
       }
     }
     const onUp = () => {
+      const d = dragRef.current
       dragRef.current = null
       resizeBarRef.current = null
+      if (d && d.modo === 'pan' && d.lastPan) {
+        actualizar({ pan: d.lastPan })
+      }
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
@@ -247,7 +272,7 @@ export function PizarraEstrategica({
     const { nodos: ns, aristas: as } = construirNodosPlantilla(pl)
     setPan({ x: 0, y: 0 })
     setZoom(1)
-    actualizar({ nodos: ns, aristas: as, colapsada: false })
+    actualizar({ nodos: ns, aristas: as, colapsada: false, zoom: 1, pan: { x: 0, y: 0 } })
     setMenuPlantillas(false)
   }, [actualizar])
 
@@ -638,21 +663,33 @@ export function PizarraEstrategica({
               jsx('button', {
                 type: 'button',
                 title: 'Acercar',
-                onClick: () => setZoom((z) => Math.min(1.6, +(z + 0.15).toFixed(2))),
+                onClick: () => {
+                  const z = Math.min(1.6, +(zoom + 0.15).toFixed(2))
+                  setZoom(z)
+                  actualizar({ zoom: z })
+                },
                 className: 'border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100',
                 children: '+',
               }),
               jsx('button', {
                 type: 'button',
                 title: 'Alejar',
-                onClick: () => setZoom((z) => Math.max(0.55, +(z - 0.15).toFixed(2))),
+                onClick: () => {
+                  const z = Math.max(0.55, +(zoom - 0.15).toFixed(2))
+                  setZoom(z)
+                  actualizar({ zoom: z })
+                },
                 className: 'border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100',
                 children: '−',
               }),
               jsx('button', {
                 type: 'button',
                 title: 'Restablecer vista',
-                onClick: () => { setZoom(1); setPan({ x: 0, y: 0 }) },
+                onClick: () => {
+                  setZoom(1)
+                  setPan({ x: 0, y: 0 })
+                  actualizar({ zoom: 1, pan: { x: 0, y: 0 } })
+                },
                 className: 'px-2 py-1 text-[10px] text-slate-700 hover:bg-slate-100',
                 children: '⛶',
               }),

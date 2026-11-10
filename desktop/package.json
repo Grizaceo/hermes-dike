@@ -1,6 +1,7 @@
 {
   "name": "dike-desktop",
   "private": true,
+  "type": "module",
   "version": "0.9.0",
   "description": "Build del plugin Desktop de Diké (bundle ESM autocontenido).",
   "scripts": {

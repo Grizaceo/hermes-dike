@@ -312,6 +312,8 @@ export const GRAFO_ESTILO = {
   coverage_ratio: 0.82,
   has_complete_chain: true,
   coherence_warnings: [],
+  // /estilo/grafo puede llevar truncado + relaciones_omitidas en escritos largos.
+  truncado: false, relaciones_omitidas: 0,
 }
 
 export const PRIVACIDAD_DETECTAR = {
@@ -343,9 +345,13 @@ export const PREDICCION_CORPUS = {
 
 export const ORDENAMIENTOS_PERFILES = {
   perfiles: [
+    // tipos_norma llega como objetos {id, etiqueta} desde el backend real.
     { id: 'cl', jurisdiccion: 'cl', nombre: 'Chile', idioma: 'es',
       version: '1.0.0', origen: 'dike', valido: true, errores: [],
-      tipos_norma: ['ley', 'decreto'], perfil: {} },
+      tipos_norma: [
+        { id: 'ley', etiqueta: 'Ley' },
+        { id: 'decreto', etiqueta: 'Decreto' },
+      ], perfil: {} },
   ],
   ejemplo_xx: { paquete: 'xx-1.0.0', textos: { ordenamiento: 'Texto de ejemplo.' } },
 }
@@ -360,6 +366,7 @@ export const CONSTRUCCION_OK = {
   construccion: {
     normas: 8, articulos: 37, aristas: 52,
     ventanasVigencia: 12, manifestCoreSha256: 'c'.repeat(64),
+    packId: 'dike-pack-1.0.0', jurisdiccion: 'cl',
   },
   compatibilidad: { nivelAlcanzado: 'completo' },
 }

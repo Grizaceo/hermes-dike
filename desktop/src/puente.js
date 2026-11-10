@@ -5,10 +5,15 @@
 
 let cola = []
 
+// Tope de la cola: tomarCitas() la vuelca entera en el escrito al abrirlo;
+// sin límite, citas encoladas y nunca visitadas se acumularían en memoria.
+const TOPE_COLA = 20
+
 // encolarCita({cita, gid, nodo_id, label}) -> true si quedó encolada.
 // La cita debe ser texto no vacío; el resto se sanea a los cuatro campos.
 export function encolarCita(item) {
   if (!item || typeof item.cita !== 'string' || !item.cita.trim()) return false
+  if (cola.length >= TOPE_COLA) return false
   cola.push({
     cita: item.cita,
     gid: typeof item.gid === 'string' ? item.gid : null,

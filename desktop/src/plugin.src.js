@@ -459,7 +459,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
         jsxs('div', { className: S.card, children: [
           jsx('div', { className: S.cardTitle, children: t('prefs.estadoTitulo') }),
           estado ? jsxs('div', { className: 'flex flex-col gap-1.5 text-xs', children: [
-            jsx('div', { children: t('prefs.versionPack', { version: estado.version || '0.9.0', pack: estado.pack_hash }) }),
+            jsx('div', { children: t('prefs.versionPack', { version: estado.version || '?', pack: estado.pack_hash }) }),
             jsx('div', { children: t('prefs.cobertura', { leyes: estado.leyes, articulos: estado.articulos }) }),
             jsx('div', { children: t('prefs.perfilChat', { perfil: estado.perfil_chat || t('prefs.perfilActivo') }) }),
             jsxs('div', { className: S.sub, children: [

@@ -1033,6 +1033,9 @@ var estilos_default = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcs
   --tw-tracking: var(--tracking-widest);
   letter-spacing: var(--tracking-widest);
 }
+.dike-raiz .wrap-anywhere {
+  overflow-wrap: anywhere;
+}
 .dike-raiz .break-all {
   word-break: break-all;
 }
@@ -33022,7 +33025,7 @@ function SeccionEscritor({ onAbrirGrafo }) {
                                   children: etiquetaCodigo(estado === "verificada" ? "VERIFICADA" : estado === "fallo" ? "FALLO" : estado) + t("writer.graph")
                                 }) : jsx10("span", { className: S.chip + " " + S[es.chip], children: etiquetaCodigo(estado === "verificada" ? "VERIFICADA" : estado === "fallo" ? "FALLO" : estado) })
                               ] }),
-                              jsx10("div", { className: "mt-0.5 break-all text-xs text-(--dk-texto-3)", children: (() => {
+                              jsx10("div", { className: "mt-0.5 wrap-anywhere text-xs text-(--dk-texto-3)", children: (() => {
                                 const e3 = etiquetaCita(estado, d2, meta, registro);
                                 return t(e3.codigo, { ...e3.datos, resolution: etiquetaCodigo(e3.datos.resolution) }) + (e3.pista ? t("verify.lead") : "");
                               })() }),
@@ -115560,7 +115563,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
         jsxs12("div", { className: S.card, children: [
           jsx12("div", { className: S.cardTitle, children: t("prefs.estadoTitulo") }),
           estado ? jsxs12("div", { className: "flex flex-col gap-1.5 text-xs", children: [
-            jsx12("div", { children: t("prefs.versionPack", { version: estado.version || "0.9.0", pack: estado.pack_hash }) }),
+            jsx12("div", { children: t("prefs.versionPack", { version: estado.version || "?", pack: estado.pack_hash }) }),
             jsx12("div", { children: t("prefs.cobertura", { leyes: estado.leyes, articulos: estado.articulos }) }),
             jsx12("div", { children: t("prefs.perfilChat", { perfil: estado.perfil_chat || t("prefs.perfilActivo") }) }),
             jsxs12("div", { className: S.sub, children: [

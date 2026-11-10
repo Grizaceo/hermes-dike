@@ -2,25 +2,28 @@
 
 [Español](case-writer.es.md)
 
-- **Studio layout, Strategy Board and Word-like page.** The Case Writer opens
-  as a studio with a collapsible, resizable **Pizarra Estratégica** above the
+- **Studio layout, Strategy board and Word-like page.** The Case Writer opens
+  as a studio with a collapsible, resizable **Strategy board** above the
   document (sticky notes, procedural templates for lawsuits, judgments,
   contracts and administrative rulings, directed links between cards, and a
-  `LexO Search` panel over the sealed corpus), a centered Word-like page in
-  the middle (formatting bar, `Escribir | Leer` toggle, configurable paper
+  **Corpus search** panel over the sealed corpus), a centered Word-like page in
+  the middle (formatting bar, `Write | Read` toggle, configurable paper
   themes and page widths), the **Hermes chat** docked on the right, and a
-  vertical tool rail between them that opens dedicated drawers for the
-  citation verifier, privacy/pseudonymization, **LexO Escribe Claro** style
-  and argumentative-structure review, the interactive NIF board,
-  differentiated graph tools (corpus search/reader and the `ordenamiento`
-  pack builder), and user preferences.
+  vertical tool rail between them (Check, Privacy, Style, Board, Graph,
+  Settings, Chat) that opens dedicated drawers for the citation verifier,
+  privacy/pseudonymization, the **plain-language review** (style and
+  argumentative structure of Spanish legal writing), the interactive case
+  board, differentiated graph tools (corpus search/reader and the legal-system
+  pack builder), and user preferences. The page is in English by default;
+  the EN/ES switch in its header changes the interface, never the statute
+  text or the engine codes.
 - **Editor and verifier.** The brief is edited in place and saved per case.
-  "Verificar citas" runs the same engine; each citation is marked in the
+  "Check citations" runs the same engine; each citation is marked in the
   text, and only an engine `VERIFICADA` on the exact current text shows as
-  verified — any edit turns it back to "out of date". A failed citation can
+  verified — any edit turns it back to "Text changed". A failed citation can
   be repaired (the replacement must pass the engine before it can be
   applied), withdrawn with a reason, or escalated.
-- **From search.** In the graph tab's content search, "Llevar al escrito"
+- **From search.** In the Corpus graph's content search, "Add to brief"
   appends the article's canonical citation as a new paragraph at the end of
   the brief and runs the verifier on it like any other citation — it never
   arrives verified, and a derogated or not-yet-in-force article is expected
@@ -58,11 +61,10 @@
   substring of that node's text, and the optional citation parses. The note
   then shows one of its states — pending, verified (a chip that opens the
   exact node in the graph), mismatched, or unresolved — and a line reading
-  "La pertinencia de la cita la decide usted": whether the article is
-  relevant is the model's reading and your decision, never the plugin's.
-  "Verifícalo tú: abrir en el grafo" and the verified chips jump straight to
-  that node. "Insertar en el escrito" adds the notes to the brief as plain
-  text.
+  "Relevance to the case is the model's reading; you decide.": whether the
+  article is relevant is the model's reading and your decision, never the
+  plugin's. "Review source in graph" and the verified chips jump straight to
+  that node. "Insert into brief" adds the notes to the brief as plain text.
 - **Live case board (NIF).** On request, the model proposes updates to the
   case's theory, the NIF (facts known,
   alleged and missing, norms, subjects, hypotheses, gaps). Each proposal

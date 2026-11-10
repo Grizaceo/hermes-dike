@@ -3,7 +3,7 @@
   "label": "Diké",
   "description": "Checks Chilean-law citations against the local corpus and keeps the case board",
   "icon": "Shield",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "tab": {
     "path": "/dike",
     "position": "after:skills"

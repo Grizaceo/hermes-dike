@@ -1073,7 +1073,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                     })
                                   : jsx('span', { className: S.chip + ' ' + S[es.chip], children: etiquetaCodigo(estado === 'verificada' ? 'VERIFICADA' : estado === 'fallo' ? 'FALLO' : estado) }),
                               ] }),
-                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })() }),
+                              jsx('div', { className: 'mt-0.5 wrap-anywhere text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })() }),
                               estado === 'fallo'
                                 ? jsx(AccionesFallo, { detalle: d, acciones: acciones[i], onAccion: (t, val) => accionCita(i, t, val) })
                                 : null,

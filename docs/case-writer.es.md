@@ -1,28 +1,31 @@
-<!-- vitrina:translation-of case-writer.md sha256=2ada3a0a1af08113ab7b7b8654c71f99ffc37f4d5fae7f6267b745edc7b33e55 -->
+<!-- vitrina:translation-of case-writer.md sha256=61b113875365cc6b1129f386d3af69da2d54d2ea60afafa931857004add86286 -->
 # El Case Writer (Desktop)
 
 [English](case-writer.md)
 
-- **Vista de estudio, Pizarra Estratégica y hoja tipo Word.** El Case Writer
-  abre como un estudio con una **Pizarra Estratégica** colapsable y
+- **Vista de estudio, Pizarra estratégica y hoja tipo Word.** El Case Writer
+  abre como un estudio con una **Pizarra estratégica** colapsable y
   redimensionable encima del documento (notas adhesivas, plantillas de
   demanda, sentencia, contrato y resolución administrativa, enlaces dirigidos
-  entre tarjetas y un buscador `LexO Search` sobre el corpus sellado), una
+  entre tarjetas y un panel **Buscar corpus** sobre el corpus sellado), una
   hoja tipo Word al centro (barra de formato, selector `Escribir | Leer`,
   temas de papel y anchos de página configurables), el **chat con Hermes**
-  anclado a la derecha y una barra vertical de herramientas entre ambos que
-  abre paneles dedicados para el verificador de citas, la seudonimización, la
-  revisión de estilo y estructura argumentativa de **LexO Escribe Claro**, el
-  tablero NIF interactivo, las herramientas diferenciadas de grafos (buscador
-  y lector del corpus y constructor de paquetes `ordenamiento`) y las
-  preferencias del usuario.
+  anclado a la derecha y una barra vertical de herramientas entre ambos
+  (Citas, Privacidad, Estilo, Tablero, Grafo, Ajustes, Chat) que abre
+  paneles dedicados para el verificador de citas, la seudonimización, la
+  **revisión de estilo** (estilo y estructura argumentativa de la redacción
+  jurídica en español), el tablero del caso interactivo, las herramientas
+  diferenciadas de grafos (buscador y lector del corpus y constructor de
+  paquetes de ordenamiento) y las preferencias del usuario. La página está
+  en inglés por defecto; el selector EN/ES de su cabecera cambia la
+  interfaz, nunca el texto de las normas ni los códigos del motor.
 - **Editor y verificador.** El escrito se edita en el lugar y se guarda por
   caso. "Verificar citas" corre el mismo motor; cada cita queda marcada en el
   texto, y solo un `VERIFICADA` del motor sobre el texto actual exacto se
-  muestra como verificada: cualquier edición la deja "desactualizada". Una
+  muestra como verificada: cualquier edición la deja en "El texto cambió". Una
   cita fallida se puede reparar (el reemplazo debe pasar por el motor antes
   de poder aplicarse), retirar con motivo o escalar.
-- **Desde la búsqueda.** En la búsqueda por contenido de la pestaña Grafo,
+- **Desde la búsqueda.** En la búsqueda por contenido del Grafo del corpus,
   «Llevar al escrito» agrega la cita canónica del artículo como un párrafo
   nuevo al final del escrito y la pasa por el verificador como cualquier
   otra cita: nunca llega verificada, y un artículo derogado o aún no vigente
@@ -50,8 +53,8 @@
   descubrimiento de herramientas y el verificador, que ahí acepta solo texto
   (nunca una ruta de archivo), así que el chat no puede usar la terminal ni
   los archivos del perfil. Si las instrucciones no se pueden leer, se bloquea
-  cada turno de esa sesión. Los demás chats no cambian. Las citas de cada respuesta pasan por el motor antes de poder
-  mostrarse como verificadas.
+  cada turno de esa sesión. Los demás chats no cambian. Las citas de cada
+  respuesta pasan por el motor antes de poder mostrarse como verificadas.
 - **Notas al pie que abren el nodo.** Cuando el chat fundamenta una
   afirmación sobre un artículo escribe una nota en la forma canónica
   `[^n]: dike:a:<code>:<eid>#u<unit> «fragmento literal» (cita opcional)`.
@@ -61,10 +64,10 @@
   del corpus, que el fragmento sea subcadena literal del texto de ese nodo y
   que la cita opcional se parsee. La nota muestra luego uno de sus estados —
   pendiente, verificada (una ficha que abre el nodo exacto en el grafo),
-  discrepante o sin resolver — y una línea que dice «La pertinencia de la
-  cita la decide usted»: si el artículo es pertinente es lectura del modelo
-  y decisión tuya, nunca del plugin. «Verifícalo tú: abrir en el grafo» y las
-  fichas verificadas saltan directo a ese nodo. «Insertar en el escrito»
+  discrepante o sin resolver — y una línea que dice «La pertinencia para el
+  caso es una lectura del modelo; decides tú.»: si el artículo es pertinente
+  es lectura del modelo y decisión tuya, nunca del plugin. «Revisar fuente en
+  el grafo» y las fichas verificadas saltan directo a ese nodo. «Insertar en el escrito»
   agrega las notas al escrito como texto plano.
 - **Tablero del caso (NIF) vivo.** A pedido, el modelo propone
   actualizaciones de la teoría del caso, el NIF (hechos

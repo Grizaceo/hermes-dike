@@ -4,7 +4,7 @@
 export const PACK_HASH = 'af1422d66d1e6eee0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70a1b2'
 
 export const ESTADO = {
-  version: '0.9.0',
+  version: '0.10.0',
   corpus_instalado: true,
   pack_hash: PACK_HASH,
   leyes: 25,
@@ -331,7 +331,7 @@ export const PRIVACIDAD_DETECTAR = {
   conteos: { rut: 1, nombre: 1, direccion: 1, referencia: 1, posible_persona: 1 },
   estrategia: 'media',
   aviso: 'Seudonimización local: los datos no salen del equipo.',
-  version: '0.9.0',
+  version: '0.10.0',
   paquetes: { personas: 3, ruts: 1 },
 }
 

@@ -41,7 +41,7 @@ command:
 ```
 
 The first call unpacks and checks the corpus (about a minute). After that the
-plugin works offline: the first check after Hermes starts takes about 13 seconds
+plugin works offline: the first check after Hermes starts takes 13 to 15 seconds
 while the engine verifies the corpus, later ones under a second. Answers are in
 English; set `idioma: es` in the plugin's settings for Spanish. In the Desktop
 app, turn on the page under **Capabilities → Plugins**.
@@ -137,8 +137,8 @@ the code is organized: [docs/architecture.md](docs/architecture.md).
     module and predictor, content search, legal-system framework.
   - In the last round Claude Code (Claude Fable 5.2) directed two audits and
     wrote the engine server and the page's stylesheet; Codex (gpt-6.1-sol) fixed
-    the Python side, reorganized the tests and put the plugin's text in English;
-    Devin (swe-2-flash-max) fixed and translated the two interfaces.
+    the Python side, reorganized the tests, put the plugin's text in English and
+    finished translating the two interfaces Devin (swe-2-flash-max) had fixed.
   - The privacy detector and the predictor's deterministic layer are ported from
     earlier projects (sources and licenses in `VENDORED.json`).
 - **Verified by AI, not yet repeated by me** (commands and values in

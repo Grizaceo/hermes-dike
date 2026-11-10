@@ -147,7 +147,9 @@ Changes to the adapter's code during the hackathon:
     the app) and one visual system on the app's theme tokens, light and dark;
   - English as the canonical language of everything the plugin says, with
     Spanish as an option: the Desktop page, the dashboard tab, the slash
-    commands, the adapter's messages and the HTTP errors;
+    commands, the adapter's messages and the HTTP errors (Codex finished the
+    interfaces' translation, labelled the engine codes and stopped the panels
+    re-rendering on every keystroke);
   - the engine is unchanged.
 
 ## Ported from earlier projects

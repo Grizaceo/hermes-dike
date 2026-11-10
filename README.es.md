@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=c879e3a0a3b9c405afaf03bc278ac663a08dd25056547a879a13f7ef4c0726e1 -->
+<!-- vitrina:translation-of README.md sha256=04900fe8f930fdcd81cb9ea0c10398656332dd168ac9f8abcea4e8cacb78413c -->
 # Diké para Hermes
 
 [English](README.md)
@@ -42,7 +42,7 @@ comando:
 ```
 
 La primera llamada desempaqueta y comprueba el corpus (cerca de un minuto). Después el
-plugin funciona sin red: la primera verificación tras iniciar Hermes toma unos 13 segundos,
+plugin funciona sin red: la primera verificación tras iniciar Hermes toma de 13 a 15 segundos,
 mientras el motor verifica el corpus, y las siguientes menos de un segundo. Las respuestas
 salen en inglés; pon `idioma: es` en los ajustes del plugin para tenerlas en español. En la
 app Desktop, activa la página en **Capabilities → Plugins**.
@@ -134,8 +134,8 @@ organizado el código: [docs/architecture.md](docs/architecture.md).
     privacidad y predictor, búsqueda por contenido y framework de ordenamientos.
   - En la última ronda Claude Code (Claude Fable 5.2) dirigió dos auditorías y escribió el
     servidor del motor y la hoja de estilos de la página; Codex (gpt-6.1-sol) corrigió el
-    lado Python, reorganizó los tests y puso el texto del plugin en inglés; Devin
-    (swe-2-flash-max) corrigió y tradujo las dos interfaces.
+    lado Python, reorganizó los tests, puso el texto del plugin en inglés y terminó de
+    traducir las dos interfaces que Devin (swe-2-flash-max) había corregido.
   - El detector de privacidad y la capa determinista del predictor se portaron de proyectos
     anteriores (fuentes y licencias en `VENDORED.json`).
 - **Verificado por IA (todavía no lo comprobé yo)** (comandos y valores en

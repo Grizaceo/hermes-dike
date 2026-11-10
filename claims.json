@@ -3,9 +3,9 @@
   "claims": [
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed only so tests/test_docx.py can build .docx fixtures and diff the adapter's stdlib reader against the engine's python-docx reader — the plugin itself no longer needs it)",
-      "command": "pip install --target /tmp/dike-scratch 'python-docx>=1.1,<2' && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/dike-scratch $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider",
-      "value": "423",
-      "date": "2026-11-09"
+      "command": "pip install --target <scratch> 'python-docx>=1.1,<2' && HERMES_HOME=<tmp> PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch> $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<disk dir>",
+      "value": "602",
+      "date": "2026-11-10"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
@@ -50,22 +50,22 @@
       "date": "2026-11-07"
     },
     {
-      "claim": "hermes plugins validate --install-deps passes on a clean copy of the 0.9.0 tree (no .git, no desktop/node_modules): plugin.yaml parses, declared tools and hooks match the registrations, security scan safe, no core override, desktop surface inside the plugin SDK; hermes plugins doctor reports 3 tools and 2 hooks",
-      "command": "git archive HEAD | tar -x -C <clean> && HERMES_HOME=<tmp> hermes plugins validate <clean> --install-deps && HERMES_HOME=<tmp> hermes plugins doctor dike --ci",
-      "value": "Validation passed (dike 0.9.0, 3 tools, 2 hooks)",
-      "date": "2026-11-09"
+      "claim": "hermes plugins validate --install-deps passes on a clean copy of the 0.10.0 tree (no .git, no desktop/node_modules): plugin.yaml parses, declared tools and hooks match the registrations, security scan safe, no core override, desktop surface inside the plugin SDK (tests/test_dashboard_plugin.py runs the same desktop lint over the tracked desktop/*.js); one warning under catalog rule 9 remains, the guarded hermes_cli.version_info import that /dike-estado uses to show the Hermes version; hermes plugins doctor on the same copy reports dike 0.10.0 with 3 tools and 2 hooks",
+      "command": "git archive HEAD | tar -x -C <clean> && HERMES_HOME=<tmp> hermes plugins validate <clean> --install-deps && HERMES_HOME=<tmp> hermes plugins doctor <clean> --ci",
+      "value": "Validation passed (dike 0.10.0, 3 tools, 2 hooks; 1 rule-9 warning)",
+      "date": "2026-11-10"
     },
     {
-      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs produce the same sha256",
+      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs (offline, from the npm cache) produce the same sha256, equal to the committed desktop/plugin.js and desktop/BUNDLE.json",
       "command": "cp -r desktop escritor <tmp>/ && cd <tmp>/desktop && npm ci && node build.mjs && sha256sum plugin.js  # build.mjs reads ../escritor/nif_propuestas.md",
-      "value": "4fa5d25ead0ccbdeb46fdbace66c242900616ab907a6b9772940403b1bd408b7",
-      "date": "2026-11-09"
+      "value": "bbf418c042333df7ba3eccb759ff575bf6876e4be782a1ed5843909e2380bdec",
+      "date": "2026-11-10"
     },
     {
-      "claim": "The Desktop pure-logic tests pass (verifier, privacy, chat, NIF proposals, predictor)",
+      "claim": "The Desktop tests pass: pure logic (verifier, privacy, chat, NIF proposals, predictor), both interfaces' i18n dictionaries and engine-code labels, HTTP error translation against the backend's real error inventory, and the bundle check",
       "command": "cd desktop && npm test",
-      "value": "69",
-      "date": "2026-11-09"
+      "value": "118",
+      "date": "2026-11-10"
     },
     {
       "claim": "On the 456 synthetic documents of the dpp-ai-compliance-lab goldset v0.3.0 (synthetic and synthetic-augmented; the 44 semi-synthetic excluded), the privacy detector in the strict strategy detects with precision 0.9588, recall 1.0, F1 0.979 (detection counts the 271 case anchors RIT/RUC that are detected and kept); counting only what it masks, F1 0.8834; recall 1.0 for RUT, email and phone. The baseline is the uncommitted working tree of dpp-ai-compliance-lab over 0d1e386 (F1 0.9425); 0d1e386 itself scores 0.8078. The goldset has low diversity (16 distinct names, 10 RUT values): it is a regression check, not evidence of generalization.",
@@ -116,10 +116,10 @@
       "date": "2026-11-09"
     },
     {
-      "claim": "Bubblewrap isolation adds no perceptible latency: grafo buscar median 1.786 s inside bwrap vs 1.777 s degraded; constancia median 16.7 s cold / 13.2 s warm inside bwrap vs 19.7 s / 15.1 s degraded (3 runs per cell, fresh process per run, 4 of 6 verified in every run; an earlier 5-run measurement gave 15.6/13.1 s vs 15.7/12.9 s, so the difference is run-to-run noise)",
-      "command": "TMPDIR=<disk dir> $HERMES_PYTHON scripts/medir_aislamiento.py --corridas 3",
-      "value": "buscar 1.786s vs 1.777s; constancia 16.7/13.2s vs 19.7/15.1s",
-      "date": "2026-11-09"
+      "claim": "With the engine server, only the first check of a session pays for the corpus verification, and bubblewrap adds no perceptible latency: on the demo brief (4 of 6 verified in every run) the median is 15.1 s for the first check and 0.63 s for the next one inside bwrap, vs 14.6 s / 0.63 s degraded; grafo buscar takes 1.92 s cold / 0.105 s warm inside bwrap vs 1.87 s / 0.083 s degraded (3 runs per cell, a fresh plugin process per run; the first bwrap run, 72.6 s, also unpacked the corpus; a run earlier the same day gave 13.6 s / 0.57 s inside bwrap, so the first check takes 13 to 15 s)",
+      "command": "TMPDIR=<disk dir> $HERMES_PYTHON scripts/medir_aislamiento.py --corridas 3 --plugin-home <empty dir>",
+      "value": "first check 15.1 s, next 0.63 s (bwrap); 14.6 s / 0.63 s degraded; buscar 1.92 s / 0.105 s",
+      "date": "2026-11-10"
     },
     {
       "claim": "The adapter reads .docx with the standard library only (zipfile + xml.etree), no python-docx: _texto_docx output is byte-identical to the engine's python-docx 1.2.0 _read_docx on a fixture covering runs/formatting, tabs, line and page breaks, empty paragraphs, a hyperlink, unicode, a gridSpan+vMerge table, a second table and a two-paragraph cell; the demo brief as .docx still verifies 4/6; zip-bomb/DOCTYPE/ENTITY/entry-count/missing-member inputs are refused as INPUT_DOCX",

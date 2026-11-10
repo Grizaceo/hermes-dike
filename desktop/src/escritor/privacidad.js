@@ -4,7 +4,7 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, S } from '../common.js'
+import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
 import { fijarMarcasPrivacidad, textoDelEditor } from './editor.js'
 import { rangoAPos, segmentosDeDoc, sha256Hex } from './verificador.js'
 import {
@@ -99,9 +99,9 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
   // Debounce ~1,5 s cuando el hash del documento cambia.
   useEffect(() => {
     if (!(docInfo && docInfo.hash)) return
-    clearTimeout(timer.current)
-    timer.current = setTimeout(detectar, DEBOUNCE_DETECTAR)
-    return () => clearTimeout(timer.current)
+    cancelarTarea(timer.current)
+    timer.current = programarTimeout(detectar, DEBOUNCE_DETECTAR)
+    return () => cancelarTarea(timer.current)
   }, [docInfo && docInfo.hash, detectar])
 
   // Marcas inline de privacidad en el editor.

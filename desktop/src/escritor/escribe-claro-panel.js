@@ -5,7 +5,7 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, S } from '../common.js'
+import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
 import { reemplazarRangos, textoDelEditor } from './editor.js'
 import { localizarCitas, rangoAPos, segmentosDeDoc } from './verificador.js'
 
@@ -98,9 +98,9 @@ export function PanelEscribeClaro({
   useEffect(() => {
     if (!autoAnalizar) return
     if (!(docInfo && docInfo.texto && docInfo.texto.trim())) return
-    clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => ejecutarAnalisis(contexto), 1200)
-    return () => clearTimeout(timerRef.current)
+    cancelarTarea(timerRef.current)
+    timerRef.current = programarTimeout(() => ejecutarAnalisis(contexto), 1200)
+    return () => cancelarTarea(timerRef.current)
   }, [autoAnalizar, docInfo && docInfo.texto, contexto, ejecutarAnalisis])
 
   const reemplazarTermino = useCallback((termino, reemplazo) => {
@@ -119,7 +119,7 @@ export function PanelEscribeClaro({
       ? reemplazo.charAt(0).toUpperCase() + reemplazo.slice(1)
       : reemplazo
     reemplazarRangos(ed, [rango], textoFinal)
-    setTimeout(() => ejecutarAnalisis(contexto), 250)
+    programarTimeout(() => ejecutarAnalisis(contexto), 250)
   }, [editorRef, contexto, ejecutarAnalisis])
 
   const volcarGrafoAPizarra = useCallback(() => {

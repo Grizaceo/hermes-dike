@@ -74,22 +74,26 @@ export function mensajeError(e) {
 // navegador. Cada programar* devuelve una función cancel(); los sitios que
 // antes guardaban el id numérico ahora guardan esa función y la llaman con
 // cancelarTarea (idempotente).
-let _timeout = (fn, ms) => {
+const nativoTimeout = (fn, ms) => {
   const id = setTimeout(fn, ms)
   return () => clearTimeout(id)
 }
-let _interval = (fn, ms) => {
+const nativoInterval = (fn, ms) => {
   const id = setInterval(fn, ms)
   return () => clearInterval(id)
 }
+let _timeout = nativoTimeout
+let _interval = nativoInterval
 
+// Cada llamada fija AMBOS backends: un ctx sin setTimeout/setInterval (o
+// null) vuelve a los temporizadores del navegador.
 export function setTimers(ctx) {
-  if (ctx && typeof ctx.setTimeout === 'function') {
-    _timeout = (fn, ms) => ctx.setTimeout(fn, ms)
-  }
-  if (ctx && typeof ctx.setInterval === 'function') {
-    _interval = (fn, ms) => ctx.setInterval(fn, ms)
-  }
+  _timeout = ctx && typeof ctx.setTimeout === 'function'
+    ? (fn, ms) => ctx.setTimeout(fn, ms)
+    : nativoTimeout
+  _interval = ctx && typeof ctx.setInterval === 'function'
+    ? (fn, ms) => ctx.setInterval(fn, ms)
+    : nativoInterval
 }
 
 export function programarTimeout(fn, ms) { return _timeout(fn, ms) }

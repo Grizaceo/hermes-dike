@@ -5,7 +5,7 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, S } from '../common.js'
+import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
 import {
   COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla, crearIdNota as crearId,
 } from './pizarra-logica.js'
@@ -68,11 +68,11 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
   const cambiar = (ev) => {
     const v = ev.target.value
     setQ(v)
-    clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => ejecutar(v), 350)
+    cancelarTarea(timerRef.current)
+    timerRef.current = programarTimeout(() => ejecutar(v), 350)
   }
 
-  useEffect(() => () => clearTimeout(timerRef.current), [])
+  useEffect(() => () => cancelarTarea(timerRef.current), [])
 
   return jsxs('div', {
     className: 'absolute top-2 right-3 z-30 flex w-96 flex-col rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl',

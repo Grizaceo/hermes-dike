@@ -2,6 +2,8 @@
 // L0 síncrono primero; L1/L2 asíncronos con debounce y AbortController.
 // Fail-closed: una predicción sin procedencia.tipo y fuente se descarta.
 
+import { cancelarTarea, programarTimeout } from '../../common.js'
+
 export const TOPE_SUGERENCIA = 200
 export const DEBOUNCE_MS = 400
 
@@ -35,7 +37,7 @@ export function crearMesa({ predictores = [], debounceMs = DEBOUNCE_MS } = {}) {
   let abort = null
 
   function cancelar() {
-    if (timer) { clearTimeout(timer); timer = null }
+    if (timer) { cancelarTarea(timer); timer = null }
     if (abort) { abort.abort(); abort = null }
   }
 
@@ -75,7 +77,7 @@ export function crearMesa({ predictores = [], debounceMs = DEBOUNCE_MS } = {}) {
     // L1/L2 con debounce + abort
     const async_ = vivos.filter((x) => x.capa !== 'L0')
     if (async_.length) {
-      timer = setTimeout(() => {
+      timer = programarTimeout(() => {
         abort = new AbortController()
         const sig = abort.signal
         for (const p of async_) {

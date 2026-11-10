@@ -13,7 +13,7 @@ import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugi
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
 import ESTILOS from 'dike:estilos'
-import { mensajeError, rest, setRest, setStorage, S } from './common.js'
+import { mensajeError, programarTimeout, rest, setRest, setStorage, setTimers, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
 import { SeccionGrafo } from './grafo3d.js'
@@ -358,7 +358,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
       rest('/preferencias', { method: 'POST', body: nuevo })
         .then(() => {
           setGuardadoMsg('Preferencias guardadas')
-          setTimeout(() => setGuardadoMsg(''), 2000)
+          programarTimeout(() => setGuardadoMsg(''), 2000)
         })
         .catch(() => {})
       return nuevo
@@ -488,6 +488,9 @@ export default {
   register(ctx) {
     setRest(ctx.rest)
     setStorage(ctx.storage || null)
+    // Los temporizadores de la página usan los del SDK: se cancelan solos
+    // cuando el plugin se descarga (cambio de perfil, desactivación).
+    setTimers(ctx)
     // La página lleva su propia hoja de estilos (desktop/estilos.mjs): la app
     // solo trae las clases que ella misma usa. Se retira al descargar el plugin.
     const hoja = document.createElement('style')

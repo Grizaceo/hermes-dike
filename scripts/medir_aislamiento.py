@@ -72,6 +72,47 @@ def _bin_sin_bwrap() -> Path:
     return destino
 
 
+# Programa de una corrida (proceso fresco). ``{root}``, ``{datos}`` y
+# ``{demo}`` se sustituyen por el repr de cada ruta; las llaves dobles son
+# literales del programa.
+_PAYLOAD = '''\
+import importlib.util, json, sys, time
+from pathlib import Path
+
+ROOT = Path({root!r})
+DATOS = Path({datos!r})
+DEMO = Path({demo!r}).read_text(encoding="utf-8")
+spec = importlib.util.spec_from_file_location("dike_med", ROOT / "__init__.py")
+m = importlib.util.module_from_spec(spec)
+sys.modules["dike_med"] = m
+spec.loader.exec_module(m)
+m._carpeta_de_datos = lambda: DATOS
+modo = m._aislamiento().estado().get("modo")
+if sys.argv[1] == "constancia":
+    t0 = time.perf_counter()
+    json.loads(m.verificar_citas({{"texto": DEMO}}))
+    fria = time.perf_counter() - t0
+    t0 = time.perf_counter()
+    o2 = json.loads(m.verificar_citas({{"texto": DEMO}}))
+    caliente = time.perf_counter() - t0
+    print(json.dumps({{"escenario": "constancia", "modo": modo,
+                      "fria": round(fria, 3), "caliente": round(caliente, 3),
+                      "verificadas": o2.get("meta", {{}}).get("citas_verificadas"),
+                      "error": o2.get("error")}}))
+else:
+    gen = Path(m._asegurar_corpus(DATOS)["generation"])
+    entrada = json.dumps({{"q": "despido indemnización", "limite": 10}},
+                         ensure_ascii=False)
+    t0 = time.perf_counter()
+    data = m._panel_json(["grafo", "buscar"], runtime=gen, timeout=120,
+                         entrada=entrada)
+    segundos = time.perf_counter() - t0
+    print(json.dumps({{"escenario": "buscar", "modo": modo,
+                      "segundos": round(segundos, 3),
+                      "resultados": data.get("total")}}))
+'''
+
+
 def _una_corrida(plugin_home: Path, escenario: str, modo: str,
                  bin_sin: Path | None) -> dict:
     datos = plugin_home / 'plugin-data' / 'dike'
@@ -79,38 +120,7 @@ def _una_corrida(plugin_home: Path, escenario: str, modo: str,
     env['PYTHONDONTWRITEBYTECODE'] = '1'
     if modo == 'degradado' and bin_sin is not None:
         env['PATH'] = str(bin_sin)
-    codigo = (
-        'import importlib.util,sys,json,time;'
-        'from pathlib import Path;'
-        f'ROOT=Path({str(ROOT)!r});'
-        f'DATOS=Path({str(datos)!r});'
-        'DEMO=Path(' + repr(str(DEMO)) + ').read_text(encoding="utf-8");'
-        'spec=importlib.util.spec_from_file_location("dike_med",ROOT/"__init__.py");'
-        'm=importlib.util.module_from_spec(spec);sys.modules["dike_med"]=m;'
-        'spec.loader.exec_module(m);m._carpeta_de_datos=lambda:DATOS;'
-        'gen=None;'
-        'sums=(m._CORPUS/"SHA256SUMS").read_text().split();'
-        'g=DATOS/"generations"/sums[0];'
-        'gen=g if g.is_dir() else None;'
-        'modo=m._aislamiento().estado().get("modo");'
-        'if sys.argv[1]=="constancia":'
-        ' t0=time.perf_counter();o1=json.loads(m.verificar_citas({"texto":DEMO}));'
-        ' fria=time.perf_counter()-t0;'
-        ' t0=time.perf_counter();o2=json.loads(m.verificar_citas({"texto":DEMO}));'
-        ' caliente=time.perf_counter()-t0;'
-        ' print(json.dumps({"escenario":"constancia","modo":modo,"fria":round(fria,3),'
-        '"caliente":round(caliente,3),"verificadas":o2.get("meta",{}).get("citas_verificadas"),'
-        '"error":o2.get("error")}));'
-        'else:'
-        ' m._asegurar_corpus(DATOS);'
-        ' entrada=json.dumps({"q":"despido indemnización","limite":10},ensure_ascii=False);'
-        ' t0=time.perf_counter();'
-        ' proc=m._panel_json(["grafo","buscar"],runtime=gen,timeout=120,entrada=entrada);'
-        ' elapsed=time.perf_counter()-t0;'
-        ' data=json.loads(proc.stdout) if proc.stdout.strip() else {};'
-        ' print(json.dumps({"escenario":"buscar","modo":modo,"segundos":round(elapsed,3),'
-        '"rc":proc.returncode,"resultados":data.get("total"),"error":data.get("error")}));'
-    )
+    codigo = _PAYLOAD.format(root=str(ROOT), datos=str(datos), demo=str(DEMO))
     with tempfile.NamedTemporaryFile('w', suffix='.py', delete=False) as f:
         f.write(codigo)
         payload = f.name

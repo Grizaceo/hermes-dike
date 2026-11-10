@@ -5,22 +5,22 @@ description: >-
   Checks the article citations of Chilean law in a legal brief against a local,
   hash-identified copy of 25 statutes, and refuses to certify what it cannot prove:
   each citation comes back verified (with its source, text hash and in-force status)
-  or unverified with the reason. The engine and panel run inside bubblewrap when
-  it is available and declare a degraded mode when it is not; the verifier is
-  offline after install, never signs and never calls a model. The opt-in Desktop
-  page adds a Case Writer: a brief editor with the verifier as a module (prove,
-  repair, withdraw with a reason, escalate), a pseudonymization step you see and
-  control before any text leaves, and a chat about the brief that runs in a Hermes
-  profile you choose — the active profile by default, or the one set in
-  perfil_chat — with two hooks that inject fail-closed instructions and block
-  every tool except skills and the verifier, only in those sessions. Chat claims
-  about articles carry footnotes that open the exact graph node so you can check
-  the text yourself; whether an article is relevant is the model's reading and
-  your decision, never the plugin's. It also proposes NIF case-board updates that
-  enter only when you accept them, plus a read-only map of the sealed corpus
-  graph whose content search is lexical, deterministic and offline — one clue to
-  read, never a verified citation. Case data stays in plugin-data, outside the
-  sealed corpus generation.
+  or unverified with the reason. The engine runs in a child process, inside
+  bubblewrap when it is available and in a declared degraded mode when it is not;
+  it is offline after install, never signs and never calls a model. One sandboxed
+  engine process per session verifies the corpus once, so checks after the first
+  take under a second. Text is in English, with Spanish as an option. The opt-in
+  Desktop page adds a Case Writer: a brief editor where only the engine can mark a
+  citation verified, a pseudonymization step you see and control before any text
+  leaves the machine, and a chat about the brief that runs in a Hermes profile you
+  choose, with two hooks that inject fixed instructions and block every tool
+  except skills, tool discovery and this plugin's three tools, only in those
+  sessions. The chat's claims about articles carry footnotes that open the exact
+  article so you can check the text; whether an article is relevant is the
+  model's reading and your decision. The page also has a versioned case board
+  whose suggested updates enter only when you accept them, and a read-only 3D map
+  of the corpus with a lexical search whose results are leads, never verified
+  citations. Case data stays in plugin-data, outside the sealed corpus.
 author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike

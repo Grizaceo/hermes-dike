@@ -5,9 +5,26 @@ for the catalog review and for anyone deciding whether to install it.
 
 ## It runs a subprocess
 
-- Each call runs `python -m lexo_cli` (the vendored Diké engine) with the same
-  interpreter as Hermes, through `subprocess.run`, without a shell, with a
-  300-second timeout.
+- The engine (`python -m lexo_cli`, vendored Diké) and the panel driver
+  (`scripts/panel.py`) run in a child process with the same interpreter as
+  Hermes, without a shell, with a 300-second timeout (90 to 300 s for panel
+  operations).
+- **One engine server per installed corpus.** The engine re-verifies the
+  whole sealed corpus every time it starts (about 10 seconds for some 68,000
+  files). So that only the first call pays for it, read-only requests on the
+  sealed corpus (the citation check, article reads, content search, graph
+  metadata) go to `scripts/motor_servidor.py`: a child that lets the engine
+  verify the corpus once and then forks one short-lived process per request,
+  which runs the same command with the same arguments and exits. No request
+  sees another's state. The server has the same environment and the same
+  sandbox as a one-shot child, takes about 170 MB of memory, and exits by
+  itself after 10 minutes without requests or when Hermes exits. It is
+  restarted, and the engine verifies everything again, when the corpus files
+  change (see "It writes"), when the date changes, or when the sandbox state
+  changes. If the server is busy, does not start, dies or answers anything
+  but its protocol, the plugin runs the one-shot child instead; the answer
+  goes through the same contract check either way. Installing the corpus and
+  the case-board and personal-graph operations always use a one-shot child.
 - The subprocess gets a minimal environment: `PATH`, `LANG`, `LC_ALL` and `TZ`
   from the parent, plus the variables that point the engine to the plugin's
   data. Agent credentials and API keys are not passed.
@@ -35,7 +52,8 @@ for the catalog review and for anyone deciding whether to install it.
     the staging generation writable and the unpacked source read-only;
     `constancia` mounts the generation read-only (its sealed `users/` stays
     read-only), the folder holding the brief read-only, and
-    `generation/home` + `generation/roots_cache` writable; the panel's NIF
+    `generation/home` + `generation/roots_cache` writable (the engine server
+    has these same mounts, with `entrada/` as the brief folder); the panel's NIF
     and personal-graph ops mount the plugin-data workspace with `users/`,
     `home/` and `roots_cache/` writable; the corpus graph ops mount the
     sealed generation read-only with `home/` + `roots_cache/` writable.
@@ -110,15 +128,20 @@ All writes go under the current profile's plugin data folder,
   record (touched files) refreshes the stat; different content is a
   `CORPUS_INTEGRITY_ERROR` ("installed corpus integrity mismatch"), which
   checks nothing and says how to reinstall. **Limit:** a change that
-  preserves size and mtime exactly passes this stat check mid-process; if the
-  engine then fails to recognize its snapshot (`SIN_CORPUS`), the plugin
-  re-hashes everything and reports the corruption, and otherwise it is caught
-  at the next process start. The 5 MB tarball digest is cached per process. The installed corpus takes about
+  preserves size and mtime exactly passes this stat check. While the engine
+  server that verified the corpus is still running, it answers from the copy
+  it verified in memory, never from the changed file. When the server next
+  starts (after 10 idle minutes, a new day or a Hermes restart) the engine
+  re-verifies the files, does not recognize its snapshot (`SIN_CORPUS`), and
+  the plugin re-hashes everything and reports the corruption. The 5 MB
+  tarball digest is cached per process. The installed corpus takes about
   300 MB ([claims.json](../claims.json)). Read-only graph endpoints
   (`/grafo/*`) reuse the verified generation for up to 60 seconds instead
   of re-checking integrity on every call; `/verificar` always checks.
-- **Temporary files.** The text to check (or the `.docx` bytes) is written
-  to a temporary folder inside the data folder and removed after the call.
+- **Temporary files.** The text to check is written to a per-call temporary
+  folder under `entrada/` in the data folder and removed after the call. The
+  engine server sees `entrada/` read-only; a one-shot child sees only its
+  own call's folder.
 - **Engine caches** and the engine's `HOME`, both redirected into the data
   folder. Nothing is written to your real home folder.
 - **NIF case boards and the personal review graph.** The panel's NIF and
@@ -220,9 +243,11 @@ turn on model prediction.
   the system prompt is never touched. If the instructions cannot be read,
   every turn of that session is blocked. `pre_tool_call` blocks every tool
   except `skills_list`, `skill_view`, `tool_search` and `tool_describe`
-  (which only find deferred tools) and `dike_verificar_citas` with `texto`
-  (with `ruta` it is blocked too), so the chat cannot use the serving
-  profile's terminal, files, browser, memory or delegation. Forging the
+  (which only find deferred tools) and the plugin's own three tools:
+  `dike_verificar_citas` with `texto` (with `ruta` it is blocked too),
+  `dike_leer_articulo` and `dike_buscar_corpus`, whose arguments are short
+  texts and never paths. So the chat cannot use the serving profile's
+  terminal, files, browser, memory or delegation. Forging the
   envelope, from any platform, only restricts that session.
 - **Citation states stay with the engine.** After every reply the page runs
   `/verificar` on the reply; a citation is shown as verified only when the
@@ -291,8 +316,11 @@ turn on model prediction.
   the Case Writer's chat, NIF proposals or model prediction, and they run in
   your own Hermes gateway (see above).
 - Its only hooks are the two described above, and they change nothing
-  outside Case Writer sessions. No middleware, no background processes and
-  no scheduled jobs.
+  outside Case Writer sessions. No middleware and no scheduled jobs. Its
+  only process that outlives a call is the engine server described under
+  "It runs a subprocess": sandboxed like every other child, started by the
+  first call that needs the corpus, gone after 10 idle minutes or with
+  Hermes.
 - It sends no telemetry and stores no credentials. It never reads `.env`,
   `auth.json` or any credential store: model access goes through Hermes.
 - It never updates its own files.
@@ -321,7 +349,14 @@ graph and SHACL shape files. No binaries or bytecode. Its SHA-256 is in
 
 `desktop/plugin.js` is built by `desktop/build.mjs` (esbuild) from
 `desktop/src/`: `@hermes/plugin-sdk`, `react` and `react/jsx-runtime` stay
-external (provided by the app). It bundles `three@0.183.2`,
+external (provided by the app). The page carries its own stylesheet as
+text: the app compiles only the style classes its own code uses, so at build
+time `desktop/estilos.mjs` generates the Tailwind utilities the page uses
+(Tailwind 4.3.3, a pinned build-time dependency, without its reset) plus the
+page's components (`desktop/src/estilos.css`), all scoped under the page's
+root class. The page adds that one `<style>` element when the plugin
+registers and removes it when the plugin is unloaded; nothing in it applies
+outside the page. It bundles `three@0.183.2`,
 `3d-force-graph@1.79.0` and the Tiptap 3.32.2 editor (`@tiptap/core`,
 `@tiptap/starter-kit`, `@tiptap/pm`, `@tiptap/extension-placeholder`, all
 MIT, mounted without `@tiptap/react` so `react-dom` is never imported;
@@ -343,8 +378,9 @@ Writer chat, NIF proposals and model prediction.
 
 The routes sit behind Hermes' own plugin routing and authentication; the
 plugin adds no authentication of its own. The `/grafo/*` and `/estado`
-routes are `GET` and read-only, with one exception: `POST /grafo/buscar`,
-which is `POST` precisely so the query never lands in access logs. It
+routes are read-only. Three of them are `POST` precisely so that what you
+typed never lands in access logs: `/grafo/buscar` (the query), `/grafo/leer`
+(the citation) and `/prediccion/corpus` (your last words). `/grafo/buscar`
 writes only the BM25 index cache described below; `POST /verificar` writes
 only a temporary copy of the brief, removed after the call; `POST /nif/*`
 writes case files; `POST /escrito` and `POST /privacidad/*` write the files
@@ -370,9 +406,9 @@ listed in "It writes"; no route writes outside plugin-data.
   keep/mask decisions, pseudonymize a text with the case's stable tokens,
   and log a send without its content. Pure Python in the plugin host, no
   subprocess; text limited to 400,000 bytes.
-- `/prediccion/corpus` (`GET`) — literal continuation of your last words
-  from the installed corpus' article texts, read-only from the sealed
-  generation, indexed in memory on first use.
+- `/prediccion/corpus` (`POST`, body `{"cola"}`) — literal continuation of
+  your last words from the installed corpus' article texts, read-only from
+  the sealed generation, indexed in memory on first use.
 
 - `/estado`, `/verificar` — engine + integrity status; `/verificar` runs
   the citation check (read-only, always re-verifies corpus integrity).

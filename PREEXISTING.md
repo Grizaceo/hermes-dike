@@ -123,6 +123,32 @@ Changes to the adapter's code during the hackathon:
   read-only corpus tools (`dike_leer_articulo`, `dike_buscar_corpus`) were
   added; and corpus relocation self-heals by re-hash. All engine code stays
   vendored and hash-locked.
+- For version 0.10.0, from two audits (Codex, gpt-6.1-sol, on the Python
+  side; Devin, swe-2-flash-max, on the two interfaces) directed and
+  integrated by Claude Code (Claude Fable 5.2):
+  - an engine server (`scripts/motor_servidor.py`, `aislamiento.consultar`):
+    the engine verifies the corpus once per session instead of once per
+    call, so a check after the first takes under a second instead of about
+    eleven;
+  - fixes from the Python audit: a masking decision survives a change of
+    accents or spacing; the `.docx` reader, now in `lector_docx.py`, rejects
+    entity declarations in any encoding and bounds tables before expanding
+    them; duplicate legal identities are rejected when building a pack;
+    profile validation enforces types; profile references cannot read
+    outside the plugin; prediction no longer puts words of the brief in a
+    URL; wrong field types answer 400 instead of 500; preferences are merged
+    under their lock;
+  - the tests renamed by topic, with one shared corpus install per session;
+  - fixes from the interface audit: a case-switch race that could save a
+    brief under another case, saves lost when leaving the tab, stale results
+    applied after newer ones, citations inserted at the cursor;
+  - the Desktop page carries its own stylesheet (the app only compiles the
+    style classes its own code uses, so much of the page was unstyled inside
+    the app) and one visual system on the app's theme tokens, light and dark;
+  - English as the canonical language of everything the plugin says, with
+    Spanish as an option: the Desktop page, the dashboard tab, the slash
+    commands, the adapter's messages and the HTTP errors;
+  - the engine is unchanged.
 
 ## Ported from earlier projects
 

@@ -7,6 +7,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { host } from '@hermes/plugin-sdk'
 import { mensajeError, rest, S } from '../common.js'
+import { t } from '../i18n.js'
 import { textoDelEditor } from './editor.js'
 import { estadoCita, etiquetaCita, sha256Hex } from './verificador.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
@@ -117,20 +118,20 @@ function NotaItem({ nota, verif, onAbrirGrafo }) {
       citaDet
         ? jsx('span', {
             className: S.chip + ' ' + (citaDet.estado === 'VERIFICADA' ? S.chipOk : S.chipOff),
-            title: 'Estado que fijó el motor para esta cita',
+            title: t('chat.estadoMotor'),
             children: citaDet.estado,
           })
         : null,
       jsx('button', {
         type: 'button', className: S.link, disabled: nodoInexistente,
-        title: nodoInexistente ? 'El nodo no existe en el corpus'
-          : 'Verifícalo tú: abrir en el grafo',
+        title: nodoInexistente ? t('chat.nodoInexistente')
+          : t('chat.verificarGrafo'),
         onClick: abrir,
-        children: 'Verifícalo tú: abrir en el grafo',
+        children: t('chat.verificarGrafo'),
       }),
     ] }),
     jsxs('div', { className: S.sub, children: [
-      nodoOk === null ? 'comprobando nodo…' : nodoInexistente ? 'Nodo inexistente' : null,
+      nodoOk === null ? t('chat.comprobando') : nodoInexistente ? t('chat.nodoNoExiste') : null,
       nodoOk === true ? jsx('span', { children: (nodoOk === true ? ' · ' : '') + fragTexto }) : null,
     ] }),
   ] })
@@ -143,15 +144,15 @@ function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
   if (!notas.length && !invalidas.length) return null
   return jsxs('div', { className: 'flex flex-col gap-1 rounded border '
     + 'border-(--ui-stroke-secondary) p-2', children: [
-    jsx('div', { className: S.cardTitle, children: 'Notas' }),
+    jsx('div', { className: S.cardTitle, children: t('chat.notas') }),
     ...notas.map((n) => jsx(NotaItem, {
       key: n.n, nota: n, verif, onAbrirGrafo })),
     ...invalidas.map((iv) => jsx('div', {
-      key: 'inv' + iv.n, className: 'text-xs text-(--ui-danger)',
-      children: 'Nota con formato no reconocible: [^' + iv.n + ']' }),
+      key: 'inv' + iv.n, className: 'text-xs ' + S.bad,
+      children: t('chat.notaInvalida', { n: iv.n }) }),
     ),
     jsx('div', { className: S.sub, children:
-      'La pertinencia para el caso es una lectura del modelo; decides tú.' }),
+      t('chat.pertenencia') }),
   ] })
 }
 
@@ -208,7 +209,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
         let perfilObjetivo = null
         const paso = async (nombre, fn) => {
           try { return await fn() }
-          catch (e) { throw new Error(nombre + ': ' + mensajeError(e)) }
+          catch (e) { throw new Error(t('chat.errorPaso', { nombre, error: mensajeError(e) })) }
         }
         const tieneDike = async (r, objetivo) => {
           try {
@@ -239,11 +240,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           }
         }
         if (!ruta) {
-          throw new Error('El chat del escrito necesita un perfil con Diké ' +
-            'habilitado: configura el setting perfil_chat del plugin o usa el ' +
-            'perfil activo' + (activo ? ' («' + activo + '»)' : '') +
-            '. Sin sus hooks no se puede garantizar que el modelo no use ' +
-            'herramientas.')
+          throw new Error(t('chat.errorPerfil', {
+            activo: activo ? ' («' + activo + '»)' : '',
+          }))
         }
         const perfil = perfilObjetivo
         setPerfilElegido(perfil)
@@ -395,8 +394,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
     const cfgPriv = (registro && registro.privacidad) || {}
     const seudonimizar = cfgPriv.seudonimizar !== false
     if (!seudonimizar && cfgPriv.acepto_datos !== true) {
-      setError(new Error('Activa la seudonimización o confirma en el módulo ' +
-        'Privacidad que aceptas enviar datos personales.'))
+      setError(new Error(t('nifp.errorPrivacidad')))
       setOcupado(false)
       return
     }
@@ -404,7 +402,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
       caseId: cid, texto: turno, destino,
       seudonimizar, estrategia: cfgPriv.estrategia || 'media',
     }).then((envio) => {
-      if (!puedeEnviar()) throw new Error('privacidad bloqueó el envío')
+      if (!puedeEnviar()) throw new Error(t('chat.errorPrivacidadEnvio'))
       return host.requestProfile(rutaRef.current, 'prompt.submit',
         { session_id: s.session_id, text: envio.texto,
           profile: perfilRef.current ||
@@ -463,15 +461,15 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   if (perfilOk && perfilOk.error) {
     return jsxs('div', {
       className: modoDock
-        ? 'flex h-full w-full flex-col border-l border-slate-200 bg-white text-slate-800'
+        ? 'flex h-full w-full flex-col border-l border-(--dk-borde) bg-(--dk-elevada) text-(--dk-texto)'
         : S.card,
       children: [
-        jsxs('div', { className: 'flex items-center gap-2 border-b border-slate-200 px-3 py-2 text-xs', children: [
-          jsx('span', { className: 'font-semibold text-slate-800', children: 'Hermes' }),
-          jsx('span', { className: 'h-2 w-2 rounded-full bg-amber-500', title: 'sin perfil con Diké' }),
+        jsxs('div', { className: 'flex items-center gap-2 border-b border-(--dk-borde) px-3 py-2 text-xs', children: [
+          jsx('span', { className: 'font-semibold text-(--dk-texto)', children: 'Hermes' }),
+          jsx('span', { className: 'h-2 w-2 rounded-full bg-(--dk-aviso)', title: t('chat.sinPerfil') }),
         ] }),
         jsxs('div', { className: 'p-3 flex flex-col gap-2', children: [
-          jsx('div', { className: 'rounded border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900 leading-relaxed',
+          jsx('div', { className: S.noticeWarn + ' leading-relaxed',
             children: mensajeError(perfilOk.error) }),
         ] }),
       ],
@@ -480,44 +478,44 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
 
   return jsxs('div', {
     className: modoDock
-      ? 'flex h-full w-full flex-col bg-white text-slate-800 overflow-hidden'
+      ? 'flex h-full w-full flex-col bg-(--dk-elevada) text-(--dk-texto) overflow-hidden'
       : S.card,
     children: [
       // Cabecera superior estilo Hermes Chat (imagen 2)
       jsxs('div', {
-        className: 'flex items-center gap-2 border-b border-slate-200 px-3 h-9 text-xs shrink-0 bg-slate-50/60',
+        className: 'flex items-center gap-2 border-b border-(--dk-borde) px-3 h-9 text-xs shrink-0 bg-(--dk-superficie)',
         children: [
-          jsx('span', { className: 'font-semibold text-slate-800', children: 'Hermes' }),
+          jsx('span', { className: 'font-semibold text-(--dk-texto)', children: 'Hermes' }),
           jsx('span', {
-            className: 'text-slate-500 truncate',
+            className: 'text-(--dk-texto-3) truncate',
             children: perfilElegido || 'abriendo…',
           }),
           jsx('span', {
             className: 'h-2 w-2 rounded-full shrink-0 ' +
-              (perfilOk === true ? 'bg-emerald-500' : 'bg-slate-300'),
+              (perfilOk === true ? 'bg-(--dk-ok)' : 'bg-(--dk-superficie-2)'),
             title: modelo
               ? etiquetaModelo(modelo.id) + ' · ' + modelo.destino
               : 'conectando sesión del escrito',
           }),
           modelo ? jsx('span', {
-            className: 'text-[10px] text-slate-400 truncate',
+            className: 'text-xs text-(--dk-texto-3) truncate',
             children: etiquetaModelo(modelo.id) + ' · ' + modelo.destino,
           }) : null,
           jsxs('div', { className: 'ml-auto flex items-center gap-1', children: [
             mensajes.length > 0 ? jsx('button', {
               type: 'button',
               onClick: () => setMensajes([]),
-              className: 'rounded px-1.5 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200/70 hover:text-slate-800 cursor-pointer',
-              title: 'Limpiar vista de conversación',
-              children: 'Limpiar',
+              className: 'rounded px-1.5 py-0.5 text-xs text-(--dk-texto-3) hover:bg-(--dk-sobre) hover:text-(--dk-texto) cursor-pointer',
+              title: t('chat.limpiarTitulo'),
+              children: t('chat.limpiar'),
             }) : null,
             jsx('button', {
               type: 'button',
               onClick: () => setVerContexto((v) => !v),
-              className: 'rounded p-1 text-xs cursor-pointer ' +
-                (verContexto ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-200/70 hover:text-slate-800'),
-              title: 'Qué ve el agente en este turno (seudonimizado antes de salir)',
-              children: '👁',
+              'aria-pressed': verContexto,
+              className: 'dk-btn dk-btn--chico',
+              title: t('chat.contextoTitulo'),
+              children: t('chat.contexto'),
             }),
           ] }),
         ],
@@ -525,21 +523,21 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
 
       // Inspector de transparencia: qué viaja en el sobre <dike-escritor v="1">
       verContexto ? jsxs('div', {
-        className: 'border-b border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 flex flex-col gap-1 shrink-0',
+        className: 'border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-2 text-xs text-(--dk-texto-2) flex flex-col gap-1 shrink-0',
         children: [
-          jsx('div', { className: 'font-semibold text-slate-800', children: 'Lo que ve el agente en este turno (sobre <dike-escritor v="1">)' }),
-          jsx('div', { children: `Caso: ${caseId} · Escrito: ${largoEscrito} caracteres · Citas verificadas: ${numCitasVerif}` }),
+          jsx('div', { className: 'font-semibold text-(--dk-texto)', children: t('chat.contextoTitulo2') }),
+          jsx('div', { children: t('chat.contextoCaso', { caso: caseId, largo: largoEscrito, citas: numCitasVerif }) }),
           jsx('div', {
             children: seudOn
-              ? `Privacidad activa: seudonimización «${estrategiaActiva}» antes de enviar.`
-              : 'Privacidad desactivada por confirmación expresa del abogado.',
+              ? t('chat.contextoPrivOn', { estrategia: estrategiaActiva })
+              : t('chat.contextoPrivOff'),
           }),
-          jsx('div', { className: 'text-[10px] text-slate-500', children: 'El estado de las citas lo fija Diké, no el modelo. Hooks fail-closed bloquean herramientas de terminal y archivos.' }),
+          jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: t('chat.contextoNota') }),
           onAbrirPrivacidad ? jsx('button', {
             type: 'button',
             onClick: onAbrirPrivacidad,
-            className: 'self-start text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer',
-            children: 'Configurar reglas de seudonimización →',
+            className: S.link + ' self-start dk-meta',
+            children: t('chat.configurarPriv'),
           }) : null,
         ],
       }) : null,
@@ -550,22 +548,21 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
         children: [
           // Tarjeta informativa de privacidad y destino (inspirada en la imagen 2)
           (!avisoCerrado && mensajes.length === 0) ? jsxs('div', {
-            className: 'rounded-md border border-slate-300 bg-slate-50 p-3 text-xs text-slate-700 flex flex-col gap-2',
+            className: 'rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3 text-xs text-(--dk-texto-2) flex flex-col gap-2',
             children: [
-              jsx('div', { className: 'font-semibold text-slate-900', children: 'Antes de escribir: ¿a dónde va lo que escribas?' }),
-              jsx('div', { className: 'leading-relaxed text-slate-600 text-[11px]', children:
-                'Diké seudonimiza los datos personales (RUT, correo, teléfono, nombres con contexto) antes de enviar al perfil de Hermes. ' +
-                'El estado de las citas lo fija Diké, no el modelo.' }),
-              jsxs('div', { className: 'flex flex-col gap-1 rounded border border-slate-200 bg-white p-2 text-[11px]', children: [
+              jsx('div', { className: 'font-semibold text-(--dk-texto)', children: t('chat.antesTitulo') }),
+              jsx('div', { className: 'leading-relaxed text-(--dk-texto-2) text-xs', children:
+                t('chat.antesCuerpo') }),
+              jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) p-2 text-xs', children: [
                 jsxs('div', { className: 'flex items-center justify-between', children: [
-                  jsx('span', { className: 'font-medium text-slate-800', children: 'Destino del perfil:' }),
-                  jsx('span', { className: 'font-mono text-slate-600', children: (perfilElegido || 'activo') + (modelo ? ' · ' + modelo.destino : '') }),
+                  jsx('span', { className: 'font-medium text-(--dk-texto)', children: t('chat.destino') }),
+                  jsx('span', { className: 'font-mono text-(--dk-texto-2)', children: (perfilElegido || t('chat.perfilActivo')) + (modelo ? ' · ' + modelo.destino : '') }),
                 ] }),
                 jsxs('div', { className: 'flex items-center justify-between', children: [
-                  jsx('span', { className: 'font-medium text-slate-800', children: 'Seudonimización:' }),
+                  jsx('span', { className: 'font-medium text-(--dk-texto)', children: t('chat.seudonimizacion') }),
                   jsx('span', {
-                    className: seudOn ? 'font-semibold text-emerald-700' : 'font-semibold text-amber-700',
-                    children: seudOn ? `Activa (${estrategiaActiva})` : 'Apagada por el usuario',
+                    className: 'font-semibold ' + (seudOn ? S.ok : S.warn),
+                    children: seudOn ? t('chat.privActiva', { estrategia: estrategiaActiva }) : t('chat.privApagada'),
                   }),
                 ] }),
               ] }),
@@ -573,23 +570,23 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 jsx('button', {
                   type: 'button',
                   onClick: () => setAvisoCerrado(true),
-                  className: 'rounded bg-slate-700 hover:bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer',
-                  children: 'Entendido, continuar',
+                  className: 'dk-btn dk-btn--primario dk-btn--chico',
+                  children: t('chat.entendido'),
                 }),
                 onAbrirPrivacidad ? jsx('button', {
                   type: 'button',
                   onClick: onAbrirPrivacidad,
-                  className: 'text-[11px] text-indigo-600 hover:underline cursor-pointer',
-                  children: 'Ver datos que salen',
+                  className: S.link + ' dk-meta',
+                  children: t('chat.verSalida'),
                 }) : null,
               ] }),
             ],
           }) : jsx('div', {
-            className: 'text-[11px] text-slate-400',
-            children: 'Chat del escrito · El estado de las citas lo fija Diké, no el modelo.',
+            className: 'text-xs text-(--dk-texto-3)',
+            children: t('chat.subtitulo'),
           }),
 
-          perfilOk === null ? jsx('div', { className: S.sub, children: 'abriendo sesión…' }) : null,
+          perfilOk === null ? jsx('div', { className: S.sub, children: t('chat.abriendo') }) : null,
 
           ...mensajes.map((m, i) => {
             // Las notas al pie se separan del cuerpo para verificarlas contra el
@@ -599,19 +596,19 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
             return jsxs('div', {
               key: i,
               className: m.rol === 'user'
-                ? 'self-end max-w-[90%] rounded-lg bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 text-xs text-slate-800'
-                : 'rounded-lg border border-slate-200 bg-slate-50/70 p-2.5 text-xs text-slate-800',
+                ? 'self-end max-w-[90%] rounded-lg border border-(--dk-borde-suave) bg-(--dk-superficie-2) px-2.5 py-1.5 text-xs text-(--dk-texto)'
+                : 'rounded-lg border border-(--dk-borde) bg-(--dk-superficie) p-2.5 text-xs text-(--dk-texto)',
               children: [
                 m.rol === 'user'
-                  ? jsxs('span', { children: [jsx('b', { className: 'text-indigo-900', children: 'Tú: ' }), rehidratar(m.texto, {})] })
+                  ? jsxs('span', { children: [jsx('b', { children: t('chat.te') }), rehidratar(m.texto, {})] })
                   : jsxs('div', { className: 'flex flex-col gap-1.5', children: [
                       jsx('div', { className: 'whitespace-pre-wrap leading-relaxed', children:
                         rehidratar(notas.cuerpo,
                           (registro && registro.chat && registro.chat.mapa) || {}) }),
                       m.verificando ? jsx('span', { className: S.chip + ' ' + S.chipOff,
-                        children: 'verificando citas…' }) : null,
-                      m.verif && m.verif.fallo ? jsx('div', { className: 'text-xs text-(--ui-danger)',
-                        children: 'No se pudieron verificar las citas de esta respuesta: trátalas como no verificadas.' }) : null,
+                        children: t('chat.verificando') }) : null,
+                      m.verif && m.verif.fallo ? jsx('div', { className: 'text-xs ' + S.bad,
+                        children: t('chat.verifFallo') }) : null,
                       m.verif && m.verif.res ? jsxs('div', { className: 'flex flex-wrap gap-1', children:
                           (m.verif.res.detalles || []).map((d, j) => {
                             const est = estadoCita(d, m.verif.hash, m.verif.hash, registro)
@@ -636,8 +633,8 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                         verif: m.verif, onAbrirGrafo,
                       }),
                       jsx('button', {
-                        type: 'button', className: S.link + ' text-left text-[11px] font-medium pt-0.5',
-                        onClick: () => insertar(m.texto), children: '↳ Insertar en el escrito',
+                        type: 'button', className: S.link + ' text-left text-xs font-medium pt-0.5',
+                        onClick: () => insertar(m.texto), children: t('chat.insertar'),
                       }),
                     ] }),
               ],
@@ -645,7 +642,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           }),
 
           stream ? jsx('div', {
-            className: 'rounded-lg border border-indigo-200 bg-indigo-50/30 p-2.5 text-xs whitespace-pre-wrap text-slate-800',
+            className: 'rounded-lg border border-(--dk-borde) bg-(--dk-superficie) p-2.5 text-xs whitespace-pre-wrap text-(--dk-texto)',
             children: stream,
           }) : null,
 
@@ -653,16 +650,16 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
         ],
       }),
 
-      error ? jsx('div', { className: 'border-t border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700', children: mensajeError(error) }) : null,
+      error ? jsx('div', { className: S.noticeBad + ' shrink-0', children: mensajeError(error) }) : null,
 
       // Barra de entrada inferior estilo imagen 2 («Escribe a Hermes…»)
       jsxs('div', {
-        className: 'flex items-center gap-1.5 border-t border-slate-200 bg-white p-2 shrink-0',
+        className: 'flex items-center gap-1.5 border-t border-(--dk-borde) bg-(--dk-elevada) p-2 shrink-0',
         children: [
           jsx('input', {
-            className: 'flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100',
+            className: S.input + ' flex-1',
             value: pregunta,
-            placeholder: 'Escribe a Hermes…',
+            placeholder: t('chat.placeholder'),
             disabled: !sesion || ocupado,
             onChange: (e) => setPregunta(e.target.value),
             onKeyDown: (e) => { if (e.key === 'Enter') enviar() },
@@ -672,16 +669,17 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 type: 'button',
                 onClick: enviar,
                 disabled: !sesion || ocupado || !pregunta.trim(),
-                title: 'Enviar mensaje a Hermes (seudonimizado)',
-                className: 'flex h-8 w-8 items-center justify-center rounded-md bg-slate-800 hover:bg-slate-900 disabled:opacity-35 text-white text-xs cursor-pointer shrink-0',
+                'aria-label': t('chat.enviar'),
+                title: t('chat.enviar'),
+                className: 'dk-btn dk-btn--primario dk-btn--icono shrink-0',
                 children: '➤',
               })
             : jsx('button', {
                 type: 'button',
                 onClick: detener,
-                title: 'Detener generación',
-                className: 'rounded-md border border-red-300 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 text-xs font-medium text-red-700 cursor-pointer shrink-0',
-                children: 'Detener',
+                title: t('chat.detener'),
+                className: S.btnDanger + ' shrink-0',
+                children: t('chat.detenerBtn'),
               }),
         ],
       }),

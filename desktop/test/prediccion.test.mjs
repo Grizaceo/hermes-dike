@@ -1,9 +1,11 @@
-// Mesa + L0 + L2 (lógica pura, node --test).
+// Mesa + L0 + L1 + L2 (lógica pura, node --test).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { setRest } from '../src/common.js'
 import { crearMesa, elegir, procedenciaValida, dentroDeCita, TOPE_SUGERENCIA } from '../src/escritor/prediccion/mesa.js'
 import { predictFormalismo, predictContenidoJuridico, sufijoPendiente, segmentoActual, textoAInsertar } from '../src/escritor/prediccion/l0.js'
-import { clasificarDestino, componerInputL2, INSTRUCCIONES_L2 } from '../src/escritor/prediccion/l2.js'
+import { crearPredictorCorpus } from '../src/escritor/prediccion/l1.js'
+import { crearPredictorModelo, clasificarDestino, componerInputL2, INSTRUCCIONES_L2 } from '../src/escritor/prediccion/l2.js'
 
 const ESPERA = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -78,6 +80,40 @@ test('L0: acción procesal con fundamentos de procedencia norma', () => {
     .accion, null)
 })
 
+test('L1: POST /prediccion/corpus con cola = últimas 4 palabras (≤300)', async () => {
+  const llamadas = []
+  setRest(async (path, opts) => {
+    llamadas.push({ path, opts })
+    return { continuacion: 'el demandado', ancla: 'las partes',
+      gid: 'g1', sha256: 's1', fuente_url: 'https://x' }
+  })
+  const l1 = crearPredictorCorpus()
+  const r = await l1.predecir({ segmento: 'uno dos tres cuatro cinco seis' })
+  assert.equal(llamadas.length, 1)
+  assert.equal(llamadas[0].path, '/prediccion/corpus')
+  assert.equal(llamadas[0].opts.method, 'POST')
+  assert.deepEqual(llamadas[0].opts.body, { cola: 'tres cuatro cinco seis' })
+  assert.equal(r.texto, 'el demandado')
+  assert.equal(r.capa, 'L1')
+  assert.equal(r.procedencia.tipo, 'corpus')
+  assert.equal(r.procedencia.fuente, 'https://x')
+  assert.equal(r.procedencia.gid, 'g1')
+  assert.equal(r.procedencia.sha256, 's1')
+  assert.equal(r.procedencia.anclaLen, 'las partes'.length)
+})
+
+test('L1: cola corta no llama a la API; error o sin continuación → null', async () => {
+  let llamadas = 0
+  setRest(async () => { llamadas++; return { continuacion: 'x' } })
+  const l1 = crearPredictorCorpus()
+  assert.equal(await l1.predecir({ segmento: 'corto' }), null)
+  assert.equal(llamadas, 0)
+  setRest(async () => { throw new Error('500') })
+  assert.equal(await l1.predecir({ segmento: 'palabras suficientes aquí' }), null)
+  setRest(async () => ({ continuacion: '' }))
+  assert.equal(await l1.predecir({ segmento: 'palabras suficientes aquí' }), null)
+})
+
 test('L2: clasificación local/nube', () => {
   const cfg = (t) => ({ auxiliary: { dike_prediccion: t } })
   assert.equal(clasificarDestino(cfg({ base_url: 'http://127.0.0.1:11434/v1' })),
@@ -93,6 +129,41 @@ test('L2: clasificación local/nube', () => {
   assert.equal(clasificarDestino(cfg({ provider: 'nous' })), 'nube')
   assert.equal(clasificarDestino({}), 'nube')
   assert.equal(clasificarDestino(null), 'nube')
+})
+
+test('L2: reintenta sin task si el transporte rechaza los params', async () => {
+  const llamadas = []
+  const l2 = crearPredictorModelo({
+    requestProfile: async (ruta, metodo, params) => {
+      llamadas.push(params)
+      if (params.task) throw new Error('invalid_params')
+      return { text: '  continuación del modelo  ' }
+    },
+    ruta: 'ruta-falsa', destino: 'local',
+  })
+  const r = await l2.predecir({ segmento: 'El actor interpone', contexto: {} })
+  assert.equal(llamadas.length, 2)
+  assert.equal(llamadas[0].task, 'dike_prediccion')
+  assert.equal('task' in llamadas[1], false)
+  assert.equal(llamadas[1].instructions, INSTRUCCIONES_L2)
+  assert.equal(r.texto, 'continuación del modelo')
+  assert.equal(r.capa, 'L2')
+  assert.equal(r.procedencia.tipo, 'modelo')
+})
+
+test('L2: éxito a la primera no reintenta; texto vacío → null', async () => {
+  let llamadas = 0
+  const l2 = crearPredictorModelo({
+    requestProfile: async () => { llamadas++; return { text: 'sigue' } },
+    ruta: 'r', destino: 'local',
+  })
+  assert.equal((await l2.predecir({ segmento: 'x', contexto: {} })).texto, 'sigue')
+  assert.equal(llamadas, 1)
+  const l2vacio = crearPredictorModelo({
+    requestProfile: async () => ({ text: '   ' }),
+    ruta: 'r', destino: 'local',
+  })
+  assert.equal(await l2vacio.predecir({ segmento: 'x', contexto: {} }), null)
 })
 
 test('L2: composición del input', () => {

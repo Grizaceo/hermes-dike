@@ -1,4 +1,4 @@
-// Compartido entre plugin.src.js y grafo3d.js: tokens de clase del tema,
+// Compartido entre plugin.src.js y grafo3d.js: nombres de estilo,
 // el error legible y el REST del contexto (ctx.rest del PluginContext: el
 // objeto `host` del SDK no expone REST — solo navigate/request/state).
 
@@ -15,34 +15,88 @@ export function setStorage(s) {
   storage = s
 }
 
+// Nombres de estilo de la página. Los componentes (`dk-*`) están en
+// estilos.css; aquí se combinan con utilidades de disposición.
 export const S = {
-  page: 'flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-(--ui-text-primary)',
-  title: 'text-base font-semibold',
-  sub: 'text-xs text-(--ui-text-tertiary)',
-  card: 'flex flex-col gap-2 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) p-3',
-  cardTitle: 'text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)',
-  chip: 'inline-flex items-center rounded-sm px-1.5 py-0.5 text-[0.6875rem] font-medium',
-  chipOk: 'bg-(--ui-success) text-(--ui-bg-primary)',
-  chipOff: 'bg-(--ui-bg-quaternary) text-(--ui-text-secondary)',
-  chipBad: 'bg-(--ui-danger) text-(--ui-bg-primary)',
-  textarea: 'min-h-40 w-full rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-2 font-mono text-xs text-(--ui-text-primary) outline-none focus:border-(--ui-accent)',
-  input: 'rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) px-2 py-1 text-xs text-(--ui-text-primary) outline-none focus:border-(--ui-accent)',
-  button: 'self-start rounded-md bg-(--ui-accent) px-3 py-1.5 text-xs font-medium text-(--ui-bg-primary) disabled:opacity-50',
-  ghost: 'self-start rounded-md border border-(--ui-stroke-secondary) px-3 py-1.5 text-xs text-(--ui-text-secondary)',
-  link: 'text-(--ui-accent) hover:underline cursor-pointer',
-  row: 'flex items-start gap-2 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0',
+  page: 'flex h-full flex-col gap-3 overflow-y-auto p-4',
+  title: 'dk-titulo',
+  sub: 'dk-meta',
+  card: 'dk-panel flex flex-col gap-2 p-3',
+  cardTitle: 'dk-rotulo',
+  // Botones: primario (una acción principal por vista), con borde, plano,
+  // de peligro y de solo icono.
+  button: 'dk-btn dk-btn--primario self-start',
+  ghost: 'dk-btn dk-btn--borde self-start',
+  btn: 'dk-btn',
+  btnPrimary: 'dk-btn dk-btn--primario',
+  btnOutline: 'dk-btn dk-btn--borde',
+  btnDanger: 'dk-btn dk-btn--borde dk-btn--peligro',
+  btnIcon: 'dk-btn dk-btn--icono',
+  btnSmall: 'dk-btn dk-btn--borde dk-btn--chico',
+  link: 'dk-enlace',
+  // Insignias: `S.chip + ' ' + S.chipOk`. chipOff es la neutra.
+  chip: 'dk-insignia',
+  chipOk: 'dk-insignia--ok',
+  chipOff: '',
+  chipBad: 'dk-insignia--mal',
+  chipWarn: 'dk-insignia--aviso',
+  chipInfo: 'dk-insignia--info',
+  chipAcento: 'dk-insignia--acento',
+  textarea: 'dk-campo min-h-40 w-full dk-mono',
+  input: 'dk-campo',
+  row: 'dk-fila flex items-start gap-2 py-1.5',
   mark: 'w-4 shrink-0 text-center font-bold',
-  ok: 'text-(--ui-success)',
-  bad: 'text-(--ui-danger)',
-  meta: 'min-w-0 break-all text-xs text-(--ui-text-tertiary)',
+  ok: 'dk-ok',
+  bad: 'dk-mal',
+  warn: 'dk-aviso-texto',
+  meta: 'dk-meta min-w-0 break-all',
+  mono: 'dk-mono',
   tabs: 'flex gap-1 border-b border-(--ui-stroke-secondary)',
-  tab: 'px-3 py-1.5 text-xs rounded-t-md cursor-pointer',
-  tabOn: 'bg-(--ui-bg-secondary) font-medium text-(--ui-text-primary)',
-  tabOff: 'text-(--ui-text-tertiary) hover:text-(--ui-text-primary)',
-  section: 'rounded-md border border-(--ui-stroke-secondary) p-2 flex flex-col gap-1',
-  sectionTitle: 'text-[0.6875rem] font-medium uppercase tracking-wide text-(--ui-text-tertiary)',
+  tab: 'dk-btn dk-pestana',
+  section: 'dk-panel dk-panel--plano flex flex-col gap-1 p-2',
+  sectionTitle: 'dk-rotulo',
+  panel: 'dk-panel',
+  floating: 'dk-panel dk-panel--flotante',
+  toolbar: 'dk-barra',
+  divider: 'dk-separador',
+  notice: 'dk-aviso',
+  noticeOk: 'dk-aviso dk-aviso--ok',
+  noticeBad: 'dk-aviso dk-aviso--mal',
+  noticeWarn: 'dk-aviso dk-aviso--aviso',
+  empty: 'dk-vacio',
 }
 
 export function mensajeError(e) {
   return (e && (e.message || e.detail || e.error)) || String(e)
 }
+
+// Temporizadores con ámbito del plugin: ctx.setTimeout/setInterval del SDK se
+// cancelan solos al descargar el plugin; sin ctx caen a los globales del
+// navegador. Cada programar* devuelve una función cancel(); los sitios que
+// antes guardaban el id numérico ahora guardan esa función y la llaman con
+// cancelarTarea (idempotente).
+const nativoTimeout = (fn, ms) => {
+  const id = setTimeout(fn, ms)
+  return () => clearTimeout(id)
+}
+const nativoInterval = (fn, ms) => {
+  const id = setInterval(fn, ms)
+  return () => clearInterval(id)
+}
+let _timeout = nativoTimeout
+let _interval = nativoInterval
+
+// Cada llamada fija AMBOS backends: un ctx sin setTimeout/setInterval (o
+// null) vuelve a los temporizadores del navegador.
+export function setTimers(ctx) {
+  _timeout = ctx && typeof ctx.setTimeout === 'function'
+    ? (fn, ms) => ctx.setTimeout(fn, ms)
+    : nativoTimeout
+  _interval = ctx && typeof ctx.setInterval === 'function'
+    ? (fn, ms) => ctx.setInterval(fn, ms)
+    : nativoInterval
+}
+
+export function programarTimeout(fn, ms) { return _timeout(fn, ms) }
+export function programarInterval(fn, ms) { return _interval(fn, ms) }
+export function cancelarTarea(t) { if (typeof t === 'function') t() }

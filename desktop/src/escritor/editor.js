@@ -19,7 +19,7 @@ const ESTILOS_MARCA = {
   verificada:
     'background:rgba(34,197,94,.18);border-bottom:2px solid var(--ui-success,rgb(34,197,94));border-radius:2px',
   fallo:
-    'background:rgba(239,68,68,.14);border-bottom:2px solid var(--ui-danger,rgb(239,68,68));border-radius:2px',
+    'background:rgba(239,68,68,.14);border-bottom:2px solid var(--dk-mal,rgb(239,68,68));border-radius:2px',
   desactualizada:
     'border-bottom:2px dotted var(--ui-stroke-tertiary,rgb(156,163,175));opacity:.7',
   escalada:
@@ -279,6 +279,17 @@ export function montarEditor({ element, content, placeholder, onUpdate,
 
 export function textoDelEditor(editor) {
   return editor.getText({ blockSeparator: SEPARADOR })
+}
+
+// Inserta `html` (uno o más bloques) donde está el cursor. Solo añade al
+// final cuando el documento está vacío: sin cursor útil, «añadir» es lo
+// único sensato. No usa insertContent para no pisar una selección con
+// texto: insertContentAt(selection.from) nunca borra lo seleccionado.
+export function insertarHtmlEnCursor(editor, html) {
+  const pos = editor.isEmpty
+    ? editor.state.doc.content.size
+    : editor.state.selection.from
+  editor.chain().focus().insertContentAt(pos, html).run()
 }
 
 // Reemplaza los rangos [{from,to}] por `texto` en una sola transacción

@@ -59,6 +59,14 @@ test('citas vacías o nulas no se encolan', () => {
   assert.deepEqual(tomarCitas(), [])
 })
 
+test('la cola tiene tope: la cita 21 no se encola', () => {
+  for (let i = 0; i < 20; i++) {
+    assert.equal(encolarCita({ cita: 'artículo ' + i + ' de la Ley 20.720' }), true)
+  }
+  assert.equal(encolarCita({ cita: 'artículo 99 de la Ley 20.720' }), false)
+  assert.equal(tomarCitas().length, 20)
+})
+
 // --- Foco del grafo (Chat/Notas → pestaña Grafo) ---------------------------
 import { pedirFoco, tomarFoco } from '../src/puente.js'
 

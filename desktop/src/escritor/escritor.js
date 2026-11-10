@@ -17,9 +17,16 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, storage, S } from '../common.js'
 import {
-  borrarRangos, fijarMarcas, montarEditor, reemplazarRangos, textoDelEditor,
+  cancelarTarea, mensajeError, programarTimeout, rest, storage, S,
+} from '../common.js'
+import {
+  borrarPendiente, escribirPendiente, guardarConReintento, leerPendiente,
+  pendienteDiff,
+} from './guardado-logica.js'
+import {
+  borrarRangos, fijarMarcas, insertarHtmlEnCursor, montarEditor,
+  reemplazarRangos, textoDelEditor,
 } from './editor.js'
 import {
   AVISO_JUICIO, estadoCita, etiquetaCita, localizarCitas, mensajeVeredicto,
@@ -81,60 +88,41 @@ const ANCHOS_HOJA = {
 const HERRAMIENTAS_BARRA = [
   {
     id: 'citas',
-    icono: '✓',
+    icono: '§',
     label: 'Verificador de Citas',
     titulo: 'Verificador de Citas Diké',
-    headerCls: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    activeCls: 'bg-emerald-600 text-white shadow-xs',
   },
   {
     id: 'privacidad',
-    icono: '🛡',
+    icono: '⊘',
     label: 'Privacidad y Anonimizado',
     titulo: 'Seudonimización y Privacidad (Ley 21.719)',
-    headerCls: 'bg-amber-50 border-amber-200 text-amber-900',
-    activeCls: 'bg-amber-600 text-white shadow-xs',
   },
   {
     id: 'estilo',
-    icono: '✍',
+    icono: 'Aa',
     label: 'Revisión de Estilo (LexO Escribe Claro)',
     titulo: 'Revisión de Estilo · LexO Escribe Claro',
-    headerCls: 'bg-teal-50 border-teal-200 text-teal-800',
-    activeCls: 'bg-teal-600 text-white shadow-xs',
   },
   {
     id: 'nif',
-    icono: '⑂',
+    icono: '▦',
     label: 'NIF Interactivo y NIF Vivo',
     titulo: 'Tablero NIF Interactivo y Propuestas',
-    headerCls: 'bg-indigo-50 border-indigo-200 text-indigo-800',
-    activeCls: 'bg-indigo-600 text-white shadow-xs',
   },
   {
     id: 'grafos',
     icono: '◈',
     label: 'Herramientas de Grafos y Ordenamientos',
     titulo: 'Grafos del Corpus y Constructor de Ordenamientos',
-    headerCls: 'bg-sky-50 border-sky-200 text-sky-900',
-    activeCls: 'bg-sky-600 text-white shadow-xs',
   },
   {
     id: 'ajustes',
-    icono: '⚙',
+    icono: '✦',
     label: 'Copilot y Personalización',
     titulo: 'Personalización de Estudio y Predicción',
-    headerCls: 'bg-violet-50 border-violet-200 text-violet-900',
-    activeCls: 'bg-violet-600 text-white shadow-xs',
   },
 ]
-
-function esConflicto(e) {
-  if (!e) return false
-  if (e.status === 409 || e.statusCode === 409) return true
-  if (e.detail && typeof e.detail === 'object' && 'rev_actual' in e.detail) return true
-  return /\b409\b|rev_actual/.test(String(e.message || e.detail || e.error || e))
-}
 
 // --- Panel de una cita en FALLO: probar → reparar → retirar → escalar ---------
 
@@ -144,10 +132,10 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
   const [motivo, setMotivo] = useState('')
   const [nota, setNota] = useState('')
   const agotados = (a.intentos || 0) >= MAX_INTENTOS_REPARAR
-  return jsxs('div', { className: 'flex flex-col gap-1.5 mt-1.5 rounded border border-red-200 bg-red-50/40 p-2', children: [
+  return jsxs('div', { className: 'flex flex-col gap-1.5 mt-1.5 p-2 ' + S.noticeBad, children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
       jsx('input', {
-        className: 'flex-1 min-w-36 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none',
+        className: 'flex-1 min-w-36 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: reparar,
         placeholder: 'texto de reemplazo',
         disabled: agotados,
@@ -155,49 +143,49 @@ function AccionesFallo({ detalle, acciones, onAccion }) {
       }),
       jsx('button', {
         type: 'button',
-        className: 'rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer',
+        className: 'dk-btn dk-btn--borde dk-btn--chico',
         disabled: agotados || a.ocupado || !reparar.trim(),
         onClick: () => onAccion('probar', reparar.trim()),
         children: a.ocupado ? 'probando…' : 'Probar reemplazo',
       }),
       jsx('button', {
         type: 'button',
-        className: 'rounded bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-40 cursor-pointer',
+        className: 'dk-btn dk-btn--chico',
         disabled: !a.probado || agotados || reparar.trim() !== a.probadoTexto,
         onClick: () => onAccion('aplicar', a.probadoTexto),
         children: 'Aplicar',
       }),
     ] }),
     a.resumenPrueba
-      ? jsx('div', { className: 'text-[11px] text-slate-600', children: a.resumenPrueba })
+      ? jsx('div', { className: 'text-xs text-(--dk-texto-2)', children: a.resumenPrueba })
       : null,
     agotados
-      ? jsx('div', { className: 'text-xs text-red-700 font-medium', children:
+      ? jsx('div', { className: S.bad + ' font-medium', children:
           'Dos intentos de reparación sin éxito: conviene escalar.' })
       : null,
     jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
       jsx('input', {
-        className: 'flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none',
+        className: 'flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: motivo,
         placeholder: 'motivo para retirarla',
         onChange: (e) => setMotivo(e.target.value),
       }),
       jsx('button', {
         type: 'button',
-        className: 'rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer',
+        className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer',
         disabled: !motivo.trim(),
         onClick: () => { onAccion('retirar', motivo.trim()); setMotivo('') },
         children: 'Retirar',
       }),
       jsx('input', {
-        className: 'flex-1 min-w-28 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 outline-none',
+        className: 'flex-1 min-w-28 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs text-(--dk-texto) outline-none',
         value: nota,
         placeholder: 'nota para revisión humana',
         onChange: (e) => setNota(e.target.value),
       }),
       jsx('button', {
         type: 'button',
-        className: 'rounded border border-slate-300 bg-white hover:bg-slate-100 px-2 py-1 text-xs text-slate-700 disabled:opacity-40 cursor-pointer',
+        className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) hover:bg-(--dk-sobre) px-2 py-1 text-xs text-(--dk-texto-2) disabled:opacity-40 cursor-pointer',
         disabled: !nota.trim(),
         onClick: () => { onAccion('escalar', nota.trim()); setNota('') },
         children: 'Escalar',
@@ -221,6 +209,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const infoDocRef = useRef({ texto: '', hash: null })
   const verificacionRef = useRef(null)
   const verificarRef = useRef(null)
+  // Guardado serializado: cada POST espera al anterior para que rev_base
+  // nunca quede obsoleto por una escritura en vuelo. revPorCaso guarda la
+  // revisión confirmada por caso (el editor solo muestra uno a la vez).
+  const colaGuardadoRef = useRef(Promise.resolve())
+  const revPorCasoRef = useRef({})
+  const cargaSeqRef = useRef(0)
+  const montadoRef = useRef(false)
 
   const [casos, setCasos] = useState(null)
   const [caseId, setCaseId] = useState(BORRADOR)
@@ -276,6 +271,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const actualizarInfoDoc = useCallback((ed) => {
     const texto = textoDelEditor(ed)
     sha256Hex(texto).then((hash) => {
+      if (!montadoRef.current) return
       const info = { texto, hash }
       infoDocRef.current = info
       setDocInfo(info)
@@ -283,47 +279,84 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   }, [])
 
   const programarInfoDoc = useCallback((ed) => {
-    clearTimeout(timerInfo.current)
-    timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO)
+    cancelarTarea(timerInfo.current)
+    timerInfo.current = programarTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO)
   }, [actualizarInfoDoc])
 
   const estadoRef = useRef('cargando')
   estadoRef.current = estadoDoc
 
-  const guardar = useCallback(() => {
-    const ed = editorRef.current
-    clearTimeout(timerGuardado.current)
-    if (!ed || estadoRef.current === 'conflicto') return Promise.resolve()
-    setEstadoDoc('guardando')
-    const texto = textoDelEditor(ed)
-    return rest('/escrito', {
-      method: 'POST',
-      body: {
-        case_id: casoRef.current,
-        html: ed.getHTML(),
-        texto,
-        rev_base: revRef.current,
-        registro: registroRef.current,
-      },
-    }).then((resp) => {
-      revRef.current = resp.rev
-      textoGuardadoRef.current = texto
-      setEstadoDoc('guardado')
-    }).catch((e) => {
-      if (esConflicto(e)) {
-        setEstadoDoc('conflicto')
-        const d = e && e.detail
-        setConflictoRev(d && typeof d === 'object' ? d.rev_actual : null)
-      } else {
-        setEstadoDoc('sin-guardar')
-        setError(e)
+  // Ejecuta un guardado ya encolado. payload es una instantánea capturada al
+  // pedir el guardado (caso, html, texto, registro): no lee el editor, así el
+  // guardado de desmontaje sigue siendo correcto tras destruirlo.
+  const enviarGuardado = useCallback(async (payload) => {
+    const revDe = () => revPorCasoRef.current[payload.case_id] || 0
+    const r = await guardarConReintento(
+      (revBase) => rest('/escrito', {
+        method: 'POST',
+        body: {
+          case_id: payload.case_id,
+          html: payload.html,
+          texto: payload.texto,
+          rev_base: revBase === undefined ? revDe() : revBase,
+          registro: payload.registro,
+        },
+      }),
+      async () => {
+        const d = await rest('/escrito?case_id=' +
+          encodeURIComponent(payload.case_id))
+        const rev = d && typeof d.rev === 'number' ? d.rev : null
+        if (rev != null) revPorCasoRef.current[payload.case_id] = rev
+        return rev
+      })
+    const esActual = payload.case_id === casoRef.current
+    if (r.ok) {
+      const rev = r.resp && typeof r.resp.rev === 'number' ? r.resp.rev : revDe()
+      revPorCasoRef.current[payload.case_id] = rev
+      // El guardado quedó en el servidor: cualquier pendiente de ese caso
+      // (incluso de una sesión anterior) ya no hace falta.
+      borrarPendiente(payload.case_id)
+      if (esActual) {
+        revRef.current = rev
+        textoGuardadoRef.current = payload.texto
+        if (montadoRef.current) setEstadoDoc('guardado')
       }
-    })
+      return
+    }
+    // Falló: guardar la instantánea para que el próximo montaje la recupere.
+    escribirPendiente(payload)
+    if (!montadoRef.current || !esActual) return
+    if (r.conflicto) {
+      setEstadoDoc('conflicto')
+      setConflictoRev(r.rev_actual != null ? r.rev_actual : null)
+    } else {
+      setEstadoDoc('sin-guardar')
+      setError(r.error)
+    }
   }, [])
 
+  const guardar = useCallback(() => {
+    cancelarTarea(timerGuardado.current)
+    const ed = editorRef.current
+    if (!ed || estadoRef.current === 'conflicto') return Promise.resolve()
+    // El guardado es del caso visible (casoRef): reflejar «guardando» solo
+    // si el componente sigue montado.
+    if (montadoRef.current) setEstadoDoc('guardando')
+    const payload = {
+      case_id: casoRef.current,
+      html: ed.getHTML(),
+      texto: textoDelEditor(ed),
+      registro: registroRef.current,
+    }
+    const promesa = colaGuardadoRef.current
+      .then(() => enviarGuardado(payload))
+    colaGuardadoRef.current = promesa.catch(() => {})
+    return promesa
+  }, [enviarGuardado])
+
   const programarGuardado = useCallback(() => {
-    clearTimeout(timerGuardado.current)
-    timerGuardado.current = setTimeout(() => { guardar() }, DEBOUNCE_GUARDADO)
+    cancelarTarea(timerGuardado.current)
+    timerGuardado.current = programarTimeout(() => { guardar() }, DEBOUNCE_GUARDADO)
   }, [guardar])
 
   // Sincronizar cambios en registro (privacidad, pizarra, predicción, NIF)
@@ -346,7 +379,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-    ed.chain().insertContentAt(ed.state.doc.content.size, '<p>' + seguro + '.</p>').run()
+    insertarHtmlEnCursor(ed, '<p>' + seguro + '.</p>')
     const reg = registroRef.current || {}
     registroRef.current = {
       ...reg,
@@ -356,9 +389,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       ],
     }
     setRegistro(registroRef.current)
-    estadoRef.current = 'sin-guardar'
-    setEstadoDoc('sin-guardar')
-    programarGuardado()
+    if (estadoRef.current !== 'conflicto') {
+      estadoRef.current = 'sin-guardar'
+      setEstadoDoc('sin-guardar')
+      programarGuardado()
+    }
     setAviso('Cita traída desde la búsqueda: es una pista; se está verificando.')
     if (verificarRef.current) verificarRef.current()
   }, [programarGuardado])
@@ -366,6 +401,10 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const cargarEscrito = useCallback((cid) => {
     const ed = editorRef.current
     if (!ed) return
+    // Guardia de secuencia (como pizarra.js): si el usuario cambió de caso
+    // antes de que respondiera la carga anterior, la respuesta vieja se
+    // descarta — el editor nunca muestra un caso que no es el seleccionado.
+    const seq = ++cargaSeqRef.current
     setEstadoDoc('cargando')
     setError(null)
     setAviso(null)
@@ -373,20 +412,45 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     setAcciones({})
     setConflictoRev(null)
     rest('/escrito?case_id=' + encodeURIComponent(cid)).then((d) => {
+      // Además de la secuencia hace falta el montaje: si el componente se
+      // fue (otra pestaña) con la carga en vuelo, `ed` ya está destruido y
+      // setContent/estado no deben tocarlo.
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return
       casoRef.current = cid
-      if (d && d.existe) {
-        ed.commands.setContent(d.html || d.texto || '')
-        revRef.current = d.rev
-        registroRef.current = d.registro || {}
-      } else {
-        ed.commands.setContent('')
-        revRef.current = 0
-        registroRef.current = {}
-      }
+      const rev = d && typeof d.rev === 'number' ? d.rev : 0
+      revPorCasoRef.current[cid] = rev
+      revRef.current = rev
+      const htmlServidor = (d && d.existe) ? (d.html || d.texto || '') : ''
+      const registroServidor = (d && d.existe && d.registro) || {}
+      ed.commands.setContent(htmlServidor)
+      registroRef.current = registroServidor
       textoGuardadoRef.current = textoDelEditor(ed)
       setRegistro(registroRef.current)
-      setEstadoDoc('guardado')
+
+      // Guardado que falló al desmontar: si la instantánea difiere de lo que
+      // trajo el servidor, restaurarla y reintentar el guardado.
+      const pend = leerPendiente(cid)
+      const restaura = pend && pendienteDiff(pend, {
+        texto: textoGuardadoRef.current,
+        html: htmlServidor,
+        registro: registroRef.current,
+      })
+      if (pend && !restaura) borrarPendiente(cid)
+      if (restaura) {
+        ed.commands.setContent(pend.html || '')
+        registroRef.current = pend.registro || {}
+        setRegistro(registroRef.current)
+        estadoRef.current = 'sin-guardar'
+        setEstadoDoc('sin-guardar')
+        setAviso('Recuperé cambios que no se habían guardado; reintentando el guardado.')
+        programarGuardado()
+      } else {
+        setEstadoDoc('guardado')
+      }
       actualizarInfoDoc(ed)
+
+      // Citas encoladas desde otra pestaña (Grafo/NIF): se aplican recién
+      // cargado el caso, sin cursor del usuario — van al final, no al cursor.
       const pendientes = tomarCitas()
       if (pendientes.length) {
         const ahora = new Date().toISOString()
@@ -413,16 +477,21 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         if (verificarRef.current) verificarRef.current()
       }
     }).catch((e) => {
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return
       setEstadoDoc('sin-guardar')
       setError(e)
     })
   }, [actualizarInfoDoc, programarGuardado])
 
   const recargarListaCasos = useCallback((seleccionarId = null) => {
+    // El encadenamiento «recargar y seleccionar» solo corre si nadie pidió
+    // otra carga de escrito entretanto: una respuesta tardía de /nif/casos no
+    // puede robarle el editor al caso que el usuario acaba de elegir.
+    const seq = cargaSeqRef.current
     return rest('/nif/casos').then((d) => {
       const lista = (d && d.cases) || []
       setCasos(lista)
-      if (seleccionarId) {
+      if (seleccionarId && cargaSeqRef.current === seq) {
         setCaseId(seleccionarId)
         cargarEscrito(seleccionarId)
       }
@@ -459,6 +528,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       },
     })
     editorRef.current = ed
+    montadoRef.current = true
     rest('/nif/casos').then((d) => {
       const lista = (d && d.cases) || []
       setCasos(lista)
@@ -474,8 +544,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       cargarEscrito(BORRADOR)
     })
     return () => {
-      clearTimeout(timerGuardado.current)
-      clearTimeout(timerInfo.current)
+      montadoRef.current = false
+      cancelarTarea(timerGuardado.current)
+      cancelarTarea(timerInfo.current)
       // Al desmontar (otra pestaña, Grafo 3D) el debounce pendiente se pierde:
       // volcar los cambios de registro/documento antes de destruir el editor.
       if (estadoRef.current === 'sin-guardar') {
@@ -538,7 +609,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   verificarRef.current = verificar
 
   const cambiarCaso = useCallback((cid) => {
-    clearTimeout(timerGuardado.current)
+    cancelarTarea(timerGuardado.current)
     const continuar = () => {
       setCaseId(cid)
       cargarEscrito(cid)
@@ -572,6 +643,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     const ed = editorRef.current
     if (!ed) return
     rest('/escrito/demo').then((d) => {
+      if (!montadoRef.current) return
       if (d && (d.html || d.texto)) {
         ed.commands.setContent(d.html || d.texto)
         setAviso('Escrito sintético de demostración cargado. Pulsa «Verificar citas» para probar el motor.')
@@ -588,7 +660,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       .split(/\n\s*\n/)
       .map((p) => '<p>' + p.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>') + '</p>')
       .join('')
-    ed.chain().focus().insertContentAt(ed.state.doc.content.size, parrafos).run()
+    insertarHtmlEnCursor(ed, parrafos)
   }, [])
 
   const agregarNotaAPizarra = useCallback((datosNota) => {
@@ -616,6 +688,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   }, [actualizarRegistro])
 
   const recargarTrasConflicto = useCallback(() => {
+    // «Descartar mis cambios» también descarta la instantánea pendiente:
+    // si no, la próxima carga la restauraría y el conflicto volvería.
+    borrarPendiente(casoRef.current)
     cargarEscrito(casoRef.current)
   }, [cargarEscrito])
 
@@ -711,7 +786,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const pizarraEstado = (registro && registro.pizarra) || { nodos: [], aristas: [], colapsada: false, altura: 225 }
 
   return jsxs('div', {
-    className: 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-slate-300 bg-white shadow-xs',
+    className: 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
     style: { minHeight: '760px' },
     children: [
       // 1. Barra de formato y documento estilo Word (2 filas, como imagen 2)
@@ -749,7 +824,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
 
       // Banners de conflicto, error o aviso
       estadoDoc === 'conflicto' ? jsxs('div', {
-        className: 'flex items-center gap-3 border-b border-amber-300 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 shrink-0',
+        className: 'flex items-center gap-3 border-b px-4 py-1.5 text-xs shrink-0 ' + S.noticeWarn,
         children: [
           jsx('span', { className: 'flex-1', children:
             'Otro proceso guardó este escrito' +
@@ -757,25 +832,27 @@ export function SeccionEscritor({ onAbrirGrafo }) {
           jsx('button', {
             type: 'button',
             onClick: recargarTrasConflicto,
-            className: 'rounded border border-amber-400 bg-white px-2 py-0.5 font-medium text-amber-900 hover:bg-amber-100 cursor-pointer',
+            className: 'dk-btn dk-btn--borde dk-btn--chico',
             children: 'descargar y perder mis cambios',
           }),
         ],
       }) : null,
 
       error ? jsxs('div', {
-        className: 'flex items-center justify-between border-b border-red-200 bg-red-50 px-4 py-1.5 text-xs text-red-700 shrink-0',
+        className: 'flex items-center justify-between border-b px-4 py-1.5 text-xs shrink-0 ' + S.noticeBad,
+        role: 'alert',
         children: [
           jsx('span', { children: mensajeError(error) }),
-          jsx('button', { type: 'button', onClick: () => setError(null), className: 'text-red-500 hover:text-red-800', children: '✕' }),
+          jsx('button', { type: 'button', 'aria-label': 'Cerrar aviso de error', onClick: () => setError(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
         ],
       }) : null,
 
       aviso ? jsxs('div', {
-        className: 'flex items-center justify-between border-b border-sky-200 bg-sky-50 px-4 py-1 text-xs text-sky-800 shrink-0',
+        className: 'flex items-center justify-between border-b px-4 py-1 text-xs shrink-0 ' + S.notice,
+        role: 'status',
         children: [
           jsx('span', { children: aviso }),
-          jsx('button', { type: 'button', onClick: () => setAviso(null), className: 'text-sky-600 hover:text-sky-900', children: '✕' }),
+          jsx('button', { type: 'button', 'aria-label': 'Cerrar aviso', onClick: () => setAviso(null), className: 'dk-btn dk-btn--icono dk-btn--chico', children: '✕' }),
         ],
       }) : null,
 
@@ -809,13 +886,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                     },
                     children: [
                       modoVista === 'read' ? jsxs('div', {
-                        className: 'mb-4 flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-3 py-1.5 font-sans text-xs text-slate-600',
+                        className: 'mb-4 flex items-center justify-between rounded border border-(--dk-borde) bg-(--dk-superficie) px-3 py-1.5 font-sans text-xs text-(--dk-texto-2)',
                         children: [
-                          jsx('span', { children: '📖 Modo lectura — edición bloqueada para revisar texto y citas' }),
+                          jsx('span', { children: 'Modo lectura — edición bloqueada para revisar texto y citas' }),
                           jsx('button', {
                             type: 'button',
                             onClick: () => setModoVista('write'),
-                            className: 'font-semibold text-indigo-600 hover:underline cursor-pointer',
+                            className: S.link + ' font-semibold cursor-pointer',
                             children: 'Volver a Escribir',
                           }),
                         ],
@@ -830,49 +907,49 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               // Barra flotante de estado de citas (como CitationStatus en imagen 2)
               res ? jsxs('div', {
                 className: 'flex flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-xs shrink-0 ' +
-                  (res.error || (meta.citas_fallidas || 0) > 0
-                    ? 'border-amber-200 bg-amber-50 text-amber-900'
-                    : 'border-emerald-200 bg-emerald-50 text-emerald-900'),
+                  (res.error || (meta.citas_fallidas || 0) > 0 ? S.noticeWarn : S.noticeOk),
+                role: 'status',
                 children: [
                   res.error
                     ? jsx('span', { children: 'Diké no pudo revisar el escrito: ' + String(res.error) })
                     : jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
                         jsx('span', { className: 'font-semibold', children:
-                          `🛡 Diké: ${meta.citas_verificadas || 0} de ${meta.total_citas || 0} citas verificadas` +
+                          `Diké: ${meta.citas_verificadas || 0} de ${meta.total_citas || 0} citas verificadas` +
                           (res.veredicto ? ` (${res.veredicto})` : '') }),
-                        jsx('span', { className: 'text-[11px] opacity-80', children:
+                        jsx('span', { className: 'text-xs opacity-80', children:
                           `corpus ${meta.pack_hash || '?'}` + (meta.as_of ? ` · al ${meta.as_of}` : '') }),
                       ] }),
                   jsx('button', {
                     type: 'button',
                     onClick: () => setHerramientaActiva('citas'),
-                    className: 'rounded bg-white/80 hover:bg-white px-2 py-0.5 text-[11px] font-semibold border border-current/20 cursor-pointer',
-                    children: herramientaActiva === 'citas' ? 'Viendo detalle en barra derecha' : 'Ver detalle y reparar citas →',
+                    className: 'dk-btn dk-btn--borde dk-btn--chico',
+                    children: herramientaActiva === 'citas' ? 'Viendo detalle en barra derecha' : 'Ver detalle y reparar citas',
                   }),
                 ],
               }) : null,
 
               // Barra inferior de custodia y persistencia local (como PersistenceBar en imagen 2)
               jsxs('div', {
-                className: 'flex flex-wrap items-center gap-2 border-t border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-600 select-none shrink-0',
+                className: 'flex flex-wrap items-center gap-2 border-t border-(--dk-borde) bg-(--dk-superficie) px-3 py-1 text-xs text-(--dk-texto-2) select-none shrink-0',
                 children: [
-                  jsx('span', { className: 'text-slate-400', children: 'Datos:' }),
+                  jsx('span', { className: 'text-(--dk-texto-3)', children: 'Datos:' }),
                   jsx('span', {
-                    className: 'inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 font-medium text-slate-700',
-                    children: '🔒 Guardado local en este equipo (plugin-data)',
+                    className: 'inline-flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 font-medium text-(--dk-texto-2)',
+                    children: 'Guardado local en este equipo (plugin-data)',
                   }),
                   jsx('span', {
-                    className: 'text-slate-400 hidden sm:inline truncate',
+                    className: 'text-(--dk-texto-3) hidden sm:inline truncate',
                     children: 'El escrito vive en tu equipo; hacia el modelo viaja seudonimizado.',
                   }),
                   jsxs('div', { className: 'ml-auto flex items-center gap-1.5', children: [
-                    jsx('span', { className: 'text-slate-400', children: 'Papel:' }),
+                    jsx('span', { className: 'text-(--dk-texto-3)', children: 'Papel:' }),
                     ...Object.entries(TEMAS_HOJA).map(([tid, tmeta]) => jsx('button', {
                       key: tid,
                       type: 'button',
                       onClick: () => guardarPrefs({ tema_papel: tid }),
-                      className: 'rounded px-1.5 py-0.2 text-[10px] cursor-pointer ' +
-                        (prefs.tema_papel === tid ? 'bg-slate-800 text-white font-semibold' : 'text-slate-500 hover:bg-slate-200'),
+                      'aria-pressed': prefs.tema_papel === tid,
+                      'aria-label': 'Tema de papel: ' + tmeta.label,
+                      className: 'dk-btn dk-btn--chico',
                       children: tmeta.label.split(' ')[1] || tmeta.label,
                     })),
                   ] }),
@@ -884,21 +961,22 @@ export function SeccionEscritor({ onAbrirGrafo }) {
           // ── CAJÓN DESLIZANTE DE LA HERRAMIENTA ACTIVA (a la izquierda de la barra de iconos) ──
           jsxs('div', {
             className: (herramientaActiva ? 'flex ' : 'hidden ') +
-              'w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden',
+              'w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: [
               // Cabecera del cajón
               cfgHerramienta ? jsxs('div', {
-                className: 'flex items-center justify-between border-b px-3 py-2 shrink-0 ' + cfgHerramienta.headerCls,
+                className: 'flex items-center justify-between border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-2 shrink-0',
                 children: [
                   jsxs('div', { className: 'flex items-center gap-2 min-w-0', children: [
-                    jsx('span', { className: 'text-sm font-bold', children: cfgHerramienta.icono }),
-                    jsx('span', { className: 'text-xs font-bold uppercase tracking-wide truncate', children: cfgHerramienta.titulo }),
+                    jsx('span', { className: 'text-sm font-bold text-(--dk-texto-2)', children: cfgHerramienta.icono }),
+                    jsx('span', { className: 'text-xs font-bold uppercase tracking-wide truncate text-(--dk-texto)', children: cfgHerramienta.titulo }),
                   ] }),
                   jsx('button', {
                     type: 'button',
                     onClick: () => setHerramientaActiva(null),
                     title: 'Cerrar panel de herramienta',
-                    className: 'rounded p-1 text-xs opacity-70 hover:opacity-100 hover:bg-black/5 cursor-pointer',
+                    'aria-label': 'Cerrar panel de herramienta',
+                    className: 'dk-btn dk-btn--icono dk-btn--chico',
                     children: '✕',
                   }),
                 ],
@@ -910,26 +988,26 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 children: [
                   // 1. Herramienta: Verificador de Citas Diké
                   herramientaActiva === 'citas' ? jsxs('div', {
-                    className: 'flex flex-col gap-3 p-3 text-xs text-slate-800',
+                    className: 'flex flex-col gap-3 p-3 text-xs text-(--dk-texto)',
                     children: [
                       jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                        jsx('span', { className: 'text-slate-600', children: 'Verificación determinista contra las 25 leyes del corpus sellado.' }),
+                        jsx('span', { className: 'text-(--dk-texto-2)', children: 'Verificación determinista contra las 25 leyes del corpus sellado.' }),
                         jsx('button', {
                           type: 'button',
                           onClick: verificar,
                           disabled: verificando || estadoDoc === 'cargando',
-                          className: 'rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 px-3 py-1 text-xs font-semibold text-white cursor-pointer shrink-0',
+                          className: 'dk-btn dk-btn--primario dk-btn--chico shrink-0',
                           children: verificando ? 'Verificando…' : 'Verificar citas',
                         }),
                       ] }),
 
                       !res && !verificando ? jsx('div', {
-                        className: 'rounded border border-dashed border-slate-300 p-4 text-center text-slate-500',
+                        className: 'rounded border border-dashed border-(--dk-borde) p-4 text-center text-(--dk-texto-3)',
                         children: 'Pulsa «Verificar citas» para comprobar todas las referencias normativas del escrito.',
                       }) : null,
 
                       res && res.error ? jsxs('div', {
-                        className: 'rounded border border-red-200 bg-red-50 p-2.5 text-red-800',
+                        className: S.noticeBad,
                         children: [
                           jsx('span', { className: S.chip + ' ' + S.chipBad, children: 'sin revisar' }),
                           jsx('div', { className: 'mt-1', children: 'Diké no pudo revisar el escrito: ' + String(res.error) }),
@@ -937,24 +1015,25 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       }) : null,
 
                       res && !res.error ? jsxs('div', { className: 'flex flex-col gap-2', children: [
-                        jsx('div', { className: 'font-semibold text-slate-900', children:
+                        jsx('div', { className: 'font-semibold text-(--dk-texto)', children:
                           'Diké: ' + (meta.citas_verificadas || 0) + ' de ' + (meta.total_citas || 0) +
                           ' citas verificadas' + (res.veredicto ? ' (' + res.veredicto + ')' : '') +
                           ' · corpus ' + (meta.pack_hash || '?') +
                           (meta.as_of ? ' · al ' + meta.as_of : '') }),
-                        msgVeredicto ? jsx('div', { className: 'text-[11px] text-slate-600', children: msgVeredicto }) : null,
+                        msgVeredicto ? jsx('div', { className: 'text-xs text-(--dk-texto-2)', children: msgVeredicto }) : null,
 
                         ...detalles.map((d, i) => {
                           const estado = estadoCita(d, v.hash, docInfo.hash, registro)
                           const es = ESTILOS_ESTADO[estado] || ESTILOS_ESTADO.fallo
-                          return jsxs('div', { key: i, className: 'flex items-start gap-2 border-b border-slate-200 py-2 last:border-0', children: [
+                          return jsxs('div', { key: i, className: 'flex items-start gap-2 border-b border-(--dk-borde) py-2 last:border-0', children: [
                             jsx('span', {
-                              className: 'w-4 shrink-0 text-center font-bold ' + (estado === 'verificada' ? 'text-emerald-600' : (estado === 'fallo' ? 'text-red-600' : 'text-slate-400')),
+                              className: 'w-4 shrink-0 text-center font-bold ' + (estado === 'verificada' ? S.ok : (estado === 'fallo' ? S.bad : 'text-(--dk-texto-3)')),
+                              'aria-hidden': 'true',
                               children: estado === 'verificada' ? '✓' : (estado === 'fallo' ? '✗' : '·'),
                             }),
                             jsxs('div', { className: 'min-w-0 flex-1', children: [
                               jsxs('div', { className: 'flex flex-wrap items-center gap-1.5', children: [
-                                jsx('span', { className: 'font-medium text-slate-900', children: d.cita_raw }),
+                                jsx('span', { className: 'font-medium text-(--dk-texto)', children: d.cita_raw }),
                                 estado === 'verificada' && d.nodo_id && onAbrirGrafo
                                   ? jsx('button', {
                                       type: 'button',
@@ -965,7 +1044,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                     })
                                   : jsx('span', { className: S.chip + ' ' + S[es.chip], children: es.texto }),
                               ] }),
-                              jsx('div', { className: 'mt-0.5 break-all text-[11px] text-slate-500', children: etiquetaCita(estado, d, meta, registro) }),
+                              jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: etiquetaCita(estado, d, meta, registro) }),
                               estado === 'fallo'
                                 ? jsx(AccionesFallo, { detalle: d, acciones: acciones[i], onAccion: (t, val) => accionCita(i, t, val) })
                                 : null,
@@ -974,37 +1053,37 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         }),
 
                         (res.problemas && res.problemas.length) ? jsxs('div', {
-                          className: 'rounded border border-amber-200 bg-amber-50 p-2',
+                          className: S.noticeWarn,
                           children: [
-                            jsx('div', { className: 'text-[10px] font-bold uppercase text-amber-800', children: 'Problemas del motor' }),
-                            ...res.problemas.map((p, i) => jsx('div', { key: i, className: 'text-[11px] text-amber-900', children: String(p) })),
+                            jsx('div', { className: 'dk-rotulo', children: 'Problemas del motor' }),
+                            ...res.problemas.map((p, i) => jsx('div', { key: i, className: 'text-xs', children: String(p) })),
                           ],
                         }) : null,
 
                         (res.no_verificadas && res.no_verificadas.length) ? jsx('div', {
-                          className: 'text-[11px] text-slate-500',
+                          className: 'text-xs text-(--dk-texto-3)',
                           children: 'Menciones sin artículo, no verificadas: ' + res.no_verificadas.join(', '),
                         }) : null,
 
                         ((registro.retiros && registro.retiros.length) || (registro.escaladas && registro.escaladas.length)) ? jsxs('details', {
                           className: 'text-xs',
                           children: [
-                            jsx('summary', { className: 'cursor-pointer text-slate-500', children:
+                            jsx('summary', { className: 'cursor-pointer text-(--dk-texto-3)', children:
                               'Registro: ' + ((registro.retiros || []).length) + ' retiradas · ' +
                               ((registro.escaladas || []).length) + ' escaladas' }),
-                            ...(registro.retiros || []).map((r, i) => jsxs('div', { key: 'r' + i, className: 'py-0.5 text-[11px]', children: [
-                              jsx('span', { className: 'text-slate-400', children: String(r.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
+                            ...(registro.retiros || []).map((r, i) => jsxs('div', { key: 'r' + i, className: 'py-0.5 text-xs', children: [
+                              jsx('span', { className: 'text-(--dk-texto-3)', children: String(r.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
                               jsx('span', { children: 'Retirada — ' + r.cita_raw + ' · ' + r.motivo }),
                             ] })),
-                            ...(registro.escaladas || []).map((e, i) => jsxs('div', { key: 'e' + i, className: 'py-0.5 text-[11px]', children: [
-                              jsx('span', { className: 'text-slate-400', children: String(e.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
+                            ...(registro.escaladas || []).map((e, i) => jsxs('div', { key: 'e' + i, className: 'py-0.5 text-xs', children: [
+                              jsx('span', { className: 'text-(--dk-texto-3)', children: String(e.fecha || '').slice(0, 19).replace('T', ' ') + ' · ' }),
                               jsx('span', { children: 'Escalada — ' + e.cita_raw + ' · ' + e.nota }),
                             ] })),
                           ],
                         }) : null,
 
-                        jsx('div', { className: 'text-[11px] text-slate-400 pt-1 border-t border-slate-100', children: AVISO_JUICIO }),
-                        res.alcance ? jsx('div', { className: 'text-[11px] text-slate-400', children: res.alcance }) : null,
+                        jsx('div', { className: 'text-xs text-(--dk-texto-3) pt-1 border-t border-(--dk-borde-suave)', children: AVISO_JUICIO }),
+                        res.alcance ? jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: res.alcance }) : null,
                       ] }) : null,
                     ],
                   }) : null,
@@ -1058,35 +1137,35 @@ export function SeccionEscritor({ onAbrirGrafo }) {
 
                   // 6. Herramienta: Personalización de Usuario + Predicción (siempre montada para ghost text)
                   jsxs('div', {
-                    className: herramientaActiva === 'ajustes' ? 'flex flex-col gap-3 p-3 text-xs text-slate-800' : 'hidden',
+                    className: herramientaActiva === 'ajustes' ? 'flex flex-col gap-3 p-3 text-xs text-(--dk-texto)' : 'hidden',
                     children: [
                       // Bloque de personalización pensado para usuarios terceros
                       jsxs('div', {
-                        className: 'flex flex-col gap-2.5 rounded-md border border-slate-200 bg-slate-50 p-3',
+                        className: 'flex flex-col gap-2.5 rounded-md border border-(--dk-borde) bg-(--dk-superficie) p-3',
                         children: [
-                          jsx('div', { className: 'text-[10px] font-bold uppercase tracking-wider text-slate-500', children: 'Personalización del Estudio (Preferencias de Usuario)' }),
+                          jsx('div', { className: 'dk-rotulo', children: 'Personalización del Estudio (Preferencias de Usuario)' }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-slate-700', children: 'Tema de la hoja:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Tema de la hoja:' }),
                             jsx('select', {
                               value: prefs.tema_papel,
                               onChange: (e) => guardarPrefs({ tema_papel: e.target.value }),
-                              className: 'rounded border border-slate-300 bg-white px-2 py-1 text-xs',
+                              className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs',
                               children: Object.entries(TEMAS_HOJA).map(([k, v]) =>
                                 jsx('option', { key: k, value: k, children: v.label })),
                             }),
                           ] }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-slate-700', children: 'Formato de página:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Formato de página:' }),
                             jsx('select', {
                               value: prefs.ancho_hoja,
                               onChange: (e) => guardarPrefs({ ancho_hoja: e.target.value }),
-                              className: 'rounded border border-slate-300 bg-white px-2 py-1 text-xs',
+                              className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs',
                               children: Object.entries(ANCHOS_HOJA).map(([k, v]) =>
                                 jsx('option', { key: k, value: k, children: v.label })),
                             }),
                           ] }),
                           jsxs('div', { className: 'flex items-center justify-between gap-2', children: [
-                            jsx('label', { className: 'text-slate-700', children: 'Estrategia de privacidad inicial:' }),
+                            jsx('label', { className: 'text-(--dk-texto-2)', children: 'Estrategia de privacidad inicial:' }),
                             jsx('select', {
                               value: prefs.estrategia_privacidad,
                               onChange: (e) => {
@@ -1094,7 +1173,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                 guardarPrefs({ estrategia_privacidad: est })
                                 actualizarRegistro((r) => ({ ...(r || {}), privacidad: { ...(r || {}).privacidad, estrategia: est } }))
                               },
-                              className: 'rounded border border-slate-300 bg-white px-2 py-1 text-xs',
+                              className: 'rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-1 text-xs',
                               children: [
                                 jsx('option', { key: 'ligera', value: 'ligera', children: 'Ligera (solo críticos)' }),
                                 jsx('option', { key: 'media', value: 'media', children: 'Media (críticos + altos)' }),
@@ -1102,7 +1181,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                               ],
                             }),
                           ] }),
-                          jsxs('label', { className: 'flex items-center gap-2 text-slate-700 pt-1', children: [
+                          jsxs('label', { className: 'flex items-center gap-2 text-(--dk-texto-2) pt-1', children: [
                             jsx('input', {
                               type: 'checkbox',
                               checked: prefs.mostrar_pizarra !== false,
@@ -1110,7 +1189,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                             }),
                             'Mostrar Pizarra Estratégica encima del escrito',
                           ] }),
-                          jsxs('label', { className: 'flex items-center gap-2 text-slate-700', children: [
+                          jsxs('label', { className: 'flex items-center gap-2 text-(--dk-texto-2)', children: [
                             jsx('input', {
                               type: 'checkbox',
                               checked: chatAbierto,
@@ -1140,7 +1219,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
 
           // ── BARRA VERTICAL DE HERRAMIENTAS A LA DERECHA (estilo VS Code / imagen 2) ──
           jsxs('div', {
-            className: 'flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-slate-200 bg-slate-50 py-2 select-none',
+            className: 'flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none',
             children: [
               ...HERRAMIENTAS_BARRA.map((t) => {
                 const activa = herramientaActiva === t.id
@@ -1148,18 +1227,19 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 if (t.id === 'citas' && res && !res.error) {
                   const fallos = meta.citas_fallidas || 0
                   badge = fallos > 0
-                    ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-red-600 px-1 text-[9px] font-bold text-white', children: String(fallos) })
+                    ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-(--dk-mal) px-1 text-xs font-bold text-(--dk-sobre-solido)', children: String(fallos) })
                     : (meta.total_citas > 0
-                        ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-emerald-600 px-1 text-[9px] font-bold text-white', children: String(meta.citas_verificadas) })
+                        ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-(--dk-ok) px-1 text-xs font-bold text-(--dk-sobre-solido)', children: String(meta.citas_verificadas) })
                         : null)
                 }
                 return jsxs('button', {
                   key: t.id,
                   type: 'button',
                   title: t.label,
+                  'aria-label': t.label,
+                  'aria-pressed': activa,
                   onClick: () => setHerramientaActiva((prev) => (prev === t.id ? null : t.id)),
-                  className: 'relative flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors cursor-pointer ' +
-                    (activa ? t.activeCls : 'text-slate-500 hover:bg-slate-200/80 hover:text-slate-900'),
+                  className: 'dk-btn dk-btn--icono relative',
                   children: [
                     jsx('span', { children: t.icono }),
                     badge,
@@ -1167,16 +1247,17 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 })
               }),
 
-              jsx('div', { className: 'my-1 h-px w-6 bg-slate-200' }),
+              jsx('div', { className: 'my-1 h-px w-6 bg-(--dk-superficie-2)' }),
 
               // Botón para mostrar/ocultar el panel de Chat Hermes a la derecha
               jsx('button', {
                 type: 'button',
                 title: chatAbierto ? 'Ocultar panel de Chat Hermes' : 'Mostrar panel de Chat Hermes a la derecha',
+                'aria-label': chatAbierto ? 'Ocultar panel de Chat Hermes' : 'Mostrar panel de Chat Hermes a la derecha',
+                'aria-pressed': chatAbierto,
                 onClick: () => guardarPrefs({ mostrar_chat: !chatAbierto }),
-                className: 'flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-colors cursor-pointer ' +
-                  (chatAbierto ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'),
-                children: '💬',
+                className: 'dk-btn dk-btn--icono',
+                children: '✉',
               }),
             ],
           }),
@@ -1184,7 +1265,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
           // ── PANEL DERECHO CONECTADO CON HERMES (Chat del escrito, siempre montado) ──
           jsx('div', {
             className: (chatAbierto ? 'flex ' : 'hidden ') +
-              'w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-slate-200 bg-white overflow-hidden',
+              'w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: jsx(ChatEscritor, {
               editorRef,
               caseId,

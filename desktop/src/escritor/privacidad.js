@@ -4,7 +4,8 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, S } from '../common.js'
+import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
+import { t } from '../i18n.js'
 import { fijarMarcasPrivacidad, textoDelEditor } from './editor.js'
 import { rangoAPos, segmentosDeDoc, sha256Hex } from './verificador.js'
 import {
@@ -16,17 +17,17 @@ export { rehidratar }
 const DEBOUNCE_DETECTAR = 1500
 
 const ESTRATEGIAS = [
-  { id: 'ligera', texto: 'ligera (solo críticos)' },
-  { id: 'media', texto: 'media (críticos + altos)' },
-  { id: 'estricta', texto: 'estricta (+ medios)' },
+  { id: 'ligera', texto: 'priv.estrategiaLigera' },
+  { id: 'media', texto: 'priv.estrategiaMedia' },
+  { id: 'estricta', texto: 'priv.estrategiaEstricta' },
 ]
 
 const MOTIVOS = {
-  juez: 'juez (público)',
-  ancla_causa: 'ancla de causa',
-  institucion: 'institución',
-  decision_abogado: 'decisión del abogado',
-  por_estrategia: 'bajo la estrategia',
+  juez: 'priv.motivo.juez',
+  ancla_causa: 'priv.motivo.ancla_causa',
+  institucion: 'priv.motivo.institucion',
+  decision_abogado: 'priv.motivo.decision_abogado',
+  por_estrategia: 'priv.motivo.por_estrategia',
 }
 
 // puedeEnviar: false si el último intento de detección/registro falló.
@@ -99,9 +100,9 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
   // Debounce ~1,5 s cuando el hash del documento cambia.
   useEffect(() => {
     if (!(docInfo && docInfo.hash)) return
-    clearTimeout(timer.current)
-    timer.current = setTimeout(detectar, DEBOUNCE_DETECTAR)
-    return () => clearTimeout(timer.current)
+    cancelarTarea(timer.current)
+    timer.current = programarTimeout(detectar, DEBOUNCE_DETECTAR)
+    return () => cancelarTarea(timer.current)
   }, [docInfo && docInfo.hash, detectar])
 
   // Marcas inline de privacidad en el editor.
@@ -159,7 +160,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
 
   return jsxs('div', { className: S.card, children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-      jsx('div', { className: S.cardTitle, children: 'Privacidad' }),
+      jsx('div', { className: S.cardTitle, children: t('priv.titulo') }),
       jsxs('label', { className: 'flex items-center gap-1.5 text-xs', children: [
         jsx('input', {
           type: 'checkbox', checked: seudOn,
@@ -172,33 +173,33 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
             }
           },
         }),
-        'Seudonimizar antes de enviar al modelo',
+        t('priv.seudonimizar'),
       ] }),
       jsx('select', {
         className: S.input, value: estrategia,
         onChange: (e) => { guardarCfg({ estrategia: e.target.value }); detectar() },
         children: ESTRATEGIAS.map((o) =>
-          jsx('option', { key: o.id, value: o.id, children: o.texto })),
+          jsx('option', { key: o.id, value: o.id, children: t(o.texto) })),
       }),
       jsx('button', {
         type: 'button', className: S.ghost, onClick: detectar, disabled: ocupado,
-        children: ocupado ? 'detectando…' : 'Detectar datos',
+        children: ocupado ? t('priv.detectando') : t('priv.detectar'),
       }),
       jsx('button', {
         type: 'button', className: S.ghost, onClick: () => setVerMarcas(!verMarcas),
-        children: verMarcas ? 'Ocultar datos en el escrito' : 'Ver datos personales en el escrito',
+        children: verMarcas ? t('priv.ocultarMarcas') : t('priv.verMarcas'),
       }),
       jsx('button', {
         type: 'button', className: S.ghost, onClick: verSalida,
-        children: 'Vista de lo que sale',
+        children: t('priv.vistaSalida'),
       }),
       jsx('button', {
         type: 'button', className: S.ghost, onClick: enmascararSeleccion,
-        children: 'Enmascarar selección',
+        children: t('priv.enmascararSeleccion'),
       }),
     ] }),
 
-    confirmarOff ? jsxs('label', { className: 'flex items-center gap-1.5 text-xs text-(--ui-danger)', children: [
+    confirmarOff ? jsxs('label', { className: 'flex items-center gap-1.5 text-xs dk-mal', children: [
       jsx('input', {
         type: 'checkbox', checked: confirmo,
         onChange: (e) => {
@@ -208,12 +209,11 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
           }
         },
       }),
-      'Entiendo que el texto saldrá con datos personales',
+      t('priv.entiendo'),
     ] }) : null,
 
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children:
-      'Privacidad no disponible: ' + mensajeError(error) +
-      ' — el texto no debe salir hasta resolverlo.' }) : null,
+    error ? jsx('div', { className: 'text-xs dk-mal', children:
+      t('priv.error', { error: mensajeError(error) }) }) : null,
 
     deteccion ? jsxs('div', { className: 'flex flex-col gap-2', children: [
       jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
@@ -222,7 +222,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
         })),
         candidatos.length
           ? jsx('span', { className: S.chip + ' ' + S.chipBad, children:
-              candidatos.length + ' posibles personas' })
+              t('priv.posiblesPersonas', { n: candidatos.length }) })
           : null,
       ] }),
 
@@ -233,37 +233,37 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
           jsx('button', {
             type: 'button', className: S.link,
             onClick: () => decidir(e.valor, e.accion === 'enmascarar' ? 'conservar' : 'enmascarar', e.tipo),
-            children: e.accion === 'enmascarar' ? 'enmascarar' : 'conservar',
+            children: e.accion === 'enmascarar' ? t('priv.enmascarar') : t('priv.conservar'),
           }),
-          e.motivo ? jsx('span', { className: S.sub, children: '(' + (MOTIVOS[e.motivo] || e.motivo) + ')' }) : null,
+          e.motivo ? jsx('span', { className: S.sub, children: '(' + (MOTIVOS[e.motivo] ? t(MOTIVOS[e.motivo]) : e.motivo) + ')' }) : null,
         ] })),
       ] })),
 
       candidatos.length ? jsxs('div', { className: 'flex flex-col gap-1', children: [
         jsx('div', { className: 'text-xs font-medium uppercase tracking-wide text-(--ui-text-tertiary)',
-          children: 'Posibles personas sin contexto' }),
+          children: t('priv.posiblesSinContexto') }),
         ...candidatos.map((c, i) => jsxs('div', { key: i, className: 'flex items-center gap-2 text-sm', children: [
           jsx('span', { children: c.valor }),
           jsx('button', {
             type: 'button', className: S.link,
             onClick: () => decidir(c.valor, 'enmascarar', 'full_name'),
-            children: 'Enmascarar',
+            children: t('priv.enmascarar'),
           }),
         ] })),
       ] }) : null,
 
       jsx('div', { className: S.sub, children: deteccion.aviso }),
     ] }) : jsx('div', { className: S.sub, children:
-        'Sin detección aún: edita el escrito o pulsa «Detectar datos».' }),
+        t('priv.sinDeteccion') }),
 
     vistaSalida && vistaSalida !== 'cargando' ? jsxs('div', { className: 'flex flex-col gap-1', children: [
       jsx('div', { className: S.cardTitle, children: 'Vista de lo que sale' }),
       jsx('pre', { className: 'max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs',
         children: vistaSalida.texto }),
       jsxs('div', { className: S.sub, children: [
-        Object.keys(vistaSalida.mapa || {}).length + ' valores seudonimizados · destino: aún sin destino (el chat llega en la fase siguiente)',
+        t('priv.valoresMapa', { n: Object.keys(vistaSalida.mapa || {}).length }),
       ] }),
-      jsx('button', { type: 'button', className: S.link, onClick: () => setVistaSalida(null), children: 'cerrar' }),
-    ] }) : vistaSalida === 'cargando' ? jsx('div', { className: S.sub, children: 'preparando vista…' }) : null,
+      jsx('button', { type: 'button', className: S.link, onClick: () => setVistaSalida(null), children: t('priv.cerrar') }),
+    ] }) : vistaSalida === 'cargando' ? jsx('div', { className: S.sub, children: t('priv.preparando') }) : null,
   ] })
 }

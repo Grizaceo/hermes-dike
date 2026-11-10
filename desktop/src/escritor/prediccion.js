@@ -9,6 +9,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { host } from '@hermes/plugin-sdk'
 import { rest, S } from '../common.js'
+import { t } from '../i18n.js'
 import { fijarGhost } from './editor.js'
 import { prepararEnvio, puedeEnviar } from './privacidad.js'
 import { crearMesa, elegir } from './prediccion/mesa.js'
@@ -39,7 +40,7 @@ function predictorL0() {
         return Promise.resolve({
           texto: r1.ghostTexto, capa: 'L0',
           procedencia: { tipo: 'formalismo',
-            fuente: 'catálogo de formalismos procesales',
+            fuente: t('pred.fuenteFormalismos'),
             ref: r1.ghost.id, anclaLen: segmento.length },
           latencia_ms: 0,
         })
@@ -49,7 +50,7 @@ function predictorL0() {
         return Promise.resolve({
           texto: r2.accionGhostTexto, capa: 'L0',
           procedencia: { tipo: 'formalismo',
-            fuente: 'catálogo de acciones procesales',
+            fuente: t('pred.fuenteAcciones'),
             ref: r2.accion.id, anclaLen: segmento.length },
           latencia_ms: 0,
         })
@@ -65,6 +66,11 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
   const [destinoL2, setDestinoL2] = useState(null) // 'local'|'nube'|null
   const mesaRef = useRef(null)
   const cancelarRef = useRef(null)
+  // registro cambia con cada gesto de la pizarra/privacidad/NIF: la mesa de
+  // predictores NO debe reconstruirse por eso (cancelaría la sugerencia en
+  // vuelo). prepararEnvio lee la privacidad vigente por este ref.
+  const registroRef = useRef(registro)
+  registroRef.current = registro
 
   const activo = cfg.activo === true
   const l0on = activo && cfg.l0 !== false
@@ -106,11 +112,11 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
         ruta: sesion && sesion.ruta,
         destino: destinoL2,
         prepararEnvio: ({ texto }) => {
-          const cfgPriv = ((registro || {}).privacidad) || {}
+          const cfgPriv = ((registroRef.current || {}).privacidad) || {}
           return prepararEnvio({
             caseId, texto,
-            destino: (sesion && sesion.perfil || 'perfil sin resolver')
-              + ' · predicción · nube',
+            destino: (sesion && sesion.perfil || t('pred.perfilSinResolver'))
+              + t('pred.destinoNubeCorto'),
             seudonimizar: cfgPriv.seudonimizar !== false,
             estrategia: cfgPriv.estrategia || 'media',
           })
@@ -123,7 +129,7 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
     }
     mesaRef.current = crearMesa({ predictores })
     return () => { if (mesaRef.current) mesaRef.current.cancelar() }
-  }, [l0on, l1on, l2on, destinoL2, sesion, caseId, registro])
+  }, [l0on, l1on, l2on, destinoL2, sesion, caseId])
 
   // onUpdate del editor: el editor avisa; aquí se pide la sugerencia.
   const pedir = useCallback((editor) => {
@@ -177,23 +183,23 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
 
   return jsxs('div', { className: S.card, children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-      jsx('div', { className: S.cardTitle, children: 'Predicción (experimental)' }),
+      jsx('div', { className: S.cardTitle, children: t('pred.titulo') }),
       jsxs('label', { className: 'flex items-center gap-1 text-sm', children: [
         jsx('input', { type: 'checkbox', checked: activo,
           onChange: (e) => fijarCfg({ activo: e.target.checked }) }),
-        'Activar sugerencias',
+        t('pred.activar'),
       ] }),
       activo ? jsxs('label', { className: 'flex items-center gap-1 text-xs',
         children: [
           jsx('input', { type: 'checkbox', checked: cfg.l0 !== false,
             onChange: (e) => fijarCfg({ l0: e.target.checked }) }),
-          'L0 formalismos',
+          t('pred.l0'),
         ] }) : null,
       activo ? jsxs('label', { className: 'flex items-center gap-1 text-xs',
         children: [
           jsx('input', { type: 'checkbox', checked: cfg.l1 !== false,
             onChange: (e) => fijarCfg({ l1: e.target.checked }) }),
-          'L1 corpus local',
+          t('pred.l1'),
         ] }) : null,
       activo ? jsxs('label', { className: 'flex items-center gap-1 text-xs',
         children: [
@@ -206,26 +212,25 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
               }
               fijarCfg({ l2: e.target.checked })
             } }),
-          'L2 modelo ',
-          destinoL2 ? '(' + (destinoL2 === 'local' ? 'local' : 'nube') + ')'
-            : '(sin sesión de chat)',
+          t('pred.l2') + ' ',
+          destinoL2 ? '(' + (destinoL2 === 'local' ? 'local' : t('pred.destinoNube')) + ')'
+            : '(' + t('pred.sinSesion') + ')',
         ] }) : null,
       activo ? jsxs('label', { className: 'flex items-center gap-1 text-xs',
         children: [
           jsx('input', { type: 'checkbox', checked: cfg.telemetria === true,
             onChange: (e) => fijarCfg({ telemetria: e.target.checked }) }),
-          'Registrar aceptaciones (sin contenido)',
+          t('pred.telemetria'),
         ] }) : null,
     ] }),
     cfg.l2 && destinoL2 === 'nube' && cfg.l2_optin !== true
       ? jsxs('div', { className: 'flex items-center gap-2 text-xs', children: [
-          'La predicción con modelo enviaría el párrafo a la nube.',
+          t('pred.avisoNube'),
           jsx('button', { type: 'button', className: S.button,
             onClick: () => fijarCfg({ l2_optin: true }),
-            children: 'Acepto enviar el párrafo a la nube' }),
+            children: t('pred.aceptoNube') }),
         ] }) : null,
     jsx('div', { className: 'text-xs text-(--ui-text-secondary)', children:
-      'Las sugerencias son propuestas: el modelo y el corpus no verifican ' +
-      'citas. Ajuste fino de un modelo propio: planeado, limitado por fondos.' }),
+      t('pred.nota') }),
   ] })
 }

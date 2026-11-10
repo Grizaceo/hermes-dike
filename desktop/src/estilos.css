@@ -1,0 +1,179 @@
+/* Sistema visual de la página Diké.
+ *
+ * Todo cuelga de `.dike-raiz` (lo pone plugin.src.js) y toma sus colores de
+ * los tokens del tema de Hermes Desktop, con un respaldo fijo por si la app
+ * cambia un nombre: así la página sigue al tema claro, al oscuro y a
+ * cualquier otro sin colores propios. Los tokens que la app no define
+ * (`--ui-danger`) o que no son lo que su nombre sugiere (`--ui-bg-primary` es
+ * un relleno translúcido, no un fondo) no se usan aquí.
+ *
+ * Las clases `dk-*` son los pocos componentes repetidos (botón, insignia,
+ * campo, panel, aviso, estado vacío); la disposición sigue con utilidades de
+ * Tailwind, que estilos.mjs genera para lo que `src/` usa. `S` en common.js
+ * les da nombre.
+ */
+
+.dike-raiz {
+  /* Color con significado */
+  --dk-solido: var(--dt-primary-solid, var(--ui-accent, #2563eb));
+  --dk-sobre-solido: var(--dt-primary-solid-foreground, #fcfcfc);
+  --dk-acento: var(--ui-accent, #2563eb);
+  --dk-ok: var(--ui-success, var(--ui-green, #15803d));
+  --dk-mal: var(--ui-red, #dc2626);
+  --dk-aviso: var(--ui-orange, var(--ui-yellow, #b45309));
+  --dk-info: var(--ui-blue, var(--ui-accent, #2563eb));
+
+  /* Texto, bordes y superficies */
+  --dk-texto: var(--ui-text-primary, #1f2328);
+  --dk-texto-2: var(--ui-text-secondary, #4b5563);
+  --dk-texto-3: var(--ui-text-tertiary, #6b7280);
+  --dk-borde: var(--ui-stroke-secondary, rgb(127 127 127 / 0.28));
+  --dk-borde-suave: var(--ui-stroke-tertiary, rgb(127 127 127 / 0.16));
+  --dk-superficie: var(--ui-bg-secondary, rgb(127 127 127 / 0.07));
+  --dk-superficie-2: var(--ui-bg-tertiary, rgb(127 127 127 / 0.11));
+  --dk-elevada: var(--ui-bg-elevated, var(--ui-surface-background, Canvas));
+  --dk-entrada: var(--ui-bg-input, transparent);
+  --dk-sobre: var(--ui-control-hover-background, var(--dk-superficie-2));
+  --dk-activo: var(--ui-row-active-background, var(--dk-superficie-2));
+
+  --dk-radio: 0.375rem;
+  --dk-alto: 1.75rem;
+
+  color: var(--dk-texto);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* El foco siempre se ve, también en los controles sin clase propia. */
+.dike-raiz :is(button, a, input, select, textarea, [role='button'], [tabindex]):focus-visible {
+  outline: 2px solid var(--dk-acento);
+  outline-offset: 1px;
+}
+
+/* ── Texto ─────────────────────────────────────────────────────────────── */
+
+.dike-raiz .dk-titulo { font-size: 0.875rem; font-weight: 600; color: var(--dk-texto); }
+.dike-raiz .dk-rotulo {
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--dk-texto-3);
+}
+.dike-raiz .dk-meta { font-size: 0.75rem; color: var(--dk-texto-3); }
+.dike-raiz .dk-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; }
+.dike-raiz .dk-enlace { color: var(--dk-acento); cursor: pointer; text-underline-offset: 2px; }
+.dike-raiz .dk-enlace:hover { text-decoration: underline; }
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
+
+.dike-raiz .dk-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem;
+  height: var(--dk-alto); padding: 0 0.625rem; flex-shrink: 0;
+  border: 1px solid transparent; border-radius: var(--dk-radio);
+  background: transparent; color: var(--dk-texto-2);
+  font-size: 0.75rem; font-weight: 500; line-height: 1; white-space: nowrap;
+  cursor: pointer; user-select: none;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+.dike-raiz .dk-btn:hover:not(:disabled) { background: var(--dk-sobre); color: var(--dk-texto); }
+.dike-raiz .dk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.dike-raiz .dk-btn:is([aria-pressed='true'], [aria-selected='true'], [aria-expanded='true']) {
+  background: var(--dk-activo); color: var(--dk-texto);
+}
+
+.dike-raiz .dk-btn--primario {
+  background: var(--dk-solido); color: var(--dk-sobre-solido); font-weight: 600;
+}
+.dike-raiz .dk-btn--primario:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dk-solido) 88%, var(--dk-texto));
+  color: var(--dk-sobre-solido);
+}
+.dike-raiz .dk-btn--borde { border-color: var(--dk-borde); }
+.dike-raiz .dk-btn--peligro { color: var(--dk-mal); border-color: color-mix(in srgb, var(--dk-mal) 35%, transparent); }
+.dike-raiz .dk-btn--peligro:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dk-mal) 10%, transparent); color: var(--dk-mal);
+}
+.dike-raiz .dk-btn--icono { width: var(--dk-alto); padding: 0; }
+.dike-raiz .dk-btn--chico { height: 1.375rem; padding: 0 0.375rem; font-size: 0.6875rem; }
+
+/* Pestañas de la cabecera: la activa es sólida. */
+.dike-raiz .dk-pestana[aria-selected='true'] {
+  background: var(--dk-solido); color: var(--dk-sobre-solido); font-weight: 600;
+}
+
+/* ── Campos ────────────────────────────────────────────────────────────── */
+
+.dike-raiz .dk-campo {
+  height: var(--dk-alto); padding: 0 0.5rem; min-width: 0;
+  border: 1px solid var(--dk-borde); border-radius: var(--dk-radio);
+  background: var(--dk-entrada); color: var(--dk-texto);
+  font-size: 0.75rem;
+}
+.dike-raiz textarea.dk-campo { height: auto; padding: 0.375rem 0.5rem; line-height: 1.45; resize: vertical; }
+.dike-raiz .dk-campo::placeholder { color: var(--dk-texto-3); }
+.dike-raiz .dk-campo:focus { border-color: var(--dk-acento); outline: none; }
+.dike-raiz .dk-campo:disabled { opacity: 0.6; }
+
+/* ── Insignias: el estado va en el texto, el color lo acompaña ─────────── */
+
+.dike-raiz .dk-insignia {
+  --dk-tono: var(--dk-texto-3);
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0 0.375rem; height: 1.25rem; flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--dk-tono) 30%, transparent); border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--dk-tono) 12%, transparent);
+  /* El tono se mezcla con el color del texto: legible en claro y en oscuro. */
+  color: color-mix(in srgb, var(--dk-tono) 65%, var(--dk-texto));
+  font-size: 0.6875rem; font-weight: 500; line-height: 1; white-space: nowrap;
+}
+.dike-raiz .dk-insignia--ok { --dk-tono: var(--dk-ok); }
+.dike-raiz .dk-insignia--mal { --dk-tono: var(--dk-mal); }
+.dike-raiz .dk-insignia--aviso { --dk-tono: var(--dk-aviso); }
+.dike-raiz .dk-insignia--info { --dk-tono: var(--dk-info); }
+/* Cuarto tono para categorías de datos (p. ej. tipos de nodo del grafo
+ * argumentativo), no para estados: ok/mal/aviso/info ya son semánticos. */
+.dike-raiz .dk-insignia--acento { --dk-tono: var(--dk-acento); }
+
+.dike-raiz .dk-ok { color: color-mix(in srgb, var(--dk-ok) 75%, var(--dk-texto)); }
+.dike-raiz .dk-mal { color: color-mix(in srgb, var(--dk-mal) 80%, var(--dk-texto)); }
+.dike-raiz .dk-aviso-texto { color: color-mix(in srgb, var(--dk-aviso) 75%, var(--dk-texto)); }
+
+/* ── Paneles y avisos ──────────────────────────────────────────────────── */
+
+.dike-raiz .dk-panel {
+  border: 1px solid var(--dk-borde); border-radius: 0.5rem; background: var(--dk-superficie);
+}
+.dike-raiz .dk-panel--plano { background: transparent; }
+/* Lo que flota sobre la página (menús, buscador, fichas) es opaco. */
+.dike-raiz .dk-panel--flotante {
+  background: var(--dk-elevada);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.22), 0 0 0 1px var(--dk-borde-suave);
+}
+.dike-raiz .dk-barra {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem;
+  padding: 0.375rem 0.5rem; border-bottom: 1px solid var(--dk-borde-suave);
+}
+.dike-raiz .dk-separador { width: 1px; align-self: stretch; margin: 0.125rem 0.25rem; background: var(--dk-borde-suave); }
+.dike-raiz .dk-fila { border-bottom: 1px solid var(--dk-borde-suave); }
+.dike-raiz .dk-fila:last-child { border-bottom: 0; }
+
+.dike-raiz .dk-aviso {
+  --dk-tono: var(--dk-info);
+  padding: 0.5rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--dk-tono) 30%, transparent);
+  border-left-width: 3px; border-left-color: var(--dk-tono); border-radius: var(--dk-radio);
+  background: color-mix(in srgb, var(--dk-tono) 8%, transparent);
+  color: var(--dk-texto); font-size: 0.75rem;
+}
+.dike-raiz .dk-aviso--ok { --dk-tono: var(--dk-ok); }
+.dike-raiz .dk-aviso--mal { --dk-tono: var(--dk-mal); }
+.dike-raiz .dk-aviso--aviso { --dk-tono: var(--dk-aviso); }
+
+/* Estado vacío: para qué sirve el área y cómo empezar. */
+.dike-raiz .dk-vacio {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem;
+  padding: 1.5rem 1rem; text-align: center; color: var(--dk-texto-3); font-size: 0.75rem;
+}
+.dike-raiz .dk-vacio > :first-child { color: var(--dk-texto-2); font-size: 0.8125rem; font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dike-raiz .dk-btn { transition: none; }
+}

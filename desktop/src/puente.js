@@ -5,10 +5,15 @@
 
 let cola = []
 
+// Tope de la cola: tomarCitas() la vuelca entera en el escrito al abrirlo;
+// sin límite, citas encoladas y nunca visitadas se acumularían en memoria.
+const TOPE_COLA = 20
+
 // encolarCita({cita, gid, nodo_id, label}) -> true si quedó encolada.
 // La cita debe ser texto no vacío; el resto se sanea a los cuatro campos.
 export function encolarCita(item) {
   if (!item || typeof item.cita !== 'string' || !item.cita.trim()) return false
+  if (cola.length >= TOPE_COLA) return false
   cola.push({
     cita: item.cita,
     gid: typeof item.gid === 'string' ? item.gid : null,
@@ -53,5 +58,27 @@ export function pedirFoco(item) {
 export function tomarFoco() {
   const out = foco
   foco = null
+  return out
+}
+
+// --- Pestana inicial de la página -----------------------------------------
+// Mismo patrón que el foco: una petición en memoria que se consume al leerla.
+// La usa el arnés de desarrollo (?tab=grafo) y cualquier futuro deep-link
+// «abrir Diké en tal pestaña»; en producción nadie la pide y devuelve null.
+
+const PESTANAS = new Set(['escritor', 'grafo', 'nif', 'personalizacion'])
+let pestana = null
+
+// pedirPestana(id) -> true si el id es una pestaña conocida.
+export function pedirPestana(id) {
+  if (typeof id !== 'string' || !PESTANAS.has(id)) return false
+  pestana = id
+  return true
+}
+
+// tomarPestana() -> la pestaña pedida y la limpia (una lectura la consume).
+export function tomarPestana() {
+  const out = pestana
+  pestana = null
   return out
 }

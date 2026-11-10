@@ -10,14 +10,17 @@ export function crearPredictorCorpus() {
     capa: 'L1',
     etiqueta: 'texto del corpus, sin verificar como cita',
     disponible: () => true,
-    async predecir({ segmento, signal }) {
+    async predecir({ segmento }) {
+      // POST /prediccion/corpus {cola}: el backend exige 1–300 caracteres.
+      // ctx.rest no admite signal: la mesa ya descarta el resultado si el
+      // AbortController se disparó mientras la petición estaba en vuelo.
       const cola = String(segmento || '').trim().split(/\s+/).slice(-4)
-        .join(' ')
+        .join(' ').slice(-300)
       if (cola.length < 8) return null
       const t0 = Date.now()
-      const r = await rest('/prediccion/corpus?cola=' +
-        encodeURIComponent(cola), { signal: signal && signal.abort,
-          timeoutMs: 5000 }).catch(() => null)
+      const r = await rest('/prediccion/corpus', {
+        method: 'POST', body: { cola }, timeoutMs: 5000,
+      }).catch(() => null)
       if (!r || !r.continuacion) return null
       return {
         texto: r.continuacion,

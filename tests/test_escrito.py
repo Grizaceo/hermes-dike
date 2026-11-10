@@ -190,6 +190,29 @@ def test_escrito_demo_y_pizarra(api, datos):
     assert api.escrito_obtener('c1')['registro']['pizarra']['nodos'][0]['titulo'] == 'Hechos'
 
 
+def test_escrito_demo_caso_laboral_explicito(api, datos):
+    demo = api.escrito_demo('laboral')
+    assert 'artículo 161 del Código del Trabajo' in demo['texto']
+    assert demo['html'].startswith('<p>')
+
+
+def test_escrito_demo_caso_ambiental(api, datos):
+    demo = api.escrito_demo('ambiental')
+    fixture = (ROOT / 'tests' / 'fixtures' / 'escrito_demo_ambiental.md')
+    assert demo['texto'] == fixture.read_text(encoding='utf-8').strip()
+    assert 'Código de Aguas' in demo['texto']
+    assert '21.202' in demo['texto']
+    assert '<p>' in demo['html']
+
+
+def test_escrito_demo_caso_invalido(api, datos):
+    from fastapi import HTTPException
+    for malo in ('penal', '', 'AMBIENTAL', 'laboral '):
+        with pytest.raises(HTTPException) as exc:
+            api.escrito_demo(malo)
+        assert exc.value.status_code == 400, malo
+
+
 def test_estilo_analizar_escribe_claro(api, datos):
     texto = (
         "PRIMERO.- Consta que el trabajador fue notificado de la realización "

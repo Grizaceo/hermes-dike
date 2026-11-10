@@ -107,6 +107,24 @@
     ]
   },
   {
+    "code": "DEMO_CASE_INVALID",
+    "en": "caso must be 'laboral' or 'ambiental'.",
+    "es": "caso debe ser 'laboral' o 'ambiental'.",
+    "status": 400,
+    "routes": [
+      "GET /escrito/demo"
+    ]
+  },
+  {
+    "code": "DEMO_SAMPLE_UNAVAILABLE",
+    "en": "The environmental sample brief is not available in this installation.",
+    "es": "la muestra ambiental no está disponible.",
+    "status": 404,
+    "routes": [
+      "GET /escrito/demo"
+    ]
+  },
+  {
     "code": "DESTINATION_TOO_LONG",
     "en": "destino exceeds 200 characters. Use a shorter destination label.",
     "es": "destino demasiado largo.",
@@ -196,6 +214,15 @@
     "en": "Link evidence is available only in the local graph. Select ambiental.",
     "es": "evidencia solo está disponible en la capa local.",
     "status": 400,
+    "routes": [
+      "GET /grafo/evidencia"
+    ]
+  },
+  {
+    "code": "EVIDENCE_UNREADABLE",
+    "en": "The evidence for this link could not be read. Reload the local graph.",
+    "es": "evidencia ilegible.",
+    "status": 500,
     "routes": [
       "GET /grafo/evidencia"
     ]
@@ -405,7 +432,8 @@
     "status": 404,
     "routes": [
       "GET /grafo/nodo",
-      "GET /grafo/red"
+      "GET /grafo/red",
+      "GET /grafo/unidad"
     ]
   },
   {
@@ -415,7 +443,8 @@
     "status": 500,
     "routes": [
       "GET /grafo/nodo",
-      "GET /grafo/red"
+      "GET /grafo/red",
+      "GET /grafo/unidad"
     ]
   },
   {

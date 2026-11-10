@@ -311,7 +311,9 @@ def test_evidencia_offsets_validos(builder, tmp_path):
 
 def test_fuentes_y_red_ambiental(api, tmp_path, monkeypatch):
     amb = tmp_path / 'grafo-local' / 'ambiental'
-    red = {'nodes': [], 'links': [], 'conteos': {}, 'fuente': 'ambiental',
+    red = {'nodes': [{'id': 'u_0001', 'tipo': 'unidad',
+                      'clase': 'normativa', 'label': 'u 1'}],
+           'links': [], 'conteos': {}, 'fuente': 'ambiental',
            'local_only': True, 'truncado': False}
     amb.mkdir(parents=True)
     (amb / 'red.json').write_text(json.dumps(red))
@@ -325,6 +327,8 @@ def test_fuentes_y_red_ambiental(api, tmp_path, monkeypatch):
         '_asegurar_corpus': staticmethod(lambda d: {'generation': '/tmp/g'}),
     })()
     monkeypatch.setattr(api, '_adaptador', lambda: mod)
+    monkeypatch.setattr(api, '_CURADOS_AMB',
+                        tmp_path / 'sin-curados.json')
     fuentes = api.grafo_fuentes()
     amb_f = next(f for f in fuentes if f['id'] == 'ambiental')
     assert amb_f['disponible'] is True and amb_f['local_only'] is True
@@ -332,6 +336,179 @@ def test_fuentes_y_red_ambiental(api, tmp_path, monkeypatch):
     u = api.grafo_unidad('u_0001', fuente='ambiental')
     assert u['texto'] == 't'
     assert api.grafo_evidencia('s|d|cita')['snippet'] == 'x'
+
+
+def _capa_ambiental(api, tmp_path, monkeypatch, *, red=None, textos=None,
+                    evidencias=None, curados='vacio'):
+    """Capa ambiental falsa en tmp_path y adaptador mockeado."""
+    amb = tmp_path / 'grafo-local' / 'ambiental'
+    amb.mkdir(parents=True, exist_ok=True)
+    data = red if red is not None else {
+        'nodes': [], 'links': [], 'conteos': {},
+        'fuente': 'ambiental', 'local_only': True, 'truncado': False}
+    (amb / 'red.json').write_text(json.dumps(data), encoding='utf-8')
+    (amb / 'unidades.json').write_text(json.dumps(
+        {'textos': textos or {}, 'evidencias': evidencias or {}}),
+        encoding='utf-8')
+    mod = type('M', (), {
+        'PACK_HASH': 'h', '_carpeta_de_datos': staticmethod(lambda: tmp_path),
+        '_entorno': staticmethod(lambda r: {}),
+        '_asegurar_corpus': staticmethod(lambda d: {'generation': '/tmp/g'}),
+    })()
+    monkeypatch.setattr(api, '_adaptador', lambda: mod)
+    curados_path = tmp_path / 'nodos_curados.json'
+    if curados == 'vacio':
+        curados_path.write_text('{"nodes": [], "links": []}',
+                                encoding='utf-8')
+    elif curados:
+        curados_path.write_text(json.dumps(curados), encoding='utf-8')
+    else:
+        curados_path.unlink(missing_ok=True)
+    monkeypatch.setattr(api, '_CURADOS_AMB', curados_path)
+    return amb
+
+
+def _nodo_unidad(uid, clase='normativa', **extra):
+    return {'id': uid, 'tipo': 'unidad', 'clase': clase,
+            'label': uid, **extra}
+
+
+def test_unidad_ambiental_normativa_conserva_texto(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        red={'nodes': [_nodo_unidad('u_norm')], 'links': [], 'conteos': {}},
+        textos={'u_norm': {'texto': 'Texto normativo completo.'}})
+    u = api.grafo_unidad('u_norm', fuente='ambiental')
+    assert u['texto'] == 'Texto normativo completo.'
+    assert 'texto_omitido' not in u
+
+
+def test_unidad_ambiental_judicial_sin_texto(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        red={'nodes': [_nodo_unidad('u_jud', 'judicial', tribunal='2TA')],
+             'links': [], 'conteos': {}},
+        textos={'u_jud': {'texto': 'texto de sentencia que no debe salir'}})
+    u = api.grafo_unidad('u_jud', fuente='ambiental')
+    assert u['texto'] is None
+    assert u['texto_omitido'] is True
+    assert u['motivo'] == 'solo_metadatos'
+    assert u['clase'] == 'judicial' and u['tribunal'] == '2TA'
+
+
+def test_unidad_ambiental_clase_desconocida_sin_texto(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        red={'nodes': [_nodo_unidad('u_rara', 'otra_cosa')],
+             'links': [], 'conteos': {}},
+        textos={'u_rara': {'texto': 'no debe salir'}})
+    u = api.grafo_unidad('u_rara', fuente='ambiental')
+    assert u['texto'] is None and u['texto_omitido'] is True
+
+
+def test_unidad_ambiental_fuera_de_red_sin_texto(api, tmp_path, monkeypatch):
+    """Texto en unidades.json pero sin nodo en red.json: fail-closed."""
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        red={'nodes': [], 'links': [], 'conteos': {}},
+        textos={'u_huerfana': {'texto': 'no debe salir'}})
+    u = api.grafo_unidad('u_huerfana', fuente='ambiental')
+    assert u['texto'] is None and u['texto_omitido'] is True
+    assert u['motivo'] == 'solo_metadatos'
+
+
+def test_unidad_ambiental_inexistente_404(api, tmp_path, monkeypatch):
+    from fastapi import HTTPException
+    _capa_ambiental(api, tmp_path, monkeypatch)
+    with pytest.raises(HTTPException) as exc:
+        api.grafo_unidad('u_nada', fuente='ambiental')
+    assert exc.value.status_code == 404
+
+
+def test_evidencia_snippet_largo_se_omite(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        evidencias={'s|d|cita': {
+            'regla': 'R-CITA-ART', 'estado': 'verificada', 'nivel': 'articulo',
+            'char_start': 3, 'char_end': 9, 'snippet': 'x' * 200}})
+    ev = api.grafo_evidencia('s|d|cita')
+    assert 'snippet' not in ev
+    assert ev['snippet_omitido'] is True
+    assert ev['regla'] == 'R-CITA-ART' and ev['char_start'] == 3
+
+
+def test_evidencia_snippet_corto_se_conserva(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        evidencias={'s|d|cita': {
+            'regla': 'R-RES', 'estado': 'candidata', 'nivel': None,
+            'char_start': 1, 'char_end': 5, 'snippet': 'y' * 30}})
+    ev = api.grafo_evidencia('s|d|cita')
+    assert ev['snippet'] == 'y' * 30
+    assert 'snippet_omitido' not in ev
+
+
+def test_curados_fusionan_sin_duplicar(api, tmp_path, monkeypatch):
+    curados = {
+        'nodes': [
+            {'id': 'n_cur1', 'tipo': 'sentencia', 'label': 'S curada',
+             'solo_metadatos': True, 'aviso': 'solo metadatos',
+             'url': 'https://oficial.example/s1'},
+            {'id': 'u_norm', 'tipo': 'unidad', 'label': 'duplicada'},
+        ],
+        'links': [
+            {'source': 'n_cur1', 'target': 'u_norm', 'tipo': 'cita',
+             'estado': 'curada'},
+            {'source': 'n_cur1', 'target': 'n_fantasma', 'tipo': 'cita',
+             'estado': 'curada'},
+        ],
+    }
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        red={'nodes': [_nodo_unidad('u_norm')],
+             'links': [{'source': 'x', 'target': 'u_norm', 'tipo': 'contiene'}],
+             'conteos': {}},
+        curados=curados)
+    red = api.grafo_red(fuente='ambiental')
+    ids = [n['id'] for n in red['nodes']]
+    assert len(ids) == len(set(ids)) == 2
+    cur = next(n for n in red['nodes'] if n['id'] == 'n_cur1')
+    assert cur['curado'] is True and cur['aviso'] == 'solo metadatos'
+    # El duplicado 'u_norm' no se re-agregó: queda el nodo de la red.
+    assert not any(n.get('curado') for n in red['nodes'] if n['id'] == 'u_norm')
+    assert red['conteos']['curados'] == 1
+    links = {(l['source'], l['target'], l['tipo']) for l in red['links']}
+    assert ('n_cur1', 'u_norm', 'cita') in links
+    assert ('n_cur1', 'n_fantasma', 'cita') not in links
+
+
+def test_curados_ausentes_o_ilegibles(api, tmp_path, monkeypatch):
+    _capa_ambiental(api, tmp_path, monkeypatch,
+                    red={'nodes': [_nodo_unidad('u_norm')], 'links': [],
+                         'conteos': {}},
+                    curados=False)
+    red = api.grafo_red(fuente='ambiental')
+    assert len(red['nodes']) == 1 and 'curados' not in red['conteos']
+
+    amb = tmp_path / 'grafo-local' / 'ambiental'
+    (tmp_path / 'nodos_curados.json').write_text('{no json',
+                                                 encoding='utf-8')
+    red = api.grafo_red(fuente='ambiental')
+    assert len(red['nodes']) == 1 and 'curados' not in red['conteos']
+
+
+def test_nodo_ambiental_expone_curado(api, tmp_path, monkeypatch):
+    _capa_ambiental(
+        api, tmp_path, monkeypatch,
+        curados={'nodes': [{'id': 'n_cur1', 'tipo': 'sentencia',
+                            'label': 'S', 'rol': 'R-1-2024',
+                            'fecha': '2026-01-06', 'aviso': 'ojo',
+                            'url': 'https://oficial.example/s1'}],
+                 'links': []})
+    nodo = api.grafo_nodo('n_cur1', fuente='ambiental')
+    assert nodo['curado'] is True
+    assert nodo['rol'] == 'R-1-2024' and nodo['fecha'] == '2026-01-06'
+    assert nodo['aviso'] == 'ojo' and nodo['url'].startswith('https://')
 
 
 def test_red_ambiental_404_sin_build(api, tmp_path, monkeypatch):

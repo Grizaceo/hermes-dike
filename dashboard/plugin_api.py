@@ -569,6 +569,9 @@ def _leer_local(mod, nombre: str) -> dict:
         return {}
 
 
+_CURADOS_AMB = _RAIZ / "data" / "ambiental" / "nodos_curados.json"
+
+
 def _red_ambiental(mod) -> dict:
     p = _ambiental_dir(mod) / "red.json"
     if not p.is_file():
@@ -582,7 +585,46 @@ def _red_ambiental(mod) -> dict:
     data["fuente"] = "ambiental"
     data["local_only"] = True
     data.setdefault("conteos", {})
+    _fusionar_curados(data)
     return data
+
+
+def _fusionar_curados(data: dict) -> None:
+    """Mezcla los nodos curados (solo metadatos) en la red en memoria.
+
+    Los nodos entran con ``curado: true`` si su id no existe; los links solo
+    si ambos extremos existen tras la fusión. Nunca escribe a disco: si el
+    archivo falta o es ilegible la red queda como está.
+    """
+    try:
+        curados = json.loads(_CURADOS_AMB.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(curados, dict):
+        return
+    nodos = data.get("nodes")
+    links = data.get("links")
+    if not isinstance(nodos, list) or not isinstance(links, list):
+        return
+    existentes = {n.get("id") for n in nodos if isinstance(n, dict)}
+    agregados = 0
+    for n in curados.get("nodes") or []:
+        if not isinstance(n, dict):
+            continue
+        nid = n.get("id")
+        if not isinstance(nid, str) or not nid or nid in existentes:
+            continue
+        nodos.append({**n, "curado": True})
+        existentes.add(nid)
+        agregados += 1
+    for l in curados.get("links") or []:
+        if not isinstance(l, dict):
+            continue
+        src, dst = l.get("source"), l.get("target")
+        if (isinstance(src, str) and isinstance(dst, str)
+                and src in existentes and dst in existentes):
+            links.append(dict(l))
+    data["conteos"]["curados"] = agregados
 
 
 @router.get("/grafo/fuentes")
@@ -635,11 +677,26 @@ def grafo_unidad(id: str, fuente: str = "corpus"):
     if fuente == "ambiental":
         if not _UNIDAD_AMB_ID.match(id or ""):
             raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
-        store = _leer_local(_adaptador(), "unidades.json")
+        mod = _adaptador()
+        red = _red_ambiental(mod)
+        nodo = next((n for n in red.get("nodes", []) if n.get("id") == id), None)
+        store = _leer_local(mod, "unidades.json")
         u = (store.get("textos") or {}).get(id)
-        if u is None:
+        if u is None and nodo is None:
             raise HTTPException(status_code=404, detail=_detalle('LOCAL_UNIT_NOT_FOUND'))
-        return {"id": id, **u}
+        # Fail-closed: solo las unidades normativas de la red exhiben texto;
+        # judiciales, de clase desconocida o sin nodo en la red devuelven
+        # solo metadatos.
+        if (nodo is not None and nodo.get("clase") == "normativa"
+                and isinstance(u, dict) and u.get("texto")):
+            return {"id": id, **u}
+        meta = dict(nodo) if isinstance(nodo, dict) else {}
+        if isinstance(u, dict):
+            for k, v in u.items():
+                if k != "texto":
+                    meta.setdefault(k, v)
+        return {"id": id, **meta, "texto": None,
+                "texto_omitido": True, "motivo": "solo_metadatos"}
     if not _UNIDAD_ID.match(id or ""):
         raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
     return _panel(["grafo", "unidad", id], corpus=True, timeout=60, memo=True)
@@ -657,7 +714,16 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
     ev = (store.get("evidencias") or {}).get(link)
     if ev is None:
         raise HTTPException(status_code=404, detail=_detalle('EVIDENCE_NOT_FOUND'))
-    return ev
+    if not isinstance(ev, dict):
+        raise HTTPException(status_code=500, detail=_detalle('EVIDENCE_UNREADABLE'))
+    out = {k: ev[k] for k in ("regla", "estado", "nivel",
+                              "char_start", "char_end") if k in ev}
+    snippet = ev.get("snippet")
+    if isinstance(snippet, str) and len(snippet) <= 120:
+        out["snippet"] = snippet
+    else:
+        out["snippet_omitido"] = True
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -1012,13 +1078,25 @@ _DEMO_FALLBACK = (
 
 
 @router.get("/escrito/demo")
-def escrito_demo():
+def escrito_demo(caso: str = "laboral"):
     """Devuelve el escrito sintético de demostración en texto y HTML."""
-    ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo.md"
-    try:
-        texto = ruta.read_text(encoding="utf-8").strip() if ruta.is_file() else _DEMO_FALLBACK
-    except OSError:
-        texto = _DEMO_FALLBACK
+    if caso == "ambiental":
+        ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo_ambiental.md"
+        try:
+            texto = ruta.read_text(encoding="utf-8").strip()
+        except OSError:
+            raise HTTPException(status_code=404,
+                                detail=_detalle('DEMO_SAMPLE_UNAVAILABLE'))
+    elif caso == "laboral":
+        ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo.md"
+        try:
+            texto = (ruta.read_text(encoding="utf-8").strip()
+                     if ruta.is_file() else _DEMO_FALLBACK)
+        except OSError:
+            texto = _DEMO_FALLBACK
+    else:
+        raise HTTPException(status_code=400,
+                            detail=_detalle('DEMO_CASE_INVALID'))
     parrafos = [p.strip() for p in re.split(r"\n\s*\n", texto) if p.strip()]
     html = "".join(
         "<p>" + (p.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")) + "</p>"

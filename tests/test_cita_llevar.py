@@ -27,7 +27,7 @@ for _p in (str(SCRIPTS), str(MOTOR)):
         sys.path.insert(0, _p)
 
 from lexo_cli.starter.resolver import NormativeResolutionError  # noqa: E402
-from test_busqueda import _articulo_json, _esbuild_ascii, NORM_ID  # noqa: E402
+from soporte_busqueda import _articulo_json, _esbuild_ascii, NORM_ID  # noqa: E402
 
 
 class _ResolverFalso:

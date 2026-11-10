@@ -229,7 +229,7 @@ def test_marcador_lista_de_partes(hooks, sesiones):
     assert out is not None and hooks._marcada('m3')
 
 
-# --- Parte 2: dike_leer_articulo y dike_buscar_corpus ------------------------
+# --- dike_leer_articulo y dike_buscar_corpus ------------------------
 
 def _marcar(hooks, sesiones, sid='h1'):
     hooks.pre_llm_call(platform='dike-escritor', session_id=sid, is_first_turn=True)

@@ -99,6 +99,7 @@ class _PanelErrorFalso(Exception):
 def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
                 datos=None, llamadas=None, asegurar=None):
     """Sustituye adaptador + subprocess del panel por un motor falso."""
+    limpiar = api._adaptador()._limpio_panel
     capturado = {}
 
     class FakeProc:
@@ -147,6 +148,7 @@ def _stub_motor(monkeypatch, api, stdout='{}', returncode=0, stderr='',
     mod = type('M', (), {
         'PACK_HASH': 'testpackhash0000',
         'PanelError': _PanelErrorFalso,
+        '_limpio_panel': staticmethod(limpiar),
         '_carpeta_de_datos': staticmethod(lambda: datos or Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(
@@ -515,3 +517,13 @@ def test_sintaxis_js(tmp_path):
     desk.write_text((DESKTOP / 'plugin.js').read_text())
     for f in (web, desk):
         subprocess.run([NODE, '--check', str(f)], check=True, capture_output=True)
+
+
+
+def test_redaccion_compartida_conserva_urls_y_acota_panel(api):
+    texto = 'https://ley.invalid/a /home/u/secreto C:\\Users\\u\\secreto'
+    mod = api._adaptador()
+    esperado = 'https://ley.invalid/a <ruta-local> <ruta-local>'
+    assert mod._limpiar_rutas(texto) == esperado
+    assert mod._limpio_panel(texto) == api._limpio(texto) == esperado
+    assert len(api._limpio('x' * 500)) == 400

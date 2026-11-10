@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import math
 import os
 import re
 import sys
@@ -39,7 +40,6 @@ _CAMPOS_NIF = {
     "facts.known", "facts.alleged", "facts.missing",
 }
 _CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
-_RUTA_LOCAL = re.compile(r"(?<![\w:/])/(?:[^\s,;\"']+)|(?<![\w/])[A-Za-z]:[\\/][^\s,;\"']+")
 
 
 _ADAPTADOR = None
@@ -69,45 +69,20 @@ def _adaptador():
         return _ADAPTADOR
 
 
-def _version() -> str | None:
-    try:
-        import yaml
-        data = yaml.safe_load((_RAIZ / "plugin.yaml").read_text(encoding="utf-8"))
-        return str(data.get("version")) if isinstance(data, dict) else None
-    except Exception:
-        return None
-
-
 @router.get("/estado")
 def estado():
     """Estado del corpus sin efectos secundarios: no instala ni descarga."""
     mod = _adaptador()
     datos = mod._carpeta_de_datos()
-    esperado = ""
-    sums = mod._CORPUS / "SHA256SUMS"
-    if sums.is_file():
-        partes = sums.read_text(encoding="utf-8").split()
-        if len(partes) >= 2:
-            esperado = partes[0]
-    generacion = datos / "generations" / esperado if esperado else None
-    # Una carpeta con el nombre esperado no basta: la instalación se publica
-    # con installed.json, que registra el paquete y los archivos instalados.
-    # No recalcula hashes; eso lo hace cada verificación.
-    instalado = False
-    if generacion and generacion.is_dir():
-        try:
-            registro = json.loads((generacion / "installed.json").read_text(encoding="utf-8"))
-            instalado = (isinstance(registro, dict) and registro.get("package_sha256") == esperado
-                         and isinstance(registro.get("files"), dict) and bool(registro["files"]))
-        except (OSError, ValueError):
-            instalado = False
+    corpus = mod._estado_corpus(datos)
+    version = mod._version_plugin()
     return {
         "pack_hash": mod.PACK_HASH,
-        "corpus_instalado": instalado,
-        "generation": generacion.name if instalado else None,
+        "corpus_instalado": corpus["corpus_instalado"],
+        "generation": corpus["generation"],
         "leyes": _LEYES,
         "articulos": _ARTICULOS,
-        "version": _version(),
+        "version": version if version != "?" else None,
         "aislamiento": mod._aislamiento().estado(),
         "perfil_chat": mod._perfil_chat(),
     }
@@ -169,8 +144,8 @@ def escrito_obtener(case_id: str):
 @router.post("/escrito")
 def escrito_guardar(body: dict):
     cid = _case_id(body)
-    html = body.get("html")
-    texto = body.get("texto")
+    html = _campo_json(body, "html", str)
+    texto = _campo_json(body, "texto", str)
     rev_base = body.get("rev_base")
     registro = body.get("registro")
     if not isinstance(html, str):
@@ -186,8 +161,11 @@ def escrito_guardar(body: dict):
         raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
     if len(html.encode("utf-8")) > _LIMITE_HTML:
         raise HTTPException(status_code=400, detail="El html supera el límite permitido.")
-    if registro is not None and len(
-            json.dumps(registro, ensure_ascii=False).encode("utf-8")) > _LIMITE_REGISTRO:
+    try:
+        registro_bytes = len(json.dumps(registro, ensure_ascii=False).encode('utf-8'))
+    except UnicodeEncodeError:
+        raise HTTPException(status_code=400, detail="registro trae Unicode inválido.") from None
+    if registro is not None and registro_bytes > _LIMITE_REGISTRO:
         raise HTTPException(status_code=400, detail="El registro supera el límite permitido.")
 
     # Lectura de rev + escritura bajo un lock de proceso: dos guardados
@@ -234,7 +212,7 @@ def escrito_guardar(body: dict):
 
 def _limpio(texto: str) -> str:
     """Quita rutas locales y recorta: stderr del motor nunca sale tal cual."""
-    return _RUTA_LOCAL.sub("<ruta-local>", str(texto))[:400]
+    return _adaptador()._limpio_panel(texto)
 
 
 _CORPUS_MEMO_TTL = 60.0
@@ -299,6 +277,26 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
                             detail=f"motor: {exc.detalle or 'sin salida'}")
 
 
+def _campo_json(body, clave, tipo, defecto=None):
+    """Valida el tipo antes de usar campos JSON en regex, conjuntos o conversiones."""
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+    valor = body.get(clave, defecto)
+    tipos = tipo if isinstance(tipo, tuple) else (tipo,)
+    if type(valor) not in tipos:
+        nombres = {str: 'texto', int: 'entero', float: 'número', bool: 'booleano', dict: 'objeto'}
+        esperado = ' o '.join(nombres[t] for t in tipos)
+        raise HTTPException(status_code=400, detail=f"{clave} debe ser {esperado}.")
+    if isinstance(valor, str):
+        try:
+            valor.encode('utf-8')
+        except UnicodeEncodeError:
+            raise HTTPException(status_code=400, detail=f"{clave} trae Unicode inválido.") from None
+    if isinstance(valor, float) and not math.isfinite(valor):
+        raise HTTPException(status_code=400, detail=f"{clave} debe ser finito.")
+    return valor
+
+
 def _case_id(body: dict) -> str:
     cid = body.get("case_id") if isinstance(body, dict) else None
     if not isinstance(cid, str) or not _CASE_ID.match(cid.strip()):
@@ -314,11 +312,11 @@ def nif_casos():
 @router.post("/nif/init")
 def nif_init(body: dict):
     cid = _case_id(body)
-    pregunta = body.get("pregunta") if isinstance(body, dict) else None
+    pregunta = _campo_json(body, "pregunta", str, "")
     if not isinstance(pregunta, str) or not pregunta.strip():
         raise HTTPException(status_code=400, detail="Falta el campo pregunta.")
     args = ["nif", "init", cid, pregunta.strip()]
-    tipo = body.get("problem_type")
+    tipo = _campo_json(body, "problem_type", str, "")
     if isinstance(tipo, str) and tipo.strip():
         args.append(tipo.strip())
     return _panel(args)
@@ -339,13 +337,15 @@ def nif_snapshot(case_id: str):
 @router.post("/nif/edit")
 def nif_edit(body: dict):
     cid = _case_id(body)
-    campo = body.get("field_path")
+    campo = _campo_json(body, "field_path", str)
     if campo not in _CAMPOS_NIF:
         raise HTTPException(status_code=400, detail="field_path no editable desde el panel.")
     if "value" not in body:
         raise HTTPException(status_code=400, detail="Falta el campo value.")
-    args = ["nif", "edit", cid, campo, json.dumps(body["value"], ensure_ascii=False)]
-    razon = body.get("reason")
+    valor = json.dumps(body["value"], ensure_ascii=False)
+    _campo_json({"value": valor}, "value", str)
+    args = ["nif", "edit", cid, campo, valor]
+    razon = _campo_json(body, "reason", str, "")
     if isinstance(razon, str) and razon.strip():
         args.append(razon.strip())
     return _panel(args)
@@ -354,15 +354,12 @@ def nif_edit(body: dict):
 @router.post("/nif/gap")
 def nif_gap(body: dict):
     cid = _case_id(body)
-    try:
-        indice = int(body.get("gap_index"))
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="gap_index debe ser entero.")
+    indice = _campo_json(body, "gap_index", int)
     for campo in ("filled_by", "filled_with"):
         if not isinstance(body.get(campo), str) or not body[campo].strip():
             raise HTTPException(status_code=400, detail=f"Falta el campo {campo}.")
     return _panel(["nif", "gap", cid, str(indice),
-                   body["filled_by"].strip(), body["filled_with"].strip()])
+                   _campo_json(body, "filled_by", str).strip(), _campo_json(body, "filled_with", str).strip()])
 
 
 @router.post("/nif/validar")
@@ -376,10 +373,9 @@ def nif_validar(body: dict):
 @router.post("/nif/confianza")
 def nif_confianza(body: dict):
     cid = _case_id(body)
-    try:
-        valor = float(body.get("confidence"))
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="confidence debe ser número.")
+    valor = _campo_json(body, "confidence", (int, float))
+    if not 0 <= valor <= 1:
+        raise HTTPException(status_code=400, detail="confidence debe estar entre 0 y 1.")
     return _panel(["nif", "confidence", cid, str(valor)])
 
 
@@ -402,7 +398,7 @@ def grafo_corpus_norma(code: str):
 
 @router.get("/grafo/red")
 def grafo_red(fuente: str = "corpus"):
-    """La red del grafo en una sola llamada (hoy solo el corpus sellado).
+    """La red del corpus sellado o de la capa ambiental local en una llamada.
 
     La respuesta se cachea en plugin-data por pack_hash: la primera lectura
     barre los ~8.500 artículos, las siguientes sirven el archivo."""
@@ -615,7 +611,7 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
 
 
 # ---------------------------------------------------------------------------
-# Privacidad del escrito (F2a): detección, seudónimos estables y registro de
+# Privacidad del escrito (): detección, seudónimos estables y registro de
 # envíos. I/O directo en plugin-data; el detector es puro Python (sin
 # subproceso). Fail-closed: si el registro no se puede escribir, la ruta
 # responde 5xx y el cliente no debe enviar nada.
@@ -660,7 +656,7 @@ def privacidad_detectar(body: dict):
     mod = _adaptador()
     pv = _privacidad()
     texto = _texto_privacidad(body)
-    estrategia = body.get("estrategia") or "media"
+    estrategia = _campo_json(body, "estrategia", str, "media")
     cid = body.get("case_id")
     conservar, enmascarar = [], []
     if cid is not None:
@@ -692,14 +688,14 @@ def privacidad_decision(body: dict):
     mod = _adaptador()
     pv = _privacidad()
     cid = _case_id(body)
-    valor = body.get("valor") or ""
+    valor = _campo_json(body, "valor", str, "")
     accion = body.get("accion")
     if accion not in ("conservar", "enmascarar", "olvidar"):
         raise HTTPException(status_code=400,
                             detail="accion debe ser conservar, enmascarar u olvidar.")
     if not valor.strip() and accion != "olvidar":
         raise HTTPException(status_code=400, detail="El valor no puede estar vacío.")
-    tipo = body.get("tipo") or "full_name"
+    tipo = _campo_json(body, "tipo", str, "full_name")
     dec = pv.guardar_decision(mod._carpeta_de_datos(), cid, valor, accion, tipo)
     return {"ok": True, "decisiones": dec}
 
@@ -711,7 +707,7 @@ def privacidad_seudonimizar(body: dict):
     pv = _privacidad()
     cid = _case_id(body)
     texto = _texto_privacidad(body)
-    estrategia = body.get("estrategia") or "media"
+    estrategia = _campo_json(body, "estrategia", str, "media")
     return pv.seudonimizar(mod._carpeta_de_datos(), cid, texto, estrategia)
 
 
@@ -721,24 +717,28 @@ def privacidad_envio(body: dict):
     mod = _adaptador()
     pv = _privacidad()
     cid = _case_id(body)
-    destino = body.get("destino") or ""
-    sha = body.get("sha256") or ""
+    destino = _campo_json(body, "destino", str, "")
+    sha = _campo_json(body, "sha256", str, "")
     if not re.fullmatch(r"[0-9a-f]{64}", sha):
         raise HTTPException(status_code=400, detail="sha256 inválido.")
     if len(destino) > 200:
         raise HTTPException(status_code=400, detail="destino demasiado largo.")
+    conteos = _campo_json(body, "conteos", dict, {})
+    if any(not isinstance(k, str) or not re.fullmatch(r'[a-z_]{1,80}', k)
+           or type(v) is not int or v < 0 for k, v in conteos.items()):
+        raise HTTPException(status_code=400, detail="conteos debe contener cantidades enteras no negativas por tipo.")
     try:
         pv.registrar_envio(mod._carpeta_de_datos(), cid, destino, sha,
-                           body.get("conteos") or {},
-                           body.get("estrategia") or "media",
-                           bool(body.get("seudonimizado")))
+                           conteos,
+                           _campo_json(body, "estrategia", str, "media"),
+                           _campo_json(body, "seudonimizado", bool, False))
     except OSError:
         raise HTTPException(status_code=500,
                             detail="No se pudo registrar el envío; no envíes el texto.")
     return {"ok": True}
 
 # ---------------------------------------------------------------------------
-# Predicción de texto (F4): L1 = continuación literal desde el corpus sellado.
+# Predicción de texto (): L1 = continuación literal desde el corpus sellado.
 # Índice en memoria construido al primer uso sobre la generación instalada,
 # en SOLO LECTURA (nunca se escribe en la generación).
 # ---------------------------------------------------------------------------
@@ -843,14 +843,17 @@ def _cortar_palabra(s: str, tope: int) -> str:
     return s[:corte if corte > 0 else tope]
 
 
-@router.get("/prediccion/corpus")
-def prediccion_corpus(cola: str):
+@router.post("/prediccion/corpus")
+def prediccion_corpus(body: dict):
     """Continuación literal tras el ancla más larga encontrada en el corpus.
 
     La respuesta es texto del corpus, no una cita verificada — la UI lo
     rotula siempre "sin verificar como cita".
     """
-    cola_n = _norm_cola(cola or "")
+    cola = _campo_json(body, "cola", str, "")
+    if len(cola) > 300:
+        raise HTTPException(status_code=400, detail="cola demasiado larga.")
+    cola_n = _norm_cola(cola)
     if not cola_n:
         raise HTTPException(status_code=400, detail="cola vacía.")
     if len(cola_n) > 300:
@@ -915,13 +918,17 @@ def prediccion_corpus(cola: str):
 @router.post("/prediccion/evento")
 def prediccion_evento(body: dict):
     """Telemetría opt-in de aceptación: solo metadatos, nunca texto."""
-    capa = str(body.get("capa") or "")
-    tipo = str((body.get("procedencia") or {}).get("tipo") or "")
+    capa = _campo_json(body, "capa", str, "")
+    procedencia = _campo_json(body, "procedencia", dict, {})
+    tipo = _campo_json(procedencia, "tipo", str, "")
+    largo = _campo_json(body, "largo", int, 0)
+    if largo < 0:
+        raise HTTPException(status_code=400, detail="largo debe ser no negativo.")
     evento = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "capa": capa,
-        "aceptada": bool(body.get("aceptada")),
-        "largo": int(body.get("largo") or 0),
+        "aceptada": _campo_json(body, "aceptada", bool, False),
+        "largo": largo,
         "tipo": tipo,
     }
     mod = _adaptador()
@@ -1066,16 +1073,16 @@ def ordenamiento_perfiles():
             perfil = ord_mod.cargar_perfil(ruta)
             errores = ord_mod.validar_perfil(perfil)
             tipos = [
-                {"id": t.get("id"), "etiqueta": t.get("etiqueta"), "nivel": t.get("nivel")}
+                {"id": t.get("codigo"), "etiqueta": t.get("nombre"), "nivel": t.get("nivel")}
                 for t in ((perfil.get("normas") or {}).get("tipos") or [])
                 if isinstance(t, dict)
             ]
             perfiles.append({
-                "id": perfil.get("id") or codigo,
-                "jurisdiccion": perfil.get("jurisdiccion") or codigo,
+                "id": perfil.get("perfil") or codigo,
+                "jurisdiccion": (perfil.get("identidad") or {}).get("jurisdiccion") or codigo,
                 "nombre": perfil.get("nombre") or codigo.upper(),
-                "idioma": perfil.get("idioma") or "es",
-                "version": perfil.get("version") or "1.0.0",
+                "idioma": ((perfil.get("identidad") or {}).get("idiomas") or ["es"])[0],
+                "version": perfil.get("perfilVersion") or "1.0.0",
                 "origen": origen,
                 "valido": len(errores) == 0,
                 "errores": errores,
@@ -1105,7 +1112,7 @@ def ordenamiento_plantilla(body: dict):
     """Genera una plantilla de perfil y paquete para un código de jurisdicción."""
     if not isinstance(body, dict):
         raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
-    jur = str(body.get("jur") or "").strip().lower()
+    jur = _campo_json(body, "jur", str, "").strip().lower()
     if not _JUR_ID.match(jur):
         raise HTTPException(
             status_code=400,
@@ -1161,7 +1168,11 @@ def ordenamiento_construir(body: dict):
         for rel_name, contenido in textos.items():
             if not isinstance(rel_name, str) or not isinstance(contenido, str):
                 raise HTTPException(status_code=400, detail="textos inválidos.")
-            if len(contenido.encode("utf-8")) > 200_000:
+            try:
+                tamano = len(contenido.encode('utf-8'))
+            except UnicodeEncodeError:
+                raise HTTPException(status_code=400, detail="Texto de norma trae Unicode inválido.") from None
+            if tamano > 200_000:
                 raise HTTPException(status_code=400, detail="Texto de norma demasiado grande.")
             limpio = rel_name.removeprefix("textos/").strip()
             if not _NOMBRE_TXT.match(limpio):
@@ -1188,8 +1199,8 @@ def ordenamiento_construir(body: dict):
                 "jurisdiccion": construccion.get("jurisdiccion"),
                 "normas": construccion.get("normas"),
                 "articulos": construccion.get("articulos"),
-                "ventanasVigencia": construccion.get("ventanasVigencia"),
-                "aristas": construccion.get("aristas"),
+                "ventanasVigencia": construccion["vigencias"],
+                "aristas": construccion["edges"],
                 "manifestCoreSha256": construccion.get("manifestCoreSha256"),
             },
             "compatibilidad": {
@@ -1245,31 +1256,30 @@ def preferencias_guardar(body: dict):
     """Guarda preferencias personalizadas del usuario en plugin-data."""
     if not isinstance(body, dict):
         raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
-    actual = preferencias_obtener()
-    nuevo = dict(actual)
+    nuevo = {}
     if "tema_papel" in body:
-        if body["tema_papel"] not in _PREFS_TEMAS:
+        if _campo_json(body, "tema_papel", str) not in _PREFS_TEMAS:
             raise HTTPException(status_code=400, detail="tema_papel inválido.")
         nuevo["tema_papel"] = body["tema_papel"]
     if "fuente" in body:
-        if not isinstance(body["fuente"], str) or len(body["fuente"]) > 120:
+        if len(_campo_json(body, "fuente", str)) > 120:
             raise HTTPException(status_code=400, detail="fuente inválida.")
         nuevo["fuente"] = body["fuente"]
     if "tamano_fuente" in body:
-        t = str(body["tamano_fuente"])
+        t = str(_campo_json(body, "tamano_fuente", (str, int)))
         if t not in {"10", "11", "12", "13", "14", "16", "18", "20"}:
             raise HTTPException(status_code=400, detail="tamano_fuente inválido.")
         nuevo["tamano_fuente"] = t
     if "ancho_hoja" in body:
-        if body["ancho_hoja"] not in _PREFS_ANCHOS:
+        if _campo_json(body, "ancho_hoja", str) not in _PREFS_ANCHOS:
             raise HTTPException(status_code=400, detail="ancho_hoja inválido.")
         nuevo["ancho_hoja"] = body["ancho_hoja"]
     if "estrategia_privacidad" in body:
-        if body["estrategia_privacidad"] not in _PREFS_ESTRATEGIAS:
+        if _campo_json(body, "estrategia_privacidad", str) not in _PREFS_ESTRATEGIAS:
             raise HTTPException(status_code=400, detail="estrategia_privacidad inválida.")
         nuevo["estrategia_privacidad"] = body["estrategia_privacidad"]
     if "contexto_estilo" in body:
-        if body["contexto_estilo"] not in _PREFS_CONTEXTOS:
+        if _campo_json(body, "contexto_estilo", str) not in _PREFS_CONTEXTOS:
             raise HTTPException(status_code=400, detail="contexto_estilo inválido.")
         nuevo["contexto_estilo"] = body["contexto_estilo"]
     for bkey in ("mostrar_pizarra", "mostrar_chat", "auto_detectar_privacidad", "auto_analizar_estilo"):
@@ -1281,6 +1291,7 @@ def preferencias_guardar(body: dict):
     mod = _adaptador()
     destino = _ruta_prefs(mod)
     with _prefs_lock:
+        nuevo = {**preferencias_obtener(), **nuevo}
         destino.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp = tempfile.mkstemp(dir=destino.parent, prefix=".prefs.", suffix=".tmp")
         try:

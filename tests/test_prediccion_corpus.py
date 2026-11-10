@@ -1,4 +1,4 @@
-"""Test de GET /prediccion/corpus con un corpus SINTÉTICO mínimo.
+"""Test de POST /prediccion/corpus con un corpus SINTÉTICO mínimo.
 
 Nunca toca el corpus real ni la generación sellada del usuario: la
 generación es un tmp_path con artículos de juguete.
@@ -64,7 +64,7 @@ def corpus(api, monkeypatch, tmp_path):
 
 
 def test_continuacion_literal(api, corpus):
-    r = api.prediccion_corpus(cola='pronunciarse sobre las pretensiones')
+    r = api.prediccion_corpus(body={'cola': 'pronunciarse sobre las pretensiones'})
     assert r['continuacion']
     assert len(r['continuacion']) <= 200
     assert r['gid'].endswith('art_0001')
@@ -79,7 +79,7 @@ def test_continuacion_literal(api, corpus):
 def test_ancla_mas_larga(api, corpus):
     # la cola completa no aparece; el sufijo final sí
     r = api.prediccion_corpus(
-        cola='palabras previas inexistentes deducidas y las excepciones')
+        body={'cola': 'palabras previas inexistentes deducidas y las excepciones'})
     assert r['continuacion']
     assert r['ancla'] == 'deducidas y las excepciones'
 
@@ -87,21 +87,21 @@ def test_ancla_mas_larga(api, corpus):
 def test_cola_vacia_y_larga(api, corpus):
     from fastapi import HTTPException
     with pytest.raises(HTTPException) as e:
-        api.prediccion_corpus(cola='   ')
+        api.prediccion_corpus(body={'cola': '   '})
     assert e.value.status_code == 400
     with pytest.raises(HTTPException) as e:
-        api.prediccion_corpus(cola='x ' * 200)
+        api.prediccion_corpus({'cola': 'x ' * 200})
     assert e.value.status_code == 400
 
 
 def test_sin_coincidencia(api, corpus):
-    assert api.prediccion_corpus(cola='zzzz nada que ver aqui') == {
+    assert api.prediccion_corpus(body={'cola': 'zzzz nada que ver aqui'}) == {
         'continuacion': ''}
 
 
 def test_no_escribe_en_generacion(api, corpus):
     antes = {str(p) for p in corpus.rglob('*')}
-    api.prediccion_corpus(cola='pretensiones deducidas')
+    api.prediccion_corpus(body={'cola': 'pretensiones deducidas'})
     despues = {str(p) for p in corpus.rglob('*')}
     assert antes == despues
 
@@ -130,7 +130,7 @@ def test_mapa_exacto_con_unicode(api, corpus, tmp_path):
         'provenance': {},
     }))
     api._indice_cache.clear()
-    r = api.prediccion_corpus(cola='en atencion a esto')
+    r = api.prediccion_corpus(body={'cola': 'en atencion a esto'})
     # fin_original exacto: tras 'ésto' — la ',' literal queda incluida
     esperado = original[original.index('ésto') + len('ésto'):].lstrip()
     assert r['continuacion'] == esperado
@@ -140,5 +140,21 @@ def test_mapa_exacto_con_unicode(api, corpus, tmp_path):
 def test_ancla_dentro_de_palabra_no_acierta(api, corpus):
     """'retensiones' existe solo DENTRO de 'pretensiones': sin límite de
     palabra no hay acierto."""
-    assert api.prediccion_corpus(cola='retensiones') == {
+    assert api.prediccion_corpus(body={'cola': 'retensiones'}) == {
         'continuacion': ''}
+
+
+
+def test_prediccion_corpus_solo_recibe_texto_en_post(api):
+    rutas = [r for r in api.router.routes if r.path == '/prediccion/corpus']
+    assert len(rutas) == 1 and rutas[0].methods == {'POST'}
+    assert rutas[0].dependant.query_params == []
+    assert [p.name for p in rutas[0].dependant.body_params] == ['body']
+
+
+@pytest.mark.parametrize('body', [None, [], {'cola': 1}, {'cola': '\ud800'}])
+def test_prediccion_rechaza_cuerpos_invalidos(api, body):
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as error:
+        api.prediccion_corpus(body)
+    assert error.value.status_code == 400

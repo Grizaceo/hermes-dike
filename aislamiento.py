@@ -64,7 +64,7 @@ _RAIZ = Path(__file__).resolve().parent
 
 # Módulos de primer nivel que importan el motor y el panel, medidos el
 # 2026-11-09 corriendo cada comando y volcando sys.modules (constancia,
-# starter install, nif *, grafo *). La Parte 3 reutiliza la lista para
+# starter install, nif *, grafo *). El adaptador reutiliza la lista para
 # PYTHONPATH; aquí sirve para montar en solo lectura el directorio que
 # contiene cada módulo (find_spec → padre de su ubicación, deduplicado).
 # Los .docx se leen en el adaptador con la biblioteca estándar (zipfile +

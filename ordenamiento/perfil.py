@@ -56,6 +56,26 @@ def _faltantes(valor, esquema: dict, raiz: dict, ruta: str, errores: list) -> No
     esquema = _resolver_ref(esquema, raiz)
     if not isinstance(esquema, dict):
         return
+    tipos = esquema.get("type")
+    if tipos:
+        tipos = tipos if isinstance(tipos, list) else [tipos]
+        coincide = {
+            'object': isinstance(valor, dict), 'array': isinstance(valor, list),
+            'string': isinstance(valor, str), 'integer': type(valor) is int,
+            'boolean': type(valor) is bool, 'null': valor is None,
+        }
+        if not any(coincide.get(tipo, False) for tipo in tipos):
+            errores.append(_error('tipo_invalido', ruta,
+                                  'tipo esperado: ' + ' o '.join(tipos)))
+            return
+    if 'const' in esquema and valor != esquema['const']:
+        errores.append(_error('valor_invalido', ruta, 'valor fijo incorrecto'))
+    if 'enum' in esquema and valor not in esquema['enum']:
+        errores.append(_error('valor_invalido', ruta, 'valor fuera de las opciones permitidas'))
+    if isinstance(valor, str) and 'pattern' in esquema:
+        if not re.search(esquema['pattern'], valor):
+            errores.append(_error('patron_invalido', ruta,
+                                  'el valor no cumple el patrón del esquema'))
     if isinstance(valor, dict):
         for req in esquema.get("required", []):
             if req not in valor:
@@ -214,7 +234,13 @@ def _semanticos(d: dict, esquema: dict, errores: list) -> None:
         sha = ref.get("sha256")
         if not isinstance(ruta_rel, str) or not ruta_rel:
             continue
-        archivo = (RAIZ / ruta_rel)
+        relativo = Path(ruta_rel)
+        raiz = RAIZ.resolve()
+        archivo = (raiz / relativo).resolve()
+        if relativo.is_absolute() or not archivo.is_relative_to(raiz):
+            errores.append(_error('referencia_insegura', f'$.referencias.{nombre}.ruta',
+                                  'la referencia debe quedar dentro de la raíz del plugin'))
+            continue
         if not archivo.is_file():
             errores.append(_error(
                 "referencia_ausente", f"$.referencias.{nombre}.ruta",
@@ -236,7 +262,8 @@ def validar_perfil(d: dict, esquema: dict | None = None) -> list[dict]:
     errores: list[dict] = []
     _faltantes(d, esquema, esquema, "$", errores)
     _sin_completar(d, "$", errores)
-    _semanticos(d, esquema, errores)
+    if not any(e['codigo'] == 'tipo_invalido' for e in errores):
+        _semanticos(d, esquema, errores)
     return errores
 
 

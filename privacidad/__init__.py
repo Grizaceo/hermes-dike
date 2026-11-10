@@ -1,4 +1,4 @@
-"""Privacidad del escrito (F2a): detección, seudónimos y registro de envíos.
+"""Privacidad del escrito: detección, seudónimos y registro de envíos.
 
 Se carga por ruta desde `dashboard/plugin_api.py` como paquete
 ``dike_privacidad`` (ver ``_privacidad()`` allí) y desde los tests igual.

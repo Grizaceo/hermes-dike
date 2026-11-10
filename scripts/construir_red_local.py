@@ -9,27 +9,29 @@ unidades.json, no en red.json (payload delgado como el corpus).
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 import re
 import sqlite3
-import sys
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
-FUENTES = Path.home() / ".hermes/profiles/lexo-alpha/plugin-data/dike/grafo-local/fuentes"
-SALIDA = Path.home() / ".hermes/profiles/lexo-alpha/plugin-data/dike/grafo-local/ambiental"
-DB = FUENTES / "app_anon_v2.db"
-APROBACION = FUENTES / "aprobacion_anonimizacion.json"
+def _carpeta_de_datos() -> Path:
+    """La misma resolución del adaptador, sin cargar su política ni su motor."""
+    try:
+        from plugins.plugin_storage import plugin_data_dir
+        return Path(plugin_data_dir('dike'))
+    except ImportError:
+        return Path(os.environ.get('HERMES_HOME') or (Path.home() / '.hermes')) / 'plugin-data' / 'dike'
+
 
 # ---------------------------------------------------------------------------
 # Reglas deterministas (candidatas, sin validar — misma postura que la NIF)
 # ---------------------------------------------------------------------------
 
-_NUM = r"(\d{1,3})(?:\s*(bis|ter|qu[áa]ter))?"
-_SEP = r"(?:\s*,\s*|\s+y\s+|\s+e\s+|\s+o\s+)"
 RX_CITA = re.compile(
     r"\bart(?:[íi]culo|\.)s?\s+((?:\d{1,3}(?:\s*(?:bis|ter|qu[áa]ter))?"
     r"(?:\s+inciso\s+(?:primero|segundo|tercero|cuarto|quinto|sexto|final|\d+))?"
@@ -123,11 +125,6 @@ def modalidad(texto: str) -> tuple[str, str | None]:
         if rx.search(lower):
             return mod, rid
     return "otra", None
-
-
-def unidades_de(texto: str) -> list[str]:
-    """Líneas no vacías, como en el corpus."""
-    return [m.group().strip() for m in re.finditer(r"[^\n]*\S[^\n]*", texto)]
 
 
 def organismo_en(ventana: str) -> str | None:
@@ -230,8 +227,12 @@ def rotulo_sentencia(sid: str) -> str:
     raise SystemExit(f"sentencia sin etiqueta en la tabla aprobada: {sid}")
 
 
-def construir(db_path: Path = DB, salida: Path = SALIDA,
-              aprobacion: Path = APROBACION) -> dict:
+def construir(db_path: Path | None = None, salida: Path | None = None,
+              aprobacion: Path | None = None) -> dict:
+    base = _carpeta_de_datos() / 'grafo-local'
+    db_path = Path(db_path) if db_path is not None else base / 'fuentes' / 'app_anon_v2.db'
+    salida = Path(salida) if salida is not None else base / 'ambiental'
+    aprobacion = Path(aprobacion) if aprobacion is not None else base / 'fuentes' / 'aprobacion_anonimizacion.json'
     ap = json.loads(aprobacion.read_text(encoding="utf-8"))
     sha = hashlib.sha256(db_path.read_bytes()).hexdigest()
     if sha != ap.get("sha256"):
@@ -751,6 +752,16 @@ def construir(db_path: Path = DB, salida: Path = SALIDA,
     return construccion
 
 
-if __name__ == "__main__":
-    info = construir()
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--db', type=Path, help='base anonimizada de entrada')
+    parser.add_argument('--aprobacion', type=Path, help='JSON de aprobación con el SHA-256 de la base')
+    parser.add_argument('--salida', type=Path, help='directorio del grafo construido')
+    args = parser.parse_args(argv)
+    info = construir(args.db, args.salida, args.aprobacion)
     print(json.dumps(info, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

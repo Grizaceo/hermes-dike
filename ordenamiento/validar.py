@@ -223,6 +223,10 @@ def _c1(pack: Path, perfil: dict, errores: list, advertencias: list) -> dict:
                 continue
             nid = nodo.get("@id")
             if isinstance(nid, str):
+                if nid in nodos:
+                    errores.append(_error('id_duplicado', rel,
+                                          f'@id ya declarado en {rutas[nid]}: {nid}'))
+                    continue
                 nodos[nid] = nodo
                 rutas[nid] = rel
             else:

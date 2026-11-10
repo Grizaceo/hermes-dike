@@ -37,14 +37,8 @@ def aisla():
 
 
 @pytest.fixture(scope='module')
-def motor(aisla, tmp_path_factory):
-    """Adaptador real con el corpus instalado una vez (subprocesos en bwrap)."""
-    m = _cargar(ROOT / '__init__.py', 'dike_adapter_aisla_test')
-    data = tmp_path_factory.mktemp('aisla-data')
-    m._carpeta_de_datos = lambda: data
-    # Primera verificación: instala la generación (fría) y deja el corpus listo.
-    json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
-    return m, data
+def motor(adaptador_real):
+    return adaptador_real, adaptador_real._carpeta_de_datos()
 
 
 @pytest.fixture(autouse=True)

@@ -35,7 +35,7 @@ HERRAMIENTAS_PERMITIDAS = {"skills_list", "skill_view", "tool_search", "tool_des
 # Misma regla de texto breve del adaptador (__init__._texto_corto): los
 # argumentos de las herramientas de lectura/búsqueda son citas, identificadores
 # o consultas — nunca rutas de archivo. Se duplica aquí porque este módulo no
-# puede importar __init__.py (ciclo); un test compartido mantiene ambas en sync.
+# puede importar __init__.py (ciclo); las pruebas de ambas superficies deben cubrir los mismos argumentos.
 _EXT_ARCHIVO = re.compile(r'\.(?:md|txt|docx|pdf|json|py|ya?ml|html?)$',
                           re.IGNORECASE)
 _CAMPOS_LEER = {"cita", "gid", "nodo_id"}

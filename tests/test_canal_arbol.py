@@ -27,7 +27,7 @@ for _p in (str(SCRIPTS), str(MOTOR)):
         sys.path.insert(0, _p)
 
 import canal_arbol  # noqa: E402
-from test_busqueda import _articulo_json, _esbuild_ascii, NORM_ID  # noqa: E402
+from soporte_busqueda import _articulo_json, _esbuild_ascii, NORM_ID  # noqa: E402
 
 SHA_ARBOL = 'c675dfe38eb58bbbd4fcb72f3b5d2ffe086829d804089cd9d08ed810216cd826'
 SHA_LEXICON = 'b77153bb397c55b07c716187f06281a5c290c6b21226de5649fb80c4ca19b300'

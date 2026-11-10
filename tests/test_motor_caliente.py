@@ -203,13 +203,20 @@ def test_sandbox_requerido_sin_bubblewrap_no_lanza_servidor(falso, aisla, monkey
 # ── Camino real: mismo resultado que el proceso de un solo uso ──────────
 
 @pytest.fixture(scope='module')
-def real(aisla, tmp_path_factory):
+def privado(aisla, corpus_privado):
     m = _cargar(ROOT / '__init__.py', 'dike_adapter_caliente_test')
-    data = tmp_path_factory.mktemp('caliente-data')
+    data = corpus_privado
     m._carpeta_de_datos = lambda: data
     frio = json.loads(m.verificar_citas({'texto': DEMO}))
     assert 'error' not in frio, frio
     return m, data
+
+
+@pytest.fixture(scope='module')
+def real(adaptador_real):
+    frio = json.loads(adaptador_real.verificar_citas({'texto': DEMO}))
+    assert 'error' not in frio, frio
+    return adaptador_real, adaptador_real._carpeta_de_datos()
 
 
 def _sin_reloj(salida: dict) -> dict:
@@ -252,9 +259,9 @@ def test_sin_servidor_el_adaptador_sigue_verificando(real, aisla, monkeypatch, t
     assert salida['meta']['citas_verificadas'] == 4, salida
 
 
-def test_un_corpus_tocado_reinicia_el_servidor_y_falla_cerrado(real, aisla):
+def test_un_corpus_tocado_reinicia_el_servidor_y_falla_cerrado(privado, aisla):
     """Cambiar un archivo cambia la firma: el servidor viejo no contesta por él."""
-    m, data = real
+    m, data = privado
     json.loads(m.verificar_citas({'texto': DEMO}))
     victima = next(p for p in (data / 'generations').glob('*/users/**/*.json') if p.is_file())
     original = victima.read_bytes()

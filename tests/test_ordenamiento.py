@@ -610,3 +610,68 @@ def test_skill_existe():
     frontmatter = texto.split("---", 2)[1]
     assert re.search(r"^name:", frontmatter, re.MULTILINE)
     assert re.search(r"^description:", frontmatter, re.MULTILINE)
+
+
+@pytest.mark.parametrize('misma_fuente', [True, False])
+def test_constructor_rechaza_identidades_duplicadas(mod, perfil_xx, tmp_path, misma_fuente):
+    cfg = json.loads(PAQUETE_XX.read_text())
+    primera = cfg['normas'][0]
+    otra = copy.deepcopy(primera)
+    if not misma_fuente:
+        otra['idFuente'] = 'otra-fuente'
+    cfg['normas'] = [primera, otra]
+    config = tmp_path / 'paquete.json'
+    shutil.copytree(EJEMPLO / 'textos', tmp_path / 'textos')
+    config.write_text(json.dumps(cfg))
+    with pytest.raises(ValueError, match='duplicad'):
+        mod.construir(perfil_xx, config, tmp_path / 'salida')
+    assert not (tmp_path / 'salida').exists()
+
+
+def test_c1_no_oculta_nodos_con_el_mismo_id(mod, perfil_xx, pack_xx, tmp_path):
+    pack = _copia_pack(pack_xx, tmp_path / 'duplicado')
+    norma = next((pack / 'normas').glob('*.json'))
+    duplicado = json.loads(norma.read_text())
+    duplicado['title'] = 'Texto que contradice la otra fuente'
+    _escribir_json(pack / 'normas' / 'otra.json', duplicado)
+    informe = mod.validar_pack(pack, perfil_xx)
+    assert 'id_duplicado' in informe['niveles']['C1']['conteosErrores']
+
+
+@pytest.mark.parametrize('ruta,valor', [
+    (('nombre',), 42), (('normas', 'patronArticulo'), None),
+    (('normas',), []), (('identidad', 'fuentesOficiales'), [None]),
+    (('vigencia', 'desconocidaPermitida'), 1),
+    (('normas', 'tipos'), [{'codigo': 'ley', 'nombre': 'Ley', 'nivel': True}]),
+    (('perfil',), 'invalid'),
+    (('extensiones',), [{'termino': 'nuevo', 'mapeaA': 'Article', 'relacion': 'inventada'}]),
+])
+def test_perfil_rechaza_tipos_enums_y_patrones(mod, perfil_xx, ruta, valor):
+    perfil = copy.deepcopy(perfil_xx)
+    nodo = perfil
+    for clave in ruta[:-1]:
+        nodo = nodo[clave]
+    nodo[ruta[-1]] = valor
+    errores = mod.validar_perfil(perfil)
+    assert errores
+    assert any(e['ruta'].startswith('$.' + ruta[0]) for e in errores)
+
+
+@pytest.mark.parametrize('forma', ['absoluta', 'padre', 'enlace'])
+def test_referencias_no_leen_fuera_del_plugin(mod, perfil_xx, tmp_path, monkeypatch, forma):
+    raiz = tmp_path / 'plugin'
+    raiz.mkdir()
+    externo = tmp_path / 'externo.txt'
+    externo.write_text('referencia sintética')
+    (raiz / 'enlace').symlink_to(externo)
+    perfil_mod = sys.modules['dike_ordenamiento.perfil']
+    monkeypatch.setattr(perfil_mod, 'RAIZ', raiz)
+    ruta = {'absoluta': str(externo), 'padre': '../externo.txt', 'enlace': 'enlace'}[forma]
+    perfil = copy.deepcopy(perfil_xx)
+    perfil['referencias'] = {'materias': {'ruta': ruta, 'sha256': '0' * 64}}
+    original = Path.read_bytes
+    def leer(path):
+        assert path != externo, 'leyó la referencia antes de comprobar su ubicación'
+        return original(path)
+    monkeypatch.setattr(Path, 'read_bytes', leer)
+    assert 'referencia_insegura' in _codigos(mod.validar_perfil(perfil))

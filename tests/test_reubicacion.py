@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -65,3 +66,59 @@ def test_tamper_luego_mover_da_error_de_integridad(real, tmp_path):
     out = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
     assert out.get('error_code') == 'CORPUS_INTEGRITY_ERROR', out
     assert out.get('todo_verificado') is False
+
+
+@pytest.fixture(scope='module')
+def mod():
+    spec = importlib.util.spec_from_file_location('dike_reubicacion_unit', ROOT / '__init__.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+def _generacion_falsa(tmp_path, snapshot_viejo):
+    datos = tmp_path / 'datos'
+    gen = datos / 'generations' / 'pack123'
+    sf = gen / 'users' / 'hermes' / 'starter' / 's1' / 'STATE.json'
+    sf.parent.mkdir(parents=True)
+    sf.write_text(json.dumps({'snapshot': snapshot_viejo}))
+    (gen / 'users' / 'hermes' / 'starter' / 's1' / 'datos.txt').write_text('x')
+    files = {str(p.relative_to(gen)): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in (gen / 'users').rglob('*') if p.is_file()}
+    (gen / 'installed.json').write_text(json.dumps(
+        {'package_sha256': 'pack123', 'files': files,
+         'stat': {}, 'reubicaciones': []}))
+    return datos, gen
+
+
+def test_reparar_reubicacion_reescribe_snapshot(mod, tmp_path):
+    viejo_datos = tmp_path / 'viejo'
+    _, gen_viejo = _generacion_falsa(viejo_datos, '')
+    # snapshot apunta a la ruta VIEJA (plugin-data movido)
+    snapshot_viejo = str(gen_viejo / 'users' / 'hermes' / 'starter' / 's1' / 'snap')
+    datos, gen = _generacion_falsa(tmp_path / 'nuevo', snapshot_viejo)
+    # rehacer installed.json con el snapshot viejo ya escrito
+    sf = gen / 'users' / 'hermes' / 'starter' / 's1' / 'STATE.json'
+    sf.write_text(json.dumps({'snapshot': snapshot_viejo}))
+    record = json.loads((gen / 'installed.json').read_text())
+    record['files'] = {str(p.relative_to(gen)): hashlib.sha256(p.read_bytes()).hexdigest()
+                       for p in (gen / 'users').rglob('*') if p.is_file()}
+    (gen / 'installed.json').write_text(json.dumps(record))
+
+    mod._reparar_reubicacion(datos, gen, 'pack123')
+
+    state = json.loads(sf.read_text())
+    assert state['snapshot'].startswith(str(gen) + os.sep)
+    nuevo = json.loads((gen / 'installed.json').read_text())
+    assert len(nuevo['reubicaciones']) == 1
+    # el hash del STATE.json reescrito quedó registrado
+    assert nuevo['files']['users/hermes/starter/s1/STATE.json'] == \
+        hashlib.sha256(sf.read_bytes()).hexdigest()
+
+
+def test_reparar_reubicacion_sin_rotos_no_toca(mod, tmp_path):
+    datos, gen = _generacion_falsa(tmp_path / 'd', '')
+    sf = gen / 'users' / 'hermes' / 'starter' / 's1' / 'STATE.json'
+    sf.write_text(json.dumps({'snapshot': str(gen / 'users' / 'x')}))
+    antes = (gen / 'installed.json').read_text()
+    mod._reparar_reubicacion(datos, gen, 'pack123')
+    assert (gen / 'installed.json').read_text() == antes

@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from soporte_busqueda import _articulo_json, _esbuild_ascii, NORM_ID
 
 ROOT = Path(__file__).parents[1]
 PANEL = ROOT / 'scripts' / 'panel.py'
@@ -21,7 +22,6 @@ API = ROOT / 'dashboard' / 'plugin_api.py'
 BUNDLE = ROOT / 'desktop' / 'plugin.js'
 
 ROTULO = 'Resultado de búsqueda: es una pista, no una fuente verificada'
-NORM_ID = 'https://dike.invalid/eli/cl/codigo/codigo-del-trabajo'
 
 # Tres artículos sintéticos del Código del Trabajo (leychileCode 207436 →
 # alias 'ct' del catálogo). «trabajador» aparece en dos para poder observar
@@ -38,25 +38,6 @@ ARTICULOS = [
 ]
 
 
-def _articulo_json(eid: str, label: str, texto: str) -> dict:
-    sha = hashlib.sha256(texto.encode('utf-8')).hexdigest()
-    return {
-        '@type': 'Article',
-        '@id': f'{NORM_ID}/art_{eid.removeprefix("art_")}',
-        'isPartOf': NORM_ID,
-        'eId': eid,
-        'label': label,
-        'text': texto,
-        'textSha256': sha,
-        'citation': {
-            'status': 'CITABLE',
-            'completenessVerified': True,
-            'textSha256': sha,
-            'verificationMethod': 'fixture sintético de tests',
-        },
-        'temporal': {'from': '2020-01-01'},
-        'provenance': {'wasDerivedFrom': f'https://x.test/{eid}'},
-    }
 
 
 def _mini_corpus(users_root: Path) -> Path:
@@ -231,6 +212,7 @@ class _PanelErrorFalso(Exception):
 
 
 def _stub_motor(monkeypatch, api, stdout='{}'):
+    limpiar = api._adaptador()._limpio_panel
     capturado = {}
 
     class FakeProc:
@@ -277,6 +259,7 @@ def _stub_motor(monkeypatch, api, stdout='{}'):
     mod = type('M', (), {
         'PACK_HASH': 'testpackhash0000',
         'PanelError': _PanelErrorFalso,
+        '_limpio_panel': staticmethod(limpiar),
         '_carpeta_de_datos': staticmethod(lambda: Path('/tmp/x')),
         '_entorno': staticmethod(lambda runtime: {}),
         '_asegurar_corpus': staticmethod(lambda datos: {'generation': '/tmp/gen'}),
@@ -355,26 +338,6 @@ def test_consulta_no_se_persiste(panel_proc, tmp_path):
 # El bundle construido contiene el rótulo exacto
 # ---------------------------------------------------------------------------
 
-def _esbuild_ascii(texto: str) -> str:
-    """La forma en que esbuild (charset ascii) escribe `texto` en el bundle.
-
-    El runtime JS la decodifica de vuelta al string exacto; buscar el texto
-    crudo fallaría porque el bundle escapa todo lo no-ASCII.
-    """
-    out = []
-    for c in texto:
-        cp = ord(c)
-        if cp < 0x80:
-            out.append(c)
-        elif cp <= 0xFF:
-            out.append('\\x%02X' % cp)
-        elif cp <= 0xFFFF:
-            out.append('\\u%04X' % cp)
-        else:
-            cp -= 0x10000
-            out.append('\\u%04X\\u%04X'
-                       % (0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF)))
-    return ''.join(out)
 
 
 def test_bundle_contiene_rotulo():

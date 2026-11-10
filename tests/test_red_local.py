@@ -459,3 +459,40 @@ def test_rotulos_norma(builder):
                                    'Otra cosa') == 'Ley 20.417 art. 9'
     assert builder.rotulo_articulo('cl.norma.ley_19300:art:0018qua') == \
         'Ley 19.300 art. 18 quáter' 
+
+
+
+def test_constructor_resuelve_home_y_overrides(builder, tmp_path, monkeypatch):
+    import types
+    hh = tmp_path / 'home-desechable'
+    monkeypatch.setenv('HERMES_HOME', str(hh))
+    # Sin Hermes instalado usa HERMES_HOME, sin consultar un perfil real.
+    monkeypatch.setitem(sys.modules, 'plugins.plugin_storage', None)
+    datos = hh / 'plugin-data' / 'dike'
+    assert builder._carpeta_de_datos() == datos
+    storage = types.ModuleType('plugins.plugin_storage')
+    storage.plugin_data_dir = lambda nombre: datos / nombre
+    monkeypatch.setitem(sys.modules, 'plugins.plugin_storage', storage)
+    assert builder._carpeta_de_datos() == datos / 'dike'
+    llamadas = []
+    monkeypatch.setattr(builder, 'construir', lambda *args: llamadas.append(args) or {})
+    db, aprobacion, salida = [tmp_path / n for n in ('entrada.db', 'aprobacion.json', 'salida')]
+    assert builder.main(['--db', str(db), '--aprobacion', str(aprobacion), '--salida', str(salida)]) == 0
+    assert llamadas == [(db, salida, aprobacion)]
+
+
+
+def test_constructor_sin_argumentos_usa_solo_home_desechable(builder, tmp_path, monkeypatch):
+    import shutil
+    hh = tmp_path / 'hh'
+    monkeypatch.setenv('HERMES_HOME', str(hh))
+    monkeypatch.setitem(sys.modules, 'plugins.plugin_storage', None)
+    fuentes = hh / 'plugin-data/dike/grafo-local/fuentes'
+    fuentes.mkdir(parents=True)
+    db = _db(tmp_path, 'Conforme al artículo 5 de la Ley 19.300.')
+    shutil.copyfile(db, fuentes / 'app_anon_v2.db')
+    (fuentes / 'aprobacion_anonimizacion.json').write_text(json.dumps({
+        'sha256': hashlib.sha256(db.read_bytes()).hexdigest()}))
+    builder.construir()
+    assert (fuentes.parent / 'ambiental/red.json').is_file()
+    assert (fuentes.parent / 'ambiental/unidades.json').is_file()

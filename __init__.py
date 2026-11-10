@@ -31,9 +31,6 @@ from __future__ import annotations
 import hashlib
 import fcntl
 import importlib.util
-import io
-import zipfile
-import xml.etree.ElementTree as ET
 from datetime import date, datetime
 import json
 import stat
@@ -84,9 +81,18 @@ _RUTA_LOCAL_PANEL = re.compile(
     r"(?<![\w:/])/(?:[^\s,;\"']+)|(?<![\w/])[A-Za-z]:[\\/][^\s,;\"']+")
 
 
+def _limpiar_rutas(texto: str) -> str:
+    """Oculta localizadores locales y conserva completas las URL de evidencia."""
+    partes, pos = [], 0
+    for url in _URL.finditer(texto):
+        partes.extend([_RUTA_LOCAL_PANEL.sub('<ruta-local>', texto[pos:url.start()]), url.group()])
+        pos = url.end()
+    return ''.join(partes) + _RUTA_LOCAL_PANEL.sub('<ruta-local>', texto[pos:])
+
+
 def _limpio_panel(texto) -> str:
     """Quita rutas locales y recorta a 400: stderr del motor nunca sale tal cual."""
-    return _RUTA_LOCAL_PANEL.sub("<ruta-local>", str(texto))[:400]
+    return _limpiar_rutas(str(texto))[:400]
 
 
 _MSG_INPUT_FIELDS = "Indica exactamente uno de los dos campos: texto o ruta."
@@ -605,16 +611,42 @@ def _comprobar_generacion_completa(generation: Path) -> None:
         raise ValueError('installed corpus integrity mismatch')
 
 
-def _asegurar_corpus(datos: Path) -> dict:
-    """Validate package and installed generation; publish only complete installs."""
-    datos.mkdir(parents=True, exist_ok=True)
+def _descriptor_corpus() -> tuple[str, Path]:
+    """Lee la única entrada admitida: SHA-256 y nombre simple del paquete."""
     entries = [line.split() for line in (_CORPUS / 'SHA256SUMS').read_text().splitlines() if line.strip()]
     if len(entries) != 1 or len(entries[0]) != 2:
         raise ValueError('invalid corpus checksum manifest')
     esperado, nombre = entries[0]
     if Path(nombre).name != nombre or not re.fullmatch(r'[0-9a-f]{64}', esperado):
         raise ValueError('invalid corpus package name or digest')
-    paquete = _CORPUS / nombre
+    return esperado, _CORPUS / nombre
+
+
+def _estado_corpus(datos: Path) -> dict:
+    """Estado registrado, sin instalar ni recalcular hashes."""
+    try:
+        esperado, _ = _descriptor_corpus()
+    except (OSError, ValueError):
+        esperado = ''
+    generacion = datos / 'generations' / esperado if esperado else None
+    instalado, reubicaciones = False, 0
+    if generacion and generacion.is_dir():
+        try:
+            registro = json.loads((generacion / 'installed.json').read_text(encoding='utf-8'))
+            instalado = (isinstance(registro, dict) and registro.get('package_sha256') == esperado
+                         and isinstance(registro.get('files'), dict) and bool(registro['files']))
+            if isinstance(registro, dict) and isinstance(registro.get('reubicaciones'), list):
+                reubicaciones = len(registro['reubicaciones'])
+        except (OSError, ValueError):
+            pass
+    return {'corpus_instalado': instalado, 'generation': generacion.name if instalado else None,
+            'reubicaciones': reubicaciones}
+
+
+def _asegurar_corpus(datos: Path) -> dict:
+    """Validate package and installed generation; publish only complete installs."""
+    datos.mkdir(parents=True, exist_ok=True)
+    esperado, paquete = _descriptor_corpus()
     if _paquete_digest(paquete) != esperado:
         raise ValueError('corpus package checksum mismatch')
     generation = datos / 'generations' / esperado
@@ -661,9 +693,9 @@ def _asegurar_corpus(datos: Path) -> dict:
     return _verificar_generacion(datos, generation, esperado)
 
 
-# ── Adaptador: clasificación de errores P2-5 ──────────────────────────────
+# ── Adaptador: clasificación de errores ──────────────────────────────
 
-def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None):
+def _error_adaptador(raw, stderr="", *, returncode=None):
     """Return controlled diagnostics only; never forward exception/stderr text."""
     aislado = _aislamiento().estado()
     code = 'ADAPTER_ERROR'
@@ -713,9 +745,6 @@ def _error_adaptador(raw, stdout="", stderr="", *, timeout=None, returncode=None
 # ── Validación del contrato de constancia ────────────────────────────────
 
 _GID_VERIFICADO = re.compile(r'cl\.[^\s:]+:art:[0-9a-z_]+')
-_VERIFIED_RESOLUTION = "RESOLVED"
-_VERIFIED_VIGENCIA = "IN_FORCE"
-_VERIFIED_HISTORICAL = "CURRENT_VERSION_APPLIES"
 
 def _validar_constancia(c, code, *, as_of=None):
     """Validate actual constancia variants; abstention never certifies anything."""
@@ -901,204 +930,20 @@ def _cwd_sesion():
     return Path(cwd) if cwd else None
 
 
-# ── .docx → texto con la biblioteca estándar ────────────────────────────
-# Réplica de ``motor/lexo_cli/documento.py::_read_docx`` tal como la ejecuta
-# python-docx 1.2, sin depender de él: ``Document.paragraphs``/``tables`` son
-# los ``w:p``/``w:tbl`` hijos directos de ``w:body``; ``Paragraph.text`` concatena
-# ``w:r`` y ``w:hyperlink`` directos; ``Run.text`` mapea w:t/w:tab/w:br/w:cr/
-# w:noBreakHyphen/w:ptab; ``_Cell.text`` une sus ``w:p`` por '\n'; ``_Row.cells``
-# repite la celda por gridSpan y resuelve vMerge="continue" a la celda raíz.
-_W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-_DOCX_MAX_ENTRADAS = 2000
-_DOCX_MAX_XML = 20 * 1024 * 1024
-_DOCX_MAX_RATIO = 100
-
-
-class _DocxInvalido(Exception):
-    pass
-
-
-def _w_run_text(r) -> str:
-    """Texto de un ``w:r``: equivalente a ``CT_R.text`` de python-docx."""
-    partes = []
-    for e in r:
-        tag = e.tag
-        if tag == _W + 't':
-            partes.append(e.text or '')
-        elif tag == _W + 'tab':
-            partes.append('\t')
-        elif tag == _W + 'cr':
-            partes.append('\n')
-        elif tag == _W + 'br':
-            # Solo el salto de línea (textWrapping, el defecto) da '\n';
-            # page/column producen ''.
-            partes.append('\n' if e.get(_W + 'type', 'textWrapping') == 'textWrapping' else '')
-        elif tag == _W + 'noBreakHyphen':
-            partes.append('-')
-        elif tag == _W + 'ptab':
-            partes.append('\t')
-    return ''.join(partes)
-
-
-def _w_p_text(p) -> str:
-    """Texto de un ``w:p``: concat de ``w:r`` y ``w:hyperlink`` directos, en orden."""
-    partes = []
-    for e in p:
-        if e.tag == _W + 'r':
-            partes.append(_w_run_text(e))
-        elif e.tag == _W + 'hyperlink':
-            partes.append(''.join(_w_run_text(r) for r in e if r.tag == _W + 'r'))
-    return ''.join(partes)
-
-
-def _w_tc_text(tc) -> str:
-    """Texto de un ``w:tc``: sus ``w:p`` directos unidos por '\\n' (``_Cell.text``)."""
-    return '\n'.join(_w_p_text(p) for p in tc if p.tag == _W + 'p')
-
-
-def _w_tc_pr(tc):
-    for c in tc:
-        if c.tag == _W + 'tcPr':
-            return c
-    return None
-
-
-def _w_tr_pr(tr):
-    for c in tr:
-        if c.tag == _W + 'trPr':
-            return c
-    return None
-
-
-def _w_hijo(pr, tag):
-    if pr is None:
-        return None
-    for c in pr:
-        if c.tag == tag:
-            return c
-    return None
-
-
-def _w_int(el, default):
-    if el is None:
-        return default
-    try:
-        return int(el.get(_W + 'val', default))
-    except (TypeError, ValueError):
-        return default
-
-
-def _w_grid_span(tc) -> int:
-    return _w_int(_w_hijo(_w_tc_pr(tc), _W + 'gridSpan'), 1)
-
-
-def _w_vmerge(tc):
-    """``w:vMerge/@w:val``: None si no hay elemento; 'continue' si falta el val."""
-    vm = _w_hijo(_w_tc_pr(tc), _W + 'vMerge')
-    if vm is None:
-        return None
-    return vm.get(_W + 'val', 'continue')
-
-
-def _w_grid_before(tr) -> int:
-    return _w_int(_w_hijo(_w_tr_pr(tr), _W + 'gridBefore'), 0)
-
-
-def _w_tcs(tr):
-    return [c for c in tr if c.tag == _W + 'tc']
-
-
-def _w_grid_offset(tc, tr) -> int:
-    """Columna de inicio de *tc* en la tabla (grid_before + spans previos)."""
-    offset = _w_grid_before(tr)
-    for sib in tr:
-        if sib is tc:
-            break
-        if sib.tag == _W + 'tc':
-            offset += _w_grid_span(sib)
-    return offset
-
-
-def _w_tc_at_offset(tr, offset):
-    """El ``w:tc`` de *tr* que empieza en la columna *offset* (``tc_at_grid_offset``)."""
-    remaining = offset - _w_grid_before(tr)
-    for tc in _w_tcs(tr):
-        if remaining < 0:
-            break
-        if remaining == 0:
-            return tc
-        remaining -= _w_grid_span(tc)
-    raise _DocxInvalido
-
-
-def _w_resolve_tc(tc, trs, tr_index):
-    """Celdas ``w:tc`` que aporta *tc* a ``row.cells``: la raíz del span vertical
-    repetida ``grid_span`` veces (gridSpan horizontal y vMerge='continue')."""
-    if _w_vmerge(tc) == 'continue':
-        if tr_index == 0:
-            # vMerge="continue" en la primera fila: python-docx lanza ValueError.
-            raise _DocxInvalido
-        arriba = _w_tc_at_offset(trs[tr_index - 1],
-                                 _w_grid_offset(tc, trs[tr_index]))
-        return _w_resolve_tc(arriba, trs, tr_index - 1)
-    return [tc] * _w_grid_span(tc)
-
+# ── Lectura DOCX independiente del modo de importación del plugin ───────
 
 def _texto_docx(data: bytes) -> str:
-    """Texto de un .docx con zipfile + ElementTree, equivalente a ``_read_docx``.
-
-    Límites anti zip-bomb: ≤ 2000 entradas, ``word/document.xml`` declarado
-    ≤ 20 MB y razón de compresión ≤ 100, lectura acotada (nunca se fía del
-    tamaño declarado), y rechazo de ``<!DOCTYPE``/``<!ENTITY``. Cualquier fallo
-    estructural o de lectura es INPUT_DOCX.
-    """
+    """Traduce errores del lector independiente al contrato público de entrada."""
+    nombre = 'dike_lector_docx'
+    lector = sys.modules.get(nombre)
+    if lector is None:
+        spec = importlib.util.spec_from_file_location(nombre, _RAIZ / 'lector_docx.py')
+        lector = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(lector)
+        sys.modules[nombre] = lector
     try:
-        with zipfile.ZipFile(io.BytesIO(data)) as zf:
-            if len(zf.infolist()) > _DOCX_MAX_ENTRADAS:
-                raise _DocxInvalido
-            try:
-                info = zf.getinfo('word/document.xml')
-            except KeyError:
-                raise _DocxInvalido
-            if info.file_size > _DOCX_MAX_XML:
-                raise _DocxInvalido
-            if info.file_size and info.compress_size and \
-                    info.file_size / info.compress_size > _DOCX_MAX_RATIO:
-                raise _DocxInvalido
-            with zf.open(info) as stream:
-                crudo = stream.read(_DOCX_MAX_XML + 1)
-            if len(crudo) > _DOCX_MAX_XML:
-                raise _DocxInvalido
-        bajo = crudo.lower()
-        if b'<!doctype' in bajo or b'<!entity' in bajo:
-            raise _DocxInvalido
-        root = ET.fromstring(crudo)
-        body = next((el for el in root.iter() if el.tag == _W + 'body'), None)
-        if body is None:
-            raise _DocxInvalido
-        partes = []
-        for child in body:
-            if child.tag == _W + 'p':
-                t = _w_p_text(child)
-                if t.strip():
-                    partes.append(t)
-        for child in body:
-            if child.tag == _W + 'tbl':
-                trs = [c for c in child if c.tag == _W + 'tr']
-                for ti, tr in enumerate(trs):
-                    textos = []
-                    for tc in _w_tcs(tr):
-                        for resuelto in _w_resolve_tc(tc, trs, ti):
-                            textos.append(_w_tc_text(resuelto))
-                    celdas = [t.strip() for t in textos if t.strip()]
-                    if celdas:
-                        partes.append(' | '.join(celdas))
-        return '\n'.join(partes)
-    except _DocxInvalido:
-        raise EntradaInvalida('INPUT_DOCX', _MSG_INPUT_DOCX) from None
-    except EntradaInvalida:
-        raise
-    except Exception:
+        return lector.leer(data, limite=_LIMITE_TEXTO)
+    except lector.DocxInvalido:
         raise EntradaInvalida('INPUT_DOCX', _MSG_INPUT_DOCX) from None
 
 
@@ -1112,7 +957,7 @@ def _texto_input(args):
     if not isinstance(value, str) or not value.strip():
         raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
     if 'ruta' in args:
-        # P2-2: check symlinks on the original path, then resolve for safety.
+        # check symlinks on the original path, then resolve for safety.
         path = Path(value).expanduser()
         if not path.is_absolute():
             base = _cwd_sesion()
@@ -1124,7 +969,7 @@ def _texto_input(args):
             raise EntradaInvalida('INPUT_EXTENSION', _MSG_INPUT_EXTENSION)
         if any(p.is_symlink() for p in [path, *path.parents]):
             raise EntradaInvalida('INPUT_SYMLINK', _MSG_INPUT_SYMLINK)
-        # P2-2: resolve after symlink check to handle any remaining edge cases.
+        # resolve after symlink check to handle any remaining edge cases.
         path = path.resolve()
         try:
             fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
@@ -1227,23 +1072,11 @@ def _salida_publica(c):
                                   'no_verificadas': _acotar(no_verificadas, _LIMITE_MENCION)}
     if 'problemas' in out:
         out['problemas'] = _acotar(out['problemas'], _LIMITE_PROBLEMA)
-    # Redact local filesystem locators in messages, including missing-corpus reasons.
-    # URLs are kept whole; everything around them is cleaned, including a path
-    # that follows a URL at the start of the string.
-    def rutas(texto):
-        texto = re.sub(r'(?<![\w:/])/(?:[^\s,;\"\']+)', '<ruta-local>', texto)
-        return re.sub(r'(?<![\w/])[A-Za-z]:[\\/][^\s,;\"\']+', '<ruta-local>', texto)
-
     def clean(value):
         if isinstance(value, dict): return {k: clean(v) for k, v in value.items()}
         if isinstance(value, list): return [clean(v) for v in value]
-        if isinstance(value, str):
-            partes, pos = [], 0
-            for url in _URL.finditer(value):
-                partes += [rutas(value[pos:url.start()]), url.group(0)]
-                pos = url.end()
-            value = ''.join(partes) + rutas(value[pos:])
-        return value
+        return _limpiar_rutas(value) if isinstance(value, str) else value
+
     return clean(out)
 
 
@@ -1491,11 +1324,11 @@ def verificar_citas(args: dict, **kwargs) -> str:
                                escritura=[runtime / 'home', runtime / 'roots_cache'])
         stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
         if returncode not in (0, 1):
-            return json.dumps(_error_adaptador(None, stdout, stderr, returncode=returncode), ensure_ascii=False)
+            return json.dumps(_error_adaptador(None, stderr, returncode=returncode), ensure_ascii=False)
         try:
             c = _validar_constancia(json.loads(stdout), returncode, as_of=expected_day)
         except json.JSONDecodeError as exc:
-            return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
+            return json.dumps(_error_adaptador(exc, stderr, returncode=returncode), ensure_ascii=False)
         if c['veredicto'] == 'SIN_CORPUS' and installed.get('generation'):
             # El motor no reconoció un corpus que el adaptador dio por bueno (por
             # ejemplo, un byte cambiado con tamaño y fecha intactos en un proceso que
@@ -1505,7 +1338,7 @@ def verificar_citas(args: dict, **kwargs) -> str:
         c = _enriquecer_nodo_id(c, datos, installed)
         return json.dumps(_salida_publica(c), ensure_ascii=False)
     except Exception as exc:
-        return json.dumps(_error_adaptador(exc, stdout, stderr, returncode=returncode), ensure_ascii=False)
+        return json.dumps(_error_adaptador(exc, stderr, returncode=returncode), ensure_ascii=False)
 
 
 def _linea_aislamiento(out: dict) -> str:
@@ -1585,24 +1418,7 @@ def _sha256_archivo(ruta: Path):
 def _estado_datos(datos: Path) -> dict:
     """Datos de ``/dike-estado``; nunca incluye rutas absolutas."""
     aislado = _aislamiento().estado()
-    sums = _CORPUS / "SHA256SUMS"
-    esperado = ""
-    if sums.is_file():
-        partes = sums.read_text(encoding="utf-8").split()
-        if len(partes) >= 2:
-            esperado = partes[0]
-    generation = datos / "generations" / esperado if esperado else None
-    instalado, reubicaciones = False, 0
-    if generation and generation.is_dir():
-        try:
-            registro = json.loads((generation / "installed.json").read_text(encoding="utf-8"))
-            instalado = (isinstance(registro, dict)
-                         and registro.get("package_sha256") == esperado
-                         and isinstance(registro.get("files"), dict) and bool(registro["files"]))
-            if isinstance(registro, dict) and isinstance(registro.get("reubicaciones"), list):
-                reubicaciones = len(registro["reubicaciones"])
-        except (OSError, ValueError):
-            instalado = False
+    corpus = _estado_corpus(datos)
     bundle = _RAIZ / "desktop" / "BUNDLE.json"
     plugin_js = _RAIZ / "desktop" / "plugin.js"
     bundle_sha = None
@@ -1615,8 +1431,8 @@ def _estado_datos(datos: Path) -> dict:
         "version": _version_plugin(),
         "hermes": _version_hermes(),
         "pack_hash": PACK_HASH,
-        "corpus_instalado": instalado,
-        "reubicaciones": reubicaciones,
+        "corpus_instalado": corpus["corpus_instalado"],
+        "reubicaciones": corpus["reubicaciones"],
         "aislamiento": aislado,
         "politica": _politica_sandbox(),
         "perfil_chat": _perfil_chat() or "perfil activo",
@@ -1632,8 +1448,9 @@ def _estado_texto(d: dict) -> str:
         f"(pack {d['pack_hash']}).",
     ]
     if d["corpus_instalado"]:
-        lineas.append("Integridad: registrada en la instalación; el hash completo "
-                      "se comprueba en cada uso.")
+        lineas.append("Integridad: tamaños y fechas comparados en cada llamada; SHA-256 completo "
+                      "una vez por proceso y cuando cambian. El motor verifica el corpus completo "
+                      "al iniciar cada servidor; sin servidor, en cada proceso.")
     lineas.append(f"Reubicaciones del plugin-data: {d['reubicaciones']}.")
     lineas.append(".docx: lectura con la biblioteca estándar (python-docx no hace falta).")
     aislado = d.get("aislamiento") or {}

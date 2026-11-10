@@ -814,23 +814,23 @@ def extraer_grafo_argumentos(texto: str) -> dict:
     nodos_hecho = [n for n in nodos if n["node_type"] == "hecho"]
     nodos_norma = [n for n in nodos if n["node_type"] == "norma"]
 
+    # Solo antecedentes cercanos: el producto cartesiano inventaba millones de enlaces.
     for c in nodos_conc:
-        for p in nodos_prueba:
-            if (p["id"], c["id"]) not in existentes:
-                aristas.append({
-                    "source_id": p["id"],
-                    "target_id": c["id"],
-                    "relation_type": "sostiene",
-                })
-                existentes.add((p["id"], c["id"]))
-        for h in nodos_hecho:
-            if (h["id"], c["id"]) not in existentes:
-                aristas.append({
-                    "source_id": h["id"],
-                    "target_id": c["id"],
-                    "relation_type": "implica",
-                })
-                existentes.add((h["id"], c["id"]))
+        indice = c['paragraph_index']
+        for apoyo in nodos[max(0, indice - 8):indice]:
+            relacion = {'prueba': 'sostiene', 'hecho': 'implica'}.get(apoyo['node_type'])
+            par = (apoyo['id'], c['id'])
+            if relacion and par not in existentes:
+                aristas.append({'source_id': apoyo['id'], 'target_id': c['id'],
+                                'relation_type': relacion})
+                existentes.add(par)
+    posibles = len(nodos_conc) * (len(nodos_prueba) + len(nodos_hecho))
+    conservadas = sum(a['relation_type'] in ('sostiene', 'implica') for a in aristas)
+    omitidas = max(0, posibles - conservadas)
+    if omitidas:
+        avisos.append({'severity': 'info', 'paragraph_index': None,
+                       'message': f'Grafo acotado a antecedentes de los 8 párrafos anteriores; '
+                                  f'{omitidas} relaciones lejanas o posteriores omitidas.'})
 
     for n in [x for x in nodos if x["node_type"] == "orphan"]:
         extracto = n["text"][:80] + "…" if len(n["text"]) > 80 else n["text"]
@@ -868,6 +868,8 @@ def extraer_grafo_argumentos(texto: str) -> dict:
     return {
         "nodes": nodos,
         "edges": aristas,
+        "truncado": bool(omitidas),
+        "relaciones_omitidas": omitidas,
         "coverage_ratio": cobertura,
         "coherence_warnings": avisos,
         "has_complete_chain": cadena_completa,

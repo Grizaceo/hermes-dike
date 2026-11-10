@@ -3,7 +3,7 @@
 Ningún dato es real: RUT generados con DV módulo 11 sobre cuerpos inventados.
 Cada caso declara `pii` (fragmentos que no pueden sobrevivir) y `keep`
 (fragmentos legales que deben quedar intactos). Las categorías
-`nombre_sin_contexto` y `nombre_fuera_de_lista` no se enmascaran solas en F2a:
+`nombre_sin_contexto` y `nombre_fuera_de_lista` no se enmascaran solas con la estrategia media:
 van a `candidatos` para que el abogado decida (se mide que aparezcan ahí).
 """
 

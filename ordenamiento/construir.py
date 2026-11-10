@@ -244,8 +244,14 @@ def construir(perfil, config, salida, *, obtenido: str | None = None, force: boo
         raise ValueError(f"directorio de salida no vacío: {out} (usa force=True para reconstruir)")
 
     escritas: list[str] = []
+    identidades = set()
 
     def _escribir(path: Path, value) -> None:
+        identidad = value.get('@id')
+        if identidad is not None:
+            if identidad in identidades:
+                raise ValueError(f'identidad duplicada: {identidad}')
+            identidades.add(identidad)
         write_json(path, value)
         escritas.append(path.relative_to(out).as_posix())
 
@@ -273,6 +279,20 @@ def construir(perfil, config, salida, *, obtenido: str | None = None, force: boo
         _preparar_norma(spec, i, perfil_d, patron, tipos_validos, cfg_dir, pv, paquetes)
         for i, spec in enumerate(normas_cfg)
     ]
+
+    fuentes, normas = set(), set()
+    for norma in preparadas:
+        id_fuente = norma['idFuente']
+        if id_fuente in fuentes:
+            raise ValueError(f'idFuente duplicado: {id_fuente}')
+        fuentes.add(id_fuente)
+        identidad = acunacion.id_norma(perfil_d, {
+            'jurisdiction': jur_dominio, 'type': norma['tipo'],
+            'number': norma['numero'], 'year': norma['anio'],
+        })
+        if identidad in normas:
+            raise ValueError(f'identidad duplicada: {identidad}')
+        normas.add(identidad)
 
     for d in ("normas", "articulos", "vigencia", "provenance", "edges"):
         (out / d).mkdir(parents=True, exist_ok=True)
@@ -445,6 +465,9 @@ def construir(perfil, config, salida, *, obtenido: str | None = None, force: boo
     core["manifestCoreSha256"] = sha_text(canon(core).decode("utf-8"))
     _escribir(out / "MANIFEST.json", core)
 
-    return {"ok": True, "salida": str(out), "normas": norm_count,
+    return {"ok": True, "salida": str(out),
+            "packId": f"{acunacion.BASE}packages/{jur_perfil}/v1",
+            "jurisdiccion": jur_dominio,
+            "manifestCoreSha256": core['manifestCoreSha256'], "normas": norm_count,
             "articulos": art_count, "vigencias": vig_count,
             "edges": edge_count, "datasetVersion": dataset}

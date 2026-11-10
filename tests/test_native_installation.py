@@ -99,3 +99,16 @@ def test_package_tamper_rejected_even_when_installed(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='checksum mismatch'):
         m._asegurar_corpus(data)
     assert len(calls) == 1
+
+
+
+def test_descriptor_corpus_es_estricto_y_estado_no_instala(tmp_path, monkeypatch):
+    import pytest
+    m, corpus, data = setup_runtime(tmp_path, monkeypatch)
+    for manifiesto in ('', 'x paquete.tar', 'a' * 64 + ' ../paquete.tar',
+                       ('a' * 64 + ' paquete.tar\n') * 2):
+        (corpus / 'SHA256SUMS').write_text(manifiesto)
+        with pytest.raises(ValueError):
+            m._descriptor_corpus()
+        assert not m._estado_corpus(data)['corpus_instalado']
+        assert not data.exists()

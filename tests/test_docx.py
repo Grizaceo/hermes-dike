@@ -9,9 +9,9 @@ import zipfile
 from pathlib import Path
 
 import pytest
+from soporte_adaptador import native
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH = Path('/tmp/dike-scratch/site-packages')
 MOTOR = ROOT / 'motor'
 
 
@@ -103,7 +103,9 @@ def _build_docx() -> bytes:
 def _motor_docx_text(path: Path) -> str:
     """Corre ``_read_docx`` del motor en un SUBPROCESO (nunca importa lexo_cli aquí)."""
     env = dict(os.environ)
-    env['PYTHONPATH'] = os.pathsep.join([str(MOTOR), str(SCRATCH)])
+    docx = _python_docx()
+    sitio_docx = Path(docx.__file__).resolve().parent.parent
+    env['PYTHONPATH'] = os.pathsep.join([str(MOTOR), str(sitio_docx)])
     env['PYTHONDONTWRITEBYTECODE'] = '1'
     code = (
         'import sys; from pathlib import Path;'
@@ -142,7 +144,7 @@ def _demo_docx_bytes() -> bytes:
     return buf.getvalue()
 
 
-def test_docx_demo_da_4_6_sin_python_docx(mod, tmp_path, monkeypatch):
+def test_docx_demo_da_4_6_sin_python_docx(adaptador_real, tmp_path):
     """verificar_citas extrae el texto en el adaptador: el motor no necesita docx.
 
     El .docx del escrito demo da el mismo 4/6 que el .md, y 'docx' ya no forma
@@ -151,10 +153,9 @@ def test_docx_demo_da_4_6_sin_python_docx(mod, tmp_path, monkeypatch):
     _python_docx()
     f = tmp_path / 'demo.docx'
     f.write_bytes(_demo_docx_bytes())
-    data_dir = tmp_path / 'datos-docx'
-    monkeypatch.setattr(mod, '_carpeta_de_datos', lambda: data_dir)
-    out = json.loads(mod.verificar_citas({'ruta': str(f)}))
+    out = json.loads(adaptador_real.verificar_citas({'ruta': str(f)}))
     assert 'error' not in out, out
+    assert out['veredicto'] == 'CON_PROBLEMAS'
     assert out['meta']['total_citas'] == 6
     assert out['meta']['citas_verificadas'] == 4
     # El motor ya no recibe python-docx: 'docx' no está en los módulos medidos.
@@ -163,8 +164,6 @@ def test_docx_demo_da_4_6_sin_python_docx(mod, tmp_path, monkeypatch):
     spec.loader.exec_module(aisl)
     assert 'docx' not in aisl.MODULOS_MEDIDOS
 
-
-# ── Casos negativos: cada uno debe dar INPUT_ERROR / INPUT_DOCX ──────────
 
 def _docx_minimo() -> bytes:
     """Zip mínimo con word/document.xml válido."""
@@ -232,3 +231,84 @@ def test_docx_ratio_bomb_rechazado(mod):
 
 def test_docx_minimo_extrae_texto(mod):
     assert 'hola' in mod._texto_docx(_docx_minimo())
+
+
+def _zip_xml(xml):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zf:
+        zf.writestr('word/document.xml', xml)
+    return buf.getvalue()
+
+
+@pytest.mark.parametrize('encoding', ['utf-8', 'utf-16', 'utf-16-be', 'utf-32'])
+def test_docx_rechaza_dtd_en_cualquier_codificacion(mod, encoding):
+    xml = ('<?xml version="1.0" encoding="' + encoding + '"?>'
+           '<!DOCTYPE x [<!ENTITY e "artículo 161">]>'
+           '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+           '<w:body><w:p><w:r><w:t>&e;</w:t></w:r></w:p></w:body></w:document>')
+    _espera_input_docx(mod, _zip_xml(xml.encode(encoding)))
+
+
+@pytest.mark.parametrize('tabla', [
+    '<w:tr><w:tc><w:tcPr><w:gridSpan w:val="1000000000"/></w:tcPr><w:p/></w:tc></w:tr>',
+    '<w:tr><w:tc><w:p/></w:tc></w:tr>' * 20_001,
+    '<w:tr><w:tc><w:tcPr><w:gridSpan w:val="128"/></w:tcPr><w:p><w:r><w:t>'
+    + 'x' * 4000 + '</w:t></w:r></w:p></w:tc></w:tr>',
+], ids=['span', 'filas', 'texto'])
+def test_docx_acota_tablas_antes_de_expandir(mod, tabla):
+    xml = ('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+           '<w:body><w:tbl>' + tabla + '</w:tbl></w:body></w:document>')
+    _espera_input_docx(mod, _zip_xml(xml))
+
+
+def test_docx_acota_texto_extraido_y_profundidad(mod):
+    base = '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+    _espera_input_docx(mod, _zip_xml(base + '<w:p><w:r><w:t>' + 'x' * 400001
+                                  + '</w:t></w:r></w:p></w:body></w:document>'))
+    _espera_input_docx(mod, _zip_xml(base + '<w:p>' * 129 + '</w:p>' * 129
+                                  + '</w:body></w:document>'))
+
+
+def test_docx_too_large(native, tmp_path):
+    p = tmp_path / 'big.docx'
+    p.write_bytes(b'0' * 10_000_001)
+    assert _error(native, {'ruta': str(p)})['motivo'] == 'INPUT_TOO_LARGE'
+
+
+def test_docx_corrupt(adaptador_real, tmp_path):
+    """Un .docx dañado nunca certifica: el adaptador lo rechaza con INPUT_DOCX
+    antes de llegar al motor (la extracción es con la biblioteca estándar)."""
+    p = tmp_path / 'roto.docx'
+    p.write_bytes(b'no es un zip ni un docx')
+    out = json.loads(adaptador_real.verificar_citas({'ruta': str(p)}))
+    assert out['error_code'] == 'INPUT_ERROR' and out['motivo'] == 'INPUT_DOCX'
+    assert out['todo_verificado'] is False
+
+
+def test_docx_generic_engine_error_not_input_docx(native, tmp_path):
+    """Un .docx válido llega al motor como texto; un error genérico del motor
+    sigue siendo ENGINE_EXIT_ERROR, no un error de entrada."""
+    escrito = tmp_path / 'e.docx'
+    escrito.write_bytes(_docx_minimo())
+    native._dike = lambda *a, **kw: subprocess.CompletedProcess(
+        [], 2, '', "Traceback (most recent call last):\n  File 'escrito.docx', line 1\nKeyError: 'x'")
+    out = json.loads(native.verificar_citas({'ruta': str(escrito)}))
+    assert out['error_code'] == 'ENGINE_EXIT_ERROR' and 'motivo' not in out
+
+
+def _error(native, args):
+    return json.loads(native.verificar_citas(args))
+
+
+def test_paridad_usa_la_instalacion_docx_del_padre(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    sitio = tmp_path / 'dependencias de pruebas'
+    monkeypatch.setattr(sys.modules[__name__], '_python_docx',
+                        lambda: SimpleNamespace(__file__=str(sitio / 'docx/__init__.py')))
+    def ejecutar(*args, **kwargs):
+        rutas = kwargs['env']['PYTHONPATH'].split(os.pathsep)
+        assert str(sitio) in rutas
+        assert all('dike-scratch' not in ruta for ruta in rutas)
+        return SimpleNamespace(returncode=0, stdout='texto leído', stderr='')
+    monkeypatch.setattr(subprocess, 'run', ejecutar)
+    assert _motor_docx_text(tmp_path / 'fixture.docx') == 'texto leído'

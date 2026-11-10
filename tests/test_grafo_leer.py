@@ -1,4 +1,4 @@
-"""Parte 2: dike_leer_articulo, dike_buscar_corpus y nodo_id en verificar_citas.
+"""dike_leer_articulo, dike_buscar_corpus y nodo_id en verificar_citas.
 
 Corpus real instalado en un plugin-data temporal (como test_native_e2e); cada
 llamada pasa por el adaptador → panel dentro de bubblewrap.
@@ -14,16 +14,8 @@ ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope='module')
-def real(tmp_path_factory):
-    spec = importlib.util.spec_from_file_location('dike_leer_test', ROOT / '__init__.py')
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    data = tmp_path_factory.mktemp('leer-data')
-    m._carpeta_de_datos = lambda: data
-    # una verificación instala el corpus y deja el índice de nodos en caché
-    demo = (ROOT / 'tests/fixtures/escrito_demo.md').read_text()
-    m.verificar_citas({'texto': demo})
-    return m
+def real(adaptador_real):
+    return adaptador_real
 
 
 def _json(s):

@@ -12,11 +12,11 @@ ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope='module')
-def real(tmp_path_factory):
+def privado(corpus_privado):
     spec = importlib.util.spec_from_file_location('native_real', ROOT / '__init__.py')
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
-    data = tmp_path_factory.mktemp('native-data')
+    data = corpus_privado
     m._carpeta_de_datos = lambda: data
     before = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
     text = (ROOT / 'tests/fixtures/escrito_demo.md').read_text()
@@ -25,6 +25,17 @@ def real(tmp_path_factory):
     after = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
     assert before == after
     return m, data, first, second
+
+
+@pytest.fixture(scope='module')
+def real(adaptador_real):
+    before = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
+    text = (ROOT / 'tests/fixtures/escrito_demo.md').read_text()
+    first = json.loads(adaptador_real.verificar_citas({'texto': text}))
+    second = json.loads(adaptador_real.verificar_citas({'texto': text}))
+    after = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
+    assert before == after
+    return adaptador_real, adaptador_real._carpeta_de_datos(), first, second
 
 
 def test_demo_real_cold_and_warm(real):
@@ -38,8 +49,8 @@ def test_demo_real_cold_and_warm(real):
         assert result['problemas']
 
 
-def test_installed_tamper_fails_closed(real):
-    m, data, _, _ = real
+def test_installed_tamper_fails_closed(privado):
+    m, data, _, _ = privado
     files = list((data / 'generations').glob('*/users/**/*'))
     victim = next(p for p in files if p.is_file() and p.suffix == '.json')
     original = victim.read_bytes()
@@ -52,7 +63,7 @@ def test_installed_tamper_fails_closed(real):
         victim.write_bytes(original)
 
 
-def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(real):
+def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(privado):
     """Un byte cambiado con tamaño y fecha intactos pasa el chequeo por stat.
 
     Mientras el motor en caliente sigue vivo, responde desde la copia que ya
@@ -61,7 +72,7 @@ def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(real):
     reconoce el corpus, y el adaptador lo informa como corrupción en vez de
     «no hay corpus».
     """
-    m, data, _, _ = real
+    m, data, _, _ = privado
     # Una llamada limpia deja el registro y la caché del proceso al día.
     limpio = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
     assert limpio.get('veredicto') == 'TODAS_VERIFICADAS', limpio

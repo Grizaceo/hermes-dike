@@ -16,7 +16,6 @@ ese ``plugin-home``); si no, el escenario ``buscar`` lo instala. El intérprete
 es el que ejecuta este script (``$HERMES_PYTHON`` en un checkout de Hermes).
 """
 import argparse
-import hashlib
 import importlib.util
 import json
 import os
@@ -25,7 +24,6 @@ import statistics
 import subprocess
 import sys
 import tempfile
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -39,14 +37,6 @@ def _cargar(datos: Path):
     spec.loader.exec_module(m)
     m._carpeta_de_datos = lambda: datos
     return m
-
-
-def _generation_instalada(m, datos: Path) -> Path:
-    sums = (m._CORPUS / 'SHA256SUMS').read_text().split()
-    gen = datos / 'generations' / sums[0]
-    if not gen.is_dir():
-        raise SystemExit('corpus no instalado: corre una verificación antes')
-    return gen
 
 
 def _bin_sin_bwrap() -> Path:

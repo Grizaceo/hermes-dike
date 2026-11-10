@@ -242,7 +242,13 @@ def test_ordenamiento_endpoints(api, datos):
     })
     assert res['ok'] is True
     assert res['compatibilidad']['nivelAlcanzado'] == 'C1'
-    assert res['construccion']['articulos'] >= 2
+    resumen = res['construccion']
+    assert resumen['normas'] == 2 and resumen['articulos'] == 5
+    assert resumen['ventanasVigencia'] == 7 and resumen['aristas'] == 10
+    assert resumen['packId'] == 'https://dike.invalid/packages/xx/v1'
+    assert resumen['jurisdiccion'] == 'xx'
+    assert len(resumen['manifestCoreSha256']) == 64
+    assert all(t['id'] and t['etiqueta'] for p in cat['perfiles'] for t in p['tipos_norma'])
 
 
 def test_preferencias_usuario(api, datos):
@@ -260,3 +266,57 @@ def test_preferencias_usuario(api, datos):
     assert prefs1['mostrar_pizarra'] is False
     assert api.preferencias_obtener()['tema_papel'] == 'sepia'
 
+
+
+@pytest.mark.parametrize('ruta,body', [
+    ('privacidad_decision', {'case_id': 'x', 'valor': 4, 'accion': 'enmascarar'}),
+    ('privacidad_detectar', {'texto': 'hola', 'estrategia': []}),
+    ('privacidad_envio', {'case_id': 'x', 'sha256': 42}),
+    ('privacidad_envio', {'case_id': 'x', 'sha256': 'a' * 64, 'conteos': []}),
+    ('preferencias_guardar', {'tema_papel': []}),
+    ('preferencias_guardar', {'fuente': '\ud800'}),
+    ('prediccion_evento', {'procedencia': []}),
+    ('prediccion_evento', {'largo': True}),
+    ('nif_edit', {'case_id': 'x', 'field_path': [], 'value': 'x'}),
+    ('nif_gap', {'case_id': 'x', 'gap_index': 1.5}),
+    ('nif_confianza', {'case_id': 'x', 'confidence': float('nan')}),
+    ('escrito_guardar', {'case_id': 'x', 'html': '\ud800', 'texto': '', 'rev_base': 0}),
+    ('ordenamiento_plantilla', {'jur': []}),
+])
+def test_json_con_tipos_incorrectos_responde_400(api, datos, ruta, body):
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as error:
+        getattr(api, ruta)(body)
+    assert error.value.status_code == 400 and error.value.detail
+
+
+
+def test_preferencias_fusiona_dos_guardados_simultaneos(api, datos, monkeypatch):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    lectura = api.preferencias_obtener
+    inicio = threading.Barrier(2)
+    def leer_bajo_lock():
+        assert api._prefs_lock.locked(), 'leyó las preferencias fuera del lock'
+        return lectura()
+    monkeypatch.setattr(api, 'preferencias_obtener', leer_bajo_lock)
+    def guardar(cambio):
+        inicio.wait()
+        return api.preferencias_guardar(cambio)
+    with ThreadPoolExecutor(2) as pool:
+        list(pool.map(guardar, [{'tema_papel': 'sepia'}, {'ancho_hoja': 'carta'}]))
+    final = lectura()
+    assert final['tema_papel'] == 'sepia' and final['ancho_hoja'] == 'carta'
+
+
+
+def test_grafo_argumentativo_acota_relaciones_y_declara_recorte(api, datos):
+    texto = ('Consta que ocurrió un hecho.\n' * 200
+             + 'Por tanto, solicito resolver.\n' * 200)
+    grafo = api.estilo_grafo({'texto': texto})
+    assert grafo['truncado'] and grafo['relaciones_omitidas'] > 39_000
+    assert len(grafo['edges']) <= 9 * len(grafo['nodes'])
+    assert any('omitidas' in a['message'] for a in grafo['coherence_warnings'])
+    indices = {n['id']: n['paragraph_index'] for n in grafo['nodes']}
+    assert all(0 < indices[a['target_id']] - indices[a['source_id']] <= 8
+               for a in grafo['edges'])

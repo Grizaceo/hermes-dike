@@ -107,7 +107,9 @@ def test_perfil_chat_ante_error_devuelve_vacio(mod, monkeypatch):
     assert mod._perfil_chat() == ''
 
 
-def test_estado_texto_instalado_y_no_instalado(mod):
+@pytest.mark.parametrize('idioma', ['en', 'es'])
+def test_estado_texto_instalado_y_no_instalado(mod, monkeypatch, idioma):
+    monkeypatch.setattr(mod, '_idioma', lambda: idioma)
     base = {
         'version': '0.9.0', 'hermes': '0.23.0', 'pack_hash': 'af1422d66d1e6eee',
         'reubicaciones': 0, 'aislamiento': {'modo': 'degradado', 'motivo': 'SIN_BWRAP'},
@@ -115,25 +117,27 @@ def test_estado_texto_instalado_y_no_instalado(mod):
         'desktop_presente': True, 'desktop_ok': True,
     }
     si = mod._estado_texto({**base, 'corpus_instalado': True})
-    assert 'instalado' in si and 'pack af1422d66d1e6eee' in si
-    assert 'python-docx no hace falta' in si
+    assert mod._t('status.corpus', state=mod._t('status.installed'), pack='af1422d66d1e6eee') in si
+    assert mod._t('status.docx') in si
     assert 'perfil activo' in si
     assert 'Capabilities' in si
     no = mod._estado_texto({**base, 'corpus_instalado': False})
-    assert 'no instalado' in no
+    assert mod._t('status.not_installed') in no
     # nunca rutas absolutas
     assert '/home/' not in si and '/home/' not in no
 
 
-def test_estado_explica_las_tres_capas_de_integridad(mod):
+@pytest.mark.parametrize('idioma', ['en', 'es'])
+def test_estado_explica_las_tres_capas_de_integridad(mod, monkeypatch, idioma):
+    monkeypatch.setattr(mod, '_idioma', lambda: idioma)
     datos = {'version': '0.9.0', 'hermes': '0.23.0', 'pack_hash': 'p',
              'corpus_instalado': True, 'reubicaciones': 0,
              'aislamiento': {'modo': 'bwrap'}, 'politica': 'auto',
              'perfil_chat': 'perfil activo', 'desktop_presente': False, 'desktop_ok': False}
     texto = mod._estado_texto(datos)
-    assert 'tamaños y fechas comparados en cada llamada' in texto
-    assert 'una vez por proceso' in texto
-    assert 'al iniciar cada servidor' in texto
+    assert mod._t('status.integrity') in texto
+    esperado = ('sizes and modification times checked on every call', 'once per process', 'when each server starts') if idioma == 'en' else ('tamaños y fechas comparados en cada llamada', 'una vez por proceso', 'al iniciar cada servidor')
+    assert all(frase in texto for frase in esperado)
 
 
 def test_carpeta_falls_back_only_on_importerror(monkeypatch):

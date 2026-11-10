@@ -57,6 +57,7 @@ import shutil
 import site
 import subprocess
 import sys
+import time
 import threading
 from pathlib import Path
 
@@ -301,7 +302,7 @@ def _directorios_paquetes(env=None) -> list:
 
 def _binds_plugin() -> list:
     return [str(_RAIZ / "motor"), str(_RAIZ / "scripts"),
-            str(_RAIZ / "data" / "arbol")]
+            str(_RAIZ / "data" / "arbol"), str(_RAIZ / "textos.py")]
 
 
 def _argumentos_bwrap(argv, *, lectura, escritura, cwd, env):
@@ -401,6 +402,7 @@ class _Servidor:
     def __init__(self):
         self.proc = None
         self.firma = None
+        self.inicio = 0
         self.candado = threading.Lock()
 
     def cerrar(self) -> None:
@@ -446,6 +448,14 @@ _SERVIDORES: dict = {}
 _CANDADO_SERVIDORES = threading.Lock()
 
 
+def segundos_servidor():
+    """Age of the oldest live engine server, or None; no probe or subprocess is started."""
+    with _CANDADO_SERVIDORES:
+        vivos = [(s.proc, s.inicio) for s in _SERVIDORES.values()]
+    inicios = [inicio for proc, inicio in vivos if proc is not None and proc.poll() is None]
+    return int(time.monotonic() - min(inicios)) if inicios else None
+
+
 def consultar(clave, firma, pedido, *, lectura, escritura, cwd, env, timeout):
     """Manda un pedido de solo lectura al servidor del motor de ``clave``.
 
@@ -475,6 +485,7 @@ def consultar(clave, firma, pedido, *, lectura, escritura, cwd, env, timeout):
                 servidor.proc.poll() is not None or servidor.firma != firma):
             servidor.cerrar()
         if servidor.proc is None:
+            servidor.inicio = time.monotonic()
             servidor.proc = subprocess.Popen(
                 cmd, env=env, cwd=str(cwd), stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,

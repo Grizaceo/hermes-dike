@@ -90,15 +90,23 @@ if sys.argv[1] == "constancia":
                       "verificadas": o2.get("meta", {{}}).get("citas_verificadas"),
                       "error": o2.get("error")}}))
 else:
-    gen = Path(m._asegurar_corpus(DATOS)["generation"])
+    instalado = m._asegurar_corpus(DATOS)
+    gen = Path(instalado["generation"])
     entrada = json.dumps({{"q": "despido indemnización", "limite": 10}},
                          ensure_ascii=False)
     t0 = time.perf_counter()
     data = m._panel_json(["grafo", "buscar"], runtime=gen, timeout=120,
                          entrada=entrada)
     segundos = time.perf_counter() - t0
+    m._panel_json(["grafo", "buscar"], runtime=gen, timeout=120,
+                  entrada=entrada, instalado=instalado)
+    t0 = time.perf_counter()
+    m._panel_json(["grafo", "buscar"], runtime=gen, timeout=120,
+                  entrada=entrada, instalado=instalado)
+    caliente = time.perf_counter() - t0
+    m._aislamiento().cerrar_servidores()
     print(json.dumps({{"escenario": "buscar", "modo": modo,
-                      "segundos": round(segundos, 3),
+                      "segundos": round(segundos, 3), "caliente": round(caliente, 3),
                       "resultados": data.get("total")}}))
 '''
 

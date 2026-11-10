@@ -30,22 +30,27 @@ platforms: [linux]
 provides_tools: [dike_verificar_citas, dike_leer_articulo, dike_buscar_corpus]
 provides_hooks: [pre_llm_call, pre_tool_call]
 config_schema:
+  idioma:
+    type: str
+    choices: [en, es]
+    default: en
+    label: Plugin language
+    description: Language of command output and the adapter's own tool-result text.
   sandbox:
     type: str
     choices: [auto, requerido]
     default: auto
-    label: Aislamiento del motor
+    label: Engine isolation
     description: >-
-      Cómo corre el motor y el panel. «auto» usa bubblewrap cuando está
-      disponible y declara el modo degradado si no; cualquier otro valor
-      exige el sandbox y falla cerrado si no se puede.
+      How the engine and panel run. auto uses bubblewrap when available and
+      reports degraded mode otherwise; any other value requires the sandbox
+      and refuses to run if it is unavailable.
   perfil_chat:
     type: str
     default: ""
-    label: Perfil del chat del escrito
+    label: Brief chat profile
     description: >-
-      Perfil de Hermes donde corre el chat del escrito; vacío = el perfil
-      activo.
+      Hermes profile for the brief chat; empty uses the active profile.
 python_dependencies:
   - "pydantic>=2.0,<3"
   - "pyyaml>=6.0,<7"

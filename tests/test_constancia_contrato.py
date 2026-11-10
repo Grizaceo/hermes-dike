@@ -78,7 +78,7 @@ def test_scoped_message_and_detected_citations_flag(native, monkeypatch, mencion
     assert r['todo_verificado'] is False
     assert r['no_verificadas'] == [mencion]
     assert r['mensaje'] != p['mensaje']
-    assert 'detectadas' in r['mensaje']
+    assert r['mensaje'] == native._t('summary.verified')
     assert r['mensaje_motor'] == p['mensaje']
 
 

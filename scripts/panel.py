@@ -35,6 +35,7 @@ disco ni se registra en ninguna parte.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -51,6 +52,18 @@ if str(_MOTOR) not in sys.path:
 _PANEL_DIR = Path(__file__).resolve().parent
 if str(_PANEL_DIR) not in sys.path:
     sys.path.insert(0, str(_PANEL_DIR))
+
+_spec_textos = importlib.util.spec_from_file_location('dike_textos', _PANEL_DIR.parent / 'textos.py')
+if 'dike_textos' not in sys.modules:
+    _mod_textos = importlib.util.module_from_spec(_spec_textos)
+    _spec_textos.loader.exec_module(_mod_textos)
+    sys.modules['dike_textos'] = _mod_textos
+_TEXTOS = sys.modules['dike_textos']
+
+
+def _fallo(codigo, **datos):
+    return _fail(codigo + ': ' + _TEXTOS.t(codigo, 'en', **datos))
+
 
 _CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _MAX_ARTICULOS = 300
@@ -547,7 +560,7 @@ def buscar(consulta: str, limite: int = 20, corpus_dirs=None,
         raise ValueError("la consulta tiene caracteres de control.")
     consulta_terminos = terminos(q)
     if not consulta_terminos:
-        raise ValueError("la consulta no tiene términos buscables.")
+        raise ValueError('QUERY_NO_TERMS: ' + _TEXTOS.t('QUERY_NO_TERMS', 'en'))
     if isinstance(limite, bool) or limite is None:
         limite = 20
     else:
@@ -1049,7 +1062,7 @@ def _grafo(args: list[str]) -> int:
                 "articulos_truncados": max(0, len(files) - len(articulos)),
             })
             return 0
-        return _fail(f"norma {code} no está en el corpus instalado.")
+        return _fallo('STATUTE_NOT_FOUND', code=code)
 
     if op == "unidad":
         # Texto y offsets de UNA unidad: /grafo/red no lleva texto de unidades;
@@ -1059,7 +1072,7 @@ def _grafo(args: list[str]) -> int:
         uid = rest[0]
         m = re.fullmatch(r"(.+)#u(\d+)", uid)
         if not m:
-            return _fail("id de unidad inválido.")
+            return _fallo('UNIT_ID_INVALID')
         aid, num = m.group(1), int(m.group(2))
         for current in _corpus_dirs():
             for af in _candidatos_articulo(current, aid):
@@ -1069,7 +1082,7 @@ def _grafo(args: list[str]) -> int:
                 texto = a.get("text") or ""
                 unidades = _unidades(texto)
                 if not 1 <= num <= len(unidades):
-                    return _fail(f"la unidad {num} no existe en ese artículo.")
+                    return _fallo('UNIT_INDEX_NOT_FOUND', unit=num)
                 u = unidades[num - 1]
                 mod, regla = _modalidad(u["texto"])
                 _out({
@@ -1089,7 +1102,7 @@ def _grafo(args: list[str]) -> int:
                     "modalidad_estado": "candidata",
                 })
                 return 0
-        return _fail("unidad no encontrada en el corpus instalado.")
+        return _fallo('UNIT_NOT_FOUND')
 
     if op == "unidades":
         # Nodos 'unidad' de UN artículo + sus aristas contiene/excepciona:
@@ -1140,7 +1153,7 @@ def _grafo(args: list[str]) -> int:
                 _out({"nodes": nodos_u, "links": aristas_u,
                       "conteos": {"nodes": len(nodos_u), "links": len(aristas_u)}})
                 return 0
-        return _fail("artículo no encontrado en el corpus instalado.")
+        return _fallo('ARTICLE_NOT_FOUND')
 
     if op == "nodo":
         # Ficha de un instrumento o artículo: url, sha256, conteos y vigencia.
@@ -1182,7 +1195,7 @@ def _grafo(args: list[str]) -> int:
                                  "desde": temporal.get("from") or ""},
                 })
                 return 0
-        return _fail("nodo no encontrado en el corpus instalado.")
+        return _fallo('NODE_NOT_FOUND')
 
     if op == "red":
         # Payload DELGADO: un nodo por instrumento y uno por artículo con sus

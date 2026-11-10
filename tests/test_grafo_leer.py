@@ -80,11 +80,11 @@ def test_leer_rechaza_entradas_invalidas(real):
 
 def test_buscar_devuelve_pistas_con_nodo_id(real):
     out = _json(real.buscar_corpus({'consulta': 'despido', 'limite': 3}))
-    assert out['rotulo'] == 'pista, no cita verificada'
+    assert out['rotulo'] == 'lead, not a verified citation'
     res = out['resultados']
     assert 0 < len(res) <= 3
     for r in res:
-        assert r['nodo_id'] and r['gid'] and r['rotulo'] == 'pista, no cita verificada'
+        assert r['nodo_id'] and r['gid'] and r['rotulo'] == 'lead, not a verified citation'
 
 
 def test_buscar_rechaza_limite_y_ruta(real):

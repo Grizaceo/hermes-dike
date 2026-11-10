@@ -143,7 +143,7 @@ def test_real_verified_article_with_unverified_mention(real):
     assert result['todas_citas_detectadas_verificadas'] is True
     assert result['todo_verificado'] is False
     assert 'Ley 99.999' in result['no_verificadas']
-    assert 'detectadas' in result['mensaje']
+    assert result['mensaje'] == real[0]._t('summary.verified')
     assert result['certificacion_vigencia_actual'] is False
     assert result['evidencia_temporal'][0]['antiguedad_dias'] >= 0
 

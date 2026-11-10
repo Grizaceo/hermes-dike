@@ -103,7 +103,7 @@ def test_install_dependency_error_is_safe_and_specific(native, monkeypatch):
         raise subprocess.CalledProcessError(1, ['synthetic-command'], stderr='ModuleNotFoundError: no dependency /opt/private unlabelled-SENTINEL')
     monkeypatch.setattr(native, '_asegurar_corpus', bad)
     r = json.loads(native.verificar_citas({'texto': 'artículo 161'}))
-    assert 'dependencia' in r['error']
+    assert r['error'] == 'ENGINE_EXIT_ERROR: ' + native._t('error.dependency')
     assert 'unlabelled-SENTINEL' not in r['error']
 
 

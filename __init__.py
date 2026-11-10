@@ -95,99 +95,93 @@ def _limpio_panel(texto) -> str:
     return _limpiar_rutas(str(texto))[:400]
 
 
-_MSG_INPUT_FIELDS = "Indica exactamente uno de los dos campos: texto o ruta."
-_MSG_INPUT_EMPTY = "El texto o la ruta están vacíos."
-_MSG_INPUT_EXTENSION = "Solo se aceptan archivos .md, .txt o .docx. Para un .pdf u otro formato, extrae el texto y pásalo en el campo texto."
-_MSG_INPUT_SYMLINK = "No se aceptan rutas con enlaces simbólicos."
-_MSG_INPUT_NOT_FOUND = "No existe un archivo regular en esa ruta."
-_MSG_INPUT_TOO_LARGE = "El texto o el archivo supera el límite: 400.000 bytes de texto, o 10 MB para un .docx."
-_MSG_INPUT_ENCODING = "El archivo no está en UTF-8."
-_MSG_INPUT_RELATIVE = "Usa una ruta absoluta: esta sesión no informa su carpeta de trabajo."
-_MSG_INPUT_DOCX = "No se pudo leer el .docx: puede estar dañado o protegido."
-_MSG_INPUT_CONTROL = ("El texto trae caracteres de control invisibles (por ejemplo NUL), que pueden cambiar "
-                      "el número de una cita: quítalos y vuelve a intentarlo.")
-_MSG_INPUT_UNICODE = "El texto trae caracteres Unicode inválidos (sustitutos sueltos): cópialo de nuevo desde el original."
 # Controles C0 y DEL, salvo tabulador, saltos de línea, tabulador vertical y salto de página.
 _CONTROLES = re.compile(r'[\x00-\x08\x0e-\x1f\x7f]')
 _DOC_SUFFIXES = {'.pdf', '.doc', '.rtf', '.odt', '.html', '.htm'}
 
-ESQUEMA = {
-    "name": "dike_verificar_citas",
-    "description": (
-        "Comprueba si un escrito cita bien artículos de leyes chilenas (Ley Chile). "
-        "Úsala SIEMPRE que pidan revisar, comprobar o confirmar las citas legales de un escrito, "
-        "o si un artículo existe, está bien citado o vigente, y antes de afirmarlo; prefiérela a "
-        "una búsqueda web: responde desde una copia local de 25 normas chilenas identificada por "
-        "hash, y dice qué no pudo verificar. Acepta el texto o un archivo .md, .txt o .docx. "
-        "English: checks the legal citations (article references) of a Chilean legal brief "
-        "against Chilean statutes; output in Spanish. "
-        "Devuelve, cita por cita, si se pudo verificar; las que no, vienen con el motivo "
-        "(AMBIGUOUS, UNRESOLVABLE, …). Una cita no verificada NO se puede dar por buena: "
-        "hay que decírselo al usuario tal cual. Comprueba identidad, citabilidad y estado "
-        "de vigencia registrado en el corpus; no consulta cambios posteriores en vivo ni "
-        "verifica que la norma diga lo que el escrito le atribuye. Usa archivos temporales "
-        "y datos persistidos del plugin, incluyendo corpus y cachés. Si el usuario prohíbe "
-        "escrituras, NO invoques esta herramienta: explica la incompatibilidad antes de actuar. "
-        "No ofrece certificación sustantiva ni vigencia actual en vivo. Solo cubre citas con "
-        "artículo detectadas; informa siempre no_verificadas y evidencia_temporal. Los campos "
-        "mensaje_motor/alcance_motor conservan expresiones del motor, no amplían el alcance "
-        "del mensaje del adaptador. Ausencia en corpus no demuestra inexistencia jurídica."
-    ),
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "texto": {"type": "string", "description": "El texto del escrito, o el pasaje con las citas."},
-            "ruta": {"type": "string", "description": "Ruta de un archivo .md, .txt o .docx con el escrito (alternativa a `texto`). Para .pdf u otros formatos, extrae el texto y pásalo en `texto`."},
-        },
-    },
-}
+ESQUEMA = {'name': 'dike_verificar_citas',
+ 'description': 'Check detected article citations against a hash-identified, dated local copy of 25 Chilean '
+                'statutes. Use before claiming a citation exists, is correctly cited or is in force. Report '
+                'every unverified citation and its reason; inspect no_verificadas and evidencia_temporal. '
+                'Checks identity, citability and recorded temporal status, not substance or current in-force '
+                'status. Absence from this corpus does not prove legal nonexistence. Engine wording in '
+                'mensaje_motor/alcance_motor does not expand this scope. Accepts texto or a .md/.txt/.docx '
+                'ruta. Uses temporary files, plugin data and caches: do not call if the user forbids writes; '
+                'explain the conflict first. / Comprueba citas con artículo contra una copia local fechada '
+                'de 25 normas chilenas, identificada por hash. Úsala antes de afirmar existencia, corrección '
+                'o vigencia de una cita. Informa cada cita no verificada y su motivo; revisa no_verificadas '
+                'y evidencia_temporal. Comprueba identidad, citabilidad y estado temporal registrado, no '
+                'sustancia ni vigencia actual. Ausencia en este corpus no demuestra inexistencia jurídica. '
+                'mensaje_motor/alcance_motor no amplían el alcance. Acepta texto o ruta .md/.txt/.docx. Usa '
+                'temporales, datos del plugin y cachés: si el usuario prohíbe escrituras, no la invoques y '
+                'explica el conflicto.',
+ 'parameters': {'type': 'object',
+                'properties': {'texto': {'type': 'string',
+                                         'description': 'Brief text or a passage with citations. / Texto del '
+                                                        'escrito o pasaje con citas.'},
+                               'ruta': {'type': 'string',
+                                        'description': 'Path to .md, .txt or .docx, instead of texto. '
+                                                       'Extract other formats to text. / Ruta .md, .txt o '
+                                                       '.docx, en lugar de texto. Extrae otros formatos a '
+                                                       'texto.'}}}}
 
-ESQUEMA_LEER = {
-    "name": "dike_leer_articulo",
-    "description": (
-        "Lee el texto de un artículo de una ley chilena en la copia local y "
-        "sellada de Diké (25 normas, identificada por hash), con sus unidades "
-        "normativas (incisos, letras, números) y el nodo del grafo de cada una. "
-        "Úsala antes de afirmar qué dice un artículo o si sirve para unos "
-        "hechos, y para copiar el fragmento literal de una nota al pie. Recibe "
-        "uno solo de: cita («artículo 161 del Código del Trabajo»), gid o "
-        "nodo_id. Si la cita es AMBIGUOUS o UNRESOLVABLE no devuelve texto: "
-        "dilo tal cual. Es el texto de una copia fechada: no certifica "
-        "pertinencia ni vigencia actual. English: reads the text of a Chilean "
-        "statute article from Diké's local sealed corpus."
-    ),
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "cita": {"type": "string",
-                     "description": "Cita en prosa, por ejemplo «artículo 161 del Código del Trabajo»."},
-            "gid": {"type": "string",
-                    "description": "Identificador del motor, por ejemplo cl.norma.ct:art:0161."},
-            "nodo_id": {"type": "string",
-                        "description": "Nodo del grafo, por ejemplo a:207436:art_0161."},
-        },
-    },
-}
+ESQUEMA_LEER = {'name': 'dike_leer_articulo',
+ 'description': 'Read an article and its normative units and graph nodes from Diké’s sealed, dated local '
+                'corpus (25 Chilean statutes). Use before stating what an article says, assessing relevance '
+                'or quoting a footnote. Provide exactly one of cita, gid or nodo_id. AMBIGUOUS or '
+                'UNRESOLVABLE returns no text: report it. This does not certify relevance or current '
+                'in-force status. / Lee un artículo, sus unidades normativas y nodos del grafo en el corpus '
+                'local sellado y fechado de Diké (25 normas chilenas). Úsala antes de afirmar su contenido, '
+                'valorar pertinencia o citar una nota. Indica solo cita, gid o nodo_id. AMBIGUOUS o '
+                'UNRESOLVABLE no devuelve texto: informa ese estado. No certifica pertinencia ni vigencia '
+                'actual.',
+ 'parameters': {'type': 'object',
+                'properties': {'cita': {'type': 'string',
+                                        'description': 'Article citation, e.g. «artículo 161 del Código del '
+                                                       'Trabajo». / Cita del artículo, p. ej. «artículo 161 '
+                                                       'del Código del Trabajo».'},
+                               'gid': {'type': 'string',
+                                       'description': 'Engine identifier, e.g. cl.norma.ct:art:0161. / '
+                                                      'Identificador del motor, p. ej. '
+                                                      'cl.norma.ct:art:0161.'},
+                               'nodo_id': {'type': 'string',
+                                           'description': 'Graph node, e.g. a:207436:art_0161. / Nodo del '
+                                                          'grafo, p. ej. a:207436:art_0161.'}}}}
 
-ESQUEMA_BUSCAR = {
-    "name": "dike_buscar_corpus",
-    "description": (
-        "Busca artículos de las 25 leyes chilenas del corpus local de Diké por "
-        "su contenido (BM25 determinista, sin modelo y sin red). Devuelve "
-        "pistas para leer con dike_leer_articulo, nunca citas verificadas. "
-        "English: lexical search over Diké's local Chilean statute corpus; "
-        "results are leads, not verified citations."
-    ),
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "consulta": {"type": "string",
-                         "description": "Términos a buscar (1 a 300 caracteres)."},
-            "limite": {"type": "integer",
-                       "description": "Cuántos resultados (1 a 10; por defecto 5)."},
-        },
-    },
-}
+ESQUEMA_BUSCAR = {'name': 'dike_buscar_corpus',
+ 'description': 'Search the 25 local Chilean statutes by content (deterministic BM25, no model or network). '
+                'Results are leads, never verified citations; read them with dike_leer_articulo. / Busca por '
+                'contenido en las 25 normas chilenas locales (BM25 determinista, sin modelo ni red). Son '
+                'pistas, nunca citas verificadas; léelas con dike_leer_articulo.',
+ 'parameters': {'type': 'object',
+                'properties': {'consulta': {'type': 'string',
+                                            'description': 'Search terms, 1–300 characters. / Términos de '
+                                                           'búsqueda, 1–300 caracteres.'},
+                               'limite': {'type': 'integer',
+                                          'description': 'Result limit, 1–10; default 5. / Límite de '
+                                                         'resultados, 1–10; por defecto 5.'}}}}
+
+
+def _textos():
+    nombre = 'dike_textos'
+    mod = sys.modules.get(nombre)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location(nombre, _RAIZ / 'textos.py')
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        sys.modules[nombre] = mod
+    return mod
+
+
+def _idioma():
+    try:
+        return 'es' if _setting('idioma', 'en') == 'es' else 'en'
+    except Exception:
+        return 'en'
+
+
+def _t(clave, **datos):
+    return _textos().t(clave, _idioma(), **datos)
 
 
 def _carpeta_de_datos() -> Path:
@@ -699,45 +693,43 @@ def _error_adaptador(raw, stderr="", *, returncode=None):
     """Return controlled diagnostics only; never forward exception/stderr text."""
     aislado = _aislamiento().estado()
     code = 'ADAPTER_ERROR'
-    message = 'No se pudo completar la comprobación.'
+    message = _t('error.adapter')
     if isinstance(raw, _aislamiento().SandboxNoDisponible):
-        return {'error': f'SANDBOX_UNAVAILABLE: {raw}', 'error_code': 'SANDBOX_UNAVAILABLE',
+        return {'error': f"SANDBOX_UNAVAILABLE: {_t('error.sandbox')}", 'error_code': 'SANDBOX_UNAVAILABLE',
                 'todo_verificado': False, 'aislamiento': aislado}
     if isinstance(raw, subprocess.TimeoutExpired):
-        code, message = 'TIMEOUT', 'El motor no respondió dentro del plazo.'
+        code, message = 'TIMEOUT', _t('error.timeout')
     elif returncode is not None and returncode not in (0, 1):
-        code, message = 'ENGINE_EXIT_ERROR', 'El motor terminó con un código de error.'
+        code, message = 'ENGINE_EXIT_ERROR', _t('error.engine_exit')
     elif isinstance(raw, json.JSONDecodeError):
         code = 'ENGINE_EXIT_ERROR' if returncode == 1 else 'ENGINE_JSON_ERROR'
-        message = 'El motor no produjo una respuesta JSON válida.'
+        message = _t('error.engine_json')
     elif isinstance(raw, subprocess.CalledProcessError):
-        code, message = 'ENGINE_EXIT_ERROR', 'El motor terminó con error.'
+        code, message = 'ENGINE_EXIT_ERROR', _t('error.engine_install')
         stderr = raw.stderr if isinstance(raw.stderr, str) else ''
     elif isinstance(raw, EntradaInvalida):
         return {'error': f'INPUT_ERROR: {raw}', 'error_code': 'INPUT_ERROR',
                 'motivo': raw.codigo, 'todo_verificado': False, 'aislamiento': aislado}
     elif isinstance(raw, PanelError):
         if raw.kind == 'timeout':
-            code, message = 'TIMEOUT', 'El panel no respondió dentro del plazo.'
+            code, message = 'TIMEOUT', _t('error.panel_timeout')
         elif raw.kind == 'data':
-            return {'error': f'PANEL_ERROR: {raw.detalle or "entrada rechazada por el panel"}',
+            return {'error': "PANEL_ERROR: " + _t('error.panel_input'),
                     'error_code': 'PANEL_ERROR', 'motivo': 'PANEL_DATA',
                     'todo_verificado': False, 'aislamiento': aislado}
         else:
-            code, message = 'ENGINE_EXIT_ERROR', 'El panel terminó con un error.'
+            code, message = 'ENGINE_EXIT_ERROR', _t('error.panel_exit')
     elif isinstance(raw, (ValueError, TypeError, KeyError)):
-        code, message = 'CONTRACT_OR_INPUT_ERROR', 'Entrada, corpus o respuesta incompatibles con el contrato.'
+        code, message = 'CONTRACT_OR_INPUT_ERROR', _t('error.contract')
         # Fixed diagnostics, no raw interpolation. The English phrase stays as a stable marker.
         if isinstance(raw, ValueError) and str(raw) == 'installed corpus integrity mismatch':
             code, message = 'CORPUS_INTEGRITY_ERROR', (
-                'installed corpus integrity mismatch: el corpus instalado no coincide con lo que se '
-                'registró al instalarlo, así que no se verificó ninguna cita. Borra '
-                'plugin-data/dike/generations y la siguiente llamada lo reinstala.')
+                _t('error.integrity'))
     elif isinstance(raw, OSError):
-        code, message = 'IO_ERROR', 'No se pudo acceder a los datos requeridos.'
+        code, message = 'IO_ERROR', _t('error.io')
     # Classify known missing-dependency signatures without echoing arbitrary content.
     if code == 'ENGINE_EXIT_ERROR' and 'ModuleNotFoundError' in stderr:
-        message = 'Falta una dependencia del motor en el entorno de ejecución.'
+        message = _t('error.dependency')
     return {'error': f'{code}: {message}', 'error_code': code,
             'todo_verificado': False, 'aislamiento': aislado}
 
@@ -875,9 +867,6 @@ def _cuerpos_en_conflicto(cita_raw: str):
     return None
 
 
-_MSG_CUERPOS = ('Hay citas cuyo texto nombra dos cuerpos legales distintos, por ejemplo porque la '
-                'línea anterior no termina en punto: Diké no las certifica. Separa cada cita con '
-                'un punto o en su propio párrafo y vuelve a verificar.')
 
 
 def _degradar_cuerpos_en_conflicto(c):
@@ -897,9 +886,7 @@ def _degradar_cuerpos_en_conflicto(c):
             'texto_hash': None, 'fuente_url': '', 'fecha_recuperacion': '',
             'vigencia': 'DESCONOCIDO', 'vigencia_legible': 'vigencia desconocida',
             'estado_texto_historico': 'EVIDENCE_UNAVAILABLE',
-            'motivo_adaptador': (f'La cita nombra «{conflicto[0]}» antes del artículo y '
-                                 f'«{conflicto[1]}» después; el motor la resolvió como '
-                                 f'{descartado}. No se certifica.'),
+            'motivo_adaptador': _t('guard.detail', before=conflicto[0], after=conflicto[1], gid=descartado),
         })
         degradadas += 1
     if not degradadas:
@@ -908,7 +895,7 @@ def _degradar_cuerpos_en_conflicto(c):
     meta['citas_verificadas'] -= degradadas
     meta['citas_fallidas'] += degradadas
     c['veredicto'] = 'CON_PROBLEMAS'
-    c['problemas'] = [*c['problemas'], _MSG_CUERPOS]
+    c['problemas'] = [*c['problemas'], _t('guard.problem')]
     vigentes = {str(d['gid']).rsplit(':', 1)[-1] for d in c['detalles'] if d.get('estado') == 'VERIFICADA'}
     disclosure = c['citation_disclosure']
     if isinstance(disclosure.get('verificadas'), list):
@@ -944,65 +931,65 @@ def _texto_docx(data: bytes) -> str:
     try:
         return lector.leer(data, limite=_LIMITE_TEXTO)
     except lector.DocxInvalido:
-        raise EntradaInvalida('INPUT_DOCX', _MSG_INPUT_DOCX) from None
+        raise EntradaInvalida('INPUT_DOCX', _t('input.docx')) from None
 
 
 def _texto_input(args):
     """Devuelve el texto del escrito; un .docx se extrae aquí, no en el motor."""
     if not isinstance(args, dict) or set(args) - {'texto', 'ruta'}:
-        raise EntradaInvalida('INPUT_FIELDS', _MSG_INPUT_FIELDS)
+        raise EntradaInvalida('INPUT_FIELDS', _t('input.fields'))
     if ('texto' in args) == ('ruta' in args):
-        raise EntradaInvalida('INPUT_FIELDS', _MSG_INPUT_FIELDS)
+        raise EntradaInvalida('INPUT_FIELDS', _t('input.fields'))
     value = args.get('texto') if 'texto' in args else args.get('ruta')
     if not isinstance(value, str) or not value.strip():
-        raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
+        raise EntradaInvalida('INPUT_EMPTY', _t('input.empty'))
     if 'ruta' in args:
         # check symlinks on the original path, then resolve for safety.
         path = Path(value).expanduser()
         if not path.is_absolute():
             base = _cwd_sesion()
             if base is None:
-                raise EntradaInvalida('INPUT_RELATIVE', _MSG_INPUT_RELATIVE)
+                raise EntradaInvalida('INPUT_RELATIVE', _t('input.relative'))
             path = base / path
         suffix = path.suffix.lower()
         if suffix not in ('.md', '.txt', '.docx'):
-            raise EntradaInvalida('INPUT_EXTENSION', _MSG_INPUT_EXTENSION)
+            raise EntradaInvalida('INPUT_EXTENSION', _t('input.extension'))
         if any(p.is_symlink() for p in [path, *path.parents]):
-            raise EntradaInvalida('INPUT_SYMLINK', _MSG_INPUT_SYMLINK)
+            raise EntradaInvalida('INPUT_SYMLINK', _t('input.symlink'))
         # resolve after symlink check to handle any remaining edge cases.
         path = path.resolve()
         try:
             fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
         except OSError:
-            raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND) from None
+            raise EntradaInvalida('INPUT_NOT_FOUND', _t('input.not_found')) from None
         limite = _LIMITE_DOCX if suffix == '.docx' else _LIMITE_TEXTO
         try:
             with os.fdopen(fd, 'rb') as stream:
                 if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
-                    raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND)
+                    raise EntradaInvalida('INPUT_NOT_FOUND', _t('input.not_found'))
                 data = stream.read(limite + 1)
         except OSError:
-            raise EntradaInvalida('INPUT_NOT_FOUND', _MSG_INPUT_NOT_FOUND) from None
+            raise EntradaInvalida('INPUT_NOT_FOUND', _t('input.not_found')) from None
         if len(data) > limite:
-            raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
+            raise EntradaInvalida('INPUT_TOO_LARGE', _t('input.too_large'))
         if suffix == '.docx':
             value = _texto_docx(data)
         else:
             try:
                 value = data.decode('utf-8')
             except UnicodeDecodeError:
-                raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_ENCODING) from None
+                raise EntradaInvalida('INPUT_ENCODING', _t('input.encoding')) from None
     if not value.strip():
-        raise EntradaInvalida('INPUT_EMPTY', _MSG_INPUT_EMPTY)
+        raise EntradaInvalida('INPUT_EMPTY', _t('input.empty'))
     try:
         tamano = len(value.encode('utf-8'))
     except UnicodeEncodeError:
-        raise EntradaInvalida('INPUT_ENCODING', _MSG_INPUT_UNICODE) from None
+        raise EntradaInvalida('INPUT_ENCODING', _t('input.unicode')) from None
     if tamano > _LIMITE_TEXTO:
-        raise EntradaInvalida('INPUT_TOO_LARGE', _MSG_INPUT_TOO_LARGE)
+        raise EntradaInvalida('INPUT_TOO_LARGE', _t('input.too_large'))
     # Un NUL dentro de «16\x001» hacía que el motor certificara el artículo 16.
     if _CONTROLES.search(value):
-        raise EntradaInvalida('INPUT_CONTROL', _MSG_INPUT_CONTROL)
+        raise EntradaInvalida('INPUT_CONTROL', _t('input.control'))
     return value
 
 
@@ -1018,10 +1005,10 @@ def _acotar(lista, largo):
     cita_raw, que la interfaz busca tal cual en el texto."""
     if not isinstance(lista, list):
         return lista
-    out = [v[:largo] + f'… [+{len(v) - largo} caracteres]' if isinstance(v, str) and len(v) > largo else v
+    out = [v[:largo] + _t('limit.characters', count=len(v) - largo) if isinstance(v, str) and len(v) > largo else v
            for v in lista[:_LIMITE_MENCIONES]]
     if len(lista) > _LIMITE_MENCIONES:
-        out.append(f'… y {len(lista) - _LIMITE_MENCIONES} más')
+        out.append(_t('limit.more', count=len(lista) - _LIMITE_MENCIONES))
     return out
 
 
@@ -1030,10 +1017,10 @@ def _salida_publica(c):
     no_verificadas = c['citation_disclosure']['no_verificadas']
     detected_verified = c['veredicto'] == 'TODAS_VERIFICADAS'
     messages = {
-        'TODAS_VERIFICADAS': 'Las citas con artículo detectadas fueron verificadas en el corpus local. No se certifican todas las referencias ni la vigencia actual.',
-        'CON_PROBLEMAS': 'Hay citas detectadas que no pudieron verificarse completamente en el corpus local.',
-        'SIN_CITAS': 'No se detectaron citas con artículo verificables; esto no acredita las menciones normativas del escrito.',
-        'SIN_CORPUS': 'No se verificaron citas: no hay corpus disponible para contrastarlas.',
+        'TODAS_VERIFICADAS': _t('summary.verified'),
+        'CON_PROBLEMAS': _t('summary.problems'),
+        'SIN_CITAS': _t('summary.no_citations'),
+        'SIN_CORPUS': _t('summary.no_corpus'),
     }
     temporal = []
     day = date.fromisoformat(c['meta']['as_of'])
@@ -1044,15 +1031,14 @@ def _salida_publica(c):
                              'antiguedad_dias': (day - retrieved.date()).days})
     aislado = _aislamiento().estado()
     if aislado.get('modo') == 'bwrap':
-        efecto_subproceso = 'subproceso en bubblewrap sin red'
+        efecto_subproceso = _t('effects.sandbox')
     else:
-        efecto_subproceso = ('subproceso sin aislamiento '
-                             f"(modo degradado: {aislado.get('motivo', 'OTRO')})")
+        efecto_subproceso = _t('effects.no_sandbox', reason=aislado.get('motivo', 'OTRO'))
     out = {k: c[k] for k in ('veredicto', 'detalles', 'citation_disclosure', 'problemas') if k in c}
     out.update({
         'mensaje': messages[c['veredicto']],
         'mensaje_motor': c.get('mensaje'),
-        'alcance': 'Solo identidad, integridad y estado temporal registrado de citas con artículo detectadas. No se certifican interpretación, menciones no verificadas ni cambios posteriores a la captura de fuentes.',
+        'alcance': _t('scope.verification'),
         'alcance_motor': c.get('alcance'),
         'todas_citas_detectadas_verificadas': detected_verified,
         'todo_verificado': detected_verified and not no_verificadas,
@@ -1060,8 +1046,8 @@ def _salida_publica(c):
         'certificacion_vigencia_actual': False,
         'no_verificadas': _acotar(no_verificadas, _LIMITE_MENCION),
         'evidencia_temporal': temporal,
-        'efectos_de_ejecucion': [efecto_subproceso, 'archivos temporales',
-                                'instalación y uso del corpus local', 'cachés del motor'],
+        'efectos_de_ejecucion': [efecto_subproceso, _t('effects.temporary'),
+                                _t('effects.corpus'), _t('effects.cache')],
         'aislamiento': aislado,
         'meta': {k: c['meta'][k] for k in ('origen', 'as_of', 'fecha_constancia', 'pack_hash',
                                         'total_citas', 'citas_verificadas', 'citas_fallidas') if k in c['meta']},
@@ -1085,35 +1071,33 @@ def _salida_publica(c):
 
 _EXT_ARCHIVO = re.compile(r'\.(?:md|txt|docx|pdf|json|py|ya?ml|html?)$',
                           re.IGNORECASE)
-_MSG_CAMPOS_LEER = 'indica exactamente uno de: cita, gid o nodo_id.'
-_MSG_CAMPOS_BUSCAR = 'la búsqueda admite solo los campos consulta y limite.'
 
 
 def _texto_corto(nombre: str, valor) -> str:
     """Texto breve y seguro (1–300): sin controles ni pinta de ruta/archivo."""
     if not isinstance(valor, str):
-        raise EntradaInvalida('INPUT_TYPE', f'{nombre} debe ser texto.')
+        raise EntradaInvalida('INPUT_TYPE', _t('input.short_type', name=nombre))
     v = valor.strip()
     if not (1 <= len(v) <= 300):
         raise EntradaInvalida('INPUT_LENGTH',
-                              f'{nombre} debe tener entre 1 y 300 caracteres.')
+                              _t('input.short_length', name=nombre))
     if any(unicodedata.category(c).startswith('C') for c in v):
         raise EntradaInvalida('INPUT_CONTROL',
-                              f'{nombre} tiene caracteres de control.')
+                              _t('input.short_control', name=nombre))
     if ('/' in v or '\\' in v or v.startswith('~') or v.startswith('.')
             or _EXT_ARCHIVO.search(v)):
         raise EntradaInvalida('INPUT_PATH',
-                              f'{nombre} no puede ser una ruta de archivo.')
+                              _t('input.short_path', name=nombre))
     return v
 
 
 def _campos_leer(args) -> tuple:
     """(clave, valor) del único campo cita|gid|nodo_id, ya validado."""
     if not isinstance(args, dict):
-        raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_LEER)
+        raise EntradaInvalida('INPUT_FIELDS', _t('read.fields'))
     presentes = [k for k in ('cita', 'gid', 'nodo_id') if k in args]
     if len(presentes) != 1 or set(args) - {'cita', 'gid', 'nodo_id'}:
-        raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_LEER)
+        raise EntradaInvalida('INPUT_FIELDS', _t('read.fields'))
     clave = presentes[0]
     return clave, _texto_corto(clave, args[clave])
 
@@ -1122,9 +1106,7 @@ def _alcance_lectura() -> dict:
     return {
         'pack_hash': PACK_HASH,
         'certificacion_sustantiva': False,
-        'alcance': ('Texto de una copia fechada del corpus local; no certifica '
-                    'que el artículo sea pertinente para el caso ni que siga '
-                    'vigente hoy.'),
+        'alcance': (_t('scope.read')),
         'aislamiento': _aislamiento().estado(),
     }
 
@@ -1159,16 +1141,16 @@ def buscar_corpus(args: dict, **kwargs) -> str:
     """Handler de ``dike_buscar_corpus``: pistas BM25, nunca citas verificadas."""
     try:
         if not isinstance(args, dict) or not set(args) <= {'consulta', 'limite'}:
-            raise EntradaInvalida('INPUT_FIELDS', _MSG_CAMPOS_BUSCAR)
+            raise EntradaInvalida('INPUT_FIELDS', _t('search.fields'))
         if 'consulta' not in args:
-            raise EntradaInvalida('INPUT_FIELDS', 'falta el campo consulta.')
+            raise EntradaInvalida('INPUT_FIELDS', _t('search.query_missing'))
         consulta = _texto_corto('consulta', args['consulta'])
         limite = args.get('limite', 5)
         if isinstance(limite, bool) or not isinstance(limite, int):
-            raise EntradaInvalida('INPUT_TYPE', 'limite debe ser entero.')
+            raise EntradaInvalida('INPUT_TYPE', _t('search.limit_type'))
         if not (1 <= limite <= 10):
             raise EntradaInvalida('INPUT_RANGE',
-                                  'limite debe estar entre 1 y 10.')
+                                  _t('search.limit_range'))
         datos = _carpeta_de_datos().resolve()
         installed = _asegurar_corpus(datos)
         runtime = Path(installed.get('generation', datos))
@@ -1176,7 +1158,7 @@ def buscar_corpus(args: dict, **kwargs) -> str:
                              ensure_ascii=False)
         data = _panel_json(['grafo', 'buscar'], runtime=runtime,
                            timeout=120, entrada=payload, instalado=installed)
-        rotulo = 'pista, no cita verificada'
+        rotulo = _t('search.lead')
         resultados = [{
             'nodo_id': r.get('nodo_id'),
             'gid': r.get('gid'),
@@ -1344,8 +1326,8 @@ def verificar_citas(args: dict, **kwargs) -> str:
 def _linea_aislamiento(out: dict) -> str:
     aislado = out.get('aislamiento') or {}
     if aislado.get('modo') == 'bwrap':
-        return 'Aislamiento: el motor corrió en bubblewrap, sin red.'
-    return f"Aislamiento: sin sandbox ({aislado.get('motivo', 'OTRO')})."
+        return _t('command.isolated')
+    return _t('command.degraded', reason=aislado.get('motivo', 'OTRO'))
 
 
 def _formatear_salida(out: dict) -> str:
@@ -1354,14 +1336,14 @@ def _formatear_salida(out: dict) -> str:
     if 'error' in out:
         error = str(out['error'])
         message = error.split(': ', 1)[1] if ': ' in error else error
-        return f'Diké no pudo revisar el escrito: {message}\n{linea}'
+        return _t('command.error', message=message) + '\n' + linea
     veredicto = out.get('veredicto')
     meta = out.get('meta') or {}
     if veredicto in ('SIN_CITAS', 'SIN_CORPUS'):
         return f"Diké: {out.get('mensaje') or ''}\n{linea}"
     detalles = out.get('detalles') or []
-    lines = [f"Diké: {meta.get('citas_verificadas')} de {meta.get('total_citas')} citas verificadas "
-             f"({veredicto}) · corpus {meta.get('pack_hash')}", linea]
+    lines = [_t('command.count', verified=meta.get('citas_verificadas'), total=meta.get('total_citas'),
+                verdict=veredicto, pack=meta.get('pack_hash')), linea]
     fechas = []
     for d in detalles:
         cita = str(d.get('cita_raw') or '')[:120]
@@ -1373,10 +1355,9 @@ def _formatear_salida(out: dict) -> str:
             lines.append(f"✗ {cita} · {d.get('resolucion')}")
     no_verificadas = out.get('no_verificadas') or []
     if no_verificadas:
-        lines.append('Menciones sin artículo, no verificadas: ' + ', '.join(str(v) for v in no_verificadas))
+        lines.append(_t('command.mentions', mentions=', '.join(str(v) for v in no_verificadas)))
     fecha = min(fechas) if fechas else '—'
-    lines.append('No certifica que el artículo respalde el argumento ni que la copia '
-                 f'(obtenida {fecha}) sea el texto vigente hoy.')
+    lines.append(_t('command.limits', date=fecha))
     return '\n'.join(lines)
 
 
@@ -1387,7 +1368,7 @@ def _comando(raw):
         if suffix in ('.md', '.txt', '.docx'):
             return _formatear_salida(json.loads(verificar_citas({'ruta': arg})))
         if suffix in _DOC_SUFFIXES:
-            return f'Diké no pudo revisar el escrito: {_MSG_INPUT_EXTENSION}'
+            return _t('command.error', message=_t('input.extension'))
     return _formatear_salida(json.loads(verificar_citas({'texto': raw})))
 
 
@@ -1405,7 +1386,7 @@ def _version_hermes() -> str:
         from hermes_cli.version_info import get_version_info
         return str(get_version_info().base_version)
     except Exception:
-        return "desconocida"
+        return _t('status.unknown')
 
 
 def _sha256_archivo(ruta: Path):
@@ -1435,40 +1416,31 @@ def _estado_datos(datos: Path) -> dict:
         "reubicaciones": corpus["reubicaciones"],
         "aislamiento": aislado,
         "politica": _politica_sandbox(),
-        "perfil_chat": _perfil_chat() or "perfil activo",
+        "perfil_chat": _perfil_chat() or _t('status.active_profile'),
         "desktop_ok": bool(bundle_sha) and plugin_sha == bundle_sha,
         "desktop_presente": plugin_js.is_file(),
     }
 
 
 def _estado_texto(d: dict) -> str:
-    lineas = [
-        f"Diké {d['version']} · Hermes {d['hermes']}",
-        f"Corpus: {'instalado' if d['corpus_instalado'] else 'no instalado'} "
-        f"(pack {d['pack_hash']}).",
-    ]
-    if d["corpus_instalado"]:
-        lineas.append("Integridad: tamaños y fechas comparados en cada llamada; SHA-256 completo "
-                      "una vez por proceso y cuando cambian. El motor verifica el corpus completo "
-                      "al iniciar cada servidor; sin servidor, en cada proceso.")
-    lineas.append(f"Reubicaciones del plugin-data: {d['reubicaciones']}.")
-    lineas.append(".docx: lectura con la biblioteca estándar (python-docx no hace falta).")
-    aislado = d.get("aislamiento") or {}
-    if aislado.get("modo") == "bwrap":
-        lineas.append("Aislamiento: motor en bubblewrap, sin red.")
+    lineas = [f"Diké {d['version']} · Hermes {d['hermes']}",
+              _t('status.corpus', state=_t('status.installed') if d['corpus_instalado'] else _t('status.not_installed'), pack=d['pack_hash'])]
+    if d['corpus_instalado']:
+        lineas.append(_t('status.integrity'))
+    lineas += [_t('status.moves', count=d['reubicaciones']), _t('status.docx')]
+    aislado = d.get('aislamiento') or {}
+    lineas.append(_t('status.sandbox') if aislado.get('modo') == 'bwrap' else
+                  _t('status.degraded', reason=aislado.get('motivo', 'OTRO'), policy=d['politica']))
+    segundos = _aislamiento().segundos_servidor()
+    lineas.append(_t('status.engine_running', seconds=segundos) if segundos is not None else _t('status.engine_stopped'))
+    lineas.append(_t('status.profile', profile=d['perfil_chat']))
+    if d['desktop_presente'] and d['desktop_ok']:
+        lineas.append(_t('status.desktop_ok'))
+    elif d['desktop_presente']:
+        lineas.append(_t('status.desktop_mismatch'))
     else:
-        lineas.append(f"Aislamiento: sin sandbox ({aislado.get('motivo', 'OTRO')}); "
-                      f"política {d['politica']}.")
-    lineas.append(f"Chat del escrito: perfil «{d['perfil_chat']}».")
-    if d["desktop_presente"] and d["desktop_ok"]:
-        lineas.append("Página Desktop: plugin.js presente y su sha256 coincide con "
-                      "BUNDLE.json. Actívala en Capabilities → Plugins.")
-    elif d["desktop_presente"]:
-        lineas.append("Página Desktop: plugin.js presente pero su sha256 NO coincide "
-                      "con BUNDLE.json; reconstruye el bundle.")
-    else:
-        lineas.append("Página Desktop: desktop/plugin.js no está en el paquete.")
-    return "\n".join(lineas)
+        lineas.append(_t('status.desktop_missing'))
+    return '\n'.join(lineas)
 
 
 def _comando_estado(raw):
@@ -1502,9 +1474,9 @@ def register(ctx):
     ctx.register_tool(name='dike_verificar_citas', toolset='dike', schema=ESQUEMA, handler=verificar_citas)
     ctx.register_tool(name='dike_leer_articulo', toolset='dike', schema=ESQUEMA_LEER, handler=leer_articulo)
     ctx.register_tool(name='dike_buscar_corpus', toolset='dike', schema=ESQUEMA_BUSCAR, handler=buscar_corpus)
-    ctx.register_command('dike-verificar', _comando, 'Verifica citas contra el corpus local; no firma.',
-                         args_hint='<texto o ruta .md/.txt/.docx>')
-    ctx.register_command('dike-estado', _comando_estado, 'Estado del plugin: corpus, aislamiento y página Desktop.',
+    ctx.register_command('dike-verificar', _comando, _t('command.verify_description'),
+                         args_hint=_t('command.verify_hint'))
+    ctx.register_command('dike-estado', _comando_estado, _t('command.status_description'),
                          args_hint='')
     carpeta = _RAIZ / 'skills'
     if carpeta.is_dir():

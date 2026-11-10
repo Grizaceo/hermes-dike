@@ -240,7 +240,7 @@ def test_auto_sin_bwrap_degrada(motor, aisla, monkeypatch, tmp_path):
     assert out['meta']['total_citas'] == 6
     assert out['meta']['citas_verificadas'] == 4
     assert out['meta']['citas_fallidas'] == 2
-    assert any('sin aislamiento' in e for e in out['efectos_de_ejecucion'])
+    assert any('without isolation' in e for e in out['efectos_de_ejecucion'])
 
 
 # ── Dentro del sandbox (requieren bubblewrap real) ──────────────────────

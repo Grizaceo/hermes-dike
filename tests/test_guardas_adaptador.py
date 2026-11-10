@@ -114,7 +114,7 @@ def test_cita_con_dos_cuerpos_no_queda_verificada(m):
     assert out['meta']['citas_verificadas'] == 1 and out['meta']['citas_fallidas'] == 1
     assert out['todo_verificado'] is False and out['todas_citas_detectadas_verificadas'] is False
     assert [e['gid'] for e in out['evidencia_temporal']] == ['cl.norma.ct:art:0161']
-    assert any('dos cuerpos legales' in p for p in out['problemas'])
+    assert m._t('guard.problem') in out['problemas']
 
 
 def test_mismo_cuerpo_en_dos_lineas_sigue_verificada(m):
@@ -140,7 +140,7 @@ def test_mencion_enorme_no_vuelve_entera(m):
     out = m._salida_publica(_sin_citas(['Ley ' + '1' * 399996]))
     crudo = json.dumps(out, ensure_ascii=False)
     assert len(crudo.encode('utf-8')) < 5000
-    assert out['no_verificadas'][0].endswith('caracteres]')
+    assert out['no_verificadas'][0].endswith(m._t('limit.characters', count=399700))
     assert out['citation_disclosure']['no_verificadas'] == out['no_verificadas']
     assert out['todo_verificado'] is False
 
@@ -148,7 +148,7 @@ def test_mencion_enorme_no_vuelve_entera(m):
 def test_muchas_menciones_se_resumen(m):
     out = m._salida_publica(_sin_citas([f'Ley {n}' for n in range(1000)]))
     assert len(out['no_verificadas']) == 201
-    assert out['no_verificadas'][-1] == '… y 800 más'
+    assert out['no_verificadas'][-1] == m._t('limit.more', count=800)
     assert out['todo_verificado'] is False
 
 

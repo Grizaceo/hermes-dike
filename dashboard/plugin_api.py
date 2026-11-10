@@ -29,6 +29,26 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 _RAIZ = Path(__file__).resolve().parent.parent
+_spec_textos = importlib.util.spec_from_file_location('dike_textos', _RAIZ / 'textos.py')
+if 'dike_textos' not in sys.modules:
+    _mod_textos = importlib.util.module_from_spec(_spec_textos)
+    _spec_textos.loader.exec_module(_mod_textos)
+    sys.modules['dike_textos'] = _mod_textos
+_TEXTOS = sys.modules['dike_textos']
+
+
+_CODIGOS_PANEL = {'UNIT_INDEX_NOT_FOUND', 'UNIT_ID_INVALID', 'STATUTE_NOT_FOUND', 'UNIT_NOT_FOUND', 'ARTICLE_NOT_FOUND', 'NODE_NOT_FOUND', 'QUERY_NO_TERMS'}
+
+def _detalle_panel(detalle):
+    if detalle.partition(': ')[0] in _CODIGOS_PANEL:
+        return detalle
+    return _detalle('PANEL_INPUT_ERROR', detail=detalle)
+
+
+def _detalle(codigo, **datos):
+    return codigo + ': ' + _TEXTOS.t(codigo, 'en', **datos)
+
+
 _LEYES = 25
 _ARTICULOS = 8544
 # Secciones del NIF que la superficie web puede editar (las mismas listas del
@@ -92,7 +112,7 @@ def estado():
 def verificar(body: dict):
     texto = body.get("texto") if isinstance(body, dict) else None
     if not isinstance(texto, str) or not texto.strip():
-        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_MISSING'))
     return json.loads(_adaptador().verificar_citas({"texto": texto}))
 
 
@@ -117,14 +137,14 @@ def _leer_escrito(mod, cid: str) -> dict | None:
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        raise HTTPException(status_code=500, detail="El escrito guardado está ilegible.")
+        raise HTTPException(status_code=500, detail=_detalle('BRIEF_UNREADABLE'))
     return data if isinstance(data, dict) else None
 
 
 @router.get("/escrito")
 def escrito_obtener(case_id: str):
     if not isinstance(case_id, str) or not _CASE_ID.match(case_id.strip()):
-        raise HTTPException(status_code=400, detail="case_id inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('CASE_ID_INVALID'))
     cid = case_id.strip()
     data = _leer_escrito(_adaptador(), cid)
     if data is None:
@@ -149,24 +169,24 @@ def escrito_guardar(body: dict):
     rev_base = body.get("rev_base")
     registro = body.get("registro")
     if not isinstance(html, str):
-        raise HTTPException(status_code=400, detail="Falta el campo html.")
+        raise HTTPException(status_code=400, detail=_detalle('HTML_MISSING'))
     if not isinstance(texto, str):
-        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_MISSING'))
     if not isinstance(rev_base, int) or isinstance(rev_base, bool) or rev_base < 0:
-        raise HTTPException(status_code=400, detail="rev_base debe ser entero >= 0.")
+        raise HTTPException(status_code=400, detail=_detalle('REV_BASE_INVALID'))
     if registro is not None and not isinstance(registro, dict):
-        raise HTTPException(status_code=400, detail="registro debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('REGISTRY_INVALID'))
     mod = _adaptador()
     if len(texto.encode("utf-8")) > mod._LIMITE_TEXTO:
-        raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_TOO_LARGE'))
     if len(html.encode("utf-8")) > _LIMITE_HTML:
-        raise HTTPException(status_code=400, detail="El html supera el límite permitido.")
+        raise HTTPException(status_code=400, detail=_detalle('HTML_TOO_LARGE'))
     try:
         registro_bytes = len(json.dumps(registro, ensure_ascii=False).encode('utf-8'))
     except UnicodeEncodeError:
-        raise HTTPException(status_code=400, detail="registro trae Unicode inválido.") from None
+        raise HTTPException(status_code=400, detail=_detalle('REGISTRY_UNICODE_INVALID')) from None
     if registro is not None and registro_bytes > _LIMITE_REGISTRO:
-        raise HTTPException(status_code=400, detail="El registro supera el límite permitido.")
+        raise HTTPException(status_code=400, detail=_detalle('REGISTRY_TOO_LARGE'))
 
     # Lectura de rev + escritura bajo un lock de proceso: dos guardados
     # simultáneos con el mismo rev_base no pueden colar ambos.
@@ -265,42 +285,43 @@ def _panel(args: list, *, corpus: bool = False, timeout: int = 90,
         return mod._panel_json(args, runtime=runtime, timeout=timeout,
                                entrada=entrada, instalado=instalado)
     except mod._aislamiento().SandboxNoDisponible as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        raise HTTPException(status_code=503, detail=_detalle('SANDBOX_UNAVAILABLE'))
     except mod.PanelError as exc:
         if exc.kind == "timeout":
             raise HTTPException(status_code=504,
-                                detail="El motor tardó demasiado.")
+                                detail=_detalle('ENGINE_TIMEOUT'))
         if exc.kind == "data":
-            raise HTTPException(status_code=400, detail=exc.detalle)
+            raise HTTPException(status_code=400, detail=_detalle_panel(exc.detalle))
         # 'engine' y cualquier kind futuro: fallo del subproceso.
         raise HTTPException(status_code=502,
-                            detail=f"motor: {exc.detalle or 'sin salida'}")
+                            detail=_detalle('ENGINE_ERROR', detail=exc.detalle or 'no output'))
 
 
 def _campo_json(body, clave, tipo, defecto=None):
     """Valida el tipo antes de usar campos JSON en regex, conjuntos o conversiones."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     valor = body.get(clave, defecto)
     tipos = tipo if isinstance(tipo, tuple) else (tipo,)
     if type(valor) not in tipos:
-        nombres = {str: 'texto', int: 'entero', float: 'número', bool: 'booleano', dict: 'objeto'}
-        esperado = ' o '.join(nombres[t] for t in tipos)
-        raise HTTPException(status_code=400, detail=f"{clave} debe ser {esperado}.")
+        nombres = {str: _TEXTOS.t('type.text', 'en'), int: _TEXTOS.t('type.integer', 'en'),
+                   float: _TEXTOS.t('type.number', 'en'), bool: _TEXTOS.t('type.boolean', 'en'), dict: _TEXTOS.t('type.object', 'en')}
+        esperado = ' or '.join(nombres[t] for t in tipos)
+        raise HTTPException(status_code=400, detail=_detalle('FIELD_TYPE_INVALID', field=clave, expected=esperado))
     if isinstance(valor, str):
         try:
             valor.encode('utf-8')
         except UnicodeEncodeError:
-            raise HTTPException(status_code=400, detail=f"{clave} trae Unicode inválido.") from None
+            raise HTTPException(status_code=400, detail=_detalle('FIELD_UNICODE_INVALID', field=clave)) from None
     if isinstance(valor, float) and not math.isfinite(valor):
-        raise HTTPException(status_code=400, detail=f"{clave} debe ser finito.")
+        raise HTTPException(status_code=400, detail=_detalle('FIELD_NUMBER_INVALID', field=clave))
     return valor
 
 
 def _case_id(body: dict) -> str:
     cid = body.get("case_id") if isinstance(body, dict) else None
     if not isinstance(cid, str) or not _CASE_ID.match(cid.strip()):
-        raise HTTPException(status_code=400, detail="case_id inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('CASE_ID_INVALID'))
     return cid.strip()
 
 
@@ -314,7 +335,7 @@ def nif_init(body: dict):
     cid = _case_id(body)
     pregunta = _campo_json(body, "pregunta", str, "")
     if not isinstance(pregunta, str) or not pregunta.strip():
-        raise HTTPException(status_code=400, detail="Falta el campo pregunta.")
+        raise HTTPException(status_code=400, detail=_detalle('QUESTION_MISSING'))
     args = ["nif", "init", cid, pregunta.strip()]
     tipo = _campo_json(body, "problem_type", str, "")
     if isinstance(tipo, str) and tipo.strip():
@@ -330,7 +351,7 @@ def nif_seed(body: dict):
 @router.get("/nif/snapshot")
 def nif_snapshot(case_id: str):
     if not _CASE_ID.match(case_id.strip()):
-        raise HTTPException(status_code=400, detail="case_id inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('CASE_ID_INVALID'))
     return _panel(["nif", "snapshot", case_id.strip()])
 
 
@@ -339,9 +360,9 @@ def nif_edit(body: dict):
     cid = _case_id(body)
     campo = _campo_json(body, "field_path", str)
     if campo not in _CAMPOS_NIF:
-        raise HTTPException(status_code=400, detail="field_path no editable desde el panel.")
+        raise HTTPException(status_code=400, detail=_detalle('NIF_FIELD_INVALID'))
     if "value" not in body:
-        raise HTTPException(status_code=400, detail="Falta el campo value.")
+        raise HTTPException(status_code=400, detail=_detalle('VALUE_MISSING'))
     valor = json.dumps(body["value"], ensure_ascii=False)
     _campo_json({"value": valor}, "value", str)
     args = ["nif", "edit", cid, campo, valor]
@@ -357,7 +378,7 @@ def nif_gap(body: dict):
     indice = _campo_json(body, "gap_index", int)
     for campo in ("filled_by", "filled_with"):
         if not isinstance(body.get(campo), str) or not body[campo].strip():
-            raise HTTPException(status_code=400, detail=f"Falta el campo {campo}.")
+            raise HTTPException(status_code=400, detail=_detalle('FIELD_MISSING', field=campo))
     return _panel(["nif", "gap", cid, str(indice),
                    _campo_json(body, "filled_by", str).strip(), _campo_json(body, "filled_with", str).strip()])
 
@@ -366,7 +387,7 @@ def nif_gap(body: dict):
 def nif_validar(body: dict):
     cid = _case_id(body)
     if not isinstance(body.get("validated"), bool):
-        raise HTTPException(status_code=400, detail="validated debe ser booleano.")
+        raise HTTPException(status_code=400, detail=_detalle('VALIDATED_INVALID'))
     return _panel(["nif", "validate", cid, "1" if body["validated"] else "0"])
 
 
@@ -375,7 +396,7 @@ def nif_confianza(body: dict):
     cid = _case_id(body)
     valor = _campo_json(body, "confidence", (int, float))
     if not 0 <= valor <= 1:
-        raise HTTPException(status_code=400, detail="confidence debe estar entre 0 y 1.")
+        raise HTTPException(status_code=400, detail=_detalle('CONFIDENCE_INVALID'))
     return _panel(["nif", "confidence", cid, str(valor)])
 
 
@@ -392,7 +413,7 @@ def grafo_corpus():
 @router.get("/grafo/corpus/norma/{code}")
 def grafo_corpus_norma(code: str):
     if not code.isdigit():
-        raise HTTPException(status_code=400, detail="code debe ser el leychileCode numérico.")
+        raise HTTPException(status_code=400, detail=_detalle('STATUTE_CODE_INVALID'))
     return _panel(["grafo", "corpus-norma", code], corpus=True, timeout=300, memo=True)
 
 
@@ -405,8 +426,7 @@ def grafo_red(fuente: str = "corpus"):
     if fuente not in ("corpus", "ambiental"):
         raise HTTPException(
             status_code=400,
-            detail=f"fuente '{fuente}' no existe: solo 'corpus' y 'ambiental' "
-                   "están implementadas.")
+            detail=_detalle('GRAPH_SOURCE_INVALID', source=fuente))
     mod = _adaptador()
     if fuente == "ambiental":
         return _red_ambiental(mod)
@@ -452,19 +472,19 @@ def grafo_buscar(body: dict):
     que verifica la integridad).
     """
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     q = body.get("q")
     if not isinstance(q, str):
-        raise HTTPException(status_code=400, detail="Falta el campo q.")
+        raise HTTPException(status_code=400, detail=_detalle('QUERY_MISSING'))
     q = q.strip()
     if not q or len(q) > 300:
         raise HTTPException(
-            status_code=400, detail="q debe tener entre 1 y 300 caracteres.")
+            status_code=400, detail=_detalle('QUERY_LENGTH_INVALID'))
     if any(unicodedata.category(c).startswith("C") for c in q):
-        raise HTTPException(status_code=400, detail="q tiene caracteres de control.")
+        raise HTTPException(status_code=400, detail=_detalle('QUERY_CONTROL'))
     limite = body.get("limite", 20)
     if isinstance(limite, bool) or not isinstance(limite, int):
-        raise HTTPException(status_code=400, detail="limite debe ser entero.")
+        raise HTTPException(status_code=400, detail=_detalle('LIMIT_INVALID'))
     limite = max(1, min(50, limite))
     entrada = json.dumps({"q": q, "limite": limite}, ensure_ascii=False)
     return _panel(["grafo", "buscar"], corpus=True, memo=True,
@@ -484,22 +504,22 @@ def grafo_leer(body: dict):
     try:
         crudo = mod.leer_articulo(body if isinstance(body, dict) else {})
     except Exception:
-        raise HTTPException(status_code=502, detail="motor: sin salida")
+        raise HTTPException(status_code=502, detail=_detalle('ENGINE_NO_OUTPUT'))
     try:
         data = json.loads(crudo) if isinstance(crudo, str) else crudo
     except json.JSONDecodeError:
         data = None
     if not isinstance(data, dict):
-        raise HTTPException(status_code=502, detail="motor: respuesta inválida")
+        raise HTTPException(status_code=502, detail=_detalle('ENGINE_RESPONSE_INVALID'))
     code = data.get("error_code")
     if code == "SANDBOX_UNAVAILABLE":
         raise HTTPException(status_code=503,
-                            detail=str(data.get("error") or "sandbox no disponible"))
+                            detail=_detalle('SANDBOX_UNAVAILABLE'))
     if code == "INPUT_ERROR":
         raise HTTPException(status_code=400,
-                            detail=str(data.get("error") or "entrada inválida"))
+                            detail=_detalle('INPUT_ERROR'))
     if "error" in data:
-        raise HTTPException(status_code=502, detail=_limpio(str(data.get("error"))))
+        raise HTTPException(status_code=502, detail=_detalle('ENGINE_ERROR', detail=_limpio(str(data.get('error')))))
     return data
 
 
@@ -523,12 +543,11 @@ def _red_ambiental(mod) -> dict:
     if not p.is_file():
         raise HTTPException(
             status_code=404,
-            detail="la capa ambiental local no está construida "
-                   "(scripts/construir_red_local.py).")
+            detail=_detalle('LOCAL_GRAPH_MISSING'))
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as e:
-        raise HTTPException(status_code=500, detail=f"red ambiental ilegible: {e}")
+        raise HTTPException(status_code=500, detail=_detalle('LOCAL_GRAPH_UNREADABLE', detail=_limpio(str(e))))
     data["fuente"] = "ambiental"
     data["local_only"] = True
     data.setdefault("conteos", {})
@@ -560,12 +579,12 @@ _NODO_ID = re.compile(r"^[^\x00-\x1f#]{4,400}$")
 def grafo_nodo(id: str, fuente: str = "corpus"):
     """Ficha de un instrumento o artículo (url, sha256, conteos, vigencia)."""
     if not _NODO_ID.match(id or ""):
-        raise HTTPException(status_code=400, detail="id inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('NODE_ID_INVALID'))
     if fuente == "ambiental":
         red = _red_ambiental(_adaptador())
         nodo = next((n for n in red.get("nodes", []) if n.get("id") == id), None)
         if nodo is None:
-            raise HTTPException(status_code=404, detail="nodo no existe en la capa local.")
+            raise HTTPException(status_code=404, detail=_detalle('LOCAL_NODE_NOT_FOUND'))
         salidas = [l for l in red.get("links", []) if l.get("source") == id]
         return {**nodo, "n_salientes": len(salidas)}
     return _panel(["grafo", "nodo", id], corpus=True, timeout=60, memo=True)
@@ -575,7 +594,7 @@ def grafo_nodo(id: str, fuente: str = "corpus"):
 def grafo_unidades(articulo: str):
     """Nodos 'unidad' de un artículo + aristas contiene/excepciona."""
     if not _NODO_ID.match(articulo or ""):
-        raise HTTPException(status_code=400, detail="id de artículo inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('ARTICLE_ID_INVALID'))
     return _panel(["grafo", "unidades", articulo], corpus=True, timeout=60, memo=True)
 
 
@@ -584,14 +603,14 @@ def grafo_unidad(id: str, fuente: str = "corpus"):
     """Texto y offsets de una unidad normativa mínima (no van en /grafo/red)."""
     if fuente == "ambiental":
         if not _UNIDAD_AMB_ID.match(id or ""):
-            raise HTTPException(status_code=400, detail="id de unidad inválido.")
+            raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
         store = _leer_local(_adaptador(), "unidades.json")
         u = (store.get("textos") or {}).get(id)
         if u is None:
-            raise HTTPException(status_code=404, detail="unidad no existe en la capa local.")
+            raise HTTPException(status_code=404, detail=_detalle('LOCAL_UNIT_NOT_FOUND'))
         return {"id": id, **u}
     if not _UNIDAD_ID.match(id or ""):
-        raise HTTPException(status_code=400, detail="id de unidad inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
     return _panel(["grafo", "unidad", id], corpus=True, timeout=60, memo=True)
 
 
@@ -600,13 +619,13 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
     """Snippet de evidencia de UNA arista (src|dst|tipo) de la capa local."""
     if fuente != "ambiental":
         raise HTTPException(status_code=400,
-                            detail="evidencia solo está disponible en la capa local.")
+                            detail=_detalle('EVIDENCE_SOURCE_INVALID'))
     if not re.fullmatch(r"[^\x00-\x1f]{4,1200}", link or ""):
-        raise HTTPException(status_code=400, detail="link inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('LINK_INVALID'))
     store = _leer_local(_adaptador(), "unidades.json")
     ev = (store.get("evidencias") or {}).get(link)
     if ev is None:
-        raise HTTPException(status_code=404, detail="evidencia no encontrada.")
+        raise HTTPException(status_code=404, detail=_detalle('EVIDENCE_NOT_FOUND'))
     return ev
 
 
@@ -640,13 +659,13 @@ def _texto_privacidad(body: dict) -> str:
     if texto is None:
         texto = ""
     if not isinstance(texto, str):
-        raise HTTPException(status_code=400, detail="El campo texto debe ser un string.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_TYPE_INVALID'))
     try:
         tamano = len(texto.encode("utf-8"))
     except UnicodeEncodeError:
-        raise HTTPException(status_code=400, detail="El texto trae caracteres Unicode inválidos.") from None
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_UNICODE_INVALID')) from None
     if tamano > _adaptador()._LIMITE_TEXTO:
-        raise HTTPException(status_code=400, detail="El texto supera el límite permitido.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_TOO_LARGE'))
     return texto
 
 
@@ -692,9 +711,9 @@ def privacidad_decision(body: dict):
     accion = body.get("accion")
     if accion not in ("conservar", "enmascarar", "olvidar"):
         raise HTTPException(status_code=400,
-                            detail="accion debe ser conservar, enmascarar u olvidar.")
+                            detail=_detalle('PRIVACY_ACTION_INVALID'))
     if not valor.strip() and accion != "olvidar":
-        raise HTTPException(status_code=400, detail="El valor no puede estar vacío.")
+        raise HTTPException(status_code=400, detail=_detalle('PRIVACY_VALUE_EMPTY'))
     tipo = _campo_json(body, "tipo", str, "full_name")
     dec = pv.guardar_decision(mod._carpeta_de_datos(), cid, valor, accion, tipo)
     return {"ok": True, "decisiones": dec}
@@ -720,13 +739,13 @@ def privacidad_envio(body: dict):
     destino = _campo_json(body, "destino", str, "")
     sha = _campo_json(body, "sha256", str, "")
     if not re.fullmatch(r"[0-9a-f]{64}", sha):
-        raise HTTPException(status_code=400, detail="sha256 inválido.")
+        raise HTTPException(status_code=400, detail=_detalle('SHA256_INVALID'))
     if len(destino) > 200:
-        raise HTTPException(status_code=400, detail="destino demasiado largo.")
+        raise HTTPException(status_code=400, detail=_detalle('DESTINATION_TOO_LONG'))
     conteos = _campo_json(body, "conteos", dict, {})
     if any(not isinstance(k, str) or not re.fullmatch(r'[a-z_]{1,80}', k)
            or type(v) is not int or v < 0 for k, v in conteos.items()):
-        raise HTTPException(status_code=400, detail="conteos debe contener cantidades enteras no negativas por tipo.")
+        raise HTTPException(status_code=400, detail=_detalle('COUNTS_INVALID'))
     try:
         pv.registrar_envio(mod._carpeta_de_datos(), cid, destino, sha,
                            conteos,
@@ -734,7 +753,7 @@ def privacidad_envio(body: dict):
                            _campo_json(body, "seudonimizado", bool, False))
     except OSError:
         raise HTTPException(status_code=500,
-                            detail="No se pudo registrar el envío; no envíes el texto.")
+                            detail=_detalle('SEND_LOG_FAILED'))
     return {"ok": True}
 
 # ---------------------------------------------------------------------------
@@ -852,12 +871,12 @@ def prediccion_corpus(body: dict):
     """
     cola = _campo_json(body, "cola", str, "")
     if len(cola) > 300:
-        raise HTTPException(status_code=400, detail="cola demasiado larga.")
+        raise HTTPException(status_code=400, detail=_detalle('TAIL_TOO_LONG'))
     cola_n = _norm_cola(cola)
     if not cola_n:
-        raise HTTPException(status_code=400, detail="cola vacía.")
+        raise HTTPException(status_code=400, detail=_detalle('TAIL_EMPTY'))
     if len(cola_n) > 300:
-        raise HTTPException(status_code=400, detail="cola demasiado larga.")
+        raise HTTPException(status_code=400, detail=_detalle('TAIL_TOO_LONG'))
     mod = _adaptador()
     datos = mod._carpeta_de_datos().resolve()
     instalado = _asegurar_corpus_memo(mod, datos)
@@ -923,7 +942,7 @@ def prediccion_evento(body: dict):
     tipo = _campo_json(procedencia, "tipo", str, "")
     largo = _campo_json(body, "largo", int, 0)
     if largo < 0:
-        raise HTTPException(status_code=400, detail="largo debe ser no negativo.")
+        raise HTTPException(status_code=400, detail=_detalle('LENGTH_INVALID'))
     evento = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "capa": capa,
@@ -1009,16 +1028,16 @@ def _escribe_claro():
 def estilo_analizar(body: dict):
     """Analiza claridad, voz pasiva, nominalizaciones, arcaísmos y alineación judicial."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     texto = _texto_privacidad(body)
     if not texto.strip():
-        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_MISSING'))
     contexto = body.get("contexto") or "escrito"
     if not isinstance(contexto, str):
-        raise HTTPException(status_code=400, detail="contexto debe ser string.")
+        raise HTTPException(status_code=400, detail=_detalle('STYLE_CONTEXT_INVALID'))
     detallado = body.get("detallado", True)
     if not isinstance(detallado, bool):
-        raise HTTPException(status_code=400, detail="detallado debe ser booleano.")
+        raise HTTPException(status_code=400, detail=_detalle('STYLE_DETAIL_INVALID'))
     ec = _escribe_claro()
     return ec.analizar_estilo(texto, contexto=contexto, detallado=detallado)
 
@@ -1027,10 +1046,10 @@ def estilo_analizar(body: dict):
 def estilo_grafo(body: dict):
     """Extrae el grafo de estructura argumentativa (Hecho → Norma → Prueba → Conclusión)."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     texto = _texto_privacidad(body)
     if not texto.strip():
-        raise HTTPException(status_code=400, detail="Falta el campo texto.")
+        raise HTTPException(status_code=400, detail=_detalle('TEXT_MISSING'))
     ec = _escribe_claro()
     return ec.extraer_grafo_argumentos(texto)
 
@@ -1111,12 +1130,12 @@ def ordenamiento_perfiles():
 def ordenamiento_plantilla(body: dict):
     """Genera una plantilla de perfil y paquete para un código de jurisdicción."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     jur = _campo_json(body, "jur", str, "").strip().lower()
     if not _JUR_ID.match(jur):
         raise HTTPException(
             status_code=400,
-            detail="jur debe tener entre 2 y 8 letras minúsculas (ej. ar, pe, es, mx, xx).",
+            detail=_detalle('JURISDICTION_INVALID'),
         )
     ord_mod = _ordenamiento()
     return {
@@ -1131,7 +1150,7 @@ def ordenamiento_plantilla(body: dict):
 def ordenamiento_validar_perfil(body: dict):
     """Valida un objeto JSON de perfil de ordenamiento contra dike-perfil-ordenamiento-v1."""
     if not isinstance(body, dict) or not isinstance(body.get("perfil"), dict):
-        raise HTTPException(status_code=400, detail="Falta el objeto perfil.")
+        raise HTTPException(status_code=400, detail=_detalle('PROFILE_MISSING'))
     ord_mod = _ordenamiento()
     errores = ord_mod.validar_perfil(body["perfil"])
     return {"ok": len(errores) == 0, "errores": errores}
@@ -1141,16 +1160,16 @@ def ordenamiento_validar_perfil(body: dict):
 def ordenamiento_construir(body: dict):
     """Construye y valida (C0–C3) un pack de normas en un directorio aislado."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     perfil = body.get("perfil")
     paquete = body.get("paquete")
     textos = body.get("textos")
     if not isinstance(perfil, dict):
-        raise HTTPException(status_code=400, detail="Falta el objeto perfil.")
+        raise HTTPException(status_code=400, detail=_detalle('PROFILE_MISSING'))
     if not isinstance(paquete, dict):
-        raise HTTPException(status_code=400, detail="Falta el objeto paquete.")
+        raise HTTPException(status_code=400, detail=_detalle('PACK_MISSING'))
     if not isinstance(textos, dict) or not textos or len(textos) > 25:
-        raise HTTPException(status_code=400, detail="textos debe tener entre 1 y 25 archivos.")
+        raise HTTPException(status_code=400, detail=_detalle('FILES_COUNT_INVALID'))
     ord_mod = _ordenamiento()
     errores_perfil = ord_mod.validar_perfil(perfil)
     if errores_perfil:
@@ -1167,18 +1186,18 @@ def ordenamiento_construir(body: dict):
         (dir_in / "textos").mkdir()
         for rel_name, contenido in textos.items():
             if not isinstance(rel_name, str) or not isinstance(contenido, str):
-                raise HTTPException(status_code=400, detail="textos inválidos.")
+                raise HTTPException(status_code=400, detail=_detalle('FILES_INVALID'))
             try:
                 tamano = len(contenido.encode('utf-8'))
             except UnicodeEncodeError:
-                raise HTTPException(status_code=400, detail="Texto de norma trae Unicode inválido.") from None
+                raise HTTPException(status_code=400, detail=_detalle('STATUTE_UNICODE_INVALID')) from None
             if tamano > 200_000:
-                raise HTTPException(status_code=400, detail="Texto de norma demasiado grande.")
+                raise HTTPException(status_code=400, detail=_detalle('STATUTE_TEXT_TOO_LARGE'))
             limpio = rel_name.removeprefix("textos/").strip()
             if not _NOMBRE_TXT.match(limpio):
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Nombre de archivo no permitido: {rel_name}")
+                    detail=_detalle('FILENAME_INVALID', name=rel_name))
             destino_txt = (dir_in / "textos" / limpio) if rel_name.startswith("textos/") else (dir_in / limpio)
             destino_txt.write_text(contenido, encoding="utf-8")
 
@@ -1255,37 +1274,37 @@ def preferencias_obtener():
 def preferencias_guardar(body: dict):
     """Guarda preferencias personalizadas del usuario en plugin-data."""
     if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="body debe ser un objeto JSON.")
+        raise HTTPException(status_code=400, detail=_detalle('BODY_INVALID'))
     nuevo = {}
     if "tema_papel" in body:
         if _campo_json(body, "tema_papel", str) not in _PREFS_TEMAS:
-            raise HTTPException(status_code=400, detail="tema_papel inválido.")
+            raise HTTPException(status_code=400, detail=_detalle('PAPER_THEME_INVALID'))
         nuevo["tema_papel"] = body["tema_papel"]
     if "fuente" in body:
         if len(_campo_json(body, "fuente", str)) > 120:
-            raise HTTPException(status_code=400, detail="fuente inválida.")
+            raise HTTPException(status_code=400, detail=_detalle('FONT_INVALID'))
         nuevo["fuente"] = body["fuente"]
     if "tamano_fuente" in body:
         t = str(_campo_json(body, "tamano_fuente", (str, int)))
         if t not in {"10", "11", "12", "13", "14", "16", "18", "20"}:
-            raise HTTPException(status_code=400, detail="tamano_fuente inválido.")
+            raise HTTPException(status_code=400, detail=_detalle('FONT_SIZE_INVALID'))
         nuevo["tamano_fuente"] = t
     if "ancho_hoja" in body:
         if _campo_json(body, "ancho_hoja", str) not in _PREFS_ANCHOS:
-            raise HTTPException(status_code=400, detail="ancho_hoja inválido.")
+            raise HTTPException(status_code=400, detail=_detalle('PAGE_WIDTH_INVALID'))
         nuevo["ancho_hoja"] = body["ancho_hoja"]
     if "estrategia_privacidad" in body:
         if _campo_json(body, "estrategia_privacidad", str) not in _PREFS_ESTRATEGIAS:
-            raise HTTPException(status_code=400, detail="estrategia_privacidad inválida.")
+            raise HTTPException(status_code=400, detail=_detalle('PRIVACY_STRATEGY_INVALID'))
         nuevo["estrategia_privacidad"] = body["estrategia_privacidad"]
     if "contexto_estilo" in body:
         if _campo_json(body, "contexto_estilo", str) not in _PREFS_CONTEXTOS:
-            raise HTTPException(status_code=400, detail="contexto_estilo inválido.")
+            raise HTTPException(status_code=400, detail=_detalle('STYLE_CONTEXT_OPTION_INVALID'))
         nuevo["contexto_estilo"] = body["contexto_estilo"]
     for bkey in ("mostrar_pizarra", "mostrar_chat", "auto_detectar_privacidad", "auto_analizar_estilo"):
         if bkey in body:
             if not isinstance(body[bkey], bool):
-                raise HTTPException(status_code=400, detail=f"{bkey} debe ser booleano.")
+                raise HTTPException(status_code=400, detail=_detalle('FIELD_BOOLEAN_INVALID', field=bkey))
             nuevo[bkey] = body[bkey]
 
     mod = _adaptador()

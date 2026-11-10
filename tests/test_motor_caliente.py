@@ -250,6 +250,34 @@ def test_las_llamadas_siguientes_no_lanzan_otro_proceso(real, aisla, monkeypatch
     assert servidor.proc.pid == pid and servidor.proc.poll() is None
 
 
+def test_el_servidor_sobrevive_al_hilo_que_lo_pidio(real, aisla, monkeypatch):
+    """Regresión: el plugin host de Hermes atiende cada petición del panel en un
+    hilo que termina con ella, y bwrap --die-with-parent mata lo que lanzó un
+    hilo muerto. El servidor debe seguir vivo y atender la petición siguiente."""
+    import threading
+    m, _ = real
+    aisla.cerrar_servidores()
+    salidas = []
+
+    def peticion():
+        salidas.append(json.loads(m.verificar_citas({'texto': DEMO})))
+
+    hilo = threading.Thread(target=peticion)
+    hilo.start()
+    hilo.join()
+    (servidor,) = aisla._SERVIDORES.values()
+    pid = servidor.proc.pid
+    import time
+    time.sleep(0.5)
+    assert servidor.proc.poll() is None, 'el servidor murió con el hilo que lo pidió'
+    monkeypatch.setattr(aisla, 'ejecutar', lambda *a, **k: pytest.fail('lanzó un proceso de un solo uso'))
+    hilo = threading.Thread(target=peticion)
+    hilo.start()
+    hilo.join()
+    assert [s['meta']['citas_verificadas'] for s in salidas] == [4, 4]
+    assert servidor.proc.pid == pid and servidor.proc.poll() is None
+
+
 def test_sin_servidor_el_adaptador_sigue_verificando(real, aisla, monkeypatch, tmp_path):
     m, _ = real
     monkeypatch.setattr(aisla, '_SERVIDOR', tmp_path / 'no-existe.py')

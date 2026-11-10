@@ -447,6 +447,42 @@ class _Servidor:
 _SERVIDORES: dict = {}
 _CANDADO_SERVIDORES = threading.Lock()
 
+# bwrap --die-with-parent usa PR_SET_PDEATHSIG, y el kernel lo dispara cuando
+# muere el HILO que creó el proceso, no el proceso entero. El plugin host de
+# Hermes atiende cada petición del panel en un hilo que termina con ella: un
+# servidor lanzado desde ahí moría al terminar la primera petición, y cada
+# verificación desde la página Desktop volvía a pagar el arranque en frío
+# (unos 12 s). Por eso los servidores los lanza un hilo propio que vive tanto
+# como el proceso. Se recrea si cambia el PID: un hilo no sobrevive a fork().
+_LANZADOR = {"pid": None, "cola": None}
+_CANDADO_LANZADOR = threading.Lock()
+
+
+def _lanzar_en_hilo_estable(*args, **kwargs) -> subprocess.Popen:
+    import queue
+    with _CANDADO_LANZADOR:
+        if _LANZADOR["pid"] != os.getpid():
+            cola = queue.Queue()
+
+            def bucle():
+                while True:
+                    a, kw, caja, listo = cola.get()
+                    try:
+                        caja.append(subprocess.Popen(*a, **kw))
+                    except BaseException as exc:  # se relanza en quien pidió
+                        caja.append(exc)
+                    listo.set()
+
+            threading.Thread(target=bucle, name="dike-lanzador-motor", daemon=True).start()
+            _LANZADOR.update(pid=os.getpid(), cola=cola)
+        cola = _LANZADOR["cola"]
+    caja, listo = [], threading.Event()
+    cola.put((args, kwargs, caja, listo))
+    listo.wait()
+    if isinstance(caja[0], BaseException):
+        raise caja[0]
+    return caja[0]
+
 
 def segundos_servidor():
     """Age of the oldest live engine server, or None; no probe or subprocess is started."""
@@ -486,7 +522,7 @@ def consultar(clave, firma, pedido, *, lectura, escritura, cwd, env, timeout):
             servidor.cerrar()
         if servidor.proc is None:
             servidor.inicio = time.monotonic()
-            servidor.proc = subprocess.Popen(
+            servidor.proc = _lanzar_en_hilo_estable(
                 cmd, env=env, cwd=str(cwd), stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                 text=True, encoding="utf-8", errors="replace")

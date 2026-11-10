@@ -18,6 +18,7 @@ import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
 import { SeccionGrafo } from './grafo3d.js'
 import { encolarCita, pedirFoco, tomarPestana } from './puente.js'
+import { anidarTextos, fijarIdioma, idiomaActual, t, useIdioma } from './i18n.js'
 
 const ID = 'dike'
 
@@ -34,29 +35,31 @@ function Estado() {
     const perfil = (host.state && host.state.profile && host.state.profile.get()) || ''
     return jsxs('div', { className: 'flex flex-col gap-2', children: [
       jsx('div', { className: S.sub, children:
-        'El backend de Diké no responde en el perfil activo' +
+        t('shell.estado.sinBackend') +
         (perfil ? ' (' + perfil + ')' : '') + ': ' + mensajeError(err) + '.' }),
-      jsx('div', { className: S.sub, children:
-        'Comprueba que el plugin Diké esté instalado y habilitado en el perfil activo ' +
-        'con versión 0.4.0 o superior (la pestaña del panel existe desde esa versión).' }),
-      jsx('button', { type: 'button', className: S.ghost, onClick: cargar, children: 'Reintentar' }),
+      jsx('div', { className: S.sub, children: t('shell.estado.ayuda') }),
+      jsx('button', { type: 'button', className: S.ghost, onClick: cargar, children: t('shell.estado.reintentar') }),
     ]})
   }
-  if (!estado) return jsx('div', { className: S.sub, children: 'Consultando el corpus…' })
+  if (!estado) return jsx('div', { className: S.sub, children: t('shell.estado.cargando') })
   const aislado = estado.aislamiento && estado.aislamiento.modo === 'bwrap'
   const motivo = (estado.aislamiento && estado.aislamiento.motivo) || ''
   return jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
     jsx('span', {
       className: S.chip + ' ' + (estado.corpus_instalado ? S.chipOk : S.chipOff),
-      children: estado.corpus_instalado ? 'corpus instalado' : 'corpus sin instalar',
+      children: estado.corpus_instalado ? t('shell.estado.corpusOk') : t('shell.estado.corpusNo'),
     }),
     jsx('span', {
       className: S.chip + ' ' + (aislado ? S.chipOk : S.chipOff),
-      children: aislado ? 'aislado (bubblewrap)' : 'sin aislamiento: ' + motivo,
+      children: aislado ? t('shell.estado.aislado') : t('shell.estado.sinAislamiento', { motivo }),
     }),
     jsx('span', { className: S.sub, children:
-      'pack ' + estado.pack_hash + ' · ' + estado.leyes + ' leyes · ' + estado.articulos +
-      ' artículos' + (estado.version ? ' · v' + estado.version : '') }),
+      t('shell.estado.pack', {
+        pack: estado.pack_hash,
+        leyes: estado.leyes,
+        articulos: estado.articulos,
+        version: estado.version ? ' · v' + estado.version : '',
+      }) }),
   ]})
 }
 
@@ -65,13 +68,13 @@ function Estado() {
 // ---------------------------------------------------------------------------
 
 const SECCIONES_NIF = [
-  ['facts.known', 'Hechos conocidos'], ['facts.alleged', 'Hechos alegados'],
-  ['facts.missing', 'Hechos faltantes'], ['subjects', 'Sujetos'],
-  ['norms', 'Normas'], ['norm_relations', 'Relaciones entre normas'],
-  ['admin_acts', 'Actos administrativos'], ['principles', 'Principios'],
-  ['deontic_positions', 'Posiciones deónticas'], ['conflicts', 'Conflictos'],
-  ['hypotheses', 'Hipótesis'], ['gaps', 'Vacíos'],
-  ['relevant_factors', 'Factores relevantes'],
+  ['facts.known', 'nif.seccion.factsKnown'], ['facts.alleged', 'nif.seccion.factsAlleged'],
+  ['facts.missing', 'nif.seccion.factsMissing'], ['subjects', 'nif.seccion.subjects'],
+  ['norms', 'nif.seccion.norms'], ['norm_relations', 'nif.seccion.normRelations'],
+  ['admin_acts', 'nif.seccion.adminActs'], ['principles', 'nif.seccion.principles'],
+  ['deontic_positions', 'nif.seccion.deonticPositions'], ['conflicts', 'nif.seccion.conflicts'],
+  ['hypotheses', 'nif.seccion.hypotheses'], ['gaps', 'nif.seccion.gaps'],
+  ['relevant_factors', 'nif.seccion.relevantFactors'],
 ]
 
 const SECCIONES_OBJETO = new Set(['subjects', 'norms', 'hypotheses', 'gaps', 'conflicts', 'admin_acts', 'deontic_positions', 'principles', 'norm_relations', 'relevant_factors'])
@@ -99,7 +102,7 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
         type: 'button',
         className: S.link + ' normal-case',
         onClick: () => setEditando(!editando),
-        children: editando ? 'cerrar' : '+ agregar',
+        children: editando ? t('nif.cerrar') : t('nif.agregar'),
       }),
     ] }),
     ...lista.map((v, i) => jsx(ItemNif, { key: i, valor: v })),
@@ -108,7 +111,7 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
       jsx('textarea', {
         className: 'min-h-16 w-full rounded border border-(--ui-stroke-secondary) bg-(--ui-bg-primary) p-1.5 font-mono text-xs',
         placeholder: SECCIONES_OBJETO.has(campo)
-          ? 'JSON del ítem, ej. {"label": "Trabajador"}' : 'Texto del ítem',
+          ? t('nif.placeholderJson') : t('nif.placeholderTexto'),
         value: nuevo,
         onChange: (ev) => setNuevo(ev.target.value),
       }),
@@ -124,7 +127,7 @@ function SeccionNif({ titulo, valores, campo, onAgregar }) {
           setNuevo('')
           setEditando(false)
         },
-        children: 'Guardar',
+        children: t('nif.guardar'),
       }),
     ] }) : null,
   ] })
@@ -136,18 +139,19 @@ function GapRow({ gap, index, ocupado, onResolver }) {
   return jsxs('div', { className: 'flex flex-col gap-1 border-b border-(--ui-stroke-tertiary) py-1.5 last:border-0 text-xs', children: [
     jsx('div', { children: gap.description || JSON.stringify(gap) }),
     jsx('div', { className: S.sub, children:
-      'impacto ' + (gap.impact || '?') + (gap.demanded_by ? ' · pide ' + gap.demanded_by : '') }),
+      t('nif.impacto', { impacto: gap.impact || '?' }) +
+      (gap.demanded_by ? ' · ' + t('nif.pide', { quien: gap.demanded_by }) : '') }),
     jsxs('div', { className: 'flex gap-1', children: [
-      jsx('input', { className: S.input + ' w-28', placeholder: 'quién', value: by,
+      jsx('input', { className: S.input + ' w-28', placeholder: t('nif.quien'), value: by,
         onChange: (e) => setBy(e.target.value) }),
-      jsx('input', { className: S.input + ' flex-1', placeholder: 'con qué se llena', value: with_,
+      jsx('input', { className: S.input + ' flex-1', placeholder: t('nif.conQue'), value: with_,
         onChange: (e) => setWith(e.target.value) }),
       jsx('button', {
         type: 'button',
         className: S.ghost,
         disabled: ocupado || !by.trim() || !with_.trim(),
         onClick: () => onResolver(index, by.trim(), with_.trim()),
-        children: 'llenar',
+        children: t('nif.llenar'),
       }),
     ] }),
   ] })
@@ -182,12 +186,12 @@ function NifBoard({ caso, onCambio }) {
   if (error && !data) {
     return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   }
-  if (!data) return jsx('div', { className: S.sub, children: 'Cargando NIF…' })
+  if (!data) return jsx('div', { className: S.sub, children: t('nif.cargando') })
 
   const snap = data.snapshot || {}
   const nif = snap.nif
   if (!snap.exists || !nif) {
-    return jsx('div', { className: 'text-sm text-(--ui-text-secondary)', children: 'Este caso no tiene NIF todavía.' })
+    return jsx('div', { className: 'text-sm text-(--ui-text-secondary)', children: t('nif.sinNif') })
   }
   const patches = (data.patches && data.patches.patches) || []
   const gaps = nif.gaps || []
@@ -196,14 +200,14 @@ function NifBoard({ caso, onCambio }) {
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
       jsx('span', {
         className: S.chip + ' ' + (nif.validated_by_human ? S.chipOk : S.chipOff),
-        children: nif.validated_by_human ? 'validado por humano' : 'sin validación humana',
+        children: nif.validated_by_human ? t('nif.validado') : t('nif.sinValidar'),
       }),
       jsx('span', { className: S.sub, children:
-        'v' + snap.version + ' · confianza ' + Math.round((nif.confidence || 0) * 100) + '%' }),
+        t('nif.versionConf', { version: snap.version, pct: Math.round((nif.confidence || 0) * 100) }) }),
       jsx('button', {
         type: 'button', className: S.link,
         onClick: accion(() => post('/nif/validar', { case_id: caso.case_id, validated: !nif.validated_by_human })),
-        children: nif.validated_by_human ? 'retirar validación' : 'marcar validado',
+        children: nif.validated_by_human ? t('nif.quitarValidacion') : t('nif.marcarValidado'),
       }),
       jsxs('span', { className: 'flex items-center gap-1', children: [
         jsx('input', {
@@ -214,18 +218,18 @@ function NifBoard({ caso, onCambio }) {
         jsx('button', {
           type: 'button', className: S.link,
           onClick: accion(() => post('/nif/confianza', { case_id: caso.case_id, confidence: parseFloat(conf) })),
-          children: 'fijar confianza',
+          children: t('nif.fijarConfianza'),
         }),
       ] }),
     ] }),
     jsx('div', { className: 'font-medium', children: nif.legal_question || caso.legal_question || '' }),
     jsx('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-2', children:
-      SECCIONES_NIF.map(([campo, titulo]) => {
+      SECCIONES_NIF.map(([campo, claveTitulo]) => {
         const valores = campo.startsWith('facts.')
           ? ((nif.facts || {})[campo.slice(6)] || [])
           : (nif[campo] || [])
         return jsx(SeccionNif, {
-          key: campo, titulo, valores, campo,
+          key: campo, titulo: t(claveTitulo), valores, campo,
           onAgregar: (fp, v) => accion(() => post('/nif/edit', {
             case_id: caso.case_id, field_path: fp, value: v,
           }))(),
@@ -233,7 +237,7 @@ function NifBoard({ caso, onCambio }) {
       }) }),
     gaps.length
       ? jsxs('div', { className: S.section, children: [
-          jsx('div', { className: S.sectionTitle, children: 'Resolver vacíos' }),
+          jsx('div', { className: S.sectionTitle, children: t('nif.resolverVacios') }),
           ...gaps.map((g, i) => g.status === 'filled' ? null : jsx(GapRow, {
             key: i, gap: g, index: i, ocupado,
             onResolver: accion((idx, by, with_) => post('/nif/gap', {
@@ -245,7 +249,7 @@ function NifBoard({ caso, onCambio }) {
     patches.length
       ? jsxs('details', { className: 'text-xs', children: [
           jsx('summary', { className: 'cursor-pointer ' + S.sub,
-            children: 'Historial de parches (' + patches.length + ')' }),
+            children: t('nif.historial', { n: patches.length }) }),
           ...patches.slice(-12).reverse().map((p, i) => jsxs('div', {
             key: i, className: 'border-b border-(--ui-stroke-tertiary) py-1',
             children: [
@@ -297,7 +301,7 @@ function SeccionNifPanel() {
           setCasoSel(c || null)
         },
         children: casos.length === 0
-          ? jsx('option', { value: '', children: 'Sin casos' })
+          ? jsx('option', { value: '', children: t('nif.sinCasos') })
           : casos.map(c => jsx('option', {
               key: c.case_id, value: c.case_id,
               children: c.case_id + ' — ' + String(c.legal_question || '').slice(0, 60),
@@ -310,11 +314,11 @@ function SeccionNifPanel() {
           post('/nif/seed', { case_id: 'demo-caso' })
             .then(cargar).catch(setError).finally(() => setOcupado(false))
         },
-        children: ocupado ? '…' : 'Cargar caso demo',
+        children: ocupado ? '…' : t('nif.cargarDemo'),
       }),
-      jsx('input', { className: S.input + ' w-32', placeholder: 'id del caso',
+      jsx('input', { className: S.input + ' w-32', placeholder: t('nif.idCaso'),
         value: nuevoId, onChange: (e) => setNuevoId(e.target.value) }),
-      jsx('input', { className: S.input + ' w-64', placeholder: 'pregunta jurídica',
+      jsx('input', { className: S.input + ' w-64', placeholder: t('nif.pregunta'),
         value: nuevaPregunta, onChange: (e) => setNuevaPregunta(e.target.value) }),
       jsx('button', {
         type: 'button', className: S.button,
@@ -325,14 +329,12 @@ function SeccionNifPanel() {
             .then(() => { setNuevoId(''); setNuevaPregunta(''); cargar() })
             .catch(setError).finally(() => setOcupado(false))
         },
-        children: 'Nuevo caso',
+        children: t('nif.nuevoCaso'),
       }),
     ] }),
     error ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) }) : null,
     casos.length === 0 && !error
-      ? jsx('div', { className: S.card, children:
-          'No hay casos todavía. Siembra el caso demo (despido injustificado, art. 161/168 CT) ' +
-          'o crea uno con la pregunta jurídica del caso.' })
+      ? jsx('div', { className: S.card, children: t('nif.vacio') })
       : null,
     casoSel ? jsx(NifBoard, { caso: casoSel, onCambio: cargar }) : null,
   ] })
@@ -357,7 +359,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
       const nuevo = { ...(prev || {}), ...parche }
       rest('/preferencias', { method: 'POST', body: nuevo })
         .then(() => {
-          setGuardadoMsg('Preferencias guardadas')
+          setGuardadoMsg(t('prefs.guardadas'))
           programarTimeout(() => setGuardadoMsg(''), 2000)
         })
         .catch(() => {})
@@ -374,62 +376,61 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
       jsxs('div', { className: 'flex flex-col gap-3', children: [
         jsxs('div', { className: S.card, children: [
           jsxs('div', { className: 'flex items-center justify-between', children: [
-            jsx('div', { className: S.cardTitle, children: 'Personalización de Experiencia (Estudio Diké)' }),
+            jsx('div', { className: S.cardTitle, children: t('prefs.titulo') }),
             guardadoMsg ? jsx('span', { className: S.chip + ' ' + S.chipOk, children: guardadoMsg }) : null,
           ] }),
-          jsx('div', { className: S.sub, children:
-            'Ajusta la apariencia de la hoja del Case Writer, la estrategia de privacidad inicial y los paneles visibles.' }),
+          jsx('div', { className: S.sub, children: t('prefs.ayuda') }),
           jsxs('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs', children: [
             jsxs('label', { className: 'flex flex-col gap-1', children: [
-              jsx('span', { className: S.sub, children: 'Tema del papel' }),
+              jsx('span', { className: S.sub, children: t('prefs.temaPapel') }),
               jsx('select', {
                 className: S.input,
                 value: p.tema_papel || 'clasico',
                 onChange: (e) => actualizarPref({ tema_papel: e.target.value }),
                 children: [
-                  jsx('option', { key: 'clasico', value: 'clasico', children: 'Papel clásico (blanco sobre gris)' }),
-                  jsx('option', { key: 'sepia', value: 'sepia', children: 'Sepia lectura cálida' }),
-                  jsx('option', { key: 'nocturno', value: 'nocturno', children: 'Tinta oscura (modo noche)' }),
+                  jsx('option', { key: 'clasico', value: 'clasico', children: t('prefs.temaClasico') }),
+                  jsx('option', { key: 'sepia', value: 'sepia', children: t('prefs.temaSepia') }),
+                  jsx('option', { key: 'nocturno', value: 'nocturno', children: t('prefs.temaNocturno') }),
                 ],
               }),
             ] }),
             jsxs('label', { className: 'flex flex-col gap-1', children: [
-              jsx('span', { className: S.sub, children: 'Formato de hoja' }),
+              jsx('span', { className: S.sub, children: t('prefs.formatoHoja') }),
               jsx('select', {
                 className: S.input,
                 value: p.ancho_hoja || 'a4',
                 onChange: (e) => actualizarPref({ ancho_hoja: e.target.value }),
                 children: [
-                  jsx('option', { key: 'a4', value: 'a4', children: 'A4 Estándar (210 mm)' }),
-                  jsx('option', { key: 'carta', value: 'carta', children: 'Carta Judicial (216 mm)' }),
-                  jsx('option', { key: 'ancho', value: 'ancho', children: 'Ancho completo fluido' }),
+                  jsx('option', { key: 'a4', value: 'a4', children: t('prefs.a4') }),
+                  jsx('option', { key: 'carta', value: 'carta', children: t('prefs.carta') }),
+                  jsx('option', { key: 'ancho', value: 'ancho', children: t('prefs.ancho') }),
                 ],
               }),
             ] }),
             jsxs('label', { className: 'flex flex-col gap-1', children: [
-              jsx('span', { className: S.sub, children: 'Estrategia de seudonimización por defecto' }),
+              jsx('span', { className: S.sub, children: t('prefs.estrategia') }),
               jsx('select', {
                 className: S.input,
                 value: p.estrategia_privacidad || 'media',
                 onChange: (e) => actualizarPref({ estrategia_privacidad: e.target.value }),
                 children: [
-                  jsx('option', { key: 'ligera', value: 'ligera', children: 'Ligera (solo críticos: RUT, correo, fono)' }),
-                  jsx('option', { key: 'media', value: 'media', children: 'Media (críticos + altos)' }),
-                  jsx('option', { key: 'estricta', value: 'estricta', children: 'Estricta (+ medios y nombres)' }),
+                  jsx('option', { key: 'ligera', value: 'ligera', children: t('prefs.ligera') }),
+                  jsx('option', { key: 'media', value: 'media', children: t('prefs.media') }),
+                  jsx('option', { key: 'estricta', value: 'estricta', children: t('prefs.estricta') }),
                 ],
               }),
             ] }),
             jsxs('label', { className: 'flex flex-col gap-1', children: [
-              jsx('span', { className: S.sub, children: 'Contexto de LexO Escribe Claro' }),
+              jsx('span', { className: S.sub, children: t('prefs.contextoEstilo') }),
               jsx('select', {
                 className: S.input,
                 value: p.contexto_estilo || 'escrito',
                 onChange: (e) => actualizarPref({ contexto_estilo: e.target.value }),
                 children: [
-                  jsx('option', { key: 'escrito', value: 'escrito', children: 'Escrito judicial (máx. 30 pal/oración)' }),
-                  jsx('option', { key: 'demanda', value: 'demanda', children: 'Demanda (máx. 25 pal/oración)' }),
-                  jsx('option', { key: 'sentencia', value: 'sentencia', children: 'Sentencia (máx. 20 pal/oración)' }),
-                  jsx('option', { key: 'general', value: 'general', children: 'General (máx. 25 pal/oración)' }),
+                  jsx('option', { key: 'escrito', value: 'escrito', children: t('prefs.ctxEscrito') }),
+                  jsx('option', { key: 'demanda', value: 'demanda', children: t('prefs.ctxDemanda') }),
+                  jsx('option', { key: 'sentencia', value: 'sentencia', children: t('prefs.ctxSentencia') }),
+                  jsx('option', { key: 'general', value: 'general', children: t('prefs.ctxGeneral') }),
                 ],
               }),
             ] }),
@@ -441,7 +442,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
                 checked: p.mostrar_pizarra !== false,
                 onChange: (e) => actualizarPref({ mostrar_pizarra: e.target.checked }),
               }),
-              'Mostrar Pizarra Estratégica al abrir el Case Writer',
+              t('prefs.mostrarPizarra'),
             ] }),
             jsxs('label', { className: 'flex items-center gap-1.5', children: [
               jsx('input', {
@@ -449,27 +450,29 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
                 checked: p.mostrar_chat !== false,
                 onChange: (e) => actualizarPref({ mostrar_chat: e.target.checked }),
               }),
-              'Anclar Chat Hermes a la derecha',
+              t('prefs.mostrarChat'),
             ] }),
           ] }),
         ] }),
 
         // Diagnóstico de instalación para usuarios terceros
         jsxs('div', { className: S.card, children: [
-          jsx('div', { className: S.cardTitle, children: 'Estado del Entorno para Terceros' }),
+          jsx('div', { className: S.cardTitle, children: t('prefs.estadoTitulo') }),
           estado ? jsxs('div', { className: 'flex flex-col gap-1.5 text-xs', children: [
-            jsx('div', { children: `Versión del plugin: v${estado.version || '0.9.0'} · Pack sellado: ${estado.pack_hash}` }),
-            jsx('div', { children: `Cobertura instalada: ${estado.leyes} leyes chilenas · ${estado.articulos} artículos` }),
-            jsx('div', { children: `Perfil configurado para el chat (perfil_chat): ${estado.perfil_chat || '(usa el perfil activo de Hermes)'}` }),
-            jsx('div', { className: S.sub, children:
-              'Para fijar un perfil dedicado de abogado: hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>' }),
-          ] }) : jsx('div', { className: S.sub, children: 'Consultando estado…' }),
+            jsx('div', { children: t('prefs.versionPack', { version: estado.version || '0.9.0', pack: estado.pack_hash }) }),
+            jsx('div', { children: t('prefs.cobertura', { leyes: estado.leyes, articulos: estado.articulos }) }),
+            jsx('div', { children: t('prefs.perfilChat', { perfil: estado.perfil_chat || t('prefs.perfilActivo') }) }),
+            jsxs('div', { className: S.sub, children: [
+              t('prefs.fijarPerfil'),
+              ' hermes -p <perfil> config set plugins.entries.dike.settings.perfil_chat <perfil-abogado>',
+            ] }),
+          ] }) : jsx('div', { className: S.sub, children: t('prefs.consultando') }),
         ] }),
       ] }),
 
       // Columna 2: Paquete para crear grafos / ordenamientos (dike-perfil-ordenamiento-v1)
       jsxs('div', { className: S.card, children: [
-        jsx('div', { className: S.cardTitle, children: 'Constructor de Grafos y Ordenamientos Jurídicos' }),
+        jsx('div', { className: S.cardTitle, children: t('prefs.grafosTitulo') }),
         jsx(PanelHerramientasGrafos, {
           onLlevarCitaAlEscrito: onLlevarAlEscrito,
           onAbrirGrafo3D: onAbrirGrafo,
@@ -498,14 +501,36 @@ export default {
     hoja.textContent = ESTILOS
     document.head.appendChild(hoja)
     ctx.onDispose(() => hoja.remove())
+    // Idioma de la interfaz: elección guardada del usuario → locale del host
+    // si es español → inglés. ctx.i18n.onLocaleChange re-evalúa al cambiar.
+    const resolverIdioma = () => {
+      const guardado = ctx.storage ? ctx.storage.get('idioma', null) : null
+      if (guardado === 'es' || guardado === 'en') return guardado
+      const opciones = (host.i18n && host.i18n.languageOptions ? host.i18n.languageOptions() : [])
+      const activo = (opciones.find(o => o.active) || opciones[0] || {}).id || ''
+      return activo === 'es' ? 'es' : 'en'
+    }
+    fijarIdioma(resolverIdioma())
+    if (ctx.i18n && ctx.i18n.onLocaleChange) {
+      ctx.i18n.onLocaleChange(() => fijarIdioma(resolverIdioma()))
+    }
+    if (ctx.i18n && ctx.i18n.register) {
+      ctx.i18n.register(anidarTextos())
+    }
+
     function DikePage() {
+      useIdioma() // re-render de la página entera al cambiar de idioma
       const [pestana, setPestana] = useState(() => tomarPestana() || 'escritor')
       const pestanas = [
-        ['escritor', 'Escritos (Case Writer)'],
-        ['grafo', 'Grafo 3D'],
-        ['nif', 'Tablero NIF'],
-        ['personalizacion', 'Ordenamientos y Ajustes'],
+        ['escritor', t('shell.pestana.escritor')],
+        ['grafo', t('shell.pestana.grafo')],
+        ['nif', t('shell.pestana.nif')],
+        ['personalizacion', t('shell.pestana.personalizacion')],
       ]
+      const cambiarIdioma = (v) => {
+        fijarIdioma(v)
+        if (ctx.storage) ctx.storage.set('idioma', v)
+      }
       // «Abrir en el grafo» desde una nota del chat o una cita verificada:
       // deja el foco en memoria y cambia a la pestaña Grafo.
       const onAbrirGrafo = (foco) => {
@@ -530,7 +555,7 @@ export default {
               jsxs('div', { className: 'flex items-center gap-3', children: [
                 jsxs('div', { className: 'flex items-baseline gap-2', children: [
                   jsx('span', { className: 'text-base font-bold tracking-tight', children: 'Diké' }),
-                  jsx('span', { className: S.sub + ' hidden md:inline', children: 'Estudio jurídico local · No es consejo legal' }),
+                  jsx('span', { className: S.sub + ' hidden md:inline', children: t('shell.subtitulo') }),
                 ] }),
                 jsx('div', { className: 'flex items-center gap-1',
                   role: 'tablist',
@@ -545,7 +570,22 @@ export default {
                   })),
                 }),
               ] }),
-              jsx(Estado, {}),
+              jsxs('div', { className: 'flex items-center gap-2', children: [
+                jsx('div', { role: 'group', 'aria-label': t('shell.idioma'),
+                  className: 'flex items-center gap-0.5', children: [
+                  jsx('button', {
+                    type: 'button', className: 'dk-btn dk-btn--chico dk-btn--borde',
+                    'aria-pressed': idiomaActual() === 'en',
+                    onClick: () => cambiarIdioma('en'), children: 'EN',
+                  }),
+                  jsx('button', {
+                    type: 'button', className: 'dk-btn dk-btn--chico dk-btn--borde',
+                    'aria-pressed': idiomaActual() === 'es',
+                    onClick: () => cambiarIdioma('es'), children: 'ES',
+                  }),
+                ] }),
+                jsx(Estado, {}),
+              ] }),
             ],
           }),
 

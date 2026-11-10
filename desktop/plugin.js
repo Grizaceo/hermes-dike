@@ -1961,6 +1961,7 @@ var TEXTOS = {
     "priv.sinDeteccion": "No detection yet: edit the brief or press \u201CDetect personal data\u201D.",
     "priv.valoresMapa": "{n} pseudonymized values \xB7 no destination selected",
     "priv.verMarcas": "Show personal data in the brief",
+    "priv.aviso": "Pseudonymization, not anonymization: the map stays on this machine. A rule-based detector does not find every name without context; review the list of possible people.",
     "priv.vistaSalida": "Preview of what leaves",
     "proposal.FIELD_NOT_ALLOWED": "Field not allowed",
     "proposal.FIELD_NOT_PROPOSABLE": "Field cannot be proposed",
@@ -2722,6 +2723,7 @@ var TEXTOS = {
     "priv.sinDeteccion": "Sin detecci\xF3n a\xFAn: edita el escrito o pulsa \xABDetectar datos\xBB.",
     "priv.valoresMapa": "{n} valores seudonimizados \xB7 sin destino seleccionado",
     "priv.verMarcas": "Ver datos personales en el escrito",
+    "priv.aviso": "Seudonimizaci\xF3n, no anonimizaci\xF3n: el mapa queda en este equipo. Un detector por reglas no encuentra todos los nombres sin contexto; revisa la lista de posibles personas.",
     "priv.vistaSalida": "Vista de lo que sale",
     "proposal.FIELD_NOT_ALLOWED": "Campo no permitido",
     "proposal.FIELD_NOT_PROPOSABLE": "Campo no proponible",
@@ -26741,10 +26743,10 @@ function ModuloPrivacidadImpl({ editorRef, caseId, docInfo, registro, setRegistr
           })
         ] }))
       ] }) : null,
-      jsx("div", { className: S.sub, children: deteccion.aviso })
+      jsx("div", { className: S.sub, children: t("priv.aviso") })
     ] }) : jsx("div", { className: S.sub, children: t("priv.sinDeteccion") }),
     vistaSalida && vistaSalida !== "cargando" ? jsxs("div", { className: "flex flex-col gap-1", children: [
-      jsx("div", { className: S.cardTitle, children: "Vista de lo que sale" }),
+      jsx("div", { className: S.cardTitle, children: t("priv.vistaSalida") }),
       jsx("pre", {
         className: "max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs",
         children: vistaSalida.texto

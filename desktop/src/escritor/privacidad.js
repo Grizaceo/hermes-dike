@@ -255,12 +255,12 @@ function ModuloPrivacidadImpl({ editorRef, caseId, docInfo, registro, setRegistr
         ] })),
       ] }) : null,
 
-      jsx('div', { className: S.sub, children: deteccion.aviso }),
+      jsx('div', { className: S.sub, children: t('priv.aviso') }),
     ] }) : jsx('div', { className: S.sub, children:
         t('priv.sinDeteccion') }),
 
     vistaSalida && vistaSalida !== 'cargando' ? jsxs('div', { className: 'flex flex-col gap-1', children: [
-      jsx('div', { className: S.cardTitle, children: 'Vista de lo que sale' }),
+      jsx('div', { className: S.cardTitle, children: t('priv.vistaSalida') }),
       jsx('pre', { className: 'max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs',
         children: vistaSalida.texto }),
       jsxs('div', { className: S.sub, children: [

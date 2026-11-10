@@ -21,6 +21,9 @@ def test_comando_texto(adaptador_real, monkeypatch, idioma):
     assert sum(1 for l in lines if l.startswith('✓ ')) == 4
     assert any(l.startswith('✗ artículo 60 · AMBIGUOUS') for l in lines)
     assert any(l.startswith('✗ artículo 9999') and 'UNRESOLVABLE' in l for l in lines)
+    # El código del motor siempre se ve; la glosa lo explica en el idioma elegido.
+    assert any(l.endswith('UNRESOLVABLE (' + ('not found in the local corpus' if idioma == 'en'
+                                             else 'no está en el corpus local') + ')') for l in lines)
     assert lines[-1].startswith('This does not certify' if idioma == 'en' else 'No certifica')
 
 

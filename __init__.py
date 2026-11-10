@@ -1330,6 +1330,16 @@ def _linea_aislamiento(out: dict) -> str:
     return _t('command.degraded', reason=aislado.get('motivo', 'OTRO'))
 
 
+def _motivo_fallo(detalle: dict) -> str:
+    """El código del motor y, para los dos que más se ven, qué quiere decir."""
+    resolucion = str(detalle.get('resolucion'))
+    if resolucion == 'AMBIGUOUS':
+        return f"{resolucion} ({_t('command.ambiguous')})"
+    if resolucion == 'UNRESOLVABLE':
+        return f"{resolucion} ({_t('command.unresolvable')})"
+    return resolucion
+
+
 def _formatear_salida(out: dict) -> str:
     """Texto legible del comando: el tool sigue devolviendo JSON."""
     linea = _linea_aislamiento(out)
@@ -1352,7 +1362,7 @@ def _formatear_salida(out: dict) -> str:
             if d.get('fecha_recuperacion'):
                 fechas.append(str(d['fecha_recuperacion'])[:10])
         else:
-            lines.append(f"✗ {cita} · {d.get('resolucion')}")
+            lines.append(f"✗ {cita} · {_motivo_fallo(d)}")
     no_verificadas = out.get('no_verificadas') or []
     if no_verificadas:
         lines.append(_t('command.mentions', mentions=', '.join(str(v) for v in no_verificadas)))

@@ -281,6 +281,17 @@ export function textoDelEditor(editor) {
   return editor.getText({ blockSeparator: SEPARADOR })
 }
 
+// Inserta `html` (uno o más bloques) donde está el cursor. Solo añade al
+// final cuando el documento está vacío: sin cursor útil, «añadir» es lo
+// único sensato. No usa insertContent para no pisar una selección con
+// texto: insertContentAt(selection.from) nunca borra lo seleccionado.
+export function insertarHtmlEnCursor(editor, html) {
+  const pos = editor.isEmpty
+    ? editor.state.doc.content.size
+    : editor.state.selection.from
+  editor.chain().focus().insertContentAt(pos, html).run()
+}
+
 // Reemplaza los rangos [{from,to}] por `texto` en una sola transacción
 // (de atrás hacia adelante para no desplazar posiciones).
 export function reemplazarRangos(editor, rangos, texto) {

@@ -25,7 +25,8 @@ import {
   pendienteDiff,
 } from './guardado-logica.js'
 import {
-  borrarRangos, fijarMarcas, montarEditor, reemplazarRangos, textoDelEditor,
+  borrarRangos, fijarMarcas, insertarHtmlEnCursor, montarEditor,
+  reemplazarRangos, textoDelEditor,
 } from './editor.js'
 import {
   AVISO_JUICIO, estadoCita, etiquetaCita, localizarCitas, mensajeVeredicto,
@@ -390,7 +391,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-    ed.chain().insertContentAt(ed.state.doc.content.size, '<p>' + seguro + '.</p>').run()
+    insertarHtmlEnCursor(ed, '<p>' + seguro + '.</p>')
     const reg = registroRef.current || {}
     registroRef.current = {
       ...reg,
@@ -460,6 +461,8 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       }
       actualizarInfoDoc(ed)
 
+      // Citas encoladas desde otra pestaña (Grafo/NIF): se aplican recién
+      // cargado el caso, sin cursor del usuario — van al final, no al cursor.
       const pendientes = tomarCitas()
       if (pendientes.length) {
         const ahora = new Date().toISOString()
@@ -669,7 +672,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       .split(/\n\s*\n/)
       .map((p) => '<p>' + p.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>') + '</p>')
       .join('')
-    ed.chain().focus().insertContentAt(ed.state.doc.content.size, parrafos).run()
+    insertarHtmlEnCursor(ed, parrafos)
   }, [])
 
   const agregarNotaAPizarra = useCallback((datosNota) => {

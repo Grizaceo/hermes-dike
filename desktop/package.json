@@ -6,7 +6,9 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "python3 ../scripts/check_desktop_bundle.py",
-    "test": "node --test test/"
+    "test": "node --test test/",
+    "dev:build": "node dev/build.mjs",
+    "dev:serve": "node dev/serve.mjs"
   },
   "dependencies": {
     "3d-force-graph": "1.79.0",

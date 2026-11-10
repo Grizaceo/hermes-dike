@@ -16,7 +16,7 @@ import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
 import { SeccionGrafo } from './grafo3d.js'
-import { encolarCita, pedirFoco } from './puente.js'
+import { encolarCita, pedirFoco, tomarPestana } from './puente.js'
 
 const ID = 'dike'
 
@@ -488,7 +488,7 @@ export default {
     setRest(ctx.rest)
     setStorage(ctx.storage || null)
     function DikePage() {
-      const [pestana, setPestana] = useState('escritor')
+      const [pestana, setPestana] = useState(() => tomarPestana() || 'escritor')
       const pestanas = [
         ['escritor', 'Escritos (Case Writer)'],
         ['grafo', 'Grafo 3D'],

@@ -55,3 +55,25 @@ export function tomarFoco() {
   foco = null
   return out
 }
+
+// --- Pestana inicial de la página -----------------------------------------
+// Mismo patrón que el foco: una petición en memoria que se consume al leerla.
+// La usa el arnés de desarrollo (?tab=grafo) y cualquier futuro deep-link
+// «abrir Diké en tal pestaña»; en producción nadie la pide y devuelve null.
+
+const PESTANAS = new Set(['escritor', 'grafo', 'nif', 'personalizacion'])
+let pestana = null
+
+// pedirPestana(id) -> true si el id es una pestaña conocida.
+export function pedirPestana(id) {
+  if (typeof id !== 'string' || !PESTANAS.has(id)) return false
+  pestana = id
+  return true
+}
+
+// tomarPestana() -> la pestaña pedida y la limpia (una lectura la consume).
+export function tomarPestana() {
+  const out = pestana
+  pestana = null
+  return out
+}

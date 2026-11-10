@@ -81,7 +81,7 @@ test('ninguna clave del diccionario queda sin uso', () => {
     for (const m of texto.matchAll(re)) usadas.add(m[1])
   }
   const huerfanas = Object.keys(TEXTOS.en).filter(k => {
-    if (usadas.has(k) || k.startsWith('proposal.') || k.startsWith('codigo.')) return false
+    if (usadas.has(k) || k.startsWith('proposal.') || k.startsWith('codigo.') || k.startsWith('err.')) return false
     // clave transportada como dato: el literal 'clave' aparece en src/
     const reClave = new RegExp(`['"\`]${k.replace(/\./g, '\\.')}['"\`]`)
     for (const f of archivos(SRC)) {

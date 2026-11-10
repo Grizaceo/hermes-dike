@@ -913,7 +913,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 role: 'status',
                 children: [
                   res.error
-                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + etiquetaCodigo(res.error_code || res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
+                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + mensajeError(res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
                     : jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
                         jsx('span', { className: 'font-semibold', children:
                           t('writer.count', { ok: meta.citas_verificadas || 0, total: meta.total_citas || 0 }) +
@@ -1012,7 +1012,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         className: S.noticeBad,
                         children: [
                           jsx('span', { className: S.chip + ' ' + S.chipBad, children: t('writer.unchecked') }),
-                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + etiquetaCodigo(res.error_code || res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
+                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + mensajeError(res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
                         ],
                       }) : null,
 

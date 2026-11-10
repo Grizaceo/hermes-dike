@@ -1,4 +1,4 @@
-import { t } from './i18n.js'
+import { TEXTOS, t } from './i18n.js'
 // Compartido entre plugin.src.js y grafo3d.js: nombres de estilo,
 // el error legible y el REST del contexto (ctx.rest del PluginContext: el
 // objeto `host` del SDK no expone REST — solo navigate/request/state).
@@ -68,7 +68,28 @@ export const S = {
 }
 
 export function mensajeError(e) {
-  return (e && (e.message || e.detail || e.error)) || String(e)
+  let raw = String((e && (e.message || e.detail || e.error)) || e)
+  raw = raw.replace(/^\d{3}:\s*/, '')
+  try {
+    const body = JSON.parse(raw)
+    if (body && typeof body.detail === 'string') raw = body.detail
+    else if (body && Array.isArray(body.detail)) return body.detail.map(d => d.msg || JSON.stringify(d)).join('; ')
+  } catch {}
+  const m = /^([A-Z][A-Z0-9_]*): ([\s\S]*)$/.exec(raw)
+  if (!m) return raw
+  const key = 'err.' + m[1]
+  const template = TEXTOS.en[key]
+  if (!template) return m[2]
+  const names = []
+  const pattern = template.split(/(\{\w+\})/).map(part => {
+    if (/^\{\w+\}$/.test(part)) { names.push(part.slice(1, -1)); return '([\\s\\S]*?)' }
+    return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }).join('')
+  const values = new RegExp('^' + pattern + '$').exec(m[2])
+  // Preserve new backend wording until its parameter contract is translated.
+  if (names.length && !values) return m[2]
+  const vars = Object.fromEntries(names.map((name, i) => [name, values[i + 1]]))
+  return t(key, vars)
 }
 
 // Temporizadores con ámbito del plugin: ctx.setTimeout/setInterval del SDK se

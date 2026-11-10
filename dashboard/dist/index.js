@@ -167,7 +167,36 @@
     "codigo.PANEL_ERROR": "Could not load the panel. Retry.",
     "codigo.PANEL_DATA": "Invalid panel data",
     "codigo.CONTRACT_OR_INPUT_ERROR": "Invalid engine result or input. Retry.",
-    "codigo.IO_ERROR": "Could not read or save data. Check disk space and permissions."
+    "codigo.IO_ERROR": "Could not read or save data. Check disk space and permissions.",
+    "err.ARTICLE_NOT_FOUND": "The article was not found in the installed corpus. Select an article from the graph.",
+    "err.BODY_INVALID": "The request body must be a JSON object.",
+    "err.CASE_ID_INVALID": "The case ID is invalid. Use 1\u201364 letters, digits, dots, hyphens or underscores, starting with a letter or digit.",
+    "err.CONFIDENCE_INVALID": "confidence must be between 0 and 1.",
+    "err.ENGINE_ERROR": "Engine error: {detail}",
+    "err.ENGINE_TIMEOUT": "The engine did not respond in time. Try again.",
+    "err.FIELD_MISSING": "{field} is missing. Provide a non-empty value.",
+    "err.FIELD_NUMBER_INVALID": "{field} must be a finite number.",
+    "err.FIELD_TYPE_INVALID": "{field} must be {expected}.",
+    "err.FIELD_UNICODE_INVALID": "{field} contains invalid Unicode. Copy it again from the original.",
+    "err.NIF_FIELD_INVALID": "This NIF field cannot be edited from the page. Select an editable field.",
+    "err.NODE_NOT_FOUND": "The node was not found in the installed corpus. Select a node from the graph.",
+    "err.PANEL_INPUT_ERROR": "The panel rejected this request: {detail}",
+    "err.QUERY_NO_TERMS": "The query has no searchable terms. Enter words from the statute.",
+    "err.QUESTION_MISSING": "The question is missing. Provide pregunta.",
+    "err.SANDBOX_UNAVAILABLE": "A sandbox is required but unavailable. Enable bubblewrap or select sandbox: auto.",
+    "err.STATUTE_CODE_INVALID": "code must be a numeric Ley Chile identifier.",
+    "err.STATUTE_NOT_FOUND": "Statute {code} is not in the installed corpus. Select a statute from the corpus.",
+    "err.STYLE_CONTEXT_INVALID": "contexto must be text.",
+    "err.STYLE_DETAIL_INVALID": "detallado must be a boolean.",
+    "err.TEXT_MISSING": "Text is missing. Provide texto.",
+    "err.TEXT_TOO_LARGE": "Text exceeds the 400,000-byte limit. Use a smaller input.",
+    "err.TEXT_TYPE_INVALID": "texto must be text.",
+    "err.TEXT_UNICODE_INVALID": "The text contains invalid Unicode. Copy it again from the original.",
+    "err.UNIT_ID_INVALID": "The unit ID is invalid. Select a unit from the graph.",
+    "err.UNIT_INDEX_NOT_FOUND": "Unit {unit} does not exist in that article. Select an existing unit.",
+    "err.UNIT_NOT_FOUND": "The unit was not found in the installed corpus. Select a unit from the graph.",
+    "err.VALIDATED_INVALID": "validated must be a boolean.",
+    "err.VALUE_MISSING": "The value is missing. Provide value."
   },
   "es": {
     "idioma.grupo": "Idioma",
@@ -317,7 +346,36 @@
     "codigo.PANEL_ERROR": "No se pudo cargar el panel. Reintenta.",
     "codigo.PANEL_DATA": "Datos del panel inv\u00e1lidos",
     "codigo.CONTRACT_OR_INPUT_ERROR": "Resultado del motor o entrada inv\u00e1lidos. Reintenta.",
-    "codigo.IO_ERROR": "No se pudieron leer o guardar datos. Revisa espacio y permisos."
+    "codigo.IO_ERROR": "No se pudieron leer o guardar datos. Revisa espacio y permisos.",
+    "err.ARTICLE_NOT_FOUND": "art\u00edculo no encontrado en el corpus instalado.",
+    "err.BODY_INVALID": "body debe ser un objeto JSON.",
+    "err.CASE_ID_INVALID": "case_id inv\u00e1lido.",
+    "err.CONFIDENCE_INVALID": "confidence debe estar entre 0 y 1.",
+    "err.ENGINE_ERROR": "motor: {detail}",
+    "err.ENGINE_TIMEOUT": "El motor tard\u00f3 demasiado.",
+    "err.FIELD_MISSING": "Falta el campo {field}.",
+    "err.FIELD_NUMBER_INVALID": "{field} debe ser finito.",
+    "err.FIELD_TYPE_INVALID": "{field} debe ser {expected}.",
+    "err.FIELD_UNICODE_INVALID": "{field} trae Unicode inv\u00e1lido.",
+    "err.NIF_FIELD_INVALID": "field_path no editable desde el panel.",
+    "err.NODE_NOT_FOUND": "nodo no encontrado en el corpus instalado.",
+    "err.PANEL_INPUT_ERROR": "Entrada rechazada por el panel: {detail}",
+    "err.QUERY_NO_TERMS": "la consulta no tiene t\u00e9rminos buscables.",
+    "err.QUESTION_MISSING": "Falta el campo pregunta.",
+    "err.SANDBOX_UNAVAILABLE": "sandbox requerido por configuraci\u00f3n pero bubblewrap no est\u00e1 disponible en este equipo; no se verific\u00f3 nada",
+    "err.STATUTE_CODE_INVALID": "code debe ser el leychileCode num\u00e9rico.",
+    "err.STATUTE_NOT_FOUND": "norma {code} no est\u00e1 en el corpus instalado.",
+    "err.STYLE_CONTEXT_INVALID": "contexto debe ser string.",
+    "err.STYLE_DETAIL_INVALID": "detallado debe ser booleano.",
+    "err.TEXT_MISSING": "Falta el campo texto.",
+    "err.TEXT_TOO_LARGE": "El texto supera el l\u00edmite permitido.",
+    "err.TEXT_TYPE_INVALID": "El campo texto debe ser un string.",
+    "err.TEXT_UNICODE_INVALID": "El texto trae caracteres Unicode inv\u00e1lidos.",
+    "err.UNIT_ID_INVALID": "id de unidad inv\u00e1lido.",
+    "err.UNIT_INDEX_NOT_FOUND": "la unidad {unit} no existe en ese art\u00edculo.",
+    "err.UNIT_NOT_FOUND": "unidad no encontrada en el corpus instalado.",
+    "err.VALIDATED_INVALID": "validated debe ser booleano.",
+    "err.VALUE_MISSING": "Falta el campo value."
   }
 };
   // i18n:T:end
@@ -369,24 +427,32 @@
   }
   // dike:codigo:end
 
-  function mensajeError(e) {
-    var raw = (e && (e.message || e.detail)) || String(e);
-    var m = String(raw).match(/^\d{3}:\s*([\s\S]*)$/);
-    var body = m ? m[1] : String(raw);
-    try {
-      var parsed = JSON.parse(body);
-      if (parsed && typeof parsed.detail === "string") return parsed.detail;
-      if (parsed && Array.isArray(parsed.detail)) {
-        return parsed.detail.map(function (d) {
-          return d && d.msg ? String(d.msg) : JSON.stringify(d);
-        }).join("; ");
-      }
-      if (parsed && parsed.detail != null) {
-        return typeof parsed.detail === "string" ? parsed.detail : JSON.stringify(parsed.detail);
-      }
-    } catch (err) {}
-    return body;
-  }
+  // dike:error:begin
+function mensajeError(e) {
+  let raw = String((e && (e.message || e.detail || e.error)) || e)
+  raw = raw.replace(/^\d{3}:\s*/, '')
+  try {
+    const body = JSON.parse(raw)
+    if (body && typeof body.detail === 'string') raw = body.detail
+    else if (body && Array.isArray(body.detail)) return body.detail.map(d => d.msg || JSON.stringify(d)).join('; ')
+  } catch {}
+  const m = /^([A-Z][A-Z0-9_]*): ([\s\S]*)$/.exec(raw)
+  if (!m) return raw
+  const key = 'err.' + m[1]
+  const template = T.en[key]
+  if (!template) return m[2]
+  const names = []
+  const pattern = template.split(/(\{\w+\})/).map(part => {
+    if (/^\{\w+\}$/.test(part)) { names.push(part.slice(1, -1)); return '([\\s\\S]*?)' }
+    return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }).join('')
+  const values = new RegExp('^' + pattern + '$').exec(m[2])
+  // Preserve new backend wording until its parameter contract is translated.
+  if (names.length && !values) return m[2]
+  const vars = Object.fromEntries(names.map((name, i) => [name, values[i + 1]]))
+  return t(key, vars)
+}
+  // dike:error:end
 
   function post(url, body) {
     return SDK.fetchJSON(url, {
@@ -429,7 +495,7 @@
     var r = props.resultado;
     if (!r) return null;
     if (r.error) {
-      var msg = etiquetaCodigo(r.error_code || r.error) + (r.motivo ? " · " + etiquetaCodigo(r.motivo) : "");
+      var msg = mensajeError(r.error) + (r.motivo ? " · " + etiquetaCodigo(r.motivo) : "");
       return h("div", { className: "rounded-md border border-destructive/40 p-3 text-sm" },
         t("res.error", { msg: msg }));
     }

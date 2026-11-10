@@ -156,7 +156,7 @@ function pluginPlaceholderVacio(texto) {
         const span = document.createElement('span')
         span.textContent = texto
         span.setAttribute('style',
-          'color:var(--ui-text-tertiary,#9ca3af);pointer-events:none;user-select:none')
+          'color:inherit;opacity:.6;pointer-events:none;user-select:none')
         return DecorationSet.create(doc, [
           Decoration.widget(1, span, { side: -1 }),
         ])

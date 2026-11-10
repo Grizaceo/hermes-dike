@@ -210,7 +210,7 @@ export function PizarraEstrategica({
     const yaExiste = aristas.some((a) => a.from === conectandoDesde && a.to === id)
     if (!yaExiste) {
       actualizar({
-        aristas: [...aristas, { id: crearId('arista'), from: conectandoDesde, to: id, label: 'apoya' }],
+        aristas: [...aristas, { id: crearId('arista'), from: conectandoDesde, to: id, label: t('piz.supports') }],
       })
     }
     setConectandoDesde(null)
@@ -300,7 +300,7 @@ export function PizarraEstrategica({
             'aria-pressed': buscadorAbierto,
             className: 'dk-btn',
             title: t('piz.buscarNormas'),
-            children: ['LexO Search'],
+            children: [t('piz.search')],
           }),
 
           nodos.length > 0 ? jsx('button', {
@@ -347,8 +347,8 @@ export function PizarraEstrategica({
         className: 'relative w-full overflow-hidden',
         style: {
           height: altura + 'px',
-          backgroundColor: '#fafafa',
-          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+          backgroundColor: 'var(--dk-superficie)',
+          backgroundImage: 'radial-gradient(var(--dk-borde) 1px, transparent 1px)',
           backgroundSize: '16px 16px',
           cursor: 'grab',
         },

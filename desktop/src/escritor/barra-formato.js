@@ -287,7 +287,7 @@ export function BarraFormato({
             jsx('select', {
               value: caseId,
               onChange: (e) => onCambiarCaso && onCambiarCaso(e.target.value),
-              ariaLabel: t('format.active.brief.or.case'),
+              'aria-label': t('format.active.brief.or.case'),
               className: 'h-7 max-w-56 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 text-xs text-(--dk-texto) outline-none focus:border-(--dk-acento)',
               children: casos === null
                 ? jsx('option', { value: caseId, children: t('format.loading.cases') })
@@ -365,6 +365,7 @@ export function BarraFormato({
             jsx('button', {
               type: 'button',
               onClick: onVerificar,
+              'data-dike-check': true,
               disabled: verificando || estadoDoc === 'cargando',
               className: 'dk-btn dk-btn--primario',
               children: verificando ? t('writer.checking') : t('writer.check.citations'),

@@ -73,7 +73,7 @@ export function resultadoVerificar(texto) {
   const verificadas = detalles.filter((d) => d.estado === 'VERIFICADA').length
   const fallidas = detalles.length - verificadas
   return {
-    veredicto: fallidas ? 'FALLO' : 'VERIFICADA',
+    veredicto: fallidas ? 'CON_PROBLEMAS' : 'TODAS_VERIFICADAS',
     meta: {
       citas_verificadas: verificadas, total_citas: detalles.length,
       citas_fallidas: fallidas, pack_hash: PACK_HASH, as_of: '2026-01-15',

@@ -22,9 +22,9 @@ function cfgDe(registro) {
 }
 
 const ETIQUETA_CAPA = {
-  L0: 'formalismo procesal (determinista)',
-  L1: 'texto del corpus, sin verificar como cita',
-  L2: 'modelo',
+  get L0() { return t('pred.templateSource') },
+  get L1() { return t('pred.corpusSource') },
+  get L2() { return t('pred.l2') },
 }
 
 function predictorL0() {

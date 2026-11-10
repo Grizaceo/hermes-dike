@@ -177,3 +177,26 @@
 @media (prefers-reduced-motion: reduce) {
   .dike-raiz .dk-btn { transition: none; }
 }
+
+/* The tool rail stays readable while the brief and drawers share the view. */
+.dike-raiz .dk-tool-button { display: flex; flex-direction: column; gap: 2px; width: 72px; height: auto; padding: 6px 2px; font-size: 11px; line-height: 1.3; white-space: normal; }
+.dike-raiz .dk-tool-drawer { width: 380px; max-width: 45vw; }
+.dike-raiz .dk-chat-dock { width: 320px; }
+.dike-raiz .dike-editor-page { min-width: 0; overflow-wrap: anywhere; }
+.dike-raiz .dk-writer select { min-width: 0; }
+@media (max-width: 1300px) {
+  .dike-raiz .dk-writer--tool .dk-chat-dock { display: none; }
+  .dike-raiz .dk-tool-drawer { width: 360px; }
+}
+
+.dike-raiz .dk-tool-drawer { overflow-wrap: anywhere; }
+.dike-raiz .dk-tool-drawer .dk-rotulo { overflow-wrap: normal; }
+.dike-raiz .dk-writer .dk-tool-drawer .dk-btn--primario,
+.dike-raiz .dk-writer .dk-barra .dk-btn--primario { background: var(--dk-elevada); color: var(--dk-texto); border-color: var(--dk-borde); }
+
+.dike-raiz .dk-chat-dock { display: flex; }
+.dike-raiz .dk-tool-button { padding: 4px 2px; min-height: 28px; flex-shrink: 0; }
+.dike-raiz .dk-rotulo { text-transform: none; letter-spacing: normal; }
+@media (max-width: 1300px) {
+  .dike-raiz .dk-writer--tool .dk-chat-dock { display: none; }
+}

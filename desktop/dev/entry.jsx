@@ -30,7 +30,25 @@ setMockLento(params.get('slow') === '1')
 if (params.get('tab')) pedirPestana(params.get('tab'))
 
 // Registra el plugin con el ctx stub y localiza la contribución de página.
-const rest = createMockRest()
+const mockRest = createMockRest()
+const rest = async (path, opts = {}) => {
+  const data = await mockRest(path, opts)
+  if (params.get('demo') === '1' && path.startsWith('/escrito?') && !opts.method) {
+    const demo = await mockRest('/escrito/demo')
+    return { ...data, ...demo, existe: true }
+  }
+  return data
+}
+if (params.get('verificar') === '1') {
+  const observer = new MutationObserver(() => {
+    const editor = document.querySelector('.ProseMirror')
+    const button = document.querySelector('[data-dike-check]')
+    if (!editor?.textContent?.trim() || !button || button.disabled) return
+    observer.disconnect()
+    button.click()
+  })
+  observer.observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true })
+}
 const ctx = createCtx({ rest })
 plugin.register(ctx)
 const contribuciones = globalThis.__dikeContribs || []

@@ -12,11 +12,11 @@ import { COLORES_NOTA } from './pizarra-logica.js'
 import { localizarCitas, rangoAPos, segmentosDeDoc } from './verificador.js'
 
 const ETIQUETA_CAT = {
-  arcaismo: t('style.archaic.and.bureaucratic.wording'),
-  nominalizacion: t('style.nominalizations.label'),
-  legibilidad: t('style.readability.and.length'),
-  voz_pasiva: t('style.passive.voice'),
-  alineacion_judicial: t('style.judicial.writing.patterns'),
+  get arcaismo() { return t('style.archaic.and.bureaucratic.wording') },
+  get nominalizacion() { return t('style.nominalizations.label') },
+  get legibilidad() { return t('style.readability.and.length') },
+  get voz_pasiva() { return t('style.passive.voice') },
+  get alineacion_judicial() { return t('style.judicial.writing.patterns') },
 }
 
 // Tonos de las categorías del grafo argumentativo: `color` es el papel de la
@@ -232,7 +232,7 @@ export function PanelEscribeClaro({
             type: 'button',
             onClick: () => ejecutarAnalisis(contexto),
             disabled: ocupado,
-            className: 'dk-btn dk-btn--primario',
+            className: 'dk-btn dk-btn--borde',
             children: ocupado ? t('style.analyzing') : t('style.analyze.now'),
           }),
         ],

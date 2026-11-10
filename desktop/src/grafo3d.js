@@ -417,7 +417,7 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
       esUnidad ? jsx('span', {
         className: S.chip + ' ' + S.chipOff,
         style: { borderLeft: '3px solid ' + (COLORES_MODALIDAD[n.modalidad] || '#64748b') },
-        children: (n.modalidad || 'otra') + (n.modalidad_regla ? ' · ' + n.modalidad_regla : ''),
+        children: t('mod.' + (n.modalidad || 'otra')) + (n.modalidad_regla ? ' · ' + n.modalidad_regla : ''),
       }) : null,
       esUnidad ? jsx('span', { className: S.chip + ' ' + S.chipOff, children: t('graph.candidate.label_text') }) : null,
     ] }),
@@ -975,7 +975,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                     key: mod, className: 'flex items-center gap-1 ' + S.sub, children: [
                       jsx('span', { className: 'inline-block h-2 w-2 rounded-full',
                         style: { background: COLORES_MODALIDAD[mod] } }),
-                      mod,
+                      t('mod.' + mod),
                     ] })),
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
@@ -1034,9 +1034,9 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                       alHover, alFondo, resalte, onFallo: alFallo3d, apiRef }),
               ] }),
               jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
-                jsxs('div', { className: 'flex items-center gap-1', children: [
+                jsxs('div', { className: 'flex flex-wrap items-center gap-1', children: [
                   jsx('select', {
-                    className: S.input,
+                    className: S.input + ' w-full',
                     title: t('graph.search.mode'),
                     value: modoBusqueda,
                     onChange: (e) => setModoBusqueda(e.target.value),

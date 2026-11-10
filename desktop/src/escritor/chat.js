@@ -448,8 +448,9 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
   }, [editorRef, registro])
 
   useEffect(() => {
-    if (endRef.current && typeof endRef.current.scrollIntoView === 'function') {
-      endRef.current.scrollIntoView({ behavior: 'smooth' })
+    const panel = endRef.current && endRef.current.parentElement
+    if (panel && (mensajes.length || ocupado || stream)) {
+      panel.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' })
     }
   }, [mensajes.length, ocupado, stream])
 
@@ -489,7 +490,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           jsx('span', { className: 'font-semibold text-(--dk-texto)', children: 'Hermes' }),
           jsx('span', {
             className: 'text-(--dk-texto-3) truncate',
-            children: perfilElegido || 'abriendo…',
+            children: perfilElegido || t('chat.abriendo'),
           }),
           jsx('span', {
             className: 'h-2 w-2 rounded-full shrink-0 ' +
@@ -530,7 +531,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
           jsx('div', { children: t('chat.contextoCaso', { caso: caseId, largo: largoEscrito, citas: numCitasVerif }) }),
           jsx('div', {
             children: seudOn
-              ? t('chat.contextoPrivOn', { estrategia: estrategiaActiva })
+              ? t('chat.contextoPrivOn', { estrategia: t('strategy.' + estrategiaActiva) })
               : t('chat.contextoPrivOff'),
           }),
           jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: t('chat.contextoNota') }),
@@ -563,7 +564,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                   jsx('span', { className: 'font-medium text-(--dk-texto)', children: t('chat.seudonimizacion') }),
                   jsx('span', {
                     className: 'font-semibold ' + (seudOn ? S.ok : S.warn),
-                    children: seudOn ? t('chat.privActiva', { estrategia: estrategiaActiva }) : t('chat.privApagada'),
+                    children: seudOn ? t('chat.privActiva', { estrategia: t('strategy.' + estrategiaActiva) }) : t('chat.privApagada'),
                   }),
                 ] }),
               ] }),
@@ -571,7 +572,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 jsx('button', {
                   type: 'button',
                   onClick: () => setAvisoCerrado(true),
-                  className: 'dk-btn dk-btn--primario dk-btn--chico',
+                  className: 'dk-btn dk-btn--borde dk-btn--chico',
                   children: t('chat.entendido'),
                 }),
                 onAbrirPrivacidad ? jsx('button', {
@@ -617,7 +618,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                               key: j,
                               className: S.chip + ' ' + (S[ESTILOS_ESTADO_RESP[est]] || S.chipOff),
                               title: (() => { const e = etiquetaCita(est, d, (m.verif.res.meta || {}), registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })()
-                                + (d.nodo_id ? ' · clic para abrir en el grafo' : ''),
+                                + (d.nodo_id ? ' · ' + t('chat.verificarGrafo') : ''),
                               children: d.cita_raw,
                             }
                             return est === 'verificada' && d.nodo_id && onAbrirGrafo
@@ -672,7 +673,7 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
                 disabled: !sesion || ocupado || !pregunta.trim(),
                 'aria-label': t('chat.enviar'),
                 title: t('chat.enviar'),
-                className: 'dk-btn dk-btn--primario dk-btn--icono shrink-0',
+                className: 'dk-btn dk-btn--borde dk-btn--icono shrink-0',
                 children: '➤',
               })
             : jsx('button', {

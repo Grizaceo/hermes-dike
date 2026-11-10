@@ -788,8 +788,8 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const pizarraEstado = (registro && registro.pizarra) || { nodos: [], aristas: [], colapsada: false, altura: 225 }
 
   return jsxs('div', {
-    className: 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
-    style: { minHeight: '760px' },
+    className: 'dk-writer ' + (herramientaActiva ? 'dk-writer--tool ' : '') + 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
+    style: { minHeight: '620px' },
     children: [
       // 1. Barra de formato y documento estilo Word (2 filas, como imagen 2)
       jsx(BarraFormato, {
@@ -869,7 +869,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               // Entorno gris desplazable con la hoja centrada
               jsxs('div', {
                 className: 'flex-1 overflow-y-auto flex justify-center py-6 px-4',
-                style: { backgroundColor: temaActual.entorno },
+                style: { backgroundColor: 'var(--dk-superficie-2)' },
                 children: [
                   jsxs('div', {
                     className: 'dike-editor-page transition-all',
@@ -881,7 +881,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       color: temaActual.hojaTexto,
                       border: '1px solid ' + temaActual.hojaBorde,
                       boxShadow: '0 2px 12px rgba(0, 0, 0, 0.14)',
-                      padding: anchoActual.padding,
+                      padding: 'clamp(20px, 3vw, 70px) clamp(20px, 3vw, 80px)',
                       fontFamily: prefs.fuente || "Georgia, 'Times New Roman', serif",
                       fontSize: (prefs.tamano_fuente || '12') + 'pt',
                       lineHeight: '1.65',
@@ -950,9 +950,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                       type: 'button',
                       onClick: () => guardarPrefs({ tema_papel: tid }),
                       'aria-pressed': prefs.tema_papel === tid,
-                      'aria-label': 'Tema de papel: ' + tmeta.label,
+                      'aria-label': t('writer.paper.theme') + ' ' + tmeta.label,
                       className: 'dk-btn dk-btn--chico',
-                      children: tmeta.label.split(' ')[1] || tmeta.label,
+                      children: t('paper.' + tid),
                     })),
                   ] }),
                 ],
@@ -963,7 +963,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
           // ── CAJÓN DESLIZANTE DE LA HERRAMIENTA ACTIVA (a la izquierda de la barra de iconos) ──
           jsxs('div', {
             className: (herramientaActiva ? 'flex ' : 'hidden ') +
-              'w-[400px] xl:w-[430px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
+              'dk-tool-drawer shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: [
               // Cabecera del cajón
               cfgHerramienta ? jsxs('div', {
@@ -971,7 +971,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 children: [
                   jsxs('div', { className: 'flex items-center gap-2 min-w-0', children: [
                     jsx('span', { className: 'text-sm font-bold text-(--dk-texto-2)', children: cfgHerramienta.icono }),
-                    jsx('span', { className: 'text-xs font-bold uppercase tracking-wide truncate text-(--dk-texto)', children: cfgHerramienta.titulo }),
+                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto)', children: cfgHerramienta.titulo }),
                   ] }),
                   jsx('button', {
                     type: 'button',
@@ -998,7 +998,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                           type: 'button',
                           onClick: verificar,
                           disabled: verificando || estadoDoc === 'cargando',
-                          className: 'dk-btn dk-btn--primario dk-btn--chico shrink-0',
+                          className: 'dk-btn dk-btn--borde dk-btn--chico shrink-0',
                           children: verificando ? t('writer.checking') : t('writer.check.citations'),
                         }),
                       ] }),
@@ -1042,9 +1042,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                                       className: S.chip + ' ' + S[es.chip] + ' cursor-pointer',
                                       title: t('writer.open.article.in.corpus.graph'),
                                       onClick: () => onAbrirGrafo({ nodo_id: d.nodo_id }),
-                                      children: etiquetaCodigo(estado) + t('writer.graph'),
+                                      children: etiquetaCodigo(estado === 'verificada' ? 'VERIFICADA' : estado === 'fallo' ? 'FALLO' : estado) + t('writer.graph'),
                                     })
-                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: etiquetaCodigo(estado) }),
+                                  : jsx('span', { className: S.chip + ' ' + S[es.chip], children: etiquetaCodigo(estado === 'verificada' ? 'VERIFICADA' : estado === 'fallo' ? 'FALLO' : estado) }),
                               ] }),
                               jsx('div', { className: 'mt-0.5 break-all text-xs text-(--dk-texto-3)', children: (() => { const e = etiquetaCita(estado, d, meta, registro); return t(e.codigo, { ...e.datos, resolution: etiquetaCodigo(e.datos.resolution) }) + (e.pista ? t('verify.lead') : '') })() }),
                               estado === 'fallo'
@@ -1220,12 +1220,12 @@ export function SeccionEscritor({ onAbrirGrafo }) {
 
           // ── BARRA VERTICAL DE HERRAMIENTAS A LA DERECHA (estilo VS Code / imagen 2) ──
           jsxs('div', {
-            className: 'flex w-11 shrink-0 flex-col items-center gap-1.5 border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none',
+            className: 'flex w-20 shrink-0 flex-col items-center gap-1 overflow-y-auto border-l border-(--dk-borde) bg-(--dk-superficie) py-2 select-none',
             children: [
-              ...HERRAMIENTAS_BARRA.map((t) => {
-                const activa = herramientaActiva === t.id
+              ...HERRAMIENTAS_BARRA.map((tool) => {
+                const activa = herramientaActiva === tool.id
                 let badge = null
-                if (t.id === 'citas' && res && !res.error) {
+                if (tool.id === 'citas' && res && !res.error) {
                   const fallos = meta.citas_fallidas || 0
                   badge = fallos > 0
                     ? jsx('span', { className: 'absolute -top-1 -right-1 rounded-full bg-(--dk-mal) px-1 text-xs font-bold text-(--dk-sobre-solido)', children: String(fallos) })
@@ -1234,15 +1234,15 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         : null)
                 }
                 return jsxs('button', {
-                  key: t.id,
+                  key: tool.id,
                   type: 'button',
-                  title: t.label,
-                  'aria-label': t.label,
+                  title: tool.label,
+                  'aria-label': tool.label,
                   'aria-pressed': activa,
-                  onClick: () => setHerramientaActiva((prev) => (prev === t.id ? null : t.id)),
-                  className: 'dk-btn dk-btn--icono relative',
+                  onClick: () => setHerramientaActiva((prev) => (prev === tool.id ? null : tool.id)),
+                  className: 'dk-btn dk-tool-button relative',
                   children: [
-                    jsx('span', { children: t.icono }),
+                    jsx('span', { children: t('rail.' + tool.id) }),
                     badge,
                   ],
                 })
@@ -1257,16 +1257,16 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 'aria-label': chatAbierto ? t('writer.hide.hermes.chat') : t('writer.show.hermes.chat'),
                 'aria-pressed': chatAbierto,
                 onClick: () => guardarPrefs({ mostrar_chat: !chatAbierto }),
-                className: 'dk-btn dk-btn--icono',
-                children: '✉',
+                className: 'dk-btn dk-tool-button',
+                children: t('rail.chat'),
               }),
             ],
           }),
 
           // ── PANEL DERECHO CONECTADO CON HERMES (Chat del escrito, siempre montado) ──
           jsx('div', {
-            className: (chatAbierto ? 'flex ' : 'hidden ') +
-              'w-[340px] xl:w-[375px] shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
+            className: (chatAbierto ? '' : 'hidden ') +
+              'dk-chat-dock shrink-0 flex-col border-l border-(--dk-borde) bg-(--dk-elevada) overflow-hidden',
             children: jsx(ChatEscritor, {
               editorRef,
               caseId,

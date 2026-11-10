@@ -116,7 +116,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
     const segs = segmentosDeDoc(ed.state.doc)
     fijarMarcasPrivacidad(ed, marcasParaEditor(
       deteccion.entidades, deteccion.candidatos,
-      (i, f) => rangoAPos(segs, i, f)))
+      (i, f) => rangoAPos(segs, i, f)).map(m => ({ ...m, title: m.title === 'POSSIBLE_PERSON' ? t('priv.possiblePerson') : m.title })))
   }, [verMarcas, deteccion, editorRef])
 
   const decidir = useCallback((valor, accion, tipo) => {

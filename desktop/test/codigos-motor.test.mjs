@@ -21,3 +21,16 @@ for (const lang of ['en', 'es']) {
     assert.equal(ctx.etiquetaCodigo('FUTURE_UNKNOWN_CODE'), 'FUTURE_UNKNOWN_CODE')
   })
 }
+
+test('backend verdicts, adapter reasons and engine temporal returns have labels', () => {
+  const backend = readFileSync(new URL('../../__init__.py', import.meta.url), 'utf8')
+  const adapter = backend.split('def _error_adaptador(')[1].split('# ── Validaci')[0]
+  const contract = backend.match(/if verdict not in \(([^)]+)\)/)[1]
+  const guard = backend.split('def _degradar_cuerpos_en_conflicto')[1] || ''
+  const resolver = readFileSync(new URL('../../motor/lexo_cli/starter/resolver.py', import.meta.url), 'utf8')
+  const statuses = [...(adapter + contract + guard.slice(0, 3500)).matchAll(/'([A-Z][A-Z_]+)'/g)].map(m => m[1])
+  statuses.push(...[...resolver.matchAll(/return "([A-Z][A-Z_]+)"/g)].map(m => m[1]))
+  for (const code of new Set(statuses)) {
+    for (const lang of ['en', 'es']) assert.ok(TEXTOS[lang]['codigo.' + code], code + ': ' + lang)
+  }
+})

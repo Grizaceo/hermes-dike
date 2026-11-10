@@ -1,4 +1,4 @@
-"""Privacidad del escrito (F2a): detector, seudónimos, registro y rutas.
+"""Privacidad del escrito (): detector, seudónimos, registro y rutas.
 
 Todo sintético. El benchmark usa SOLO el goldset sintético (456 docs,
 synthetic + synthetic-augmented) con umbrales fijos medidos contra la línea
@@ -485,3 +485,20 @@ def test_olvidar_vuelve_al_default(pv, tmp_path):
     # sin decisión: el valor mapeado reaparece → se enmascara (default)
     r3 = pv.seudonimizar(tmp_path, 'c1', 'Ana Rojas Vidal de nuevo.')
     assert 'Ana Rojas Vidal' not in r3['texto']
+
+
+@pytest.mark.parametrize('variante', ['Zephyr Quispar', 'ZÉPHYR  QUISPAR', 'Ze\u0301phyr\tQuispar'])
+def test_decision_y_mapa_respetan_tildes_y_espacios(pv, tmp_path, variante):
+    pv.guardar_decision(tmp_path, 'acentos', 'Zéphyr Quispar', 'enmascarar')
+    primero = pv.seudonimizar(tmp_path, 'acentos', 'Zéphyr Quispar')
+    assert primero['texto'] == '[PERSONA_1]'
+    texto = 'Antes: ' + variante + '; después.'
+    segundo = pv.seudonimizar(tmp_path, 'acentos', texto)
+    assert segundo['texto'] == 'Antes: [PERSONA_1]; después.'
+    sustitucion = segundo['sustituciones'][0]
+    assert texto[sustitucion['inicio']:sustitucion['fin']] == variante
+    # El mapa solo también reconoce las variantes, sin depender de la decisión.
+    pv.guardar_decision(tmp_path, 'acentos', 'Zéphyr Quispar', 'olvidar')
+    assert pv.seudonimizar(tmp_path, 'acentos', texto)['texto'] == segundo['texto']
+    pv.guardar_decision(tmp_path, 'acentos', 'Zéphyr Quispar', 'conservar')
+    assert pv.seudonimizar(tmp_path, 'acentos', texto)['texto'] == texto

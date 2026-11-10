@@ -188,6 +188,32 @@ def normalizar_valor(valor: str) -> str:
     return " ".join(_fold(p) for p in valor.split() if p.strip())
 
 
+
+def buscar_valores(texto: str, valores):
+    """Coincidencias sin tilde ni diferencias de espacios, con offsets originales."""
+    if not valores:
+        return
+    letras, mapa = [], []
+    for palabra in re.finditer(r"\S+", texto):
+        if letras:
+            letras.append(" ")
+            mapa.append((mapa[-1][1], palabra.start()))
+        for i in range(palabra.start(), palabra.end()):
+            plegado = _fold(texto[i])
+            if not plegado and mapa:
+                mapa[-1] = (mapa[-1][0], i + 1)
+            for letra in plegado:
+                letras.append(letra)
+                mapa.append((i, i + 1))
+    normalizado = "".join(letras)
+    for valor in valores:
+        clave = normalizar_valor(valor)
+        if not clave:
+            continue
+        for hallazgo in re.finditer(r"(?<!\w)" + re.escape(clave) + r"(?!\w)", normalizado):
+            yield clave, mapa[hallazgo.start()][0], mapa[hallazgo.end() - 1][1]
+
+
 def _es_palabra_corte(word: str) -> bool:
     return word.casefold() in _PALABRAS_CORTE or _fold(word) in _PALABRAS_CORTE
 
@@ -689,16 +715,12 @@ def detectar(texto: str, estrategia: str = _ESTRATEGIA_DEFAULT,
     # 7. Decisiones del abogado: enmascarar valores no detectados.
     enmascarar_norm = {normalizar_valor(v): v for v in enmascarar_valores if v}
     conservar_norm = {normalizar_valor(v) for v in conservar_valores if v}
-    for valor_norm, valor_raw in enmascarar_norm.items():
-        for f in re.finditer(
-                r"(?<!\w)" + _SEP_NOMBRE.join(re.escape(w) for w in valor_raw.split())
-                + r"(?!\w)", norm, re.IGNORECASE | re.UNICODE):
-            ns, ne = f.span()
-            if ocupados.hay(ns, ne):
-                continue
-            crudo.append(_h(ns, ne, norm[ns:ne], "full_name", "persona", "high",
-                            "decision_abogado"))
-            ocupados.agregar(ns, ne)
+    for _, ns, ne in buscar_valores(norm, enmascarar_norm):
+        if ocupados.hay(ns, ne):
+            continue
+        crudo.append(_h(ns, ne, norm[ns:ne], "full_name", "persona", "high",
+                        "decision_abogado"))
+        ocupados.agregar(ns, ne)
 
     # 8. Sin solapes + conversión a offsets del original.
     juez_orig = _Ocupados([_a_original(mapa, s, e) for s, e in spans_juez])

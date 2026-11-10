@@ -16,7 +16,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dike_privacidad.detector import detectar, normalizar_valor
+from dike_privacidad.detector import detectar, normalizar_valor, buscar_valores
 
 _lock = threading.Lock()
 
@@ -149,20 +149,14 @@ def seudonimizar(dir_datos: Path, case_id: str, texto: str,
         # que el abogado marcó 'conservar'.
         conservados = {normalizar_valor(d["valor"])
                        for d in decisiones_doc.values() if d["accion"] == "conservar"}
-        import re as _re
-        for vn, entrada in mapa.items():
-            if vn in conservados:
+        for vn, inicio, fin in buscar_valores(texto, [vn for vn in mapa if vn not in conservados]):
+            if any(max(inicio, s) < min(fin, f) for s, f in cubiertos):
                 continue
-            patron = _re.compile(
-                r"(?<!\w)" + _re.escape(entrada["valor"]) + r"(?!\w)",
-                _re.IGNORECASE | _re.UNICODE)
-            for m in patron.finditer(texto):
-                if any(max(m.start(), s) < min(m.end(), f) for s, f in cubiertos):
-                    continue
-                sustituciones.append({"inicio": m.start(), "fin": m.end(),
-                                      "token": entrada["token"],
-                                      "tipo": entrada["tipo"]})
-                cubiertos.append(m.span())
+            entrada = mapa[vn]
+            sustituciones.append({"inicio": inicio, "fin": fin,
+                                  "token": entrada["token"],
+                                  "tipo": entrada["tipo"]})
+            cubiertos.append((inicio, fin))
 
         out = texto
         for s in sorted(sustituciones, key=lambda s: s["inicio"], reverse=True):

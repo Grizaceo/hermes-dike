@@ -73,8 +73,28 @@ def test_setting_con_ctx_devuelve_valor(mod, monkeypatch):
 def test_setting_sin_ctx_importerror_devuelve_default(mod, monkeypatch):
     monkeypatch.setattr(mod, '_CTX', None)
     monkeypatch.setitem(__import__('sys').modules, 'hermes_cli.config', None)
-    monkeypatch.setitem(__import__('sys').modules, 'hermes_cli.plugins_state', None)
     assert mod._setting('sandbox', 'auto') == 'auto'
+
+
+@pytest.mark.parametrize('config, esperado', [
+    ({'plugins': {'entries': {'dike': {'settings': {'sandbox': 'requerido'}}}}}, 'requerido'),
+    ({'plugins': {'entries': {'dike': {'settings': {}}}}}, 'auto'),
+    ({'plugins': {'entries': {'otro': {'settings': {'sandbox': 'requerido'}}}}}, 'auto'),
+    ({'plugins': {'entries': ['no', 'mapa']}}, 'auto'),
+    ({'plugins': None}, 'auto'),
+    (None, 'auto'),
+])
+def test_setting_sin_ctx_lee_la_config_publica(mod, monkeypatch, config, esperado):
+    """Sin ctx (dashboard) se lee plugins.entries.dike.settings con
+    hermes_cli.config, sin helpers privados de Hermes (regla 9 del catálogo)."""
+    import sys
+    import types
+    monkeypatch.setattr(mod, '_CTX', None)
+    monkeypatch.setitem(sys.modules, 'hermes_cli', types.ModuleType('hermes_cli'))
+    falso = types.ModuleType('hermes_cli.config')
+    falso.load_config_readonly = lambda: config
+    monkeypatch.setitem(sys.modules, 'hermes_cli.config', falso)
+    assert mod._setting('sandbox', 'auto') == esperado
 
 
 def test_politica_sandbox_solo_vacio_es_auto(mod, monkeypatch):

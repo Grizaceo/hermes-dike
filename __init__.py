@@ -281,10 +281,13 @@ def _setting(key, default=None):
         return _CTX.get_config(key, default)
     try:
         from hermes_cli.config import load_config_readonly
-        from hermes_cli.plugins_state import _plugin_settings_entry
     except ImportError:
         return default
-    entry = _plugin_settings_entry(load_config_readonly() or {}, "dike")
+    # Solo superficie pública (regla 9 del catálogo): la ruta se recorre aquí
+    # en vez de usar el helper privado de hermes_cli.plugins_state.
+    entry = load_config_readonly() or {}
+    for segmento in ("plugins", "entries", "dike"):
+        entry = entry.get(segmento) if isinstance(entry, dict) else None
     if isinstance(entry, dict):
         settings = entry.get("settings")
         if isinstance(settings, dict) and key in settings:

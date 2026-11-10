@@ -17,7 +17,13 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { mensajeError, rest, storage, S } from '../common.js'
+import {
+  cancelarTarea, mensajeError, programarTimeout, rest, storage, S,
+} from '../common.js'
+import {
+  borrarPendiente, escribirPendiente, guardarConReintento, leerPendiente,
+  pendienteDiff,
+} from './guardado-logica.js'
 import {
   borrarRangos, fijarMarcas, montarEditor, reemplazarRangos, textoDelEditor,
 } from './editor.js'
@@ -129,13 +135,6 @@ const HERRAMIENTAS_BARRA = [
   },
 ]
 
-function esConflicto(e) {
-  if (!e) return false
-  if (e.status === 409 || e.statusCode === 409) return true
-  if (e.detail && typeof e.detail === 'object' && 'rev_actual' in e.detail) return true
-  return /\b409\b|rev_actual/.test(String(e.message || e.detail || e.error || e))
-}
-
 // --- Panel de una cita en FALLO: probar → reparar → retirar → escalar ---------
 
 function AccionesFallo({ detalle, acciones, onAccion }) {
@@ -221,6 +220,13 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const infoDocRef = useRef({ texto: '', hash: null })
   const verificacionRef = useRef(null)
   const verificarRef = useRef(null)
+  // Guardado serializado: cada POST espera al anterior para que rev_base
+  // nunca quede obsoleto por una escritura en vuelo. revPorCaso guarda la
+  // revisión confirmada por caso (el editor solo muestra uno a la vez).
+  const colaGuardadoRef = useRef(Promise.resolve())
+  const revPorCasoRef = useRef({})
+  const cargaSeqRef = useRef(0)
+  const montadoRef = useRef(false)
 
   const [casos, setCasos] = useState(null)
   const [caseId, setCaseId] = useState(BORRADOR)
@@ -276,6 +282,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const actualizarInfoDoc = useCallback((ed) => {
     const texto = textoDelEditor(ed)
     sha256Hex(texto).then((hash) => {
+      if (!montadoRef.current) return
       const info = { texto, hash }
       infoDocRef.current = info
       setDocInfo(info)
@@ -283,47 +290,84 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   }, [])
 
   const programarInfoDoc = useCallback((ed) => {
-    clearTimeout(timerInfo.current)
-    timerInfo.current = setTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO)
+    cancelarTarea(timerInfo.current)
+    timerInfo.current = programarTimeout(() => actualizarInfoDoc(ed), DEBOUNCE_INFO)
   }, [actualizarInfoDoc])
 
   const estadoRef = useRef('cargando')
   estadoRef.current = estadoDoc
 
-  const guardar = useCallback(() => {
-    const ed = editorRef.current
-    clearTimeout(timerGuardado.current)
-    if (!ed || estadoRef.current === 'conflicto') return Promise.resolve()
-    setEstadoDoc('guardando')
-    const texto = textoDelEditor(ed)
-    return rest('/escrito', {
-      method: 'POST',
-      body: {
-        case_id: casoRef.current,
-        html: ed.getHTML(),
-        texto,
-        rev_base: revRef.current,
-        registro: registroRef.current,
-      },
-    }).then((resp) => {
-      revRef.current = resp.rev
-      textoGuardadoRef.current = texto
-      setEstadoDoc('guardado')
-    }).catch((e) => {
-      if (esConflicto(e)) {
-        setEstadoDoc('conflicto')
-        const d = e && e.detail
-        setConflictoRev(d && typeof d === 'object' ? d.rev_actual : null)
-      } else {
-        setEstadoDoc('sin-guardar')
-        setError(e)
+  // Ejecuta un guardado ya encolado. payload es una instantánea capturada al
+  // pedir el guardado (caso, html, texto, registro): no lee el editor, así el
+  // guardado de desmontaje sigue siendo correcto tras destruirlo.
+  const enviarGuardado = useCallback(async (payload) => {
+    const revDe = () => revPorCasoRef.current[payload.case_id] || 0
+    const r = await guardarConReintento(
+      (revBase) => rest('/escrito', {
+        method: 'POST',
+        body: {
+          case_id: payload.case_id,
+          html: payload.html,
+          texto: payload.texto,
+          rev_base: revBase === undefined ? revDe() : revBase,
+          registro: payload.registro,
+        },
+      }),
+      async () => {
+        const d = await rest('/escrito?case_id=' +
+          encodeURIComponent(payload.case_id))
+        const rev = d && typeof d.rev === 'number' ? d.rev : null
+        if (rev != null) revPorCasoRef.current[payload.case_id] = rev
+        return rev
+      })
+    const esActual = payload.case_id === casoRef.current
+    if (r.ok) {
+      const rev = r.resp && typeof r.resp.rev === 'number' ? r.resp.rev : revDe()
+      revPorCasoRef.current[payload.case_id] = rev
+      // El guardado quedó en el servidor: cualquier pendiente de ese caso
+      // (incluso de una sesión anterior) ya no hace falta.
+      borrarPendiente(payload.case_id)
+      if (esActual) {
+        revRef.current = rev
+        textoGuardadoRef.current = payload.texto
+        if (montadoRef.current) setEstadoDoc('guardado')
       }
-    })
+      return
+    }
+    // Falló: guardar la instantánea para que el próximo montaje la recupere.
+    escribirPendiente(payload)
+    if (!montadoRef.current || !esActual) return
+    if (r.conflicto) {
+      setEstadoDoc('conflicto')
+      setConflictoRev(r.rev_actual != null ? r.rev_actual : null)
+    } else {
+      setEstadoDoc('sin-guardar')
+      setError(r.error)
+    }
   }, [])
 
+  const guardar = useCallback(() => {
+    cancelarTarea(timerGuardado.current)
+    const ed = editorRef.current
+    if (!ed || estadoRef.current === 'conflicto') return Promise.resolve()
+    // El guardado es del caso visible (casoRef): reflejar «guardando» solo
+    // si el componente sigue montado.
+    if (montadoRef.current) setEstadoDoc('guardando')
+    const payload = {
+      case_id: casoRef.current,
+      html: ed.getHTML(),
+      texto: textoDelEditor(ed),
+      registro: registroRef.current,
+    }
+    const promesa = colaGuardadoRef.current
+      .then(() => enviarGuardado(payload))
+    colaGuardadoRef.current = promesa.catch(() => {})
+    return promesa
+  }, [enviarGuardado])
+
   const programarGuardado = useCallback(() => {
-    clearTimeout(timerGuardado.current)
-    timerGuardado.current = setTimeout(() => { guardar() }, DEBOUNCE_GUARDADO)
+    cancelarTarea(timerGuardado.current)
+    timerGuardado.current = programarTimeout(() => { guardar() }, DEBOUNCE_GUARDADO)
   }, [guardar])
 
   // Sincronizar cambios en registro (privacidad, pizarra, predicción, NIF)
@@ -356,9 +400,11 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       ],
     }
     setRegistro(registroRef.current)
-    estadoRef.current = 'sin-guardar'
-    setEstadoDoc('sin-guardar')
-    programarGuardado()
+    if (estadoRef.current !== 'conflicto') {
+      estadoRef.current = 'sin-guardar'
+      setEstadoDoc('sin-guardar')
+      programarGuardado()
+    }
     setAviso('Cita traída desde la búsqueda: es una pista; se está verificando.')
     if (verificarRef.current) verificarRef.current()
   }, [programarGuardado])
@@ -366,6 +412,10 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const cargarEscrito = useCallback((cid) => {
     const ed = editorRef.current
     if (!ed) return
+    // Guardia de secuencia (como pizarra.js): si el usuario cambió de caso
+    // antes de que respondiera la carga anterior, la respuesta vieja se
+    // descarta — el editor nunca muestra un caso que no es el seleccionado.
+    const seq = ++cargaSeqRef.current
     setEstadoDoc('cargando')
     setError(null)
     setAviso(null)
@@ -373,20 +423,43 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     setAcciones({})
     setConflictoRev(null)
     rest('/escrito?case_id=' + encodeURIComponent(cid)).then((d) => {
+      // Además de la secuencia hace falta el montaje: si el componente se
+      // fue (otra pestaña) con la carga en vuelo, `ed` ya está destruido y
+      // setContent/estado no deben tocarlo.
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return
       casoRef.current = cid
-      if (d && d.existe) {
-        ed.commands.setContent(d.html || d.texto || '')
-        revRef.current = d.rev
-        registroRef.current = d.registro || {}
-      } else {
-        ed.commands.setContent('')
-        revRef.current = 0
-        registroRef.current = {}
-      }
+      const rev = d && typeof d.rev === 'number' ? d.rev : 0
+      revPorCasoRef.current[cid] = rev
+      revRef.current = rev
+      const htmlServidor = (d && d.existe) ? (d.html || d.texto || '') : ''
+      const registroServidor = (d && d.existe && d.registro) || {}
+      ed.commands.setContent(htmlServidor)
+      registroRef.current = registroServidor
       textoGuardadoRef.current = textoDelEditor(ed)
       setRegistro(registroRef.current)
-      setEstadoDoc('guardado')
+
+      // Guardado que falló al desmontar: si la instantánea difiere de lo que
+      // trajo el servidor, restaurarla y reintentar el guardado.
+      const pend = leerPendiente(cid)
+      const restaura = pend && pendienteDiff(pend, {
+        texto: textoGuardadoRef.current,
+        html: htmlServidor,
+        registro: registroRef.current,
+      })
+      if (pend && !restaura) borrarPendiente(cid)
+      if (restaura) {
+        ed.commands.setContent(pend.html || '')
+        registroRef.current = pend.registro || {}
+        setRegistro(registroRef.current)
+        estadoRef.current = 'sin-guardar'
+        setEstadoDoc('sin-guardar')
+        setAviso('Recuperé cambios que no se habían guardado; reintentando el guardado.')
+        programarGuardado()
+      } else {
+        setEstadoDoc('guardado')
+      }
       actualizarInfoDoc(ed)
+
       const pendientes = tomarCitas()
       if (pendientes.length) {
         const ahora = new Date().toISOString()
@@ -413,16 +486,21 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         if (verificarRef.current) verificarRef.current()
       }
     }).catch((e) => {
+      if (seq !== cargaSeqRef.current || !montadoRef.current) return
       setEstadoDoc('sin-guardar')
       setError(e)
     })
   }, [actualizarInfoDoc, programarGuardado])
 
   const recargarListaCasos = useCallback((seleccionarId = null) => {
+    // El encadenamiento «recargar y seleccionar» solo corre si nadie pidió
+    // otra carga de escrito entretanto: una respuesta tardía de /nif/casos no
+    // puede robarle el editor al caso que el usuario acaba de elegir.
+    const seq = cargaSeqRef.current
     return rest('/nif/casos').then((d) => {
       const lista = (d && d.cases) || []
       setCasos(lista)
-      if (seleccionarId) {
+      if (seleccionarId && cargaSeqRef.current === seq) {
         setCaseId(seleccionarId)
         cargarEscrito(seleccionarId)
       }
@@ -459,6 +537,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       },
     })
     editorRef.current = ed
+    montadoRef.current = true
     rest('/nif/casos').then((d) => {
       const lista = (d && d.cases) || []
       setCasos(lista)
@@ -474,8 +553,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       cargarEscrito(BORRADOR)
     })
     return () => {
-      clearTimeout(timerGuardado.current)
-      clearTimeout(timerInfo.current)
+      montadoRef.current = false
+      cancelarTarea(timerGuardado.current)
+      cancelarTarea(timerInfo.current)
       // Al desmontar (otra pestaña, Grafo 3D) el debounce pendiente se pierde:
       // volcar los cambios de registro/documento antes de destruir el editor.
       if (estadoRef.current === 'sin-guardar') {
@@ -538,7 +618,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   verificarRef.current = verificar
 
   const cambiarCaso = useCallback((cid) => {
-    clearTimeout(timerGuardado.current)
+    cancelarTarea(timerGuardado.current)
     const continuar = () => {
       setCaseId(cid)
       cargarEscrito(cid)
@@ -572,6 +652,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     const ed = editorRef.current
     if (!ed) return
     rest('/escrito/demo').then((d) => {
+      if (!montadoRef.current) return
       if (d && (d.html || d.texto)) {
         ed.commands.setContent(d.html || d.texto)
         setAviso('Escrito sintético de demostración cargado. Pulsa «Verificar citas» para probar el motor.')
@@ -616,6 +697,9 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   }, [actualizarRegistro])
 
   const recargarTrasConflicto = useCallback(() => {
+    // «Descartar mis cambios» también descarta la instantánea pendiente:
+    // si no, la próxima carga la restauraría y el conflicto volvería.
+    borrarPendiente(casoRef.current)
     cargarEscrito(casoRef.current)
   }, [cargarEscrito])
 

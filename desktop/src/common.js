@@ -68,3 +68,30 @@ export const S = {
 export function mensajeError(e) {
   return (e && (e.message || e.detail || e.error)) || String(e)
 }
+
+// Temporizadores con ámbito del plugin: ctx.setTimeout/setInterval del SDK se
+// cancelan solos al descargar el plugin; sin ctx caen a los globales del
+// navegador. Cada programar* devuelve una función cancel(); los sitios que
+// antes guardaban el id numérico ahora guardan esa función y la llaman con
+// cancelarTarea (idempotente).
+let _timeout = (fn, ms) => {
+  const id = setTimeout(fn, ms)
+  return () => clearTimeout(id)
+}
+let _interval = (fn, ms) => {
+  const id = setInterval(fn, ms)
+  return () => clearInterval(id)
+}
+
+export function setTimers(ctx) {
+  if (ctx && typeof ctx.setTimeout === 'function') {
+    _timeout = (fn, ms) => ctx.setTimeout(fn, ms)
+  }
+  if (ctx && typeof ctx.setInterval === 'function') {
+    _interval = (fn, ms) => ctx.setInterval(fn, ms)
+  }
+}
+
+export function programarTimeout(fn, ms) { return _timeout(fn, ms) }
+export function programarInterval(fn, ms) { return _interval(fn, ms) }
+export function cancelarTarea(t) { if (typeof t === 'function') t() }

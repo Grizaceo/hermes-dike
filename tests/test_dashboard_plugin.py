@@ -509,6 +509,35 @@ def test_desktop_bundle_imports_permitidos():
     assert proc.returncode == 0, proc.stderr
 
 
+def _js_publicados_desktop():
+    """Los .js de desktop/ que viajan con el plugin: los versionados en git, o
+    sin git todo desktop/ salvo node_modules y los dist del arnés."""
+    try:
+        rutas = subprocess.run(
+            ['git', 'ls-files', 'desktop'], cwd=ROOT, capture_output=True,
+            text=True, timeout=30, check=True).stdout.split()
+        archivos = [ROOT / r for r in rutas]
+    except (OSError, subprocess.SubprocessError):
+        archivos = [p for p in DESKTOP.rglob('*.js')
+                    if 'node_modules' not in p.parts and 'dist' not in p.parts]
+    return [p for p in archivos if p.suffix == '.js' and p.is_file()]
+
+
+def test_desktop_pasa_el_lint_de_superficie_de_hermes():
+    """`hermes plugins validate` lintea todo .js bajo desktop/, también src/ y
+    dev/: un import con forma de esquema ('x:…') en la fuente basta para que
+    falle el check «desktop surface», aunque el bundle esté limpio."""
+    lint = pytest.importorskip('hermes_cli.plugin_validate_desktop')
+    hallazgos = []
+    for js in _js_publicados_desktop():
+        rel = js.relative_to(ROOT).as_posix()
+        if lint.is_desktop_surface(rel):
+            fuente = js.read_text(encoding='utf-8-sig')
+            hallazgos += [f'{regla} ({rel}:{linea})'
+                          for regla, linea in lint.desktop_surface_findings(fuente)]
+    assert not hallazgos, hallazgos
+
+
 @pytest.mark.skipif(NODE is None, reason='node no está en PATH')
 def test_sintaxis_js(tmp_path):
     web = tmp_path / 'index.cjs'

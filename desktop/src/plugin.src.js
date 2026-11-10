@@ -12,7 +12,7 @@
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
-import ESTILOS from 'dike:estilos'
+import ESTILOS from '#dike-estilos'
 import { mensajeError, programarTimeout, rest, setRest, setStorage, setTimers, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'

@@ -39,11 +39,13 @@ export async function generarEstilos() {
   return css.replace(':root, :host', '.dike-raiz')
 }
 
-// Plugin de esbuild: `import ESTILOS from 'dike:estilos'` es la hoja como texto.
+// Plugin de esbuild: `import ESTILOS from '#dike-estilos'` es la hoja como texto.
+// El especificador no lleva «:» a propósito: `hermes plugins validate` rechaza
+// todo import con forma de esquema de URL (`x:`) en desktop/, también en src/.
 export const estilosPlugin = {
   name: 'dike-estilos',
   setup(build) {
-    build.onResolve({ filter: /^dike:estilos$/ }, () => ({ path: 'estilos', namespace: 'dike' }))
+    build.onResolve({ filter: /^#dike-estilos$/ }, () => ({ path: 'estilos', namespace: 'dike' }))
     build.onLoad({ filter: /.*/, namespace: 'dike' }, async () => ({
       contents: await generarEstilos(), loader: 'text',
     }))

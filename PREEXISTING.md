@@ -53,3 +53,126 @@ Changes to the adapter's code during the hackathon:
     copied by the app to `~/.hermes/desktop-plugins/dike/` and opt-in under
     Capabilities → Plugins;
   - none of this changes the adapter, the tool or the command.
+- After publishing, for version 0.5.0, same authorship and review:
+  - `scripts/panel.py`, a JSON driver that runs inside the same isolated
+    subprocess and reuses the vendored engine's own modules:
+    `lexo_cli.nif_studio.service` for versioned NIF case boards,
+    `lexo_cli.pichanga` for the personal review graph, and
+    `lexo_cli.starter.userconfig` for workspace resolution;
+  - `/nif/*` and `/grafo/*` routes in `plugin_api.py` that validate inputs
+    (case ids, editable field paths, integer gap indexes, booleans,
+    numeric confidence and Ley Chile codes) before reaching the driver,
+    redact local paths from engine errors, and read the sealed corpus only
+    after `_asegurar_corpus` verifies the installed generation;
+  - the Dashboard tab and Desktop page extended with the NIF case board
+    (list, seed, snapshot, patch-attributed edits, gap filling, human
+    validation, confidence) and the graph views (sealed corpus map with
+    per-norm articles, personal GRE candidates);
+  - NIF case data lives under `plugin-data/dike/users/`, outside the
+    sealed corpus generation, so board writes never affect the integrity
+    check the citation verifier runs;
+  - none of this changes the adapter, the tool or the command.
+- After publishing, for version 0.7.0 (Devin, Claude Opus 5.5; reviewed by
+  the maintainer before merge):
+  - the Desktop page opens on a **Case Writer** (`desktop/src/escritor/`):
+    a Tiptap editor saved per case through `/escrito`, the citation check
+    as a module (prove, repair, withdraw with a reason, escalate);
+  - a privacy module (`privacidad/` and `/privacidad/*`) **ported, not
+    new**: patterns and strategies from `dpp-ai-compliance-lab`, name and
+    judge rules from `graph-legal-ir`, the RIT/RUC/ROL whitelist and
+    check-digit validation from `lexo-case-writer`, the title pass from
+    `dike-desk`; provenance in `VENDORED.json`;
+  - a chat about the brief served by a Hermes profile with two hooks
+    (`escritor/hooks.py`: `pre_llm_call`, `pre_tool_call`) that act only on
+    sessions carrying the `<dike-escritor v="1">` envelope;
+  - NIF proposals through `llm.oneshot` that enter the case board only
+    through `/nif/edit` after the lawyer accepts them;
+  - a predictor architecture, off by default, whose deterministic layer is
+    ported from `lexo-case-writer`, plus `/prediccion/corpus`;
+  - the tool, the command and the vendored engine are unchanged.
+- After publishing, for version 0.6.0 (Devin, Claude Opus 5.5):
+  - the 3D graph of the sealed corpus on the Desktop page (`/grafo/red` and
+    related read-only routes), with minimal normative units and their
+    rule-based deontic labels;
+  - `scripts/construir_red_local.py`, an optional builder for a local graph
+    layer from the user's own anonymized database; nothing it produces
+    ships with the plugin.
+- After publishing, for version 0.8.0 (Devin, Claude Opus 5.5):
+  - content search over the sealed corpus (`/grafo/buscar`, the engine's
+    deterministic BM25 retriever) and "Llevar al escrito", which carries a
+    result into the brief only through the verifier;
+  - the matter tree in `data/arbol/` and `scripts/canal_arbol.py`, **ported,
+    not new** (the script from `indexo-retriever-prod`); it explains a
+    query, it does not reorder results;
+  - stricter privacy rules (names without context in the strict strategy);
+  - `ordenamiento/`, `scripts/ordenamiento.py` and the `dike-ordenamiento`
+    skill: legal-system profiles and pack validation, a generalized port of
+    `construir_paquete_normas.py` from Grizaceo/dike `885ca85`.
+- After publishing, for version 0.8.1 (Claude Code, Claude Opus 5.5), from a
+  review written as a judge would: the adapter no longer certifies a
+  citation whose text names two different statutes, and refuses input with
+  invisible control characters; the Case Writer chat can no longer read
+  files through the tool, never runs a turn without its instructions, and
+  can find the tool when it is deferred; plus the README, these documents
+  and `claims.json`. The engine is unchanged.
+- On the `agent/devin/grafo-sandbox-terceros` branch, toward 0.9.0: the
+  engine and panel run inside bubblewrap with a declared degraded mode; the
+  chat picks its profile from `perfil_chat` or the active profile (no
+  hardcoded default); `.docx` is read with the standard library only; the
+  chat's article claims carry footnotes that open the exact graph node; two
+  read-only corpus tools (`dike_leer_articulo`, `dike_buscar_corpus`) were
+  added; and corpus relocation self-heals by re-hash. All engine code stays
+  vendored and hash-locked.
+- For version 0.10.0, from two audits (Codex, gpt-6.1-sol, on the Python
+  side; Devin, swe-2-flash-max, on the two interfaces) directed and
+  integrated by Claude Code (Claude Fable 5.2):
+  - an engine server (`scripts/motor_servidor.py`, `aislamiento.consultar`):
+    the engine verifies the corpus once per session instead of once per
+    call, so a check after the first takes under a second instead of about
+    eleven;
+  - fixes from the Python audit: a masking decision survives a change of
+    accents or spacing; the `.docx` reader, now in `lector_docx.py`, rejects
+    entity declarations in any encoding and bounds tables before expanding
+    them; duplicate legal identities are rejected when building a pack;
+    profile validation enforces types; profile references cannot read
+    outside the plugin; prediction no longer puts words of the brief in a
+    URL; wrong field types answer 400 instead of 500; preferences are merged
+    under their lock;
+  - the tests renamed by topic, with one shared corpus install per session;
+  - fixes from the interface audit: a case-switch race that could save a
+    brief under another case, saves lost when leaving the tab, stale results
+    applied after newer ones, citations inserted at the cursor;
+  - the Desktop page carries its own stylesheet (the app only compiles the
+    style classes its own code uses, so much of the page was unstyled inside
+    the app) and one visual system on the app's theme tokens, light and dark;
+  - English as the canonical language of everything the plugin says, with
+    Spanish as an option: the Desktop page, the dashboard tab, the slash
+    commands, the adapter's messages and the HTTP errors (Codex finished the
+    interfaces' translation, labelled the engine codes and stopped the panels
+    re-rendering on every keystroke);
+  - the engine is unchanged.
+
+## Ported from earlier projects
+
+Some modules were not written during the hackathon but ported from earlier
+projects that are not published. Those sources are private and are not
+reproducible by third parties; `VENDORED.json` (`ported`) records, for
+each one, the source, the commit or working-tree state, the license it
+declares, the files it came from, and marks each private source with
+`acceso` = "fuente privada, no reproducible por terceros".
+
+| Module in this plugin | Ported from | Recorded state |
+|---|---|---|
+| `privacidad/` (detector and stable pseudonyms) | `dpp-ai-compliance-lab`, `graph-legal-ir`, `lexo-case-writer`, `dike-desk` | working trees over `0d1e386` and `fe283d6`; commits `7c13a89` and `e3348d2` |
+| `desktop/src/escritor/prediccion/l0.js` | `lexo-case-writer` | commit `7c13a89` |
+| `scripts/canal_arbol.py` | `indexo-retriever-prod` | commit `32a0d86` |
+| `data/arbol/` (matter tree and lexicon, data) | not recorded | not recorded |
+| `ordenamiento/` | [Grizaceo/dike](https://github.com/Grizaceo/dike) `scripts/construir_paquete_normas.py` | commit `885ca85` (2026-11-07, during the hackathon) |
+
+Two of those sources carry no license file (`graph-legal-ir`, whose author
+is Grizaceo, and the matter-tree data), and two were ported from
+uncommitted working trees. The maintainer states their authorship and
+license below.
+
+- **Authorship and license of the ported sources:** _to be completed by the
+  maintainer._

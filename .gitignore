@@ -13,3 +13,6 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Build del plugin Desktop (node)
+desktop/node_modules/

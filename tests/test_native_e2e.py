@@ -1,6 +1,7 @@
 """Real engine, private plugin data, no productive home, no signing."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,11 +12,11 @@ ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope='module')
-def real(tmp_path_factory):
+def privado(corpus_privado):
     spec = importlib.util.spec_from_file_location('native_real', ROOT / '__init__.py')
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
-    data = tmp_path_factory.mktemp('native-data')
+    data = corpus_privado
     m._carpeta_de_datos = lambda: data
     before = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
     text = (ROOT / 'tests/fixtures/escrito_demo.md').read_text()
@@ -24,6 +25,17 @@ def real(tmp_path_factory):
     after = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
     assert before == after
     return m, data, first, second
+
+
+@pytest.fixture(scope='module')
+def real(adaptador_real):
+    before = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
+    text = (ROOT / 'tests/fixtures/escrito_demo.md').read_text()
+    first = json.loads(adaptador_real.verificar_citas({'texto': text}))
+    second = json.loads(adaptador_real.verificar_citas({'texto': text}))
+    after = {k for k in sys.modules if k == 'lexo_cli' or k.startswith('lexo_cli.')}
+    assert before == after
+    return adaptador_real, adaptador_real._carpeta_de_datos(), first, second
 
 
 def test_demo_real_cold_and_warm(real):
@@ -37,8 +49,8 @@ def test_demo_real_cold_and_warm(real):
         assert result['problemas']
 
 
-def test_installed_tamper_fails_closed(real):
-    m, data, _, _ = real
+def test_installed_tamper_fails_closed(privado):
+    m, data, _, _ = privado
     files = list((data / 'generations').glob('*/users/**/*'))
     victim = next(p for p in files if p.is_file() and p.suffix == '.json')
     original = victim.read_bytes()
@@ -49,6 +61,66 @@ def test_installed_tamper_fails_closed(real):
         assert result['todo_verificado'] is False
     finally:
         victim.write_bytes(original)
+
+
+def test_tamper_que_conserva_tamano_y_fecha_es_error_de_integridad(privado):
+    """Un byte cambiado con tamaño y fecha intactos pasa el chequeo por stat.
+
+    Mientras el motor en caliente sigue vivo, responde desde la copia que ya
+    verificó en memoria: la cita sale con el mismo hash de antes, nunca con el
+    texto cambiado. Cuando el motor vuelve a arrancar revalida el disco, no
+    reconoce el corpus, y el adaptador lo informa como corrupción en vez de
+    «no hay corpus».
+    """
+    m, data, _, _ = privado
+    # Una llamada limpia deja el registro y la caché del proceso al día.
+    limpio = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+    assert limpio.get('veredicto') == 'TODAS_VERIFICADAS', limpio
+    victim = next((data / 'generations').glob(
+        '*/users/*/starter/*/snapshots/*/articulos/articulo_207436_art_0161.json'))
+    original = victim.read_bytes()
+    info = victim.stat()
+    inicio = original.index(b'"', original.index(b'"text"') + len(b'"text"') + 1) + 1
+    i = next(j for j in range(inicio, len(original)) if chr(original[j]).isascii() and chr(original[j]).isalpha())
+    cambiado = original[:i] + bytes([original[i] ^ 0x20]) + original[i + 1:]
+    try:
+        victim.write_bytes(cambiado)
+        os.utime(victim, ns=(info.st_atime_ns, info.st_mtime_ns))
+        assert victim.stat().st_size == info.st_size
+        en_memoria = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+        assert en_memoria.get('veredicto') == 'TODAS_VERIFICADAS', en_memoria
+        assert en_memoria['detalles'][0]['texto_hash'] == limpio['detalles'][0]['texto_hash']
+        m._aislamiento().cerrar_servidores()
+        result = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+        assert result.get('error_code') == 'CORPUS_INTEGRITY_ERROR', result
+        assert result['todo_verificado'] is False
+    finally:
+        victim.write_bytes(original)
+        os.utime(victim, ns=(info.st_atime_ns, info.st_mtime_ns))
+    again = json.loads(m.verificar_citas({'texto': 'artículo 161 del Código del Trabajo'}))
+    assert again.get('veredicto') == 'TODAS_VERIFICADAS', again
+
+
+def test_cuerpo_de_la_linea_anterior_no_certifica_otra_norma(real):
+    """El motor pegaba «Código del Trabajo» a la cita siguiente si la línea no
+    terminaba en punto: «artículo 161 del Código Civil» salía VERIFICADA como
+    cl.norma.ct:art:0161. Ninguna cita que nombre el Código Civil puede
+    certificarse con un gid de otra norma."""
+    texto = 'artículo 161 del Código del Trabajo\nartículo 161 del Código Civil'
+    result = json.loads(real[0].verificar_citas({'texto': texto}))
+    civil = [d for d in result['detalles'] if 'Código Civil' in d['cita_raw']]
+    assert civil, result
+    for detail in civil:
+        if detail['estado'] == 'VERIFICADA':
+            assert detail['gid'].startswith('cl.norma.cc:'), detail
+    assert result['todo_verificado'] is False
+
+
+def test_cuerpos_separados_por_punto_siguen_verificando(real):
+    texto = 'artículo 161 del Código del Trabajo.\nartículo 161 del Código Civil.'
+    result = json.loads(real[0].verificar_citas({'texto': texto}))
+    gids = sorted(d['gid'] for d in result['detalles'] if d['estado'] == 'VERIFICADA')
+    assert gids == ['cl.norma.cc:art:0161', 'cl.norma.ct:art:0161'], result
 
 
 def test_vendored_engine_matches_manifest():
@@ -71,7 +143,7 @@ def test_real_verified_article_with_unverified_mention(real):
     assert result['todas_citas_detectadas_verificadas'] is True
     assert result['todo_verificado'] is False
     assert 'Ley 99.999' in result['no_verificadas']
-    assert 'detectadas' in result['mensaje']
+    assert result['mensaje'] == real[0]._t('summary.verified')
     assert result['certificacion_vigencia_actual'] is False
     assert result['evidencia_temporal'][0]['antiguedad_dias'] >= 0
 

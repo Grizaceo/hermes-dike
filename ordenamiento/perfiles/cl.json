@@ -1,0 +1,79 @@
+{
+  "formato": "dike-perfil-ordenamiento-v1",
+  "perfil": "cl",
+  "perfilVersion": "1.0.0",
+  "nucleoVersion": "1.0.0",
+  "nombre": "Chile",
+  "identidad": {
+    "jurisdiccion": "cl",
+    "subdivision": null,
+    "idiomas": ["es"],
+    "fuentesOficiales": [
+      {
+        "id": "bcn",
+        "nombre": "Ley Chile – Biblioteca del Congreso Nacional",
+        "url": "https://www.bcn.cl/leychile",
+        "atribucion": "Ley Chile – Biblioteca del Congreso Nacional",
+        "idLocal": "leychileCode",
+        "licenciaTextos": "outside-copyright-per-BCN-section-9",
+        "usoIA": "El entrenamiento o ajuste de modelos con componentes obtenidos de BCN requiere autorización expresa de la BCN."
+      }
+    ]
+  },
+  "normas": {
+    "tipos": [
+      {"codigo": "constitucion", "nombre": "Constitución", "nivel": 1},
+      {"codigo": "codigo", "nombre": "Código", "nivel": 2},
+      {"codigo": "ley", "nombre": "Ley", "nivel": 2},
+      {"codigo": "decreto-ley", "nombre": "Decreto ley", "nivel": 2}
+    ],
+    "niveles": [
+      {"nivel": 1, "nombre": "Constitucional", "mapeaA": "nucleo:NivelConstitucional"},
+      {"nivel": 2, "nombre": "Legal", "mapeaA": "nucleo:NivelLegal"},
+      {"nivel": 3, "nombre": "Reglamentario", "mapeaA": "nucleo:NivelReglamentario"},
+      {"nivel": 4, "nombre": "Administrativo", "mapeaA": "nucleo:NivelAdministrativo"}
+    ],
+    "unidades": [
+      {"nombreLocal": "artículo", "codigo": "art"},
+      {"nombreLocal": "inciso", "codigo": "inc"},
+      {"nombreLocal": "numeral", "codigo": "num"},
+      {"nombreLocal": "literal", "codigo": "lit"},
+      {"nombreLocal": "libro", "codigo": "lib"},
+      {"nombreLocal": "título", "codigo": "tit"},
+      {"nombreLocal": "capítulo", "codigo": "cap"},
+      {"nombreLocal": "párrafo", "codigo": "par"},
+      {"nombreLocal": "sección", "codigo": "sec"},
+      {"nombreLocal": "división", "codigo": "div"}
+    ],
+    "patronArticulo": "^Art[íi]culo\\s+(\\d+)",
+    "acunacion": {
+      "plantillaNorma": "eli/{jur}/{tipo}/{numero}/{anio}",
+      "plantillaUnidad": "{norma}/{eId}",
+      "plantillaVigencia": "{recurso}/vigencia",
+      "reglaArista": "legada-lexo-cl"
+    },
+    "reglaAnio": "publicacion",
+    "excepciones": [
+      {"idLocal": "1058072", "campo": "anio", "valor": 2013, "motivo": "el pack sellado usa el año de promulgación (2013-12-30); se publicó el 2014-01-09"},
+      {"idLocal": "207436", "campo": "anio", "valor": 2002, "motivo": "el pack sellado usa el año de promulgación (2002-07-31); se publicó el 2003-01-16"},
+      {"idLocal": "172986", "campo": "anio", "valor": 1900, "motivo": "valor heredado sin regla conocida (el DFL 1 se publicó el 2000-05-30); se conserva para no reescribir el pack sellado"}
+    ]
+  },
+  "extensiones": [
+    {"termino": "leychileCode", "mapeaA": "idFuente", "relacion": "equivalente", "nota": "id de la norma en Ley Chile; en Article repite el id de la norma contenedora"},
+    {"termino": "bcnIdParte", "mapeaA": "idFuenteUnidad", "relacion": "equivalente", "nota": "id de la parte (artículo) en el servicio de navegación de Ley Chile"},
+    {"termino": "bcnNotes", "mapeaA": "notasFuente", "relacion": "equivalente", "nota": "notas de la fuente oficial adjuntas al artículo"},
+    {"termino": "bcnVersion", "mapeaA": "versionDate", "relacion": "relacionado", "nota": "fecha de la versión consolidada BCN del artículo; no es la fecha de la obra"}
+  ],
+  "formatosReconocidos": ["lexo-starter-graph-v1", "dike-ordenamiento-pack-v1"],
+  "vigencia": {
+    "estados": ["VIGENTE", "DEROGADA", "FUTURA", "ULTRAACTIVA", "DESCONOCIDA"],
+    "desconocidaPermitida": true
+  },
+  "privacidad": {"paquete": "cl"},
+  "referencias": {
+    "materias": {"ruta": "motor/lexo_cli/starter/materias_catalog.v1.json", "sha256": "b364f6a9680885b1eed2c53f45c9cb97090c0ba8e03e07d3edb2f56dcd8fc607"},
+    "aliasCitas": {"ruta": "motor/lexo_cli/starter/normative_aliases.v1.json", "sha256": "f190056288d9044ab63ab8cce3ebfba0473ff272cf089b7a108543b68e61e85e", "nota": "Los patrones de cita están fijos en motor/lexo_cli/starter/norm_reference.py:94 hasta F9."},
+    "tribunales": {"ruta": "motor/dike_id/_generated/registries/courts.json", "sha256": "8780ec45307845c97325b0d53d56d21936058b7e659332c28b846336c9d62e99"}
+  }
+}

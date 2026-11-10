@@ -96,5 +96,186 @@
     "motor/shared/schemas/nif_patch.py": "f2a5ad8cda2d968d6b41baf953e1da02ca6c12b951db827974c48115e111f717",
     "motor/shared/schemas/normative_interaction_frame.v1.json": "752529e199fddeac89ce87b068f0b95099a7476f05da84d8a2c4bb092480bd7a",
     "motor/shared/schemas/validation_contracts.py": "207ba3f288810254dc1c64e656aa1184b90b8c282aabff12c00c2f764a947486"
+  },
+  "ported": {
+    "privacidad/": {
+      "descripcion": "Detector de datos personales + seudónimos estables (F2a). Código portado, no importado.",
+      "fuentes": [
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/dpp-ai-compliance-lab",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "commit": "working tree sin commit sobre 0d1e386 (el comportamiento portado es el del árbol de trabajo; 0d1e386 da F1 0.8078 en el mismo goldset)",
+          "licencia": "MIT declarada en pyproject.toml (el repo no tiene archivo LICENSE)",
+          "sha256_origen": {
+            "src/dpp_ai_compliance_lab/patterns.py": "2355dfc7004cf81a6a5d0b9a2041382973926bcbaa3d8ea27e72ed214d013360",
+            "src/dpp_ai_compliance_lab/anonimiza_server.py": "743cafa1d0eb4fa04e1b33de3dc57e21f580b6f154eca69e477027c7a0d10cd1",
+            "scripts/run_benchmark.py": "16fa0ab88a987947c1dd363d6e4a61f40bd0e1f2d5b7e121b4cac5f245f2ff8d",
+            "data/goldset/chilean_pii_goldset_v0.3.0.jsonl": "fead3cf42aaade1a9f48cc7d5526494bb051f95ba4eb46d83d5b87585800180d"
+          },
+          "nota": "el goldset v0.3.0 está sin trackear en dpp (viene del árbol de trabajo)",
+          "archivos_origen": [
+            "src/dpp_ai_compliance_lab/patterns.py",
+            "src/dpp_ai_compliance_lab/anonimiza_server.py",
+            "scripts/run_benchmark.py",
+            "data/goldset/chilean_pii_goldset_v0.3.0.jsonl"
+          ],
+          "archivos_destino": [
+            "privacidad/patrones.py",
+            "privacidad/detector.py",
+            "tests/fixtures/privacidad/goldset_sintetico.jsonl"
+          ]
+        },
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/graph-legal-ir/graph-legal-ir",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "commit": "working tree sin commit sobre fe283d6; sha256 de pii.py = bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc",
+          "licencia": "sin archivo LICENSE en el repo origen (autor: Grizaceo)",
+          "sha256_origen": {
+            "src/gnn_ambiental/privacy/pii.py": "bd557d998a13b6aab73966d2fbca48377356b3de863f533642b2bf5a55af04bc"
+          },
+          "archivos_origen": [
+            "src/gnn_ambiental/privacy/pii.py"
+          ],
+          "archivos_destino": [
+            "privacidad/detector.py"
+          ]
+        },
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "commit": "7c13a89",
+          "licencia": "MIT",
+          "sha256_origen": {
+            "src/lib/piiMask.ts": "d1cf46b7041bf44cdee42cb881305396289129930f9c76c491b12b10863c5890",
+            "src/lib/piiMask.goldset.ts": "421faa3831cb0e40c944826902548b58f5a52f3352bb02122e4b483408dc105a",
+            "src/lib/nombresPila.ts": "ec1dc6bc3b648db05896db6b25aebda420c15b9d0c015a2df2a26179acb461bd"
+          },
+          "archivos_origen": [
+            "src/lib/piiMask.ts",
+            "src/lib/piiMask.goldset.ts",
+            "src/lib/nombresPila.ts"
+          ],
+          "archivos_destino": [
+            "privacidad/patrones.py",
+            "privacidad/detector.py",
+            "privacidad/nombres_pila.py",
+            "tests/fixtures/privacidad/piimask_goldset.py"
+          ]
+        },
+        {
+          "repo": "~/dike-desk",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "commit": "e3348d2",
+          "licencia": "MIT",
+          "sha256_origen": {
+            "scripts/legal-pack/residual-mask.ts": "118d595eac6c7c61d4413e0e9456d58778ff45f5d450d72fbf090d7e7213722f"
+          },
+          "archivos_origen": [
+            "scripts/legal-pack/residual-mask.ts"
+          ],
+          "archivos_destino": [
+            "privacidad/detector.py"
+          ]
+        }
+      ]
+    },
+    "desktop/src/escritor/prediccion/l0.js": {
+      "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/lexo-case-writer",
+      "acceso": "fuente privada, no reproducible por terceros",
+      "commit": "7c13a89",
+      "archivos_origen": [
+        "src/lib/legalCopilot.ts"
+      ],
+      "licencia": "MIT",
+      "que": "FORMALISMO (13 encabezados) + ACCIONES (38 acciones del numerus clausus) verbatim; predictFormalismo, predictContenidoJuridico, segmentoActual, sufijoPendiente, textoAInsertar, contieneClave, puntuarAcciones con disparadores/ventana. Sin CopilotConfig ni aprendizaje de frecuencia."
+    },
+    "scripts/canal_arbol.py": {
+      "fuente": "~/.hermes/profiles/lexo-alpha/_legal_repos/indexo-retriever-prod",
+      "acceso": "fuente privada, no reproducible por terceros",
+      "commit": "32a0d86",
+      "archivos_origen": [
+        "canal_arbol.py"
+      ],
+      "licencia": "MIT (ver repo origen)",
+      "sha256_origen": "580333cfec67f6558c2cef5d6ddc77e425980b93a2b0a098f683d741b429b30b",
+      "sha256_vendorizado": "5a986b625d3aeaa0a4ca767fb4882a8ce2e1d2654976089e81b9227ea7aa6d38",
+      "adaptaciones": [
+        "from _vendor.dike_id import … → from dike_id import … (motor/dike_id ya vendorizado, byte a byte idéntico al _vendor de IndexO)",
+        "ARBOL_PATH/LEXICON_PATH → data/arbol/ dentro del plugin; sin variables de entorno ni rutas /home; CanalArbol acepta arbol_path/lexicon_path opcionales",
+        "Quitados buscar() (el boost) y _MATERIA_A_NODO/materia_a_nodo (helper del goldset); quedan codigo_umj, NODO_CODIGOS, CanalArbol(_cargar_lexicon, _cargar, _descendientes, clasificar, territorio)"
+      ],
+      "que": "Clasificación de consultas por materia (árbol de derecho + lexicón). Explica qué términos activaron cada materia; NO reordena la búsqueda (medido: el boost no mejora el ranking)."
+    },
+    "data/arbol/": {
+      "descripcion": "Árbol de materias y lexicón conceptual para la clasificación de consultas (Fase 2). Datos, no código.",
+      "fuentes": [
+        {
+          "origen": "~/.hermes/profiles/lexo-alpha/attachments/",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "archivos_origen": [
+            "arbol_derecho_anclas.json",
+            "arbol_lexicon.json"
+          ],
+          "archivos_destino": [
+            "data/arbol/arbol_derecho_anclas.json",
+            "data/arbol/arbol_lexicon.json"
+          ],
+          "sha256_origen": {
+            "arbol_derecho_anclas.json": "c675dfe38eb58bbbd4fcb72f3b5d2ffe086829d804089cd9d08ed810216cd826",
+            "arbol_lexicon.json": "b77153bb397c55b07c716187f06281a5c290c6b21226de5649fb80c4ca19b300"
+          },
+          "sha256_vendorizado": {
+            "data/arbol/arbol_derecho_anclas.json": "c675dfe38eb58bbbd4fcb72f3b5d2ffe086829d804089cd9d08ed810216cd826",
+            "data/arbol/arbol_lexicon.json": "b77153bb397c55b07c716187f06281a5c290c6b21226de5649fb80c4ca19b300"
+          },
+          "nota": "Copiados byte a byte. arbol_derecho_anclas.json: 85 nodos, 51 anclas (37 únicas). arbol_lexicon.json: 44 nodos, 312 términos — semilla derivada del corpus (aproximación, no el original, según start_v3.sh). Contenido revisado: solo nombres de materia, términos, gids y coordenadas de layout."
+        }
+      ]
+    },
+    "ordenamiento/": {
+      "descripcion": "Constructor de packs de normas por perfil de ordenamiento (port generalizado de construir_paquete_normas.py).",
+      "fuentes": [
+        {
+          "repo": "https://github.com/Grizaceo/dike",
+          "commit": "885ca8530f9fbb0aa8c693d819b2118718392ff4",
+          "licencia": "MIT",
+          "sha256_origen": {
+            "hermes-plugin/scripts/construir_paquete_normas.py": "69e5abe841e1e38e4653e58bdf13ca58518fe4fc9261fa6c10e711cb5e3d3499"
+          },
+          "archivos_origen": [
+            "hermes-plugin/scripts/construir_paquete_normas.py"
+          ],
+          "nota": "M1 (articulosArchivo confinado al directorio de la config) y M2 (validate rechaza symlinks dentro del pack; aquí en ordenamiento/validar.py) se reimplementaron porque el árbol upstream tiene esos fixes sin commit: no se copian. El gate de privacidad para normas es nuevo, no viene de upstream.",
+          "archivos_destino": [
+            "ordenamiento/construir.py",
+            "ordenamiento/validar.py"
+          ]
+        }
+      ]
+    },
+    "escritor/escribe_claro.py": {
+      "descripcion": "Analizador determinista de estilo, claridad y estructura argumentativa (LexO Escribe Claro / ScribeClaro).",
+      "fuentes": [
+        {
+          "repo": "~/.hermes/profiles/lexo-alpha/_legal_repos/LexO-ClearWriter",
+          "acceso": "fuente privada, no reproducible por terceros",
+          "licencia": "MIT",
+          "archivos_origen": [
+            "src/clearwriter/core/analyzer.py",
+            "src/clearwriter/core/config.py",
+            "src/clearwriter/metrics/archaisms.py",
+            "src/clearwriter/metrics/environmental_terms.py",
+            "src/clearwriter/metrics/nominalizations.py",
+            "src/clearwriter/metrics/passive_voice.py",
+            "src/clearwriter/metrics/judicial_alignment.py",
+            "src/clearwriter/metrics/argument_extractor.py"
+          ],
+          "nota": "Portado a biblioteca estándar de Python (sin spaCy ni servidor externo). Conserva los catálogos de nominalizaciones, arcaísmos judiciales y ambientales, pesos por contexto y extracción de estructura argumentativa Hecho→Norma→Prueba→Conclusión.",
+          "archivos_destino": [
+            "escritor/escribe_claro.py"
+          ]
+        }
+      ]
+    }
   }
 }

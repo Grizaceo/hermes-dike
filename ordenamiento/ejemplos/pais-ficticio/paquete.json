@@ -1,0 +1,30 @@
+{
+  "formato": "dike-paquete-normas-v1",
+  "datasetVersion": "2026-11-09",
+  "normas": [
+    {
+      "idFuente": "xx-ley-1",
+      "tipo": "ley",
+      "numero": "1",
+      "anio": 2020,
+      "titulo": "Ley Ficticia Uno (texto inventado con fines de prueba)",
+      "fuenteUri": "https://example.invalid/xx/ley/1",
+      "fuenteDocumentoUrl": "https://example.invalid/xx/ley/1.pdf",
+      "vigenteDesde": "2020-01-01",
+      "fechaPublicacion": "2020-01-15",
+      "articulosArchivo": "textos/xx-ley-1.txt"
+    },
+    {
+      "idFuente": "xx-decreto-2",
+      "tipo": "decreto",
+      "numero": "2",
+      "anio": 2021,
+      "titulo": "Decreto Ficticio Dos (texto inventado con fines de prueba)",
+      "fuenteUri": "https://example.invalid/xx/decreto/2",
+      "fuenteDocumentoUrl": "https://example.invalid/xx/decreto/2.pdf",
+      "vigenteDesde": "2021-03-01",
+      "fechaPublicacion": "2021-03-10",
+      "articulosArchivo": "textos/xx-decreto-2.txt"
+    }
+  ]
+}

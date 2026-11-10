@@ -1,26 +1,59 @@
 name: dike
-version: "0.4.0"
+version: "0.10.0"
 manifest_version: 2
 description: >-
   Checks the article citations of Chilean law in a legal brief against a local,
   hash-identified copy of 25 statutes, and refuses to certify what it cannot prove:
   each citation comes back verified (with its source, text hash and in-force status)
-  or unverified with the reason. Offline after install; never signs, never calls a model.
-  Also ships a web-dashboard tab and an opt-in Desktop sidebar page that call the
-  same engine through the plugin's /api/plugins/dike backend (text only; the HTTP
-  surface never reads files).
+  or unverified with the reason. The engine runs in a child process, inside
+  bubblewrap when it is available and in a declared degraded mode when it is not;
+  it is offline after install, never signs and never calls a model. One sandboxed
+  engine process per session verifies the corpus once, so checks after the first
+  take under a second. Text is in English, with Spanish as an option. The opt-in
+  Desktop page adds a Case Writer: a brief editor where only the engine can mark a
+  citation verified, a pseudonymization step you see and control before any text
+  leaves the machine, and a chat about the brief that runs in a Hermes profile you
+  choose, with two hooks that inject fixed instructions and block every tool
+  except skills, tool discovery and this plugin's three tools, only in those
+  sessions. The chat's claims about articles carry footnotes that open the exact
+  article so you can check the text; whether an article is relevant is the
+  model's reading and your decision. The page also has a versioned case board
+  whose suggested updates enter only when you accept them, and a read-only 3D map
+  of the corpus with a lexical search whose results are leads, never verified
+  citations. Case data stays in plugin-data, outside the sealed corpus.
 author: Grizaceo
 license: MIT
 homepage: https://github.com/Grizaceo/hermes-dike
 tags: [legal, chile, citations, verification, offline, spanish]
-requires_hermes: ">=0.22.7"
+requires_hermes: ">=0.23.0"
 platforms: [linux]
-provides_tools: [dike_verificar_citas]
-provides_hooks: []
+provides_tools: [dike_verificar_citas, dike_leer_articulo, dike_buscar_corpus]
+provides_hooks: [pre_llm_call, pre_tool_call]
+config_schema:
+  idioma:
+    type: str
+    choices: [en, es]
+    default: en
+    label: Plugin language
+    description: Language of command output and the adapter's own tool-result text.
+  sandbox:
+    type: str
+    choices: [auto, requerido]
+    default: auto
+    label: Engine isolation
+    description: >-
+      How the engine and panel run. auto uses bubblewrap when available and
+      reports degraded mode otherwise; any other value requires the sandbox
+      and refuses to run if it is unavailable.
+  perfil_chat:
+    type: str
+    default: ""
+    label: Brief chat profile
+    description: >-
+      Hermes profile for the brief chat; empty uses the active profile.
 python_dependencies:
   - "pydantic>=2.0,<3"
   - "pyyaml>=6.0,<7"
   - "rich>=13.0,<15"
   - "requests>=2.28,<3"
   - "cryptography>=42.0,<51"
-  - "python-docx>=1.1,<2"

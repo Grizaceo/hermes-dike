@@ -1,0 +1,3 @@
+Artículo 1. La Ley Ficticia Uno es un texto inventado para probar el constructor de paquetes de ordenamientos; no regula nada real.
+Artículo 2. Sus disposiciones son ejemplos sintéticos sin valor jurídico.
+Artículo 3. Este artículo cierra la primera prueba del divisor de textos.

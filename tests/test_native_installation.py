@@ -33,7 +33,7 @@ def package(corpus, version):
 
 
 def installer(counter):
-    def run(args, stage):
+    def run(args, stage, **kw):
         counter.append(str(stage))
         time.sleep(.03)
         base = stage / 'users/hermes/starter/chile-base'
@@ -78,7 +78,7 @@ def test_failed_install_is_not_published_and_can_retry(tmp_path, monkeypatch):
     import pytest
     m, corpus, data = setup_runtime(tmp_path, monkeypatch)
     digest = package(corpus, 'v1')
-    monkeypatch.setattr(m, '_dike', lambda *a: subprocess.CompletedProcess([], 2, '{}', 'failure'))
+    monkeypatch.setattr(m, '_dike', lambda *a, **kw: subprocess.CompletedProcess([], 2, '{}', 'failure'))
     with pytest.raises(subprocess.CalledProcessError):
         m._asegurar_corpus(data)
     assert not (data / 'generations' / digest).exists()
@@ -99,3 +99,16 @@ def test_package_tamper_rejected_even_when_installed(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='checksum mismatch'):
         m._asegurar_corpus(data)
     assert len(calls) == 1
+
+
+
+def test_descriptor_corpus_es_estricto_y_estado_no_instala(tmp_path, monkeypatch):
+    import pytest
+    m, corpus, data = setup_runtime(tmp_path, monkeypatch)
+    for manifiesto in ('', 'x paquete.tar', 'a' * 64 + ' ../paquete.tar',
+                       ('a' * 64 + ' paquete.tar\n') * 2):
+        (corpus / 'SHA256SUMS').write_text(manifiesto)
+        with pytest.raises(ValueError):
+            m._descriptor_corpus()
+        assert not m._estado_corpus(data)['corpus_instalado']
+        assert not data.exists()

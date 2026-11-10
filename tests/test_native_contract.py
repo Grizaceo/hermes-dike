@@ -1,10 +1,4 @@
-"""Native entrypoint regression tests: actual constancia envelope, not commitment.
-
-P1-1 remediación: the synthetic zero-citations test (test_zero_citations_never_certifies)
-was replaced by test_p1_fixes.py::test_sin_citas_code0_never_verified and
-test_zero_citations_uses_real_engine_envelope, which use the real SIN_CITAS
-envelope shape from the engine.
-"""
+"""Contrato de entrada y constancias rechazadas antes de instalar el corpus."""
 import importlib.util
 import json
 from datetime import date, datetime, timezone
@@ -50,12 +44,14 @@ def test_rejection_preserves_explanation(native, monkeypatch):
     assert result['problemas'] == envelope()['problemas']
 
 
-@pytest.mark.parametrize('args', [{'texto': 42}, {'texto': 'x' * 400001}, {'ruta': 42}, {'texto': 'x', 'ruta': 'x'}])
-def test_input_rejected_before_install(native, monkeypatch, args):
+@pytest.mark.parametrize('args,motivo', [({'texto': 42}, 'INPUT_EMPTY'), ({'texto': 'x' * 400001}, 'INPUT_TOO_LARGE'), ({'ruta': 42}, 'INPUT_EMPTY'), ({'texto': 'x', 'ruta': 'x'}, 'INPUT_FIELDS')])
+def test_input_rejected_before_install(native, monkeypatch, args, motivo):
     def must_not_install(*a):
         pytest.fail('invalid input reached corpus installation')
     monkeypatch.setattr(native, '_asegurar_corpus', must_not_install)
-    assert 'error' in json.loads(native.verificar_citas(args))
+    result = json.loads(native.verificar_citas(args))
+    assert 'error' in result and result['error_code'] == 'INPUT_ERROR'
+    assert result['motivo'] == motivo and result['todo_verificado'] is False
 
 
 def test_symlink_rejected(native, monkeypatch, tmp_path):
@@ -64,7 +60,8 @@ def test_symlink_rejected(native, monkeypatch, tmp_path):
     link = tmp_path / 'link.md'
     link.symlink_to(p)
     monkeypatch.setattr(native, '_asegurar_corpus', lambda *a: pytest.fail('symlink reached installation'))
-    assert 'error' in json.loads(native.verificar_citas({'ruta': str(link)}))
+    result = json.loads(native.verificar_citas({'ruta': str(link)}))
+    assert 'error' in result and result['motivo'] == 'INPUT_SYMLINK'
 
 
 @pytest.mark.parametrize('bad_count', [True, '1', -1, 2])

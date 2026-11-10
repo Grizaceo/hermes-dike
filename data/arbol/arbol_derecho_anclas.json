@@ -1,0 +1,1189 @@
+{
+  "version": "1.0",
+  "nombre": "Árbol de Derecho — Chile",
+  "nodos": [
+    {
+      "id": "raiz",
+      "nombre": "Derecho",
+      "tipo": "raiz",
+      "rama": null,
+      "padre": null,
+      "fuente": [],
+      "anclas": [],
+      "x": 7774.788347270397,
+      "y": 31.499558358104842,
+      "conexiones": []
+    },
+    {
+      "id": "privado",
+      "nombre": "Derecho Privado",
+      "tipo": "rama",
+      "rama": "priv",
+      "padre": "raiz",
+      "fuente": [],
+      "anclas": [],
+      "x": 3453.783240798375,
+      "y": 255.29172213426529,
+      "conexiones": [
+        "laboral"
+      ]
+    },
+    {
+      "id": "civil",
+      "nombre": "Derecho Civil",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "privado",
+      "fuente": [
+        "civil"
+      ],
+      "anclas": [],
+      "x": 2290.864923471535,
+      "y": 296.67574487882075,
+      "conexiones": [
+        "laboral",
+        "filiacion"
+      ]
+    },
+    {
+      "id": "persona",
+      "nombre": "Persona",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "persona"
+      ],
+      "anclas": [],
+      "x": 1460.6659908316262,
+      "y": 1454.1422948239526,
+      "conexiones": []
+    },
+    {
+      "id": "familia",
+      "nombre": "Familia",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "familia"
+      ],
+      "anclas": [],
+      "x": 1029.0671526322556,
+      "y": 663.3795596544951,
+      "conexiones": []
+    },
+    {
+      "id": "bienes",
+      "nombre": "Bienes",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "bienes"
+      ],
+      "anclas": [],
+      "x": 1459.6085698017591,
+      "y": 1302.3431482896844,
+      "conexiones": []
+    },
+    {
+      "id": "acto",
+      "nombre": "Acto Jurídico",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "acto jurídico"
+      ],
+      "anclas": [],
+      "x": 2152.6163356211964,
+      "y": 1435.806239686812,
+      "conexiones": [
+        "contratos-g"
+      ]
+    },
+    {
+      "id": "obligaciones",
+      "nombre": "Obligaciones",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "obligaciones"
+      ],
+      "anclas": [],
+      "x": 1726.674374566225,
+      "y": 1347.4558323668573,
+      "conexiones": []
+    },
+    {
+      "id": "contratos-g",
+      "nombre": "Contratos (Parte General)",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "cpg"
+      ],
+      "anclas": [],
+      "x": 2158.339541456644,
+      "y": 1359.6420387425308,
+      "conexiones": [
+        "contratos-e",
+        "nmt54a20460hk"
+      ]
+    },
+    {
+      "id": "contratos-e",
+      "nombre": "Contratos Especiales",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "cpe"
+      ],
+      "anclas": [],
+      "x": 2158.916156525479,
+      "y": 1594.2273388706387,
+      "conexiones": []
+    },
+    {
+      "id": "resp",
+      "nombre": "Responsabilidad Civil",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "responsabilidad"
+      ],
+      "anclas": [],
+      "x": 2729.5502812239124,
+      "y": 1318.2944733605168,
+      "conexiones": []
+    },
+    {
+      "id": "sucesorio",
+      "nombre": "Sucesiones",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "fuente": [
+        "sucesorio"
+      ],
+      "anclas": [],
+      "x": 3013.106705430789,
+      "y": 1144.8595087080496,
+      "conexiones": []
+    },
+    {
+      "id": "comercial",
+      "nombre": "Derecho Comercial",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "privado",
+      "fuente": [],
+      "anclas": [],
+      "x": 5587.366359254163,
+      "y": 705.7017977873925,
+      "conexiones": []
+    },
+    {
+      "id": "consumidor",
+      "nombre": "Consumidor",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "privado",
+      "fuente": [],
+      "anclas": [],
+      "x": 6272.761068846954,
+      "y": 574.6996577450795,
+      "conexiones": []
+    },
+    {
+      "id": "publico",
+      "nombre": "Derecho Público",
+      "tipo": "rama",
+      "rama": "pub",
+      "padre": "raiz",
+      "fuente": [],
+      "anclas": [],
+      "x": 11418.20872525887,
+      "y": 325.8056429661725,
+      "conexiones": [
+        "familia"
+      ]
+    },
+    {
+      "id": "penal",
+      "nombre": "Derecho Penal",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "fuente": [],
+      "anclas": [],
+      "x": 9678.20872525887,
+      "y": 585.8056429661724,
+      "conexiones": [
+        "procesal-penal",
+        "vif"
+      ]
+    },
+    {
+      "id": "procesal-penal",
+      "nombre": "Procesal Penal",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "procesal",
+      "fuente": [
+        "procesal penal"
+      ],
+      "anclas": [],
+      "x": 7113.911228715283,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "tributario",
+      "nombre": "Derecho Tributario",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "fuente": [],
+      "anclas": [],
+      "x": 10258.20872525887,
+      "y": 585.8056429661724,
+      "conexiones": []
+    },
+    {
+      "id": "laboral",
+      "nombre": "Derecho Laboral",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "fuente": [],
+      "anclas": [],
+      "x": 10838.20872525887,
+      "y": 585.8056429661724,
+      "conexiones": [
+        "seguridad-social"
+      ]
+    },
+    {
+      "id": "procesal",
+      "nombre": "Derecho Procesal",
+      "tipo": "rama",
+      "rama": "proc",
+      "padre": null,
+      "fuente": [],
+      "anclas": [],
+      "x": 8998.911228715286,
+      "y": 1263.335881925687,
+      "conexiones": [
+        "publico",
+        "nmt541j87bl7r"
+      ]
+    },
+    {
+      "id": "jordinario",
+      "nombre": "Juicio Ordinario",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "juicio ordinario"
+      ],
+      "anclas": [],
+      "x": 7403.911228715283,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "jejecutivo",
+      "nombre": "Juicio Ejecutivo",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "juicio ejecutivo"
+      ],
+      "anclas": [],
+      "x": 7693.911228715283,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "incidentes",
+      "nombre": "Incidentes",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "incidentes"
+      ],
+      "anclas": [],
+      "x": 7983.911228715283,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "recursos",
+      "nombre": "Recursos",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "recursos"
+      ],
+      "anclas": [],
+      "x": 8273.911228715286,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "prueba",
+      "nombre": "Prueba",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "prueba"
+      ],
+      "anclas": [],
+      "x": 8563.911228715286,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "dispcomunes",
+      "nombre": "Disposiciones Comunes",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "disposiciones comunes"
+      ],
+      "anclas": [],
+      "x": 8853.911228715286,
+      "y": 1523.335881925687,
+      "conexiones": []
+    },
+    {
+      "id": "organico",
+      "nombre": "Orgánico",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "fuente": [
+        "orgánico"
+      ],
+      "anclas": [],
+      "x": 9660.85214595581,
+      "y": 1741.713539438702,
+      "conexiones": []
+    },
+    {
+      "id": "minero",
+      "nombre": "Derecho Minero",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 3731.148606787188,
+      "y": 1109.8240482935928
+    },
+    {
+      "id": "agrario",
+      "nombre": "Derecho Agrario",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 3908.4257867158863,
+      "y": 1109.8240899236005
+    },
+    {
+      "id": "aguas",
+      "nombre": "Derecho de Aguas",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 4105.505695108206,
+      "y": 1115.917141073928
+    },
+    {
+      "id": "propiedad-int",
+      "nombre": "Propiedad Intelectual",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 3483.060523989763,
+      "y": 930.0768745985499
+    },
+    {
+      "id": "sociedades",
+      "nombre": "Sociedades",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [
+        "tributario"
+      ],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.cc:art:2053",
+        "cl.norma.cc:art:2054",
+        "cl.norma.cc:art:2055",
+        "cl.norma.ccom:art:0348",
+        "cl.norma.ccom:art:0349",
+        "cl.norma.ccom:art:0352"
+      ],
+      "x": 5058.292558257111,
+      "y": 1244.2242986746821
+    },
+    {
+      "id": "titulos-credito",
+      "nombre": "Títulos de Crédito",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [
+        "ley_18092"
+      ],
+      "anclas": [],
+      "x": 5240.694887840855,
+      "y": 989.5643636892974
+    },
+    {
+      "id": "insolvencia",
+      "nombre": "Insolvencia y Reemprendimiento",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 6294.610540318334,
+      "y": 1059.77719229289
+    },
+    {
+      "id": "contratos-mercantiles",
+      "nombre": "Contratos Mercantiles",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 6022.366359254163,
+      "y": 985.7017977873924
+    },
+    {
+      "id": "constitucional",
+      "nombre": "Derecho Constitucional",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11273.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "administrativo",
+      "nombre": "Derecho Administrativo",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11563.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "ambiental",
+      "nombre": "Derecho Ambiental",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11853.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "internacional-pub",
+      "nombre": "Derecho Internacional Público",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 12143.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "municipal",
+      "nombre": "Derecho Municipal",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 12433.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "seguridad-social",
+      "nombre": "Seguridad Social",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 12723.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "economico",
+      "nombre": "Derecho Económico",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 13013.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "aduanero",
+      "nombre": "Derecho Aduanero",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 13303.20872525887,
+      "y": 585.8056429661724
+    },
+    {
+      "id": "juicio-sumario",
+      "nombre": "Juicio Sumario",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "juicio sumario"
+      ],
+      "anclas": [],
+      "x": 9433.911228715284,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "juicios-especiales",
+      "nombre": "Juicios Especiales",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "juicios especiales"
+      ],
+      "anclas": [],
+      "x": 9723.911228715286,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "cautelares",
+      "nombre": "Medidas Cautelares",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "medidas cautelares",
+        "cautelares"
+      ],
+      "anclas": [],
+      "x": 10013.911228715288,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "nulidad-procesal",
+      "nombre": "Nulidad Procesal",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "nulidad procesal"
+      ],
+      "anclas": [],
+      "x": 10303.911228715288,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "cosa-juzgada",
+      "nombre": "Cosa Juzgada",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "cosa juzgada"
+      ],
+      "anclas": [],
+      "x": 10593.911228715288,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "prejudiciales",
+      "nombre": "Cuestiones Prejudiciales",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [
+        "prejudiciales"
+      ],
+      "anclas": [],
+      "x": 10883.911228715288,
+      "y": 1523.335881925687
+    },
+    {
+      "id": "filiacion",
+      "nombre": "Filiación",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "familia",
+      "conexiones": [],
+      "fuente": [
+        "filiación"
+      ],
+      "anclas": [],
+      "x": 739.067152632255,
+      "y": 943.3795596544952
+    },
+    {
+      "id": "matrimonio",
+      "nombre": "Matrimonio y Regímenes",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "familia",
+      "conexiones": [],
+      "fuente": [
+        "derecho de familia",
+        "familia"
+      ],
+      "anclas": [],
+      "x": 1029.0671526322556,
+      "y": 943.3795596544952
+    },
+    {
+      "id": "vif",
+      "nombre": "Violencia Intrafamiliar",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "familia",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 1433.313199808275,
+      "y": 996.4223593070079
+    },
+    {
+      "id": "penal-general",
+      "nombre": "Parte General",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "penal",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 9484.463816496162,
+      "y": 964.8189522442111
+    },
+    {
+      "id": "penal-especial",
+      "nombre": "Parte Especial",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "penal",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 9836.918319312146,
+      "y": 989.191406625565
+    },
+    {
+      "id": "laboral-individual",
+      "nombre": "Laboral Individual",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "laboral",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 10693.20872525887,
+      "y": 865.8056429661724
+    },
+    {
+      "id": "laboral-colectivo",
+      "nombre": "Laboral Colectivo",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "laboral",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 10983.20872525887,
+      "y": 865.8056429661724
+    },
+    {
+      "id": "tributario-procedimiento",
+      "nombre": "Procedimiento Tributario",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "tributario",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 10113.20872525887,
+      "y": 865.8056429661724
+    },
+    {
+      "id": "tributario-sanciones",
+      "nombre": "Infracciones y Sanciones",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "tributario",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 10403.20872525887,
+      "y": 865.8056429661724
+    },
+    {
+      "id": "consumidor-sancionatorio",
+      "nombre": "Sancionatorio (SERNAC)",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "consumidor",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 6272.761068846954,
+      "y": 854.6996577450793
+    },
+    {
+      "id": "nmt541j87bl7r",
+      "nombre": "Procedimiento de liquidación concursal",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 6284.751264153874,
+      "y": 978.4998172323393
+    },
+    {
+      "id": "nmt54a14l6y7m",
+      "nombre": "Responsabilidad Extracontractual",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "resp",
+      "conexiones": [],
+      "fuente": [
+        "responsabilidad"
+      ],
+      "anclas": [],
+      "x": 2982.5538243516735,
+      "y": 1684.381461267894
+    },
+    {
+      "id": "nmt54a20460hk",
+      "nombre": "Responsabilidad Contractual ",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "resp",
+      "conexiones": [],
+      "fuente": [
+        "cpg",
+        "civil"
+      ],
+      "anclas": [],
+      "x": 2680.000992344463,
+      "y": 1686.7139564525069
+    },
+    {
+      "id": "internacional-priv",
+      "nombre": "Derecho Internacional Privado",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "privado",
+      "conexiones": [
+        "comercial"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 3703.788347270396,
+      "y": 555.4995583581048
+    },
+    {
+      "id": "datos",
+      "nombre": "Protección de Datos Personales",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "civil",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 2539.788347270396,
+      "y": 391.4995583581049
+    },
+    {
+      "id": "bancario",
+      "nombre": "Derecho Bancario",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 5471.637044196865,
+      "y": 1015.0128765452439
+    },
+    {
+      "id": "seguros",
+      "nombre": "Derecho de Seguros",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "comercial",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 5999.788347270397,
+      "y": 1241.4995583581049
+    },
+    {
+      "id": "derechos-humanos",
+      "nombre": "Derechos Humanos",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 10872.788347270396,
+      "y": 1041.4995583581049
+    },
+    {
+      "id": "migratorio",
+      "nombre": "Derecho Migratorio",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11072.788347270396,
+      "y": 1041.4995583581049
+    },
+    {
+      "id": "sanitario",
+      "nombre": "Derecho Sanitario",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11272.788347270396,
+      "y": 1041.4995583581049
+    },
+    {
+      "id": "electoral",
+      "nombre": "Derecho Electoral",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "publico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11472.788347270396,
+      "y": 1041.4995583581049
+    },
+    {
+      "id": "urbanistico",
+      "nombre": "Derecho Urbanístico",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "administrativo",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 11669.145323372319,
+      "y": 768.9973252582387
+    },
+    {
+      "id": "libre-competencia",
+      "nombre": "Libre Competencia",
+      "tipo": "materia",
+      "rama": "pub",
+      "padre": "economico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 13014.426038278545,
+      "y": 763.7811399545288
+    },
+    {
+      "id": "arbitraje",
+      "nombre": "Arbitraje y Mediación",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [],
+      "x": 8780,
+      "y": 1730
+    },
+    {
+      "id": "procedimiento-laboral",
+      "nombre": "Procedimiento Laboral",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [
+        "laboral"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 8968.581391646185,
+      "y": 1736.8243105395832
+    },
+    {
+      "id": "procedimiento-familia",
+      "nombre": "Procedimiento de Familia",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "procesal",
+      "conexiones": [
+        "familia"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 9143.513975710768,
+      "y": 1752.1789626280374
+    },
+    {
+      "id": "jurisdiccion",
+      "nombre": "Jurisdicción y Competencia",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "organico",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.cot:art:0108",
+        "cl.norma.cot:art:0002",
+        "cl.norma.cot:art:0005",
+        "cl.norma.cot:art:0007",
+        "cl.norma.cot:art:0010",
+        "cl.norma.cot:art:0181",
+        "cl.norma.cot:art:0182",
+        "cl.norma.cot:art:0186",
+        "cl.norma.cot:art:0017",
+        "cl.norma.cot:art:0018",
+        "cl.norma.cot:art:0027_bis",
+        "cl.norma.cot:art:0055",
+        "cl.norma.cot:art:0056",
+        "cl.norma.cot:art:0063",
+        "cl.norma.cot:art:0093",
+        "cl.norma.cot:art:0094",
+        "cl.norma.cot:art:0095",
+        "cl.norma.cot:art:0025"
+      ],
+      "x": 9422.517342129606,
+      "y": 1909.1378252848026
+    },
+    {
+      "id": "filosofia-derecho",
+      "nombre": "Filosofía del Derecho",
+      "tipo": "libre",
+      "rama": "pub",
+      "padre": null,
+      "conexiones": [
+        "raiz"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 7025,
+      "y": 1000
+    },
+    {
+      "id": "historia-derecho",
+      "nombre": "Historia del Derecho",
+      "tipo": "libre",
+      "rama": "pub",
+      "padre": null,
+      "conexiones": [
+        "raiz"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 7325,
+      "y": 1100
+    },
+    {
+      "id": "nmt54oaoxrw30",
+      "nombre": "Empresa individual de responsabilidad limitada EIRL",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": null,
+      "conexiones": [
+        "sociedades"
+      ],
+      "fuente": [],
+      "anclas": [],
+      "x": 4941.681210403423,
+      "y": 1448.1650297332305
+    },
+    {
+      "id": "nmt54oatsmhw6",
+      "nombre": "Sociedad Anonima S.A. ",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "sociedades",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.ley_18046:art:0001",
+        "cl.norma.ley_18046:art:0002",
+        "cl.norma.ley_18046:art:0003",
+        "cl.norma.ley_18046:art:0010",
+        "cl.norma.ley_18046:art:0011",
+        "cl.norma.ley_18046:art:0019",
+        "cl.norma.ley_18046:art:0030",
+        "cl.norma.ley_18046:art:0031",
+        "cl.norma.ley_18046:art:0043",
+        "cl.norma.ley_18046:art:0056"
+      ],
+      "x": 4728.678719973831,
+      "y": 1463.121633111949
+    },
+    {
+      "id": "nmt54oay8v1vp",
+      "nombre": "Sociedad por acciones SPA",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": null,
+      "conexiones": [
+        "sociedades"
+      ],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.ccom:art:0424",
+        "cl.norma.ccom:art:0425",
+        "cl.norma.ccom:art:0426"
+      ],
+      "x": 5220.29521053129,
+      "y": 1457.662069515853
+    },
+    {
+      "id": "nmt54rb8b2to8",
+      "nombre": "Contrato de sociedad en el codigo civil. Sociedad colectiva",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "contratos-g",
+      "conexiones": [
+        "sociedades"
+      ],
+      "fuente": [
+        "sociedad",
+        "aporte",
+        "art 2053 cc"
+      ],
+      "anclas": [
+        "cl.norma.cc:art:2053",
+        "cl.norma.cc:art:2054",
+        "cl.norma.cc:art:2055",
+        "cl.norma.ccom:art:0349"
+      ],
+      "x": 4402.087804418988,
+      "y": 1469.4373341351056
+    },
+    {
+      "id": "nmt54vz8qe6ei",
+      "nombre": "Sociedad de responsabilidad limitada",
+      "tipo": "materia",
+      "rama": "priv",
+      "padre": "sociedades",
+      "conexiones": [],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.cc:art:2053",
+        "cl.norma.cc:art:2054",
+        "cl.norma.cc:art:2055",
+        "cl.norma.ccom:art:0348",
+        "cl.norma.ccom:art:0349",
+        "cl.norma.ccom:art:0352"
+      ],
+      "x": 5434.613004034495,
+      "y": 1457.3337558322514
+    },
+    {
+      "id": "nmt54xoo7fkfw",
+      "nombre": "sociedad en comandita",
+      "tipo": "libre",
+      "rama": "priv",
+      "padre": null,
+      "conexiones": [
+        "sociedades"
+      ],
+      "fuente": [],
+      "anclas": [
+        "cl.norma.ccom:art:0348",
+        "cl.norma.cc:art:2053",
+        "cl.norma.cc:art:2054",
+        "cl.norma.cc:art:2055"
+      ],
+      "x": 5736.467962418369,
+      "y": 1453.6880957637275
+    },
+    {
+      "id": "tribunales",
+      "nombre": "Tribunales",
+      "tipo": "materia",
+      "rama": "proc",
+      "padre": "organico",
+      "fuente": [],
+      "anclas": [],
+      "x": 9950,
+      "y": 1910,
+      "conexiones": []
+    }
+  ]
+}

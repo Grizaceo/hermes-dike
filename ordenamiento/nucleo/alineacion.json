@@ -1,0 +1,90 @@
+{
+ "version": "1.0.0",
+ "nota": "Alineación de términos del núcleo con ELI (ontología v1.5, EUPL) y PROV. Solo se usan propiedades ELI de la lista revisada; lo demás queda en vocabulario propio https://dike.invalid/vocab/.",
+ "alineaciones": [
+  {
+   "termino": "LegalResource",
+   "alineaA": "eli:LegalResource",
+   "relacion": "exactMatch",
+   "fuente": "ELI ontology v1.5 (op.europa.eu)"
+  },
+  {
+   "termino": "Article",
+   "alineaA": "eli:LegalResourceSubdivision",
+   "relacion": "closeMatch",
+   "fuente": "ELI ontology v1.5; es más estrecho que eli:LegalResourceSubdivision"
+  },
+  {
+   "termino": "isPartOf",
+   "alineaA": "eli:is_part_of",
+   "relacion": "exactMatch",
+   "fuente": "ELI ontology v1.5"
+  },
+  {
+   "termino": "jurisdiction",
+   "alineaA": "eli:jurisdiction",
+   "relacion": "closeMatch",
+   "fuente": "ELI ontology v1.5; ELI espera un recurso de tabla de autoridad y aquí es un código ISO en texto"
+  },
+  {
+   "termino": "title",
+   "alineaA": "eli:title",
+   "relacion": "closeMatch",
+   "fuente": "ELI ontology v1.5 (propiedad obligatoria mínima); eli:title es propiedad de LegalExpression y aquí está en LegalResource"
+  },
+  {
+   "termino": "date_entry_in_force",
+   "alineaA": "eli:first_date_entry_in_force",
+   "relacion": "closeMatch",
+   "fuente": "ELI ontology v1.5; el pack usa otro nombre para la misma fecha"
+  },
+  {
+   "termino": "date_no_longer_in_force",
+   "alineaA": "eli:date_no_longer_in_force",
+   "relacion": "exactMatch",
+   "fuente": "ELI ontology v1.5"
+  },
+  {
+   "termino": "idFuente",
+   "alineaA": "eli:id_local",
+   "relacion": "exactMatch",
+   "fuente": "ELI ontology v1.5"
+  },
+  {
+   "termino": "idFuenteUnidad",
+   "alineaA": "eli:id_local",
+   "relacion": "closeMatch",
+   "fuente": "ELI ontology v1.5; ELI no define id local propio para subdivisiones"
+  },
+  {
+   "termino": "wasDerivedFrom",
+   "alineaA": "prov:wasDerivedFrom",
+   "relacion": "exactMatch",
+   "fuente": "PROV-O (W3C)"
+  },
+  {
+   "termino": "wasGeneratedBy",
+   "alineaA": "prov:wasGeneratedBy",
+   "relacion": "exactMatch",
+   "fuente": "PROV-O (W3C)"
+  },
+  {
+   "termino": "generatedAtTime",
+   "alineaA": "prov:generatedAtTime",
+   "relacion": "exactMatch",
+   "fuente": "PROV-O (W3C)"
+  },
+  {
+   "termino": "used",
+   "alineaA": "prov:used",
+   "relacion": "exactMatch",
+   "fuente": "PROV-O (W3C)"
+  },
+  {
+   "termino": "sourceUri",
+   "alineaA": "prov:wasDerivedFrom",
+   "relacion": "closeMatch",
+   "fuente": "contexto de chile-base: la URI de la fuente se registra como derivación PROV"
+  }
+ ]
+}

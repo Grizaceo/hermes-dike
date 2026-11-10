@@ -1,10 +1,11 @@
 {
+  "_hermes_python": "Set $HERMES_PYTHON to the Python interpreter Hermes itself runs on (the one that imports hermes_cli, yaml and pydantic). This loop finds it for an install.sh install (PM environments under $HERMES_HOME/installs) and for a git checkout of hermes-agent (venv/bin/python): HERMES_PYTHON=$(for p in \"${HERMES_HOME:-$HOME/.hermes}\"/installs/*/environments/*/venv/bin/python \"${HERMES_HOME:-$HOME/.hermes}\"/hermes-agent/venv/bin/python; do \"$p\" -c 'import hermes_cli, yaml, pydantic' 2>/dev/null && echo \"$p\" && break; done). The hermes command itself is a shell launcher in both layouts, so its shebang does not name the interpreter.",
   "claims": [
     {
-      "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed from a scratch target dir on PYTHONPATH)",
-      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch-site-packages> ~/.hermes/hermes-agent/venv/bin/python -m pytest tests -q -p no:cacheprovider",
-      "value": "118",
-      "date": "2026-11-06"
+      "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed only so tests/test_docx.py can build .docx fixtures and diff the adapter's stdlib reader against the engine's python-docx reader — the plugin itself no longer needs it)",
+      "command": "pip install --target <scratch> 'python-docx>=1.1,<2' && HERMES_HOME=<tmp> PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch> $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<disk dir>",
+      "value": "602",
+      "date": "2026-11-10"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
@@ -26,15 +27,123 @@
     },
     {
       "claim": "On the demo brief (tests/fixtures/escrito_demo.md) the tool verifies 4 of 6 citations and refuses 2, also with networking disabled",
-      "command": "unshare -rn ~/.hermes/hermes-agent/venv/bin/python -m pytest tests/test_native_e2e.py -q -p no:cacheprovider",
+      "command": "unshare -rn $HERMES_PYTHON -m pytest tests/test_native_e2e.py -q -p no:cacheprovider",
       "value": "4/6",
       "date": "2026-11-06"
     },
     {
-      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux)",
+      "claim": "After the first call, the installed corpus and engine data take about 300 MB in the plugin's data folder (fresh HERMES_HOME, Hermes Agent v0.23.0, Linux) (316M measured on tmpfs on 2026-11-09; 307M on 2026-11-06)",
       "command": "du -sh \"$HERMES_HOME/plugin-data/dike\"",
-      "value": "307M",
-      "date": "2026-11-06"
+      "value": "316M",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "The panel driver round-trips a NIF case in an isolated workspace: seed → list → edit → validate → confidence → snapshot (version increments, patches recorded, human-validation flag set)",
+      "command": "HOME=<tmp> DIKE_USER=test DIKE_USERS_ROOT=<tmp>/users PYTHONPATH=motor python scripts/panel.py nif seed demo-1 && ... nif list && ... nif edit demo-1 facts.known '\"Hecho añadido\"' && ... nif gap demo-1 0 abogado \"certificado\" && ... nif validate demo-1 1 && ... nif confidence demo-1 0.7 && ... nif snapshot demo-1",
+      "value": "snapshot v21, validated_by_human=true, confidence=0.7",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "The panel driver reads the sealed corpus graph read-only: 25 norms with titles/status/article counts, edge counts and vigencia records from the installed generation",
+      "command": "HOME=<gen-home> DIKE_USER=hermes DIKE_USERS_ROOT=<gen>/users PYTHONPATH=motor python scripts/panel.py grafo corpus",
+      "value": "25 norms, derived_from:8536, contains:8532",
+      "date": "2026-11-07"
+    },
+    {
+      "claim": "hermes plugins validate --install-deps passes on a clean copy of the 0.10.0 tree (no .git, no desktop/node_modules): plugin.yaml parses, declared tools and hooks match the registrations, security scan safe, no core override, desktop surface inside the plugin SDK (tests/test_dashboard_plugin.py runs the same desktop lint over the tracked desktop/*.js); one warning under catalog rule 9 remains, the guarded hermes_cli.version_info import that /dike-estado uses to show the Hermes version; hermes plugins doctor on the same copy reports dike 0.10.0 with 3 tools and 2 hooks",
+      "command": "git archive HEAD | tar -x -C <clean> && HERMES_HOME=<tmp> hermes plugins validate <clean> --install-deps && HERMES_HOME=<tmp> hermes plugins doctor <clean> --ci",
+      "value": "Validation passed (dike 0.10.0, 3 tools, 2 hooks; 1 rule-9 warning)",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "The Desktop bundle is deterministic and unminified: two clean npm ci + node build.mjs runs (offline, from the npm cache) produce the same sha256, equal to the committed desktop/plugin.js and desktop/BUNDLE.json",
+      "command": "cp -r desktop escritor <tmp>/ && cd <tmp>/desktop && npm ci && node build.mjs && sha256sum plugin.js  # build.mjs reads ../escritor/nif_propuestas.md",
+      "value": "bbf418c042333df7ba3eccb759ff575bf6876e4be782a1ed5843909e2380bdec",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "The Desktop tests pass: pure logic (verifier, privacy, chat, NIF proposals, predictor), both interfaces' i18n dictionaries and engine-code labels, HTTP error translation against the backend's real error inventory, and the bundle check",
+      "command": "cd desktop && npm test",
+      "value": "118",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "On the 456 synthetic documents of the dpp-ai-compliance-lab goldset v0.3.0 (synthetic and synthetic-augmented; the 44 semi-synthetic excluded), the privacy detector in the strict strategy detects with precision 0.9588, recall 1.0, F1 0.979 (detection counts the 271 case anchors RIT/RUC that are detected and kept); counting only what it masks, F1 0.8834; recall 1.0 for RUT, email and phone. The baseline is the uncommitted working tree of dpp-ai-compliance-lab over 0d1e386 (F1 0.9425); 0d1e386 itself scores 0.8078. The goldset has low diversity (16 distinct names, 10 RUT values): it is a regression check, not evidence of generalization.",
+      "command": "PYTHONDONTWRITEBYTECODE=1 $HERMES_PYTHON -m pytest tests/test_privacidad.py -k test_benchmark_goldset -q -p no:cacheprovider",
+      "value": "F1 0.979",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Two real model turns in the lexo-lawyer profile carrying the <dike-escritor v=\"1\"> envelope (synthetic demo brief; model overridden to an OpenRouter-hosted model for the CLI run): the hook injected the instructions in both, and pre_tool_call blocked the model's attempt to use the terminal; no tool outside the allowlist ran",
+      "command": "hermes -p lexo-lawyer chat -q \"$(cat turno.txt)\" -Q  # then read plugin-data/dike/escritor/auditoria.jsonl",
+      "value": "instrucciones x2, bloqueo terminal x1",
+      "date": "2026-11-08"
+    },
+    {
+      "claim": "Content search over the sealed corpus (POST /grafo/buscar, scripts/panel.py grafo buscar) is a development measurement within the sample: recall@10 0.952, recall@5 0.823, mrr@10 0.636 over the 31 frozen queries of normas_qrels_v1, which cover 4 of the 25 statutes. The qrels were frozen with this same StarterCorpusRetriever and its constants were fixed while looking at the source goldset, so the numbers are not an independent holdout estimate. The qrels file is not in this repository, so this measurement cannot be reproduced from it.",
+      "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current",
+      "value": "recall@10 0.952",
+      "date": "2026-11-08"
+    },
+    {
+      "claim": "The packaged matter tree (data/arbol/, 85 nodes, 51 anchors) explains content-search queries without reordering them: over the same 31 normas_qrels_v1 queries the ranking metrics are unchanged (0.823 / 0.952 / 0.636), the classification is clear (top1/top2 ratio >= 1.6) in 8 of 31, and the top-1 matter's territory contains the statute of an expected article in 14 of 31. It is an explanation of the classification, not a quality improvement. The qrels file is not in this repository, so this measurement cannot be reproduced from it.",
+      "command": "HOME=<generation>/home PYTHONPATH=motor python scripts/medir_busqueda.py --qrels <normas_qrels_v1.json> --corpus <generation>/users/hermes/starter/chile-base/current  # fields clara, materia_top1_cubre_esperado",
+      "value": "clara 8/31, materia_top1_cubre_esperado 14/31",
+      "date": "2026-11-08"
+    },
+    {
+      "claim": "The ordenamiento profile cl reproduces the sealed chile-base pack at compatibility level C1 (25 norms, 8544 articles, 8569 temporal windows, 17068 edges re-minted)",
+      "command": "$HERMES_PYTHON -m pytest tests/test_ordenamiento.py::test_chile_base_c1 -q",
+      "value": "C1; 34206/34206 ids re-minted (25/8544/8569/17068); 3 declared year exceptions",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Clean-room install: Hermes Agent v0.23.0 installed with the public install.sh script (downloaded, then run with --non-interactive --skip-browser --skip-computer-use) into a fresh HERMES_HOME; the plugin installed from a git clone at a pinned commit and enabled; called through the installed plugin's registered command/tool handlers with no model, /dike-estado and /dike-verificar return 4 of 6 and 'el motor corrió en bubblewrap'; the same holds inside unshare -rn (nested user namespaces). dike_leer_articulo resolves art. 161 CT and dike_buscar_corpus returns BM25 leads labelled 'pista, no cita verificada'",
+      "command": "HERMES_HOME=<cleanroom>/home bash install.sh --non-interactive --skip-browser --skip-computer-use; HERMES_HOME=<cleanroom>/home hermes plugins install file://<clone> --ref <sha> --yes-deps; hermes plugins enable dike; then load plugins/dike/__init__.py and call _comando_estado/_comando/verificar_citos/leer_articulo/buscar_corpus (dispatch.py), the second run inside unshare -rn. Evidence: .workshop/.../evidencia-parte4/cleanroom-*.log",
+      "value": "4/6; bwrap (also under unshare -rn); leer 161 RESOLVED; buscar leads",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "A citation whose text names one statute before the article and another after the number is not certified: \"artículo 161 del Código del Trabajo\\nartículo 161 del Código Civil\" used to return the second one VERIFICADA as cl.norma.ct:art:0161",
+      "command": "$HERMES_PYTHON -m pytest tests/test_native_e2e.py -k cuerpo -q",
+      "value": "FALLO / AMBIGUOUS with motivo_adaptador",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Input with invisible control characters is refused: \"artículo 16\\x001 del Código del Trabajo\" used to verify article 16",
+      "command": "$HERMES_PYTHON -m pytest tests/test_guardas_adaptador.py -k controles -q",
+      "value": "INPUT_CONTROL",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "With the engine server, only the first check of a session pays for the corpus verification, and bubblewrap adds no perceptible latency: on the demo brief (4 of 6 verified in every run) the median is 15.1 s for the first check and 0.63 s for the next one inside bwrap, vs 14.6 s / 0.63 s degraded; grafo buscar takes 1.92 s cold / 0.105 s warm inside bwrap vs 1.87 s / 0.083 s degraded (3 runs per cell, a fresh plugin process per run; the first bwrap run, 72.6 s, also unpacked the corpus; a run earlier the same day gave 13.6 s / 0.57 s inside bwrap, so the first check takes 13 to 15 s)",
+      "command": "TMPDIR=<disk dir> $HERMES_PYTHON scripts/medir_aislamiento.py --corridas 3 --plugin-home <empty dir>",
+      "value": "first check 15.1 s, next 0.63 s (bwrap); 14.6 s / 0.63 s degraded; buscar 1.92 s / 0.105 s",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "The adapter reads .docx with the standard library only (zipfile + xml.etree), no python-docx: _texto_docx output is byte-identical to the engine's python-docx 1.2.0 _read_docx on a fixture covering runs/formatting, tabs, line and page breaks, empty paragraphs, a hyperlink, unicode, a gridSpan+vMerge table, a second table and a two-paragraph cell; the demo brief as .docx still verifies 4/6; zip-bomb/DOCTYPE/ENTITY/entry-count/missing-member inputs are refused as INPUT_DOCX",
+      "command": "PYTHONPATH=/tmp/dike-scratch $HERMES_PYTHON -m pytest tests/test_docx.py -q -p no:cacheprovider",
+      "value": "9 passed",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Clean-room third-party install verified end to end on Hermes v0.23.0: the public install.sh builds a working agent, `hermes plugins install file://<clone> --ref <sha> --yes-deps` + `plugins enable dike` installs dike 0.9.0, and the registered handlers return 4/6 with bubblewrap isolation — identical inside `unshare -rn`, where bubblewrap still succeeded on this kernel (no degraded fallback was needed). Minimum bubblewrap 0.6.1.",
+      "command": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh -o install.sh && HERMES_HOME=.workshop/tmp/cleanroom/home bash install.sh --non-interactive --skip-browser --skip-computer-use && hermes plugins install file://.workshop/tmp/cleanroom/dike-clone --ref 9cfe20c6afd5843a81dc2c6c868e36888df26294 --yes-deps && hermes plugins enable dike && python dispatch.py (and under unshare -rn). bwrap --version >= 0.6.1",
+      "value": "install OK; dike 0.9.0; 4/6; modo bwrap (normal y unshare -rn)",
+      "date": "2026-11-09"
+    },
+    {
+      "claim": "Install of 0.10.0 from a local clone on Hermes Agent v0.23.0 (git checkout, scratch HERMES_HOME): `hermes plugins install file://<clone> --ref <sha> --yes-deps` and `plugins enable dike` succeed, `hermes plugins doctor dike --ci` reports dike 0.10.0 with 3 tools and 2 hooks, and the registered handlers, called through Hermes' plugin discovery and tool registry, return 4 of 6 on the demo brief with the engine in bubblewrap (AMBIGUOUS and UNRESOLVABLE each with its meaning) and dike_leer_articulo resolves art. 161 CT; the same output inside `unshare -rn`. This does not repeat the clean-room install.sh run above, which was for 0.9.0",
+      "command": "git clone <repo> <clone> && HERMES_HOME=<tmp> hermes plugins install file://<clone> --ref eccdce56e059f8fa7fc60708cea6c3ef666cfa46 --yes-deps && HERMES_HOME=<tmp> hermes plugins enable dike && HERMES_HOME=<tmp> hermes plugins doctor dike --ci && HERMES_HOME=<tmp> PYTHONPATH=<hermes checkout> $HERMES_PYTHON dispatch.py tests/fixtures/escrito_demo.md (and under unshare -rn); dispatch.py: discover_plugins(force=True), get_plugin_command_handler('dike-verificar')(texto), registry.dispatch('dike_verificar_citas', {'texto': texto}), registry.dispatch('dike_leer_articulo', {'cita': 'artículo 161 del Código del Trabajo'})",
+      "value": "install OK; dike 0.10.0; 3 tools, 2 hooks; 4/6 in bwrap (also under unshare -rn); leer 161 RESOLVED",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "In a default Docker container (ubuntu:24.04, no --privileged, default seccomp/AppArmor) with bubblewrap 0.9.0 from apt, Hermes Agent v0.23.0 from the public install.sh and the plugin installed from a git clone at a pinned commit: the sandbox probe reports USERNS_DENEGADO, the plugin runs in declared degraded mode and /dike-verificar still returns 4 of 6 (dike_leer_articulo resolves art. 161 CT); with plugins.entries.dike.settings.sandbox set to requerido the same verification returns SANDBOX_UNAVAILABLE and verifies nothing",
+      "command": "docker run --rm -v <clone>:/clone:ro ubuntu:24.04 bash -c 'apt-get install -y bubblewrap git curl ca-certificates && curl -fsSL https://hermes-agent.nousresearch.com/install.sh -o install.sh && HERMES_HOME=/opt/hermes-home bash install.sh --non-interactive --skip-browser --skip-computer-use && hermes plugins install file:///clone --ref <sha> --yes-deps && hermes plugins enable dike && $HERMES_PYTHON <dispatch script calling the registered handlers> && hermes config set plugins.entries.dike.settings.sandbox requerido && ...'",
+      "value": "USERNS_DENEGADO, modo ninguno, 4/6; requerido -> SANDBOX_UNAVAILABLE",
+      "date": "2026-11-09"
     }
   ]
 }

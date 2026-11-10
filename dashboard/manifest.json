@@ -1,9 +1,9 @@
 {
   "name": "dike",
   "label": "Diké",
-  "description": "Verifica citas de la ley chilena contra el corpus local",
+  "description": "Checks Chilean-law citations against the local corpus and keeps the case board",
   "icon": "Shield",
-  "version": "0.4.0",
+  "version": "0.10.0",
   "tab": {
     "path": "/dike",
     "position": "after:skills"

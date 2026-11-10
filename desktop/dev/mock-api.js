@@ -214,12 +214,11 @@ function ruta(metodo, pathname, q, body) {
   if (metodo === 'POST' && pathname === '/privacidad/envio') return { ok: true }
 
   // -- predicción ---------------------------------------------------------------
-  if (metodo === 'GET' && pathname === '/prediccion/corpus') {
-    return F.PREDICCION_CORPUS
-  }
+  // /prediccion/corpus es POST-only {cola: 1–300} en el backend real.
   if (metodo === 'POST' && pathname === '/prediccion/corpus') {
-    const cola = (body && body.cola) || ''
+    const cola = String((body && body.cola) || '')
     if (!cola.trim()) throw errHttp(400, 'cola vacía.')
+    if (cola.length > 300) throw errHttp(400, 'cola demasiado larga.')
     return F.PREDICCION_CORPUS
   }
   if (metodo === 'POST' && pathname === '/prediccion/evento') return { ok: true }

@@ -1,8 +1,10 @@
-// Mesa + L0 + L2 (lógica pura, node --test).
+// Mesa + L0 + L1 + L2 (lógica pura, node --test).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { setRest } from '../src/common.js'
 import { crearMesa, elegir, procedenciaValida, dentroDeCita, TOPE_SUGERENCIA } from '../src/escritor/prediccion/mesa.js'
 import { predictFormalismo, predictContenidoJuridico, sufijoPendiente, segmentoActual, textoAInsertar } from '../src/escritor/prediccion/l0.js'
+import { crearPredictorCorpus } from '../src/escritor/prediccion/l1.js'
 import { clasificarDestino, componerInputL2, INSTRUCCIONES_L2 } from '../src/escritor/prediccion/l2.js'
 
 const ESPERA = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -76,6 +78,40 @@ test('L0: acción procesal con fundamentos de procedencia norma', () => {
   assert.equal(predictContenidoJuridico(
     'el contrato adolece de un error de transcripción en la restitución')
     .accion, null)
+})
+
+test('L1: POST /prediccion/corpus con cola = últimas 4 palabras (≤300)', async () => {
+  const llamadas = []
+  setRest(async (path, opts) => {
+    llamadas.push({ path, opts })
+    return { continuacion: 'el demandado', ancla: 'las partes',
+      gid: 'g1', sha256: 's1', fuente_url: 'https://x' }
+  })
+  const l1 = crearPredictorCorpus()
+  const r = await l1.predecir({ segmento: 'uno dos tres cuatro cinco seis' })
+  assert.equal(llamadas.length, 1)
+  assert.equal(llamadas[0].path, '/prediccion/corpus')
+  assert.equal(llamadas[0].opts.method, 'POST')
+  assert.deepEqual(llamadas[0].opts.body, { cola: 'tres cuatro cinco seis' })
+  assert.equal(r.texto, 'el demandado')
+  assert.equal(r.capa, 'L1')
+  assert.equal(r.procedencia.tipo, 'corpus')
+  assert.equal(r.procedencia.fuente, 'https://x')
+  assert.equal(r.procedencia.gid, 'g1')
+  assert.equal(r.procedencia.sha256, 's1')
+  assert.equal(r.procedencia.anclaLen, 'las partes'.length)
+})
+
+test('L1: cola corta no llama a la API; error o sin continuación → null', async () => {
+  let llamadas = 0
+  setRest(async () => { llamadas++; return { continuacion: 'x' } })
+  const l1 = crearPredictorCorpus()
+  assert.equal(await l1.predecir({ segmento: 'corto' }), null)
+  assert.equal(llamadas, 0)
+  setRest(async () => { throw new Error('500') })
+  assert.equal(await l1.predecir({ segmento: 'palabras suficientes aquí' }), null)
+  setRest(async () => ({ continuacion: '' }))
+  assert.equal(await l1.predecir({ segmento: 'palabras suficientes aquí' }), null)
 })
 
 test('L2: clasificación local/nube', () => {

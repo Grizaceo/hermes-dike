@@ -41,16 +41,16 @@ export function extraerJSON(texto) {
   const ini = limpio.indexOf('{')
   const fin = limpio.lastIndexOf('}')
   if (ini < 0 || fin <= ini) {
-    throw new Error('La respuesta del modelo no trae propuestas válidas.')
+    throw new Error('MODEL_PROPOSALS_INVALID')
   }
   let obj
   try {
     obj = JSON.parse(limpio.slice(ini, fin + 1))
   } catch {
-    throw new Error('La respuesta del modelo no trae propuestas válidas.')
+    throw new Error('MODEL_PROPOSALS_INVALID')
   }
   if (!obj || !Array.isArray(obj.propuestas)) {
-    throw new Error('La respuesta del modelo no trae propuestas válidas.')
+    throw new Error('MODEL_PROPOSALS_INVALID')
   }
   return obj.propuestas
 }
@@ -113,25 +113,25 @@ export function hashPropuesta(p) {
 }
 
 export function validarPropuesta(p, { textoEnviado, nifActual, rechazadas } = {}) {
-  if (!p || typeof p !== 'object') return { ok: false, motivo: 'propuesta inválida' }
+  if (!p || typeof p !== 'object') return { ok: false, motivo: 'PROPOSAL_INVALID' }
   const fp = p.field_path
   if (!SECCIONES.includes(fp)) {
-    return { ok: false, motivo: 'field_path no permitido: ' + String(fp) }
+    return { ok: false, motivo: 'FIELD_NOT_ALLOWED', dato: String(fp) }
   }
   const prohibido = camposProhibidos(p)
   if (prohibido) {
-    return { ok: false, motivo: 'campo no proponible: ' + prohibido }
+    return { ok: false, motivo: 'FIELD_NOT_PROPOSABLE', dato: prohibido }
   }
   if (!formaValida(fp, p.value)) {
-    return { ok: false, motivo: 'forma o enum inválido en value' }
+    return { ok: false, motivo: 'VALUE_INVALID' }
   }
   const cita = String(p.cita_del_escrito || '').trim()
   if (!cita || cita.length > 300) {
-    return { ok: false, motivo: 'cita_del_escrito vacía o > 300 caracteres' }
+    return { ok: false, motivo: 'QUOTE_LENGTH_INVALID' }
   }
   const enviado = colapsar(textoEnviado)
   if (!enviado.includes(colapsar(cita))) {
-    return { ok: false, motivo: 'sin respaldo literal en el escrito' }
+    return { ok: false, motivo: 'QUOTE_NOT_IN_BRIEF' }
   }
   // duplicado del NIF actual (texto normalizado igual)
   const seccion = (nifActual && (nifActual[fp]
@@ -145,11 +145,11 @@ export function validarPropuesta(p, { textoEnviado, nifActual, rechazadas } = {}
     : p.value)
   for (const item of seccion) {
     if (textoNuevo && normalizar(textoExistente(fp, item)) === textoNuevo) {
-      return { ok: false, motivo: 'duplicada: ya está en el NIF' }
+      return { ok: false, motivo: 'PROPOSAL_DUPLICATE' }
     }
   }
   if (rechazadas && rechazadas.includes(hashPropuesta(p))) {
-    return { ok: false, motivo: 'ya rechazada por el abogado' }
+    return { ok: false, motivo: 'PROPOSAL_REJECTED' }
   }
   return { ok: true, motivo: '' }
 }
@@ -160,7 +160,7 @@ export function validarLote(lista, ctx) {
   const descartadas = []
   for (const p of lista || []) {
     const v = aceptadas.length >= MAX_PROPUESTAS
-      ? { ok: false, motivo: 'máximo ' + MAX_PROPUESTAS + ' propuestas' }
+      ? { ok: false, motivo: 'PROPOSAL_LIMIT' }
       : validarPropuesta(p, ctx)
     ;(v.ok ? aceptadas : descartadas).push({ ...p, motivo: v.motivo })
   }

@@ -168,7 +168,7 @@ function SubHerramientaCorpus({ onLlevarCitaAlEscrito, onAgregarAPizarra, onAbri
             type: 'button',
             onClick: () => onAgregarAPizarra({
               titulo: r.cita || r.label || t('piz.normaFallback'),
-              tag: 'NORMA',
+              tag: t('extra.norm'),
               color: '#bfdbfe',
               texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 240) : ''),
               nodo_id: r.nodo_id,
@@ -375,8 +375,8 @@ function SubHerramientaConstructorOrdenamiento() {
               jsx('div', {
                 className: 'font-bold',
                 children: validacion.ok
-                  ? '✓ Perfil válido conforme a dike-perfil-ordenamiento-v1'
-                  : `✗ ${validacion.errores.length} observación(es) en el perfil:`,
+                  ? t('extra.profile.valid.under.dike.perfil.ordenamiento.v1')
+                  : t('extra.profileIssues', { n: validacion.errores.length }),
               }),
               ...(validacion.errores || []).slice(0, 6).map((er, i) => jsx('div', {
                 key: i,

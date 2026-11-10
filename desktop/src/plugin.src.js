@@ -485,7 +485,7 @@ function SeccionPersonalizacionTerceros({ onAbrirGrafo, onLlevarAlEscrito }) {
 export default {
   id: ID,
   name: 'Diké',
-  description: 'Verificación local de citas de la ley chilena, mapa del corpus y tablero NIF.',
+  description: 'Local Chilean citation checks, corpus graph and case board.',
   defaultEnabled: true,
 
   register(ctx) {
@@ -618,7 +618,7 @@ export default {
         area: PALETTE_AREA,
         data: {
           id: 'dike.open',
-          label: 'Diké: verificar citas',
+          label: 'Diké: check citations',
           keywords: ['dike', 'citas', 'legal', 'verificar', 'nif', 'grafo'],
           run: () => host.navigate('/dike'),
         },

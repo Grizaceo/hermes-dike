@@ -195,7 +195,7 @@ export function acumDeltas(deltas) {
 // Etiqueta del modelo para mostrar: stealth/* nunca se muestra.
 export function etiquetaModelo(modelId) {
   if (!modelId) return '?'
-  if (String(modelId).startsWith('stealth/')) return 'modelo alojado por Nous'
+  if (String(modelId).startsWith('stealth/')) return 'NOUS_HOSTED_MODEL'
   return String(modelId)
 }
 

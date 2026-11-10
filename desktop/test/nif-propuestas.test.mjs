@@ -15,9 +15,9 @@ test('extraerJSON: tolera cercos y texto alrededor', () => {
   assert.deepEqual(extraerJSON(con), [])
   assert.equal(extraerJSON('{"propuestas":[{"a":1}]}').length, 1)
   assert.throws(() => extraerJSON('sin json'),
-    /no trae propuestas válidas/)
+    /MODEL_PROPOSALS_INVALID/)
   assert.throws(() => extraerJSON('{"otro":1}'),
-    /no trae propuestas válidas/)
+    /MODEL_PROPOSALS_INVALID/)
 })
 
 test('validarPropuesta: field_path no permitido y campos prohibidos', () => {
@@ -29,17 +29,17 @@ test('validarPropuesta: field_path no permitido y campos prohibidos', () => {
     field_path: 'facts.known', value: 'x', reason: 'x',
     validated_by_human: true, cita_del_escrito: 'El actor' }, ctx)
   assert.equal(prohibida.ok, false)
-  assert.match(prohibida.motivo, /no proponible/)
+  assert.match(prohibida.motivo, /FIELD_NOT_PROPOSABLE/)
 })
 
 test('validarPropuesta: cita literal requerida y ≤300', () => {
   const ctx = { textoEnviado: TEXTO, nifActual: {} }
   assert.match(validarPropuesta({ field_path: 'facts.known',
     value: 'hecho', cita_del_escrito: 'no está en el escrito',
-    reason: 'r' }, ctx).motivo, /sin respaldo literal/)
+    reason: 'r' }, ctx).motivo, /QUOTE_NOT_IN_BRIEF/)
   assert.match(validarPropuesta({ field_path: 'facts.known',
     value: 'hecho', cita_del_escrito: 'x'.repeat(301), reason: 'r'
-  }, ctx).motivo, /300/)
+  }, ctx).motivo, /QUOTE_LENGTH_INVALID/)
   // con espacios colapsados sí coincide
   const enviado = 'frase   con    espacios'
   assert.equal(validarPropuesta({ field_path: 'facts.known', value: 'h',
@@ -74,13 +74,13 @@ test('validarPropuesta: duplicado y rechazada', () => {
   assert.equal(validarPropuesta({ field_path: 'facts.known',
     value: 'el actor juan pérez interpone demanda',
     cita_del_escrito: 'El actor', reason: 'r' }, ctx).motivo,
-    'duplicada: ya está en el NIF')
+    'PROPOSAL_DUPLICATE')
   const p = { field_path: 'facts.known', value: 'hecho nuevo',
     cita_del_escrito: 'El actor', reason: 'r' }
   const ctxR = { textoEnviado: TEXTO, nifActual: {},
     rechazadas: [hashPropuesta(p)] }
   assert.equal(validarPropuesta(p, ctxR).motivo,
-    'ya rechazada por el abogado')
+    'PROPOSAL_REJECTED')
 })
 
 test('validarLote: máximo 12 aceptadas', () => {

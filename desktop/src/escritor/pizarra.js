@@ -282,8 +282,8 @@ export function PizarraEstrategica({
                   onClick: () => aplicarPlantilla(pl),
                   className: 'flex w-full flex-col px-3 py-1.5 text-left hover:bg-(--dk-sobre)',
                   children: [
-                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto)', children: pl.label }),
-                    jsx('span', { className: 'text-xs text-(--dk-texto-3)', children: pl.descripcion }),
+                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto)', children: t(pl.label) }),
+                    jsx('span', { className: 'text-xs text-(--dk-texto-3)', children: t(pl.descripcion) }),
                   ],
                 })),
               ],

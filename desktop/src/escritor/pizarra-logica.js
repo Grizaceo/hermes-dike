@@ -12,8 +12,8 @@ export const COLORES_NOTA = [
 export const PLANTILLAS_PIZARRA = [
   {
     id: 'demanda',
-    label: 'Demanda / Escrito Judicial',
-    descripcion: 'Partes · Hechos · Fundamentos de Derecho · Petitorio',
+    label: 'piz.template0',
+    descripcion: 'piz.templateDescription0',
     columnas: [
       { titulo: 'Partes y Comparecencia', tag: 'PARTES', color: '#bfdbfe', texto: 'Individualización del demandante, demandado y representación procesal.' },
       { titulo: 'Hechos de la Causa', tag: 'HECHO', color: '#bbf7d0', texto: 'Relación cronológica de hechos acreditados y circunstancias relevantes.' },
@@ -24,8 +24,8 @@ export const PLANTILLAS_PIZARRA = [
   },
   {
     id: 'sentencia',
-    label: 'Sentencia Judicial',
-    descripcion: 'Partes · Vistos · Considerandos · Por Tanto',
+    label: 'piz.template1',
+    descripcion: 'piz.templateDescription1',
     columnas: [
       { titulo: 'Vistos y Partes', tag: 'PARTES', color: '#bfdbfe', texto: 'Identificación del proceso, pretensiones y defensas de las partes.' },
       { titulo: 'Hechos Acreditados', tag: 'HECHO', color: '#bbf7d0', texto: 'Hechos probados y valoración de la prueba rendida en el expediente.' },
@@ -36,8 +36,8 @@ export const PLANTILLAS_PIZARRA = [
   },
   {
     id: 'contrato',
-    label: 'Contrato / Convención',
-    descripcion: 'Partes · Objeto · Obligaciones · Garantías y Terminación',
+    label: 'piz.template2',
+    descripcion: 'piz.templateDescription2',
     columnas: [
       { titulo: 'Comparecientes', tag: 'PARTES', color: '#bfdbfe', texto: 'Partes contratantes, personerías y domicilios.' },
       { titulo: 'Objeto y Precio', tag: 'HECHO', color: '#bbf7d0', texto: 'Prestación principal, contraprestación, plazos y forma de pago.' },
@@ -48,8 +48,8 @@ export const PLANTILLAS_PIZARRA = [
   },
   {
     id: 'resolucion',
-    label: 'Resolución / Reclamación Adm.',
-    descripcion: 'Antecedentes · Marco Normativo · Motivación · Resolutivo',
+    label: 'piz.template3',
+    descripcion: 'piz.templateDescription3',
     columnas: [
       { titulo: 'Antecedentes de Hecho', tag: 'HECHO', color: '#bfdbfe', texto: 'Acto administrativo impugnado, fiscalización o expediente.' },
       { titulo: 'Marco Normativo', tag: 'NORMA', color: '#bbf7d0', texto: 'Potestades legales, requisitos procedimentales y normas técnicas.' },

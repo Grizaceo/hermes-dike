@@ -60,7 +60,7 @@ test('anidarTextos produce árboles resolubles por ctx.i18n', () => {
 
 test('toda clave t() usada en src/ existe en ambos diccionarios', () => {
   const usadas = new Set()
-  const re = /\bt\(\s*['"`]([\w.]+)['"`]/g
+  const re = /\bt\(\s*['"`]([\w.]*[\w])['"`]/g
   for (const f of archivos(SRC)) {
     if (f.endsWith('i18n.js')) continue
     for (const m of readFileSync(f, 'utf8').matchAll(re)) usadas.add(m[1])
@@ -74,14 +74,14 @@ test('ninguna clave del diccionario queda sin uso', () => {
   // t('clave') o como dato que luego pasa por t() (p.ej. SECCIONES_NIF,
   // MOTIVOS, opciones de <select>).
   const usadas = new Set()
-  const re = /\bt\(\s*['"`]([\w.]+)['"`]/g
+  const re = /\bt\(\s*['"`]([\w.]*[\w])['"`]/g
   for (const f of archivos(SRC)) {
     if (f.endsWith('i18n.js')) continue
     const texto = readFileSync(f, 'utf8')
     for (const m of texto.matchAll(re)) usadas.add(m[1])
   }
   const huerfanas = Object.keys(TEXTOS.en).filter(k => {
-    if (usadas.has(k)) return false
+    if (usadas.has(k) || k.startsWith('proposal.')) return false
     // clave transportada como dato: el literal 'clave' aparece en src/
     const reClave = new RegExp(`['"\`]${k.replace(/\./g, '\\.')}['"\`]`)
     for (const f of archivos(SRC)) {
@@ -93,10 +93,7 @@ test('ninguna clave del diccionario queda sin uso', () => {
   assert.deepEqual(huerfanas, [], `claves sin uso: ${huerfanas.join(', ')}`)
 })
 
-// TODO(i18n): activar cuando termine la migración de todos los archivos.
-// Hoy detecta los ~300 literales aún sin migrar; el test corre en rojo a
-// propósito como semáforo del avance.
-test('sin literales de interfaz en español fuera de i18n.js y l0.js', { todo: 'migración i18n en curso' }, () => {
+test('sin literales de interfaz en español fuera de i18n.js y l0.js', () => {
   // Regex: comilla/backtick seguida de texto con acento o ¿¡. No ve "Guardar"
   // sin tilde ni strings armados por concatenación de variables.
   const re = /['"`][^'"`\n]*[áéíóúñüÁÉÍÓÚÑÜ¿¡][^'"`\n]*['"`]/g
@@ -106,7 +103,13 @@ test('sin literales de interfaz en español fuera de i18n.js y l0.js', { todo: '
     if (EXENTOS_LITERAL.has(rel)) continue
     const lineas = readFileSync(f, 'utf8').split('\n')
     lineas.forEach((l, i) => {
-      if (re.test(l)) culpables.push(`${rel}:${i + 1}: ${l.trim().slice(0, 90)}`)
+      // Legal templates and the Spanish model protocol are data, not UI.
+      if (l.trim().startsWith('//')) return
+      if (rel.endsWith('barra-formato.js') && /(?:label|texto): '(?:PRIMER OTROSÍ|SEGUNDO OTROSÍ|POR TANTO)/.test(l)) return
+      if (rel.endsWith('pizarra-logica.js') && /titulo: /.test(l)) return
+      if (rel.endsWith('chat-logica.js') && /párrafos omitidos|'sí'/.test(l)) return
+      if (rel.endsWith('prediccion/l2.js') && /(?:Continúa el texto|citas: si la continuación|Responde solo con la continuación)/.test(l)) return
+      if (re.test(l.replace(/Diké/g, 'Dike'))) culpables.push(`${rel}:${i + 1}: ${l.trim().slice(0, 90)}`)
       re.lastIndex = 0
     })
   }

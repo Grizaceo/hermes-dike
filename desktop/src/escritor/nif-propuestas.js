@@ -223,7 +223,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
     ] }),
     deshabilitado && tieneNif ? jsx('div', { className: 'text-xs',
       children: deshabilitado }) : null,
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)',
+    error ? jsx('div', { className: 'text-xs dk-mal',
       children: mensajeError(error) }) : null,
 
     propuestas && !propuestas.length && !descartadas.length
@@ -406,7 +406,7 @@ export function NifInteractivoEscritor({
   const nif = snap.nif || null
 
   return jsxs('div', {
-    className: 'flex flex-col gap-3 p-3 text-xs text-slate-800',
+    className: 'flex flex-col gap-3 p-3 text-xs text-(--dk-texto)',
     children: [
       // 1. Propuestas de NIF Vivo desde el escrito
       jsx(NifPropuestas, {
@@ -420,21 +420,21 @@ export function NifInteractivoEscritor({
 
       // 2. Si está en borrador sin caso NIF, permitir crear o sembrar caso aquí mismo
       !tieneNif ? jsxs('div', {
-        className: 'flex flex-col gap-2 rounded-md border border-indigo-200 bg-indigo-50/70 p-3',
+        className: S.notice + ' flex flex-col gap-2',
         children: [
-          jsx('div', { className: 'font-bold text-indigo-900', children: 'Vincular o crear Tablero NIF' }),
-          jsx('div', { className: 'text-[11px] text-indigo-800', children: 'El documento actual está en «borrador». Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo.' }),
+          jsx('div', { className: 'font-bold', children: 'Vincular o crear Tablero NIF' }),
+          jsx('div', { className: 'dk-meta', children: 'El documento actual está en «borrador». Crea un caso NIF o carga el caso demo para habilitar el tablero interactivo.' }),
           jsx('input', {
             value: nuevoId,
             onChange: (e) => setNuevoId(e.target.value),
             placeholder: 'ID del caso (ej. causa-despido-1)',
-            className: 'rounded border border-indigo-200 bg-white px-2 py-1 text-xs',
+            className: S.input,
           }),
           jsx('input', {
             value: nuevaPregunta,
             onChange: (e) => setNuevaPregunta(e.target.value),
             placeholder: 'Pregunta jurídica principal…',
-            className: 'rounded border border-indigo-200 bg-white px-2 py-1 text-xs',
+            className: S.input,
           }),
           jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
             jsx('button', {
@@ -445,47 +445,46 @@ export function NifInteractivoEscritor({
                 setNuevoId('')
                 setNuevaPregunta('')
               },
-              className: 'rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-xs font-semibold text-white cursor-pointer',
+              className: 'dk-btn dk-btn--primario',
               children: 'Crear caso NIF',
             }),
             onSembrarDemoCaso ? jsx('button', {
               type: 'button',
               onClick: onSembrarDemoCaso,
-              className: 'rounded border border-indigo-300 bg-white hover:bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 cursor-pointer',
+              className: 'dk-btn dk-btn--borde',
               children: 'Cargar caso demo (CT)',
             }) : null,
           ] }),
         ],
       }) : null,
 
-      error ? jsx('div', { className: 'rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700', children: mensajeError(error) }) : null,
+      error ? jsx('div', { className: S.noticeBad, children: mensajeError(error) }) : null,
 
       // 3. Tablero NIF interactivo del caso activo
       tieneNif && nif ? jsxs('div', {
-        className: 'flex flex-col gap-2.5 rounded-md border border-slate-200 bg-white p-2.5',
+        className: 'flex flex-col gap-2.5 rounded-md border border-(--dk-borde) bg-(--dk-elevada) p-2.5',
         children: [
-          jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2', children: [
+          jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-1.5 border-b border-(--dk-borde-suave) pb-2', children: [
             jsxs('div', { className: 'flex items-center gap-1.5', children: [
               jsx('span', {
-                className: 'rounded px-1.5 py-0.5 text-[10px] font-semibold ' +
-                  (nif.validated_by_human ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'),
+                className: S.chip + ' ' + (nif.validated_by_human ? S.chipOk : S.chipOff),
                 children: nif.validated_by_human ? '✓ validado por humano' : 'borrador NIF',
               }),
               jsx('span', {
-                className: 'text-[10px] text-slate-500',
+                className: 'dk-meta',
                 children: `v${snap.version || 1} · confianza ${Math.round((nif.confidence || 0) * 100)}%`,
               }),
             ] }),
             jsx('button', {
               type: 'button',
               onClick: () => alternarValidacion(nif.validated_by_human),
-              className: 'text-[11px] font-medium text-indigo-600 hover:underline cursor-pointer',
+              className: S.link,
               children: nif.validated_by_human ? 'Retirar validación' : 'Marcar validado',
             }),
           ] }),
 
           nif.legal_question ? jsx('div', {
-            className: 'rounded bg-slate-50 p-2 text-xs font-medium text-slate-800 border border-slate-200/80',
+            className: 'rounded bg-(--dk-superficie) p-2 text-xs font-medium text-(--dk-texto) border border-(--dk-borde)',
             children: nif.legal_question,
           }) : null,
 
@@ -497,30 +496,30 @@ export function NifInteractivoEscritor({
             const abierta = seccionAbierta === campo
             return jsxs('div', {
               key: campo,
-              className: 'rounded border border-slate-200 overflow-hidden',
+              className: 'rounded border border-(--dk-borde) overflow-hidden',
               children: [
                 jsxs('button', {
                   type: 'button',
                   onClick: () => setSeccionAbierta(abierta ? null : campo),
-                  className: 'flex w-full items-center justify-between bg-slate-50 px-2.5 py-1.5 text-left hover:bg-slate-100 cursor-pointer',
+                  className: 'flex w-full items-center justify-between bg-(--dk-superficie) px-2.5 py-1.5 text-left hover:bg-(--dk-sobre) cursor-pointer',
                   children: [
-                    jsx('span', { className: 'text-[11px] font-semibold text-slate-700', children: titulo }),
+                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto-2)', children: titulo }),
                     jsx('span', {
-                      className: 'rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] font-bold text-slate-700',
+                      className: 'rounded-full bg-(--dk-superficie-2) px-1.5 py-0.2 text-xs font-bold text-(--dk-texto-2)',
                       children: String(lista.length),
                     }),
                   ],
                 }),
-                abierta ? jsxs('div', { className: 'flex flex-col gap-1.5 p-2 bg-white', children: [
+                abierta ? jsxs('div', { className: 'flex flex-col gap-1.5 p-2 bg-(--dk-elevada)', children: [
                   lista.length === 0
-                    ? jsx('div', { className: 'text-[11px] text-slate-400 italic', children: 'Sin elementos registrados en esta sección.' })
+                    ? jsx('div', { className: 'text-xs text-(--dk-texto-3) italic', children: 'Sin elementos registrados en esta sección.' })
                     : lista.map((item, idx) => {
                         const txt = formatearItemNif(item)
                         return jsxs('div', {
                           key: idx,
-                          className: 'flex items-start justify-between gap-1.5 border-b border-slate-100 pb-1.5 last:border-0',
+                          className: 'flex items-start justify-between gap-1.5 border-b border-(--dk-borde-suave) pb-1.5 last:border-0',
                           children: [
-                            jsx('div', { className: 'flex-1 text-[11px] text-slate-700 leading-relaxed whitespace-pre-wrap', children: txt }),
+                            jsx('div', { className: 'flex-1 text-xs text-(--dk-texto-2) leading-relaxed whitespace-pre-wrap', children: txt }),
                             jsxs('div', { className: 'flex items-center gap-1 shrink-0', children: [
                               onAgregarAPizarra ? jsx('button', {
                                 type: 'button',
@@ -531,15 +530,15 @@ export function NifInteractivoEscritor({
                                   color: colorPizarra,
                                   texto: txt,
                                 }),
-                                className: 'rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 cursor-pointer',
+                                className: 'rounded border border-(--dk-borde) bg-(--dk-superficie) hover:bg-(--dk-sobre) px-1.5 py-0.5 text-xs text-(--dk-texto-2) cursor-pointer',
                                 children: '+ Pizarra',
                               }) : null,
                               onInsertarTexto ? jsx('button', {
                                 type: 'button',
                                 title: 'Insertar en el escrito',
                                 onClick: () => onInsertarTexto(txt),
-                                className: 'rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700 cursor-pointer',
-                                children: '↳',
+                                className: 'dk-btn dk-btn--borde dk-btn--chico',
+                                children: '+ Escrito',
                               }) : null,
                             ] }),
                           ],
@@ -552,13 +551,13 @@ export function NifInteractivoEscritor({
                       onChange: (e) => setNuevoValor(e.target.value),
                       onKeyDown: (e) => { if (e.key === 'Enter') agregarItem(campo) },
                       placeholder: 'Agregar a ' + titulo.toLowerCase() + '…',
-                      className: 'flex-1 rounded border border-slate-300 px-2 py-1 text-[11px] text-slate-800 outline-none',
+                      className: 'flex-1 rounded border border-(--dk-borde) px-2 py-1 text-xs text-(--dk-texto) outline-none',
                     }),
                     jsx('button', {
                       type: 'button',
                       onClick: () => agregarItem(campo),
                       disabled: ocupado || !nuevoValor.trim(),
-                      className: 'rounded bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 px-2.5 py-1 text-[11px] font-medium text-white cursor-pointer',
+                      className: 'dk-btn dk-btn--primario dk-btn--chico',
                       children: '+ Agregar',
                     }),
                   ] }),

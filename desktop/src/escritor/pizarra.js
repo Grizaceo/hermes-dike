@@ -5,16 +5,14 @@
 
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
+import { S } from '../common.js'
+import { BuscadorCorpus } from './buscador-corpus.js'
 import {
   COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla, crearIdNota as crearId,
 } from './pizarra-logica.js'
 
 export { COLORES_NOTA, PLANTILLAS_PIZARRA, construirNodosPlantilla }
 
-// /grafo/buscar emite vigencia como {estado, motivo}; otros endpoints la
-// emiten como string. Normalizar al estado legible antes de pintar.
-const _vig = (v) => (v && typeof v === 'object' ? v.estado : v) || null
 
 // La vista de la pizarra (zoom/pan) se persiste dentro de registro.pizarra.
 const zoomDeEstado = (e) => {
@@ -28,142 +26,51 @@ const panDeEstado = (e) => {
     : { x: 0, y: 0 }
 }
 
+
+// Overlay flotante del buscador del corpus: la lógica vive en
+// BuscadorCorpus (compartida con Herramientas de Grafos); aquí solo el
+// marco posicional y las acciones propias de la pizarra.
 function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
-  const [q, setQ] = useState('')
-  const [resultados, setResultados] = useState([])
-  const [arbol, setArbol] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
-  const [error, setError] = useState(null)
-  const timerRef = useRef(null)
-  const seqRef = useRef(0)
-
-  const ejecutar = useCallback((consulta) => {
-    const limpio = (consulta || '').trim()
-    if (!limpio) {
-      seqRef.current += 1
-      setResultados([])
-      setArbol(null)
-      return
-    }
-    const id = ++seqRef.current
-    setOcupado(true)
-    setError(null)
-    rest('/grafo/buscar', {
-      method: 'POST',
-      body: { q: limpio, limite: 12 },
-      timeoutMs: 120000,
-    }).then((d) => {
-      if (id !== seqRef.current) return
-      setResultados((d && d.resultados) || [])
-      setArbol((d && d.arbol) || null)
-    }).catch((e) => {
-      if (id !== seqRef.current) return
-      setError(e)
-      setResultados([])
-    }).finally(() => {
-      if (id === seqRef.current) setOcupado(false)
-    })
-  }, [])
-
-  const cambiar = (ev) => {
-    const v = ev.target.value
-    setQ(v)
-    cancelarTarea(timerRef.current)
-    timerRef.current = programarTimeout(() => ejecutar(v), 350)
-  }
-
-  useEffect(() => () => cancelarTarea(timerRef.current), [])
-
-  return jsxs('div', {
-    className: 'absolute top-2 right-3 z-30 flex w-96 flex-col rounded-lg border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl',
+  return jsx('div', {
+    className: 'absolute top-2 right-3 z-30 flex w-96 flex-col ' + S.floating,
     style: { maxHeight: '260px' },
-    children: [
-      jsxs('div', { className: 'flex items-center gap-2 border-b border-slate-700 px-3 py-2', children: [
-        jsx('span', { className: 'text-xs font-semibold text-sky-400', children: 'LexO Search · Corpus Diké' }),
-        jsx('input', {
-          className: 'flex-1 bg-transparent text-xs text-slate-100 outline-none placeholder-slate-400',
-          placeholder: 'Buscar en las 25 leyes (ej. despido necesidades empresa)…',
-          value: q,
-          autoFocus: true,
-          onChange: cambiar,
-          onKeyDown: (e) => { if (e.key === 'Enter') ejecutar(q) },
-        }),
+    children: jsx(BuscadorCorpus, {
+      limite: 12,
+      debounceMs: 350,
+      autoFoco: true,
+      titulo: 'LexO Search · Corpus Diké',
+      placeholder: 'Buscar en las 25 leyes (ej. despido necesidades empresa)…',
+      textoVacio: 'Escribe términos jurídicos para traer normas a la pizarra o al escrito.',
+      onCerrar,
+      renderAcciones: (r) => [
         jsx('button', {
           type: 'button',
-          className: 'text-xs text-slate-400 hover:text-white px-1',
-          onClick: onCerrar,
-          title: 'Cerrar buscador',
-          children: '✕',
+          className: 'dk-btn dk-btn--borde dk-btn--chico',
+          title: 'Crear tarjeta de norma en la pizarra',
+          onClick: () => onAgregarNota({
+            titulo: r.cita || r.label || r.gid || 'Norma',
+            tag: 'NORMA',
+            color: (COLORES_NOTA.find((c) => c.id === 'azul') || COLORES_NOTA[0]).hex,
+            texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 260) : ''),
+            nodo_id: r.nodo_id,
+            gid: r.gid,
+          }),
+          children: '+ Pizarra',
         }),
-      ] }),
-      arbol && arbol.disponible && (arbol.clasificacion || []).length
-        ? jsxs('div', { className: 'flex flex-wrap gap-1 border-b border-slate-800 px-3 py-1 text-[10px] text-slate-300', children: [
-            jsx('span', { className: 'text-slate-400', children: 'Materias:' }),
-            ...(arbol.clasificacion || []).slice(0, 3).map((m, i) => jsx('span', {
-              key: i,
-              className: 'rounded bg-slate-800 px-1.5 py-0.5 text-sky-300',
-              children: m.nombre || m.nodo,
-            })),
-          ] })
-        : null,
-      jsxs('div', { className: 'flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5', children: [
-        ocupado ? jsx('div', { className: 'py-4 text-center text-xs text-slate-400', children: 'Buscando en el corpus sellado (BM25)…' }) : null,
-        error ? jsx('div', { className: 'rounded bg-red-950/60 p-2 text-xs text-red-300', children: mensajeError(error) }) : null,
-        !ocupado && !error && resultados.length === 0 && q.trim()
-          ? jsx('div', { className: 'py-4 text-center text-xs text-slate-400', children: 'Sin resultados para «' + q.trim() + '».' })
+        r.citable !== false && r.cita && onLlevarAlEscrito
+          ? jsx('button', {
+              type: 'button',
+              className: 'dk-btn dk-btn--borde dk-btn--chico',
+              title: 'Insertar cita canónica en el escrito y verificar',
+              onClick: () => onLlevarAlEscrito(r),
+              children: '+ Escrito',
+            })
           : null,
-        !ocupado && !q.trim()
-          ? jsx('div', { className: 'py-3 text-center text-[11px] text-slate-400', children: 'Escribe términos jurídicos para traer normas a la pizarra o al escrito.' })
-          : null,
-        ...resultados.map((r, i) => jsxs('div', {
-          key: (r.nodo_id || i),
-          className: 'flex items-start justify-between gap-2 rounded border border-slate-800 bg-slate-800/60 p-2 hover:border-slate-600',
-          children: [
-            jsxs('div', { className: 'min-w-0 flex-1', children: [
-              jsxs('div', { className: 'flex items-center gap-1.5', children: [
-                jsx('span', { className: 'truncate text-xs font-semibold text-sky-300', children: r.cita || r.label || r.gid }),
-                _vig(r.vigencia) ? jsx('span', {
-                  className: 'rounded px-1 py-0.5 text-[9px] uppercase ' +
-                    (_vig(r.vigencia) === 'IN_FORCE' ? 'bg-emerald-900/70 text-emerald-300' : 'bg-amber-900/70 text-amber-300'),
-                  children: _vig(r.vigencia) === 'IN_FORCE' ? 'vigente' : _vig(r.vigencia),
-                }) : null,
-              ] }),
-              r.snippet ? jsx('div', {
-                className: 'mt-0.5 line-clamp-2 text-[11px] text-slate-300',
-                children: String(r.snippet).slice(0, 180),
-              }) : null,
-            ] }),
-            jsxs('div', { className: 'flex flex-col gap-1 shrink-0', children: [
-              jsx('button', {
-                type: 'button',
-                className: 'rounded bg-sky-600 hover:bg-sky-500 px-2 py-0.5 text-[10px] font-medium text-white',
-                title: 'Crear tarjeta de norma en la pizarra',
-                onClick: () => onAgregarNota({
-                  titulo: r.cita || r.label || r.gid || 'Norma',
-                  tag: 'NORMA',
-                  color: '#bfdbfe',
-                  texto: (r.cita ? r.cita + '.\n' : '') + (r.snippet ? String(r.snippet).slice(0, 260) : ''),
-                  nodo_id: r.nodo_id,
-                  gid: r.gid,
-                }),
-                children: '+ Pizarra',
-              }),
-              r.citable !== false && r.cita && onLlevarAlEscrito
-                ? jsx('button', {
-                    type: 'button',
-                    className: 'rounded border border-slate-600 hover:bg-slate-700 px-2 py-0.5 text-[10px] text-slate-200',
-                    title: 'Insertar cita canónica en el escrito y verificar',
-                    onClick: () => onLlevarAlEscrito(r),
-                    children: '+ Escrito',
-                  })
-                : null,
-            ] }),
-          ],
-        })),
-      ] }),
-    ],
+      ],
+    }),
   })
 }
+
 
 export function PizarraEstrategica({
   pizarra,
@@ -325,22 +232,22 @@ export function PizarraEstrategica({
   const mapaNodos = new Map(nodos.map((n) => [n.id, n]))
 
   return jsxs('div', {
-    className: 'flex flex-col border-b border-slate-300 bg-white select-none shrink-0',
+    className: 'flex flex-col border-b border-(--dk-borde) bg-(--dk-elevada) select-none shrink-0',
     children: [
       // Barra superior de la Pizarra Estratégica (estilo imagen 2)
       jsxs('div', {
-        className: 'flex flex-wrap items-center gap-1.5 border-b border-slate-200 bg-slate-50 px-3 py-1 text-xs',
+        className: 'flex flex-wrap items-center gap-1.5 border-b border-(--dk-borde) bg-(--dk-superficie) px-3 py-1 text-xs',
         children: [
           jsx('button', {
             type: 'button',
             onClick: () => actualizar({ colapsada: !colapsada }),
-            className: 'flex items-center gap-1 rounded px-2 py-1 font-medium text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer',
+            className: 'flex items-center gap-1 rounded px-2 py-1 font-medium text-(--dk-texto-2) hover:bg-(--dk-sobre) transition-colors cursor-pointer',
             children: [
               jsx('span', { children: colapsada ? '▾' : '▴' }),
               jsx('span', { children: 'Pizarra Estratégica' }),
               nodos.length > 0
                 ? jsx('span', {
-                    className: 'ml-1 rounded-full bg-slate-200 px-1.5 py-0.2 text-[10px] text-slate-600',
+                    className: 'ml-1 rounded-full bg-(--dk-superficie-2) px-1.5 py-0.2 text-xs text-(--dk-texto-2)',
                     children: String(nodos.length),
                   })
                 : null,
@@ -350,7 +257,7 @@ export function PizarraEstrategica({
           jsx('button', {
             type: 'button',
             onClick: () => agregarNota({}),
-            className: 'flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs',
+            className: 'flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs',
             title: 'Agregar nota adhesiva a la pizarra',
             children: ['+ Nota'],
           }),
@@ -360,22 +267,22 @@ export function PizarraEstrategica({
             jsx('button', {
               type: 'button',
               onClick: () => setMenuPlantillas((v) => !v),
-              className: 'flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs',
+              className: 'flex items-center gap-1 rounded border border-(--dk-borde) bg-(--dk-elevada) px-2 py-0.5 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre) cursor-pointer shadow-2xs',
               title: 'Cargar estructura de escrito en la pizarra',
               children: ['⊞ Plantillas ▾'],
             }),
             menuPlantillas ? jsxs('div', {
-              className: 'absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-slate-200 bg-white py-1 shadow-xl',
+              className: 'absolute left-0 top-full z-40 mt-1 w-72 rounded-md border border-(--dk-borde) bg-(--dk-elevada) py-1 shadow-xl',
               children: [
-                jsx('div', { className: 'px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400', children: 'Estructuras jurídicas' }),
+                jsx('div', { className: 'px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--dk-texto-3)', children: 'Estructuras jurídicas' }),
                 ...PLANTILLAS_PIZARRA.map((pl) => jsxs('button', {
                   key: pl.id,
                   type: 'button',
                   onClick: () => aplicarPlantilla(pl),
-                  className: 'flex w-full flex-col px-3 py-1.5 text-left hover:bg-slate-100',
+                  className: 'flex w-full flex-col px-3 py-1.5 text-left hover:bg-(--dk-sobre)',
                   children: [
-                    jsx('span', { className: 'text-xs font-semibold text-slate-800', children: pl.label }),
-                    jsx('span', { className: 'text-[10px] text-slate-500', children: pl.descripcion }),
+                    jsx('span', { className: 'text-xs font-semibold text-(--dk-texto)', children: pl.label }),
+                    jsx('span', { className: 'text-xs text-(--dk-texto-3)', children: pl.descripcion }),
                   ],
                 })),
               ],
@@ -389,24 +296,22 @@ export function PizarraEstrategica({
               if (colapsada) actualizar({ colapsada: false })
               setBuscadorAbierto((v) => !v)
             },
-            className: 'flex items-center gap-1 rounded border px-2 py-0.5 text-xs cursor-pointer transition-colors ' +
-              (buscadorAbierto
-                ? 'border-sky-500 bg-sky-50 text-sky-700 font-medium'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'),
+            'aria-pressed': buscadorAbierto,
+            className: 'dk-btn',
             title: 'Buscar normas en el corpus de Diké y agregarlas como tarjetas',
-            children: ['🔍 LexO Search'],
+            children: ['LexO Search'],
           }),
 
           nodos.length > 0 ? jsx('button', {
             type: 'button',
             onClick: volcarAlEscrito,
-            className: 'flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 hover:bg-emerald-100 cursor-pointer',
+            className: 'dk-btn dk-btn--borde',
             title: 'Insertar el contenido ordenado de las notas en el escrito',
-            children: ['↳ Llevar notas al escrito'],
+            children: ['Llevar notas al escrito'],
           }) : null,
 
           conectandoDesde ? jsx('span', {
-            className: 'rounded bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-700',
+            className: S.chip + ' ' + S.chipInfo,
             children: 'Haz clic en otra nota para conectarlas (o en la misma para cancelar)',
           }) : null,
 
@@ -415,9 +320,9 @@ export function PizarraEstrategica({
             nodos.length > 0 ? jsx('button', {
               type: 'button',
               onClick: () => actualizar({ nodos: [], aristas: [] }),
-              className: 'rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer',
+              className: 'dk-btn dk-btn--borde dk-btn--peligro dk-btn--chico',
               title: 'Limpiar pizarra',
-              children: '🗑',
+              children: 'Limpiar',
             }) : null,
           ] }),
         ],
@@ -452,8 +357,8 @@ export function PizarraEstrategica({
             'data-fondo': '1',
             className: 'pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center',
             children: [
-              jsx('div', { className: 'text-xs font-medium text-slate-400', children: 'Pizarra Estratégica vacía — planifica los bloques de tu escrito antes de redactar' }),
-              jsx('div', { className: 'text-[11px] text-slate-400', children: 'Usa «+ Nota», elige «Plantillas» (Demanda, Sentencia, Contrato) o abre «LexO Search» para traer artículos.' }),
+              jsx('div', { className: 'text-xs font-medium text-(--dk-texto-3)', children: 'Pizarra Estratégica vacía — planifica los bloques de tu escrito antes de redactar' }),
+              jsx('div', { className: 'text-xs text-(--dk-texto-3)', children: 'Usa «+ Nota», elige «Plantillas» (Demanda, Sentencia, Contrato) o abre «LexO Search» para traer artículos.' }),
             ],
           }) : null,
 
@@ -536,7 +441,7 @@ export function PizarraEstrategica({
                       ? '0 0 0 2px #4f46e5, 0 4px 12px rgba(0,0,0,0.12)'
                       : '0 2px 6px rgba(0,0,0,0.10)',
                   },
-                  className: 'flex flex-col rounded-md border border-slate-300/90 text-slate-800 transition-shadow',
+                  className: 'flex flex-col rounded-md border border-(--dk-borde) text-(--dk-texto) transition-shadow',
                   children: [
                     // Cabecera arrastrable de la tarjeta
                     jsxs('div', {
@@ -553,72 +458,78 @@ export function PizarraEstrategica({
                           nodosBase: nodos,
                         }
                       },
-                      className: 'flex items-center gap-1 border-b border-black/10 px-2 py-1 cursor-move',
+                      className: 'flex items-center gap-1 border-b border-(--dk-borde-suave) px-2 py-1 cursor-move',
                       children: [
                         jsx('span', {
-                          className: 'rounded bg-black/10 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider text-slate-700',
+                          className: 'rounded bg-(--dk-superficie-2) px-1 py-0.2 text-xs font-bold uppercase tracking-wider text-(--dk-texto-2)',
                           children: n.tag || 'NOTA',
                         }),
                         jsx('input', {
                           value: n.titulo || '',
                           onChange: (ev) => editarNodo(n.id, { titulo: ev.target.value }),
-                          className: 'min-w-0 flex-1 bg-transparent text-xs font-semibold text-slate-800 outline-none',
+                          className: 'min-w-0 flex-1 bg-transparent text-xs font-semibold text-(--dk-texto) outline-none',
                           placeholder: 'Título…',
                         }),
                         // Cambiar color
                         jsx('button', {
                           type: 'button',
                           title: 'Cambiar color de la nota',
+                          'aria-label': 'Cambiar color de la nota',
                           onClick: () => {
                             const idx = COLORES_NOTA.findIndex((c) => c.hex === n.color)
                             const sig = COLORES_NOTA[(idx + 1) % COLORES_NOTA.length]
                             editarNodo(n.id, { color: sig.hex })
                           },
-                          className: 'rounded px-1 text-[10px] text-slate-600 hover:bg-black/10',
-                          children: '🎨',
+                          className: 'dk-btn dk-btn--chico',
+                          children: '◐',
                         }),
                         // Conectar con otra tarjeta
                         jsx('button', {
                           type: 'button',
                           title: esOrigen ? 'Cancelar conexión' : 'Conectar con otra tarjeta',
+                          'aria-label': esOrigen ? 'Cancelar conexión' : 'Conectar con otra tarjeta',
+                          'aria-pressed': esOrigen,
                           onClick: () => clickConectar(n.id),
-                          className: 'rounded px-1 text-[10px] ' +
-                            (esOrigen ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-black/10'),
-                          children: '🔗',
+                          className: 'dk-btn dk-btn--chico',
+                          children: '↔',
                         }),
                         // Insertar esta tarjeta en el escrito
                         onInsertarTexto ? jsx('button', {
                           type: 'button',
                           title: 'Insertar texto de esta nota en el escrito',
+                          'aria-label': 'Insertar texto de esta nota en el escrito',
                           onClick: () => {
                             const txt = (n.texto || n.titulo || '').trim()
                             if (txt) onInsertarTexto(txt)
                           },
-                          className: 'rounded px-1 text-[10px] font-bold text-emerald-800 hover:bg-black/10',
-                          children: '↳',
+                          className: 'dk-btn dk-btn--chico',
+                          children: '¶',
                         }) : null,
                         // Abrir en el grafo si es tarjeta de norma con nodo_id
                         n.nodo_id && onAbrirGrafo ? jsx('button', {
                           type: 'button',
-                          title: 'Abrir artículo en el grafo 3D',
+                          title: 'Abrir artículo en el grafo',
+                          'aria-label': 'Abrir artículo en el grafo',
                           onClick: () => onAbrirGrafo({ nodo_id: n.nodo_id }),
-                          className: 'rounded px-1 text-[10px] text-sky-800 hover:bg-black/10',
+                          className: 'dk-btn dk-btn--chico',
                           children: '◈',
                         }) : null,
                         // Minimizar
                         jsx('button', {
                           type: 'button',
                           title: n.minimizada ? 'Expandir nota' : 'Minimizar nota',
+                          'aria-label': n.minimizada ? 'Expandir nota' : 'Minimizar nota',
                           onClick: () => editarNodo(n.id, { minimizada: !n.minimizada }),
-                          className: 'rounded px-1 text-[10px] text-slate-600 hover:bg-black/10',
+                          className: 'dk-btn dk-btn--chico',
                           children: n.minimizada ? '▢' : '–',
                         }),
                         // Cerrar/Eliminar
                         jsx('button', {
                           type: 'button',
                           title: 'Eliminar nota',
+                          'aria-label': 'Eliminar nota',
                           onClick: () => eliminarNodo(n.id),
-                          className: 'rounded px-1 text-[10px] text-slate-600 hover:bg-red-200 hover:text-red-700',
+                          className: 'dk-btn dk-btn--chico dk-btn--peligro',
                           children: '✕',
                         }),
                       ],
@@ -629,7 +540,7 @@ export function PizarraEstrategica({
                       value: n.texto || '',
                       onChange: (ev) => editarNodo(n.id, { texto: ev.target.value }),
                       placeholder: 'Escribe ideas, hechos o artículos para esta sección…',
-                      className: 'flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-slate-800 outline-none',
+                      className: 'flex-1 w-full resize-none bg-transparent p-2 text-xs leading-relaxed text-(--dk-texto) outline-none',
                     }) : null,
 
                     // Esquina de redimensionado de tarjeta
@@ -647,7 +558,7 @@ export function PizarraEstrategica({
                         }
                       },
                       title: 'Arrastrar para cambiar tamaño',
-                      className: 'absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-[9px] leading-none text-slate-500/70',
+                      className: 'absolute bottom-0 right-0 h-3.5 w-3.5 cursor-nwse-resize text-right pr-0.5 text-xs leading-none text-(--dk-texto-3)',
                       children: '◢',
                     }) : null,
                   ],
@@ -658,7 +569,7 @@ export function PizarraEstrategica({
 
           // Controles de zoom abajo a la izquierda (exactamente como en la imagen 2)
           jsxs('div', {
-            className: 'absolute bottom-2 left-2 z-20 flex flex-col overflow-hidden rounded border border-slate-300 bg-white shadow-sm',
+            className: 'absolute bottom-2 left-2 z-20 flex flex-col overflow-hidden rounded border border-(--dk-borde) bg-(--dk-elevada) shadow-sm',
             children: [
               jsx('button', {
                 type: 'button',
@@ -668,7 +579,7 @@ export function PizarraEstrategica({
                   setZoom(z)
                   actualizar({ zoom: z })
                 },
-                className: 'border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100',
+                className: 'border-b border-(--dk-borde) px-2 py-1 text-xs font-bold text-(--dk-texto-2) hover:bg-(--dk-sobre)',
                 children: '+',
               }),
               jsx('button', {
@@ -679,7 +590,7 @@ export function PizarraEstrategica({
                   setZoom(z)
                   actualizar({ zoom: z })
                 },
-                className: 'border-b border-slate-200 px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100',
+                className: 'border-b border-(--dk-borde) px-2 py-1 text-xs font-bold text-(--dk-texto-2) hover:bg-(--dk-sobre)',
                 children: '−',
               }),
               jsx('button', {
@@ -690,7 +601,7 @@ export function PizarraEstrategica({
                   setPan({ x: 0, y: 0 })
                   actualizar({ zoom: 1, pan: { x: 0, y: 0 } })
                 },
-                className: 'px-2 py-1 text-[10px] text-slate-700 hover:bg-slate-100',
+                className: 'px-2 py-1 text-xs text-(--dk-texto-2) hover:bg-(--dk-sobre)',
                 children: '⛶',
               }),
             ],
@@ -712,8 +623,8 @@ export function PizarraEstrategica({
           resizeBarRef.current = { startY: ev.clientY, origAltura: altura }
         },
         title: 'Arrastra para ajustar la altura de la Pizarra Estratégica',
-        className: 'flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-slate-200 bg-slate-100 hover:bg-slate-200',
-        children: jsx('span', { className: 'text-[10px] tracking-widest text-slate-400', children: '⋮⋮⋮' }),
+        className: 'flex h-2.5 w-full cursor-row-resize items-center justify-center border-t border-(--dk-borde) bg-(--dk-superficie-2) hover:bg-(--dk-sobre)',
+        children: jsx('span', { className: 'text-xs tracking-widest text-(--dk-texto-3)', children: '⋮⋮⋮' }),
       }) : null,
     ],
   })

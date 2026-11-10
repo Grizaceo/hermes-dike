@@ -198,7 +198,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
       }),
     ] }),
 
-    confirmarOff ? jsxs('label', { className: 'flex items-center gap-1.5 text-xs text-(--ui-danger)', children: [
+    confirmarOff ? jsxs('label', { className: 'flex items-center gap-1.5 text-xs dk-mal', children: [
       jsx('input', {
         type: 'checkbox', checked: confirmo,
         onChange: (e) => {
@@ -211,7 +211,7 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
       'Entiendo que el texto saldrá con datos personales',
     ] }) : null,
 
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children:
+    error ? jsx('div', { className: 'text-xs dk-mal', children:
       'Privacidad no disponible: ' + mensajeError(error) +
       ' — el texto no debe salir hasta resolverlo.' }) : null,
 

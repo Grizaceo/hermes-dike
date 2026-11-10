@@ -128,6 +128,9 @@
 .dike-raiz .dk-insignia--mal { --dk-tono: var(--dk-mal); }
 .dike-raiz .dk-insignia--aviso { --dk-tono: var(--dk-aviso); }
 .dike-raiz .dk-insignia--info { --dk-tono: var(--dk-info); }
+/* Cuarto tono para categorías de datos (p. ej. tipos de nodo del grafo
+ * argumentativo), no para estados: ok/mal/aviso/info ya son semánticos. */
+.dike-raiz .dk-insignia--acento { --dk-tono: var(--dk-acento); }
 
 .dike-raiz .dk-ok { color: color-mix(in srgb, var(--dk-ok) 75%, var(--dk-texto)); }
 .dike-raiz .dk-mal { color: color-mix(in srgb, var(--dk-mal) 80%, var(--dk-texto)); }

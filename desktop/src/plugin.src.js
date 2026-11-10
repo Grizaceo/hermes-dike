@@ -180,7 +180,7 @@ function NifBoard({ caso, onCambio }) {
   const post = (ruta, body) => rest(ruta, { method: 'POST', body, timeoutMs: 60000 })
 
   if (error && !data) {
-    return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
+    return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   }
   if (!data) return jsx('div', { className: S.sub, children: 'Cargando NIF…' })
 
@@ -257,7 +257,7 @@ function NifBoard({ caso, onCambio }) {
           })),
         ] })
       : null,
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) }) : null,
+    error ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) }) : null,
   ] })
 }
 
@@ -328,7 +328,7 @@ function SeccionNifPanel() {
         children: 'Nuevo caso',
       }),
     ] }),
-    error ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) }) : null,
+    error ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) }) : null,
     casos.length === 0 && !error
       ? jsx('div', { className: S.card, children:
           'No hay casos todavía. Siembra el caso demo (despido injustificado, art. 161/168 CT) ' +

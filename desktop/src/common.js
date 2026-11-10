@@ -41,6 +41,7 @@ export const S = {
   chipBad: 'dk-insignia--mal',
   chipWarn: 'dk-insignia--aviso',
   chipInfo: 'dk-insignia--info',
+  chipAcento: 'dk-insignia--acento',
   textarea: 'dk-campo min-h-40 w-full dk-mono',
   input: 'dk-campo',
   row: 'dk-fila flex items-start gap-2 py-1.5',

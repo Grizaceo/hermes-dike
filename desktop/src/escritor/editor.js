@@ -19,7 +19,7 @@ const ESTILOS_MARCA = {
   verificada:
     'background:rgba(34,197,94,.18);border-bottom:2px solid var(--ui-success,rgb(34,197,94));border-radius:2px',
   fallo:
-    'background:rgba(239,68,68,.14);border-bottom:2px solid var(--ui-danger,rgb(239,68,68));border-radius:2px',
+    'background:rgba(239,68,68,.14);border-bottom:2px solid var(--dk-mal,rgb(239,68,68));border-radius:2px',
   desactualizada:
     'border-bottom:2px dotted var(--ui-stroke-tertiary,rgb(156,163,175));opacity:.7',
   escalada:

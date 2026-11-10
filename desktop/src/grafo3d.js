@@ -296,7 +296,7 @@ function UnidadDetalle({ nodo, fuente }) {
       .then(setData)
       .catch(setError)
   }, [nodo.id, fuente])
-  if (error) return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
+  if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   if (!data) return jsx('div', { className: S.sub, children: 'Cargando el texto de la unidad…' })
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
@@ -306,9 +306,9 @@ function UnidadDetalle({ nodo, fuente }) {
       (data.articulo_url ? ' · ' : '') }),
     data.articulo_url ? jsx('a', { className: S.link, href: data.articulo_url,
       target: '_blank', rel: 'noopener noreferrer', children: 'Artículo fuente ↗' }) : null,
-    data.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+    data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 unidad ' + data.sha256 }) : null,
-    data.articulo_sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+    data.articulo_sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 artículo ' + data.articulo_sha256 }) : null,
   ] })
 }
@@ -330,7 +330,7 @@ function NodoDetalle({ nodo, fuente }) {
       (data.vigencia.desde ? ' desde ' + data.vigencia.desde : '') }) : null,
     data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
       children: 'Fuente original ↗' }) : null,
-    data.sha256 ? jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+    data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 ' + data.sha256 }) : null,
   ] })
 }
@@ -354,12 +354,12 @@ function TarjetaArista({ arista, fuente }) {
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
     jsx('span', { className: S.chip + ' ' + S.chipOff, children:
       (arista.tipo || '') + ' · ' + (arista.estado || '') }),
-    jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)',
+    jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: (arista.source && arista.source.id ? arista.source.id : arista.source) +
         ' → ' + (arista.target && arista.target.id ? arista.target.id : arista.target) }),
     e.regla ? jsx('div', { className: S.sub, children:
       'regla ' + e.regla + (e.nivel ? ' · nivel ' + e.nivel : '') }) : null,
-    err ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(err) }) : null,
+    err ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(err) }) : null,
     ev ? jsxs('div', { className: 'max-h-40 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs', children: [
       ev.snippet || '',
       ev.n_evidencias ? ' (' + ev.n_evidencias + ' evidencias)' : '',
@@ -439,7 +439,7 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
       'sin texto local: inferida de menciones en sentencias' }) : null,
     esUnidad && n.articulo ? jsx('div', { className: S.sub, children:
       'Unidad ' + (n.etiqueta || '') + (n.clase === 'judicial' ? ' de la sentencia' : ' del artículo') }) : null,
-    jsx('div', { className: 'break-all font-mono text-[0.6875rem] text-(--ui-text-tertiary)', children: n.id }),
+    jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)', children: n.id }),
     esUnidad ? jsx(UnidadDetalle, { nodo: n, fuente }) : jsx(NodoDetalle, { nodo: n, fuente }),
   ] })
 }
@@ -449,7 +449,7 @@ function TarjetaNodo({ nodo, conteos, fuente, busqueda, onLlevar }) {
 // ---------------------------------------------------------------------------
 
 function NormaDetalle({ data, error }) {
-  if (error) return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
+  if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   if (!data) return jsx('div', { className: S.sub, children: 'Cargando artículos…' })
   const arts = data.articulos || []
   return jsxs('div', { className: 'flex flex-col gap-1 pl-4', children: [
@@ -510,7 +510,7 @@ function ListaCorpus() {
   useEffect(() => {
     rest('/grafo/corpus').then(setCorpus).catch(setError)
   }, [])
-  if (error) return jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(error) })
+  if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   const pack = corpus && corpus.packs && corpus.packs[0]
   if (!pack) return jsx('div', { className: S.sub, children: 'Leyendo el corpus…' })
   return jsx('div', { className: 'flex flex-col', children:
@@ -557,7 +557,7 @@ function TextoArticulo({ foco }) {
   }, [nodoId])
 
   if (error) {
-    return jsx('div', { className: 'text-xs text-(--ui-danger)',
+    return jsx('div', { className: 'text-xs dk-mal',
       children: 'No se pudo leer el artículo: ' + mensajeError(error) })
   }
   if (!data) return jsx('div', { className: S.sub, children: 'Leyendo el artículo…' })
@@ -952,7 +952,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
       ] }),
       redErr
         ? jsxs('div', { className: 'flex flex-col items-start gap-1.5', children: [
-            jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(redErr) }),
+            jsx('div', { className: 'text-xs dk-mal', children: mensajeError(redErr) }),
             jsx('button', { type: 'button', className: S.ghost, onClick: cargar,
               children: 'Reintentar' }),
           ] })
@@ -1029,7 +1029,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                 ] }),
                 fallo3d
                   ? jsxs('div', { className: S.card, children: [
-                      jsx('div', { className: 'text-xs text-(--ui-danger)', children: fallo3d }),
+                      jsx('div', { className: 'text-xs dk-mal', children: fallo3d }),
                       jsx('div', { className: S.sub, children:
                         'El grafo 3D necesita WebGL. La lista de texto de abajo tiene el mismo corpus.' }),
                     ] })
@@ -1097,7 +1097,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                       ? jsx('div', { className: S.sub + ' p-1', children: 'Buscando en el corpus…' })
                       : null,
                     busqueda.estado === 'error'
-                      ? jsx('div', { className: 'text-xs text-(--ui-danger) p-1', children: busqueda.mensaje })
+                      ? jsx('div', { className: 'text-xs dk-mal p-1', children: busqueda.mensaje })
                       : null,
                     busqueda.estado === 'lista' ? jsxs('div', { className: 'flex flex-col gap-1', children: [
                       jsx('span', { className: S.chip + ' ' + S.chipOff,
@@ -1264,7 +1264,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
     fuente === 'corpus' ? jsxs('div', { className: S.card, children: [
       jsx('div', { className: S.cardTitle, children: 'Grafo personal (GRE)' }),
       personalErr
-        ? jsx('div', { className: 'text-xs text-(--ui-danger)', children: mensajeError(personalErr) })
+        ? jsx('div', { className: 'text-xs dk-mal', children: mensajeError(personalErr) })
         : !personal
           ? jsx('div', { className: S.sub, children: 'Consultando…' })
           : jsxs('div', { className: 'flex flex-col gap-1', children: [

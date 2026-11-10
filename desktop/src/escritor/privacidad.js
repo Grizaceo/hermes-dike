@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Módulo Privacidad del Case Writer (F2a): el abogado VE y CONTROLA qué datos
 // personales salen del escrito antes de que el texto llegue a un modelo.
 // Fail-closed: si el detector o el registro de envío fallan, nada sale.
@@ -59,7 +61,8 @@ export function prepararEnvio({ caseId, texto, destino, seudonimizar, estrategia
 }
 
 
-export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegistro }) {
+function ModuloPrivacidadImpl({ editorRef, caseId, docInfo, registro, setRegistro }) {
+  useIdioma()
   const cfg = (registro && registro.privacidad) || {}
   const seudOn = cfg.seudonimizar !== false
   const confirmo = Boolean(cfg.acepto_datos)
@@ -267,3 +270,5 @@ export function ModuloPrivacidad({ editorRef, caseId, docInfo, registro, setRegi
     ] }) : vistaSalida === 'cargando' ? jsx('div', { className: S.sub, children: t('priv.preparando') }) : null,
   ] })
 }
+
+export const ModuloPrivacidad = memo(ModuloPrivacidadImpl)

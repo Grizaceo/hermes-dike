@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Pizarra Estratégica del Case Writer: lienzo superior colapsable y
 // redimensionable para planificar el escrito con notas adhesivas, plantillas
 // procesales, tarjetas de normas desde el corpus (LexO Search) y conexiones
@@ -73,13 +75,14 @@ function BuscadorCorpusPizarra({ onAgregarNota, onLlevarAlEscrito, onCerrar }) {
 }
 
 
-export function PizarraEstrategica({
+function PizarraEstrategicaImpl({
   pizarra,
   onChange,
   onInsertarTexto,
   onLlevarCitaAlEscrito,
   onAbrirGrafo,
 }) {
+  useIdioma()
   const estado = pizarra || {}
   const nodos = Array.isArray(estado.nodos) ? estado.nodos : []
   const aristas = Array.isArray(estado.aristas) ? estado.aristas : []
@@ -630,3 +633,5 @@ export function PizarraEstrategica({
     ],
   })
 }
+
+export const PizarraEstrategica = memo(PizarraEstrategicaImpl)

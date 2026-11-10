@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 import { etiquetaCodigo } from '../i18n.js'
 // NIF vivo (F3): el modelo propone actualizaciones del NIF a partir del
 // escrito; el abogado acepta, edita o rechaza cada una. Nada entra al NIF
@@ -337,7 +339,7 @@ function formatearItemNif(v) {
   return JSON.stringify(v)
 }
 
-export function NifInteractivoEscritor({
+function NifInteractivoEscritorImpl({
   editorRef,
   caseId,
   registro,
@@ -349,6 +351,7 @@ export function NifInteractivoEscritor({
   onAgregarAPizarra,
   onInsertarTexto,
 }) {
+  useIdioma()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [ocupado, setOcupado] = useState(false)
@@ -576,3 +579,5 @@ export function NifInteractivoEscritor({
 }
 
 function mensajePropuesta(error) { const code = error && error.message; const key = 'proposal.' + code; return t(key) === key ? mensajeError(error) : t(key) }
+
+export const NifInteractivoEscritor = memo(NifInteractivoEscritorImpl)

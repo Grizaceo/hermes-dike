@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { t, useIdioma } from '../i18n.js'
 // Panel de Revisión de Estilo — LexO Escribe Claro (ScribeClaro):
 // Analiza legibilidad, voz pasiva, nominalizaciones, arcaísmos judiciales y
@@ -59,13 +60,14 @@ function FilaMetrica({ label, valor, sub, claseValor }) {
   })
 }
 
-export function PanelEscribeClaro({
+function PanelEscribeClaroImpl({
   editorRef,
   docInfo,
   contextoInicial,
   autoAnalizarInicial,
   onEnviarAPizarra,
 }) {
+  useIdioma()
   const [subTab, setSubTab] = useState('estilo') // 'estilo' | 'argumentos'
   const [contexto, setContexto] = useState(contextoInicial || 'escrito')
   const [autoAnalizar, setAutoAnalizar] = useState(Boolean(autoAnalizarInicial))
@@ -500,3 +502,5 @@ export function PanelEscribeClaro({
     ],
   })
 }
+
+export const PanelEscribeClaro = memo(PanelEscribeClaroImpl)

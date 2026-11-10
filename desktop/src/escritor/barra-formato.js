@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 import { t } from '../i18n.js'
 // Barra superior tipo Word del Case Writer (2 filas, inspirada en el Case
 // Writer original de Diké):
@@ -59,7 +61,7 @@ function BotonBarra({ onClick, activo, disabled, title, children }) {
   })
 }
 
-export function BarraFormato({
+function BarraFormatoImpl({
   editorRef,
   caseId,
   casos,
@@ -79,6 +81,7 @@ export function BarraFormato({
   docInfo,
   onAbrirHerramienta,
 }) {
+  useIdioma()
   const [menuArchivo, setMenuArchivo] = useState(false)
   const [menuFormalismos, setMenuFormalismos] = useState(false)
   const [modalNuevoCaso, setModalNuevoCaso] = useState(false)
@@ -569,3 +572,5 @@ export function BarraFormato({
     ],
   })
 }
+
+export const BarraFormato = memo(BarraFormatoImpl)

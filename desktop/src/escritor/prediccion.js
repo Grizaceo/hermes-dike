@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Predicción (experimental, F4): panel del Case Writer con el interruptor
 // general APAGADO por defecto, sub-interruptores L0/L1/L2 y telemetría.
 // Estado por caso en registro.prediccion. Las sugerencias son propuestas:
@@ -60,8 +62,9 @@ function predictorL0() {
   }
 }
 
-export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
+function PrediccionPanelImpl({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, sesion }) {
+  useIdioma()
   const cfg = cfgDe(registro)
   const [destinoL2, setDestinoL2] = useState(null) // 'local'|'nube'|null
   const mesaRef = useRef(null)
@@ -234,3 +237,5 @@ export function PrediccionPanel({ editorRef, caseId, docInfo, verificacion,
       t('pred.nota') }),
   ] })
 }
+
+export const PrediccionPanel = memo(PrediccionPanelImpl)

@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 // Herramientas diferenciadas de Grafos en la barra lateral derecha del Case Writer:
 // 1. Buscador y Lector del Grafo del Corpus (BM25 + Árbol IndexO + lectura de
 //    unidades normativas + Llevar cita al escrito / Pizarra / Abrir en 3D).
@@ -13,11 +15,12 @@ import { t } from '../i18n.js'
 
 import { BuscadorCorpus } from './buscador-corpus.js'
 
-export function PanelHerramientasGrafos({
+function PanelHerramientasGrafosImpl({
   onLlevarCitaAlEscrito,
   onAgregarAPizarra,
   onAbrirGrafo3D,
 }) {
+  useIdioma()
   const [herramienta, setHerramienta] = useState('corpus') // 'corpus' | 'constructor' | 'fuentes'
 
   return jsxs('div', {
@@ -516,3 +519,5 @@ function SubHerramientaFuentes({ onAbrirGrafo3D }) {
     ],
   })
 }
+
+export const PanelHerramientasGrafos = memo(PanelHerramientasGrafosImpl)

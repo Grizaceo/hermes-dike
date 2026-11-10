@@ -48,6 +48,7 @@ const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
 const DEBOUNCE_INFO = 300
 const MAX_INTENTOS_REPARAR = 2
+const PIZARRA_VACIA = { nodos: [], aristas: [], colapsada: false, altura: 225 }
 
 const ESTILOS_ESTADO = {
   verificada: { chip: 'chipOk', texto: 'verificada' },
@@ -273,7 +274,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const actualizarInfoDoc = useCallback((ed) => {
     const texto = textoDelEditor(ed)
     sha256Hex(texto).then((hash) => {
-      if (!montadoRef.current) return
+      if (!montadoRef.current || textoDelEditor(ed) !== texto) return
       const info = { texto, hash }
       infoDocRef.current = info
       setDocInfo(info)
@@ -512,15 +513,20 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       placeholder: t('writer.start.writing.your.brief.here'),
       onUpdate: (editor) => {
         const texto = textoDelEditor(editor)
-        if (texto === textoGuardadoRef.current) {
-          setEstadoDoc((s) => (s === 'guardando' || s === 'conflicto' ? s : 'guardado'))
-        } else if (estadoRef.current !== 'conflicto' && estadoRef.current !== 'cargando') {
-          setEstadoDoc('sin-guardar')
-          programarGuardado()
+        const estado = estadoRef.current
+        const siguiente = texto === textoGuardadoRef.current
+          ? (estado === 'guardando' || estado === 'conflicto' ? estado : 'guardado')
+          : (estado === 'conflicto' || estado === 'cargando' ? estado : 'sin-guardar')
+        if (siguiente !== estado) {
+          estadoRef.current = siguiente
+          setEstadoDoc(siguiente)
         }
+        if (texto !== textoGuardadoRef.current && estado !== 'conflicto' && estado !== 'cargando') programarGuardado()
         if (infoDocRef.current.texto !== texto) {
+          // Invalidate verified marks once, then publish a snapshot after the pause.
+          const invalidar = infoDocRef.current.hash != null
           infoDocRef.current = { texto, hash: null }
-          setDocInfo(infoDocRef.current)
+          if (invalidar) setDocInfo(infoDocRef.current)
         }
         programarInfoDoc(editor)
         if (editorRef.prediccionPedir) editorRef.prediccionPedir(editor)
@@ -675,8 +681,8 @@ export function SeccionEscritor({ onAbrirGrafo }) {
       y: 22 + Math.floor(idx / 4) * 175,
       w: 232,
       h: 155,
-      titulo: datosNota.titulo || 'Nota ' + (idx + 1),
-      tag: datosNota.tag || 'NOTA',
+      titulo: datosNota.titulo || t('piz.tituloNota', { n: idx + 1 }),
+      tag: datosNota.tag || t('piz.tagNota'),
       color: datosNota.color || '#bfdbfe',
       texto: datosNota.texto || '',
       nodo_id: datosNota.nodo_id || null,
@@ -774,6 +780,21 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     }
   }, [acciones, fijarRegistro])
 
+  const alternarHerramienta = useCallback((id) => {
+    setHerramientaActiva((prev) => prev === id ? null : id)
+  }, [])
+  const cambiarPizarra = useCallback((pizarra) => {
+    actualizarRegistro((r) => ({ ...(r || {}), pizarra }))
+  }, [actualizarRegistro])
+  const enviarAPizarra = useCallback((pizarra) => {
+    cambiarPizarra(pizarra)
+    guardarPrefs({ mostrar_pizarra: true })
+  }, [cambiarPizarra, guardarPrefs])
+  const abrirGrafo = useCallback((foco) => {
+    if (onAbrirGrafo) onAbrirGrafo(foco || { nodo_id: 'n:207436' })
+  }, [onAbrirGrafo])
+  const abrirPrivacidad = useCallback(() => setHerramientaActiva('privacidad'), [])
+
   // --- Derivados de vista ---------------------------------------------------
 
   const v = verificacion
@@ -785,7 +806,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
   const temaActual = TEMAS_HOJA[prefs.tema_papel] || TEMAS_HOJA.clasico
   const anchoActual = ANCHOS_HOJA[prefs.ancho_hoja] || ANCHOS_HOJA.a4
   const cfgHerramienta = HERRAMIENTAS_BARRA.find((h) => h.id === herramientaActiva) || null
-  const pizarraEstado = (registro && registro.pizarra) || { nodos: [], aristas: [], colapsada: false, altura: 225 }
+  const pizarraEstado = (registro && registro.pizarra) || PIZARRA_VACIA
 
   return jsxs('div', {
     className: 'dk-writer ' + (herramientaActiva ? 'dk-writer--tool ' : '') + 'flex flex-col flex-1 min-h-0 overflow-hidden rounded-md border border-(--dk-borde) bg-(--dk-elevada) shadow-xs',
@@ -810,14 +831,14 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         prefs,
         onCambiarPrefs: guardarPrefs,
         docInfo,
-        onAbrirHerramienta: (id) => setHerramientaActiva((prev) => (prev === id ? null : id)),
+        onAbrirHerramienta: alternarHerramienta,
       }),
 
       // 2. Pizarra Estratégica encima del editor (colapsable y redimensionable)
       modoVista !== 'read' && prefs.mostrar_pizarra !== false
         ? jsx(PizarraEstrategica, {
             pizarra: pizarraEstado,
-            onChange: (nuevaPizarra) => actualizarRegistro((r) => ({ ...(r || {}), pizarra: nuevaPizarra })),
+            onChange: cambiarPizarra,
             onInsertarTexto: insertarTextoEnEditor,
             onLlevarCitaAlEscrito: insertarCitaEnEscrito,
             onAbrirGrafo,
@@ -913,7 +934,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                 role: 'status',
                 children: [
                   res.error
-                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + mensajeError(res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
+                    ? jsx('span', { children: t('writer.could.not.check.the.brief') + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') })
                     : jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
                         jsx('span', { className: 'font-semibold', children:
                           t('writer.count', { ok: meta.citas_verificadas || 0, total: meta.total_citas || 0 }) +
@@ -1012,7 +1033,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                         className: S.noticeBad,
                         children: [
                           jsx('span', { className: S.chip + ' ' + S.chipBad, children: t('writer.unchecked') }),
-                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + mensajeError(res.error) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
+                          jsx('div', { className: 'mt-1', children: t('writer.could.not.check.the.brief') + (res.error_code ? etiquetaCodigo(res.error_code) : mensajeError(res.error)) + (res.motivo ? ' · ' + etiquetaCodigo(res.motivo) : '') }),
                         ],
                       }) : null,
 
@@ -1107,10 +1128,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                     docInfo,
                     contextoInicial: prefs.contexto_estilo,
                     autoAnalizarInicial: prefs.auto_analizar_estilo,
-                    onEnviarAPizarra: (nuevaPizarra) => {
-                      actualizarRegistro((r) => ({ ...(r || {}), pizarra: nuevaPizarra }))
-                      guardarPrefs({ mostrar_pizarra: true })
-                    },
+                    onEnviarAPizarra: enviarAPizarra,
                   }) : null,
 
                   // 4. Herramienta: NIF Interactivo + NIF Vivo
@@ -1131,9 +1149,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
                   herramientaActiva === 'grafos' ? jsx(PanelHerramientasGrafos, {
                     onLlevarCitaAlEscrito: insertarCitaEnEscrito,
                     onAgregarAPizarra: agregarNotaAPizarra,
-                    onAbrirGrafo3D: (foco) => {
-                      if (onAbrirGrafo) onAbrirGrafo(foco || { nodo_id: 'n:207436' })
-                    },
+                    onAbrirGrafo3D: abrirGrafo,
                   }) : null,
 
                   // 6. Herramienta: Personalización de Usuario + Predicción (siempre montada para ghost text)
@@ -1278,7 +1294,7 @@ export function SeccionEscritor({ onAbrirGrafo }) {
               rev: revRef.current,
               onSesion: setChatSesion,
               onAbrirGrafo,
-              onAbrirPrivacidad: () => setHerramientaActiva('privacidad'),
+              onAbrirPrivacidad: abrirPrivacidad,
               modoDock: true,
             }),
           }),

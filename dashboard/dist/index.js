@@ -495,7 +495,7 @@ function mensajeError(e) {
     var r = props.resultado;
     if (!r) return null;
     if (r.error) {
-      var msg = mensajeError(r.error) + (r.motivo ? " · " + etiquetaCodigo(r.motivo) : "");
+      var msg = (r.error_code ? etiquetaCodigo(r.error_code) : mensajeError(r.error)) + (r.motivo ? " · " + etiquetaCodigo(r.motivo) : "");
       return h("div", { className: "rounded-md border border-destructive/40 p-3 text-sm" },
         t("res.error", { msg: msg }));
     }

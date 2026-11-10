@@ -1,3 +1,5 @@
+import { useIdioma } from '../i18n.js'
+import { memo } from 'react'
 import { etiquetaCodigo } from '../i18n.js'
 // Chat del escrito (F2b): sesión por caso en el perfil del abogado, con el
 // escrito viajando seudonimizado en cada turno. El estado de las citas lo
@@ -158,9 +160,10 @@ function NotasAlPie({ notas, invalidas, verif, onAbrirGrafo }) {
 }
 
 
-export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
+function ChatEscritorImpl({ editorRef, caseId, docInfo, verificacion,
   registro, setRegistro, estrategiaPriv, rev, onSesion, onAbrirGrafo,
   onAbrirPrivacidad, modoDock = true }) {
+  useIdioma()
   const [perfilOk, setPerfilOk] = useState(null) // null | true | {error}
   const [perfilElegido, setPerfilElegido] = useState(null) // perfil que responde
   const perfilRef = useRef(null)                    // perfil resuelto (callbacks)
@@ -690,3 +693,5 @@ export function ChatEscritor({ editorRef, caseId, docInfo, verificacion,
 }
 
 function nombreModelo(id) { const code = etiquetaModelo(id); return code === 'NOUS_HOSTED_MODEL' ? t('chat.hostedModel') : code }
+
+export const ChatEscritor = memo(ChatEscritorImpl)

@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { build } from 'esbuild'
+import { estilosPlugin } from './estilos.mjs'
 
 await build({
   entryPoints: ['src/plugin.src.js'],
@@ -18,6 +19,8 @@ await build({
   sourcemap: false,
   // El prompt de NIF vivo viaja literal en el bundle (escritor/nif_propuestas.md)
   loader: { '.md': 'text' },
+  // La hoja de estilos de la página viaja como texto (estilos.mjs)
+  plugins: [estilosPlugin],
   external: [
     '@hermes/plugin-sdk',
     'react',

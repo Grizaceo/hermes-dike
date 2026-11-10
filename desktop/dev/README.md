@@ -6,8 +6,8 @@ de Hermes y `dev/mock-api.js` la API del plugin (fixtures en `fixtures.js`).
 
 - Barra superior: tema claro/oscuro, idioma EN/ES, red lenta (1,5 s).
 - URL: `?theme=dark&lang=es&tab=grafo&slow=1` fija el mismo estado.
-- `DIKE_DEV_NODE_MODULES` apunta a otro node_modules con react/react-dom
-  (por defecto la instalación de hermes-agent; no se copia nada al repo).
+- React y Tailwind salen de las devDependencies (`npm ci`); la hoja de
+  estilos es la misma del plugin (`estilos.mjs`).
 
 No muestra: el tema real del host (usa tokens `--ui-*` copiados de
 apps/desktop), WebGL si el navegador no lo tiene, ni persistencia real

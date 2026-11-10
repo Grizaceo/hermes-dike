@@ -12,6 +12,7 @@
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useState } from 'react'
+import ESTILOS from 'dike:estilos'
 import { mensajeError, rest, setRest, setStorage, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
@@ -487,6 +488,13 @@ export default {
   register(ctx) {
     setRest(ctx.rest)
     setStorage(ctx.storage || null)
+    // La página lleva su propia hoja de estilos (desktop/estilos.mjs): la app
+    // solo trae las clases que ella misma usa. Se retira al descargar el plugin.
+    const hoja = document.createElement('style')
+    hoja.dataset.plugin = ID
+    hoja.textContent = ESTILOS
+    document.head.appendChild(hoja)
+    ctx.onDispose(() => hoja.remove())
     function DikePage() {
       const [pestana, setPestana] = useState(() => tomarPestana() || 'escritor')
       const pestanas = [
@@ -507,26 +515,28 @@ export default {
       const onLlevarAlEscrito = (r) => {
         if (encolarCita(r)) setPestana('escritor')
       }
-      return jsxs('div', {
-        className: 'flex h-full flex-col gap-2 overflow-y-auto p-2 text-sm text-(--ui-text-primary)',
+      // `.dike-raiz` acota la hoja de estilos: va en un contenedor propio
+      // porque sus reglas alcanzan a los descendientes, no a la raíz misma.
+      return jsx('div', { className: 'dike-raiz', style: { height: '100%' }, children: jsxs('div', {
+        className: 'flex h-full flex-col gap-2 overflow-y-auto p-2',
         children: [
           // Barra superior compacta estilo Estudio Diké (imagen 2)
           jsxs('div', {
-            className: 'flex flex-wrap items-center justify-between gap-3 rounded-md border border-(--ui-stroke-secondary) bg-(--ui-bg-secondary) px-3 py-1.5 shrink-0',
+            className: S.panel + ' flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 shrink-0',
             children: [
               jsxs('div', { className: 'flex items-center gap-3', children: [
                 jsxs('div', { className: 'flex items-baseline gap-2', children: [
                   jsx('span', { className: 'text-base font-bold tracking-tight', children: 'Diké' }),
                   jsx('span', { className: S.sub + ' hidden md:inline', children: 'Estudio jurídico local · No es consejo legal' }),
                 ] }),
-                jsxs('div', { className: 'flex items-center gap-1', children:
-                  pestanas.map(([id, label]) => jsx('button', {
+                jsx('div', { className: 'flex items-center gap-1',
+                  role: 'tablist',
+                  children: pestanas.map(([id, label]) => jsx('button', {
                     key: id,
                     type: 'button',
-                    className: 'rounded px-2.5 py-1 text-xs transition-colors cursor-pointer ' +
-                      (pestana === id
-                        ? 'bg-(--ui-accent) text-(--ui-bg-primary) font-semibold'
-                        : 'text-(--ui-text-secondary) hover:bg-(--ui-bg-tertiary) hover:text-(--ui-text-primary)'),
+                    role: 'tab',
+                    'aria-selected': pestana === id,
+                    className: S.tab,
                     onClick: () => setPestana(id),
                     children: label,
                   })),
@@ -544,7 +554,7 @@ export default {
             onLlevarAlEscrito,
           }) : null,
         ],
-      })
+      }) })
     }
 
     ctx.registerMany([

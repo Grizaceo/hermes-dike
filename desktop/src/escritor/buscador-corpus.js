@@ -8,6 +8,7 @@
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cancelarTarea, mensajeError, programarTimeout, rest, S } from '../common.js'
+import { t } from '../i18n.js'
 
 // /grafo/buscar emite vigencia como {estado, motivo}; otros endpoints la
 // emiten como string. Normalizar al estado legible antes de pintar.
@@ -19,7 +20,7 @@ export function chipVigencia(v) {
   if (!e) return null
   return {
     clase: S.chip + ' ' + (e === 'IN_FORCE' ? S.chipOk : S.chipWarn),
-    texto: e === 'IN_FORCE' ? 'vigente' : e,
+    texto: e === 'IN_FORCE' ? t('busq.vigente') : e,
   }
 }
 
@@ -28,8 +29,8 @@ export function BuscadorCorpus({
   debounceMs = 0,
   autoFoco = false,
   titulo = null,
-  placeholder = 'Buscar en el corpus sellado…',
-  textoVacio = 'Escribe términos jurídicos para buscar en el corpus.',
+  placeholder = t('busq.placeholder'),
+  textoVacio = t('busq.vacio'),
   onCerrar = null,
   mostrarBuscar = false,
   children = null,
@@ -100,21 +101,21 @@ export function BuscadorCorpus({
         className: 'dk-btn dk-btn--primario dk-btn--chico shrink-0',
         disabled: ocupado || !q.trim(),
         onClick: buscar,
-        children: ocupado ? '…' : 'Buscar',
+        children: ocupado ? '…' : t('busq.buscar'),
       }) : null,
       onCerrar ? jsx('button', {
         type: 'button',
-        'aria-label': 'Cerrar buscador',
+        'aria-label': t('busq.cerrar'),
         className: 'dk-btn dk-btn--icono dk-btn--chico shrink-0',
         onClick: onCerrar,
-        title: 'Cerrar buscador',
+        title: t('busq.cerrar'),
         children: '✕',
       }) : null,
     ] }),
 
     arbol && arbol.disponible && (arbol.clasificacion || []).length
       ? jsxs('div', { className: 'flex flex-wrap gap-1 border-b border-(--dk-borde-suave) px-3 py-1 text-xs text-(--dk-texto-2)', children: [
-          jsx('span', { className: 'text-(--dk-texto-3)', children: 'Materias:' }),
+          jsx('span', { className: 'text-(--dk-texto-3)', children: t('busq.materias') }),
           ...(arbol.clasificacion || []).map((m, i) => jsx('span', {
             key: i,
             className: S.chip,
@@ -126,10 +127,10 @@ export function BuscadorCorpus({
     children,
 
     jsxs('div', { className: 'flex-1 overflow-y-auto px-2.5 py-1.5 flex flex-col gap-1.5', children: [
-      ocupado ? jsx('div', { className: 'py-4 text-center text-xs text-(--dk-texto-3)', children: 'Buscando en el corpus sellado…' }) : null,
+      ocupado ? jsx('div', { className: 'py-4 text-center text-xs text-(--dk-texto-3)', children: t('busq.buscando') }) : null,
       error ? jsx('div', { className: S.noticeBad, children: mensajeError(error) }) : null,
       !ocupado && !error && resultados.length === 0 && q.trim()
-        ? jsx('div', { className: 'py-4 text-center text-xs text-(--dk-texto-3)', children: 'Sin resultados para «' + q.trim() + '».' })
+        ? jsx('div', { className: 'py-4 text-center text-xs text-(--dk-texto-3)', children: t('busq.sinResultados', { q: q.trim() }) })
         : null,
       !ocupado && !q.trim()
         ? jsx('div', { className: 'py-3 text-center text-xs text-(--dk-texto-3)', children: textoVacio })

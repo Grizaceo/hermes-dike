@@ -70,17 +70,26 @@ test('toda clave t() usada en src/ existe en ambos diccionarios', () => {
 })
 
 test('ninguna clave del diccionario queda sin uso', () => {
+  // Una clave cuenta como usada si aparece como literal en src/, ya sea en
+  // t('clave') o como dato que luego pasa por t() (p.ej. SECCIONES_NIF,
+  // MOTIVOS, opciones de <select>).
   const usadas = new Set()
   const re = /\bt\(\s*['"`]([\w.]+)['"`]/g
   for (const f of archivos(SRC)) {
     if (f.endsWith('i18n.js')) continue
-    for (const m of readFileSync(f, 'utf8').matchAll(re)) usadas.add(m[1])
+    const texto = readFileSync(f, 'utf8')
+    for (const m of texto.matchAll(re)) usadas.add(m[1])
   }
-  // claves referenciadas por otros archivos de forma dinámica (p.ej. la
-  // lista SECCIONES_NIF guarda la clave como dato, no en t()): se permiten
-  // listarlas aquí con su motivo.
-  const dinamicas = new Set(Object.keys(TEXTOS.en).filter(k => k.startsWith('nif.seccion.')))
-  const huerfanas = Object.keys(TEXTOS.en).filter(k => !usadas.has(k) && !dinamicas.has(k))
+  const huerfanas = Object.keys(TEXTOS.en).filter(k => {
+    if (usadas.has(k)) return false
+    // clave transportada como dato: el literal 'clave' aparece en src/
+    const reClave = new RegExp(`['"\`]${k.replace(/\./g, '\\.')}['"\`]`)
+    for (const f of archivos(SRC)) {
+      if (f.endsWith('i18n.js')) continue
+      if (reClave.test(readFileSync(f, 'utf8'))) return false
+    }
+    return true
+  })
   assert.deepEqual(huerfanas, [], `claves sin uso: ${huerfanas.join(', ')}`)
 })
 

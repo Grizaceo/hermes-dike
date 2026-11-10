@@ -4,7 +4,7 @@
 // las verifique. El prompt del modelo viaja empaquetado en el bundle.
 
 import { jsx, jsxs } from 'react/jsx-runtime'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { host } from '@hermes/plugin-sdk'
 import { mensajeError, rest, S } from '../common.js'
 import { textoDelEditor } from './editor.js'
@@ -67,11 +67,21 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
       ? 'Abre primero el chat del escrito: las propuestas usan su modelo.'
       : null
 
+  // Guardia de secuencia: un cambio de caso rápido no puede dejar el
+  // snapshot del caso anterior pintado bajo el caseId nuevo.
+  const snapSeq = useRef(0)
   const cargarSnapshot = useCallback(() => {
-    if (!tieneNif) return Promise.resolve(null)
+    if (!tieneNif) { setSnapshot(null); return Promise.resolve(null) }
+    const seq = ++snapSeq.current
     return rest('/nif/snapshot?case_id=' + encodeURIComponent(caseId), {})
-      .then((s) => { setSnapshot(s); return s })
-      .catch(() => { setSnapshot(null); return null })
+      .then((s) => {
+        if (seq === snapSeq.current) setSnapshot(s)
+        return s
+      })
+      .catch(() => {
+        if (seq === snapSeq.current) setSnapshot(null)
+        return null
+      })
   }, [caseId, tieneNif])
 
   useEffect(() => { setPropuestas(null); setDescartadas([]); setError(null)

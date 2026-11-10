@@ -66,6 +66,9 @@ export function PanelEscribeClaro({
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState(null)
   const timerRef = useRef(null)
+  // Guardia de secuencia: si el usuario sigue escribiendo mientras el
+  // análisis está en vuelo, la respuesta vieja no puede pisar la nueva.
+  const analisisSeq = useRef(0)
 
   const ejecutarAnalisis = useCallback((ctx = contexto) => {
     const ed = editorRef && editorRef.current
@@ -76,6 +79,7 @@ export function PanelEscribeClaro({
       setGrafoArg(null)
       return
     }
+    const seq = ++analisisSeq.current
     setOcupado(true)
     setError(null)
     Promise.all([
@@ -88,11 +92,15 @@ export function PanelEscribeClaro({
         body: { texto },
       }),
     ]).then(([resEstilo, resGrafo]) => {
+      if (seq !== analisisSeq.current) return
       setResultado(resEstilo)
       setGrafoArg(resGrafo)
     }).catch((e) => {
+      if (seq !== analisisSeq.current) return
       setError(e)
-    }).finally(() => setOcupado(false))
+    }).finally(() => {
+      if (seq === analisisSeq.current) setOcupado(false)
+    })
   }, [editorRef, contexto])
 
   useEffect(() => {

@@ -4,8 +4,8 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed only so tests/test_docx.py can build .docx fixtures and diff the adapter's stdlib reader against the engine's python-docx reader — the plugin itself no longer needs it)",
       "command": "pip install --target <scratch> 'python-docx>=1.1,<2' && HERMES_HOME=<tmp> PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch> $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<disk dir>",
-      "value": "602",
-      "date": "2026-11-10"
+      "value": "607",
+      "date": "2026-11-11"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",

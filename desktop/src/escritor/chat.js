@@ -15,7 +15,7 @@ import { textoDelEditor } from './editor.js'
 import { estadoCita, etiquetaCita, sha256Hex } from './verificador.js'
 import { prepararEnvio, puedeEnviar, rehidratar } from './privacidad.js'
 import {
-  acumDeltas, activoDe, candidatosPerfil, componerTurno, etiquetaDestino,
+  acumDeltas, activoDe, candidatosPerfil, cargaEvento, componerTurno, etiquetaDestino,
   etiquetaModelo, filtroEvento, fragmentoEn, nombrePerfilActivo, parsePregunta,
   parsearNotas,
 } from './chat-logica.js'
@@ -340,21 +340,33 @@ function ChatEscritorImpl({ editorRef, caseId, docInfo, verificacion,
     const offs = tipos.map((tipo) => onEvent.call(host, tipo, (ev) => {
       const s = sesionRef.current
       if (!s || !filtroEvento(ev, s.session_id, null)) return
+      // El gateway manda {type, session_id, seq, payload: {text, …}}; versiones
+      // anteriores del contrato traían los campos en el evento mismo.
+      const p = cargaEvento(ev)
       if (tipo === 'message.delta') {
-        deltasRef.current.push({ offset: ev.offset || 0, text: ev.text || '' })
+        deltasRef.current.push({ offset: p.offset || 0, text: typeof p.text === 'string' ? p.text : '' })
         setStream(acumDeltas(deltasRef.current))
       } else if (tipo === 'message.complete') {
-        const texto = ev.text || acumDeltas(deltasRef.current)
+        const texto = (typeof p.text === 'string' && p.text) || acumDeltas(deltasRef.current)
         deltasRef.current = []
         setStream('')
-        finalizarRespuesta(texto)
+        finalizarRespuesta(texto, p.error || p.failure_reason || (p.status === 'error' ? 'error' : null))
       }
     }))
     return () => offs.forEach((off) => { if (typeof off === 'function') off() })
   }, [])
 
-  const finalizarRespuesta = useCallback((textoCrudo) => {
+  const finalizarRespuesta = useCallback((textoCrudo, fallo) => {
     const cid = caseRef.current
+    if (!textoCrudo || !String(textoCrudo).trim()) {
+      // Turno sin texto (el modelo falló o no contestó): se dice eso, en vez de
+      // mandar a verificar un texto vacío y culpar a las citas.
+      setMensajes((ms) => [...ms, {
+        rol: 'assistant', texto: '', sinRespuesta: fallo ? String(fallo) : '',
+      }])
+      setOcupado(false)
+      return
+    }
     setMensajes((ms) => [...ms, {
       rol: 'assistant', texto: textoCrudo, verificando: true,
     }])
@@ -612,6 +624,8 @@ function ChatEscritorImpl({ editorRef, caseId, docInfo, verificacion,
                           (registro && registro.chat && registro.chat.mapa) || {}) }),
                       m.verificando ? jsx('span', { className: S.chip + ' ' + S.chipOff,
                         children: t('chat.verificando') }) : null,
+                      m.sinRespuesta !== undefined ? jsx('div', { className: 'text-xs ' + S.bad,
+                        children: m.sinRespuesta ? t('chat.sinRespuestaError', { error: m.sinRespuesta }) : t('chat.sinRespuesta') }) : null,
                       m.verif && m.verif.fallo ? jsx('div', { className: 'text-xs ' + S.bad,
                         children: t('chat.verifFallo') }) : null,
                       m.verif && m.verif.res ? jsxs('div', { className: 'flex flex-wrap gap-1', children:

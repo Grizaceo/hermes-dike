@@ -1429,6 +1429,8 @@ var TEXTOS = {
     "chat.subtitulo": "Brief chat \xB7 Citation status is set by Dik\xE9, not the model.",
     "chat.te": "You: ",
     "chat.verSalida": "See data that leaves",
+    "chat.sinRespuesta": "The model did not answer this turn.",
+    "chat.sinRespuestaError": "The model did not answer this turn: {error}",
     "chat.verifFallo": "Could not verify this reply\u2019s citations: treat them as unverified.",
     "chat.verificando": "checking citations\u2026",
     "chat.verificarGrafo": "Review source in graph",
@@ -2191,6 +2193,8 @@ var TEXTOS = {
     "chat.subtitulo": "Chat del escrito \xB7 El estado de las citas lo fija Dik\xE9, no el modelo.",
     "chat.te": "T\xFA: ",
     "chat.verSalida": "Ver datos que salen",
+    "chat.sinRespuesta": "El modelo no respondi\xF3 este turno.",
+    "chat.sinRespuestaError": "El modelo no respondi\xF3 este turno: {error}",
     "chat.verifFallo": "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas.",
     "chat.verificando": "verificando citas\u2026",
     "chat.verificarGrafo": "Revisar fuente en el grafo",
@@ -26906,6 +26910,9 @@ function parsePregunta(turno) {
   if (m3) return m3[1];
   return turno.includes("<dike-escritor") ? "" : turno;
 }
+function cargaEvento(ev) {
+  return ev && typeof ev.payload === "object" && ev.payload || ev || {};
+}
 function filtroEvento(ev, sessionId, profile) {
   if (!ev || typeof ev !== "object") return false;
   if (ev.session_id !== sessionId) return false;
@@ -27378,22 +27385,32 @@ function ChatEscritorImpl({
     const offs = tipos.map((tipo) => onEvent.call(host, tipo, (ev) => {
       const s2 = sesionRef.current;
       if (!s2 || !filtroEvento(ev, s2.session_id, null)) return;
+      const p2 = cargaEvento(ev);
       if (tipo === "message.delta") {
-        deltasRef.current.push({ offset: ev.offset || 0, text: ev.text || "" });
+        deltasRef.current.push({ offset: p2.offset || 0, text: typeof p2.text === "string" ? p2.text : "" });
         setStream(acumDeltas(deltasRef.current));
       } else if (tipo === "message.complete") {
-        const texto = ev.text || acumDeltas(deltasRef.current);
+        const texto = typeof p2.text === "string" && p2.text || acumDeltas(deltasRef.current);
         deltasRef.current = [];
         setStream("");
-        finalizarRespuesta(texto);
+        finalizarRespuesta(texto, p2.error || p2.failure_reason || (p2.status === "error" ? "error" : null));
       }
     }));
     return () => offs.forEach((off) => {
       if (typeof off === "function") off();
     });
   }, []);
-  const finalizarRespuesta = useCallback2((textoCrudo) => {
+  const finalizarRespuesta = useCallback2((textoCrudo, fallo) => {
     const cid = caseRef.current;
+    if (!textoCrudo || !String(textoCrudo).trim()) {
+      setMensajes((ms) => [...ms, {
+        rol: "assistant",
+        texto: "",
+        sinRespuesta: fallo ? String(fallo) : ""
+      }]);
+      setOcupado(false);
+      return;
+    }
     setMensajes((ms) => [...ms, {
       rol: "assistant",
       texto: textoCrudo,
@@ -27645,6 +27662,10 @@ function ChatEscritorImpl({
                   m3.verificando ? jsx2("span", {
                     className: S.chip + " " + S.chipOff,
                     children: t("chat.verificando")
+                  }) : null,
+                  m3.sinRespuesta !== void 0 ? jsx2("div", {
+                    className: "text-xs " + S.bad,
+                    children: m3.sinRespuesta ? t("chat.sinRespuestaError", { error: m3.sinRespuesta }) : t("chat.sinRespuesta")
                   }) : null,
                   m3.verif && m3.verif.fallo ? jsx2("div", {
                     className: "text-xs " + S.bad,

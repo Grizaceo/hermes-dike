@@ -155,6 +155,12 @@ export function parsePregunta(turno) {
 }
 
 // Filtro de eventos del gateway: solo los de ESTA sesión runtime y perfil.
+// Campos de un evento del gateway: {type, session_id, payload: {…}} en el
+// contrato actual de Hermes; los campos sueltos en el evento, en el anterior.
+export function cargaEvento(ev) {
+  return (ev && typeof ev.payload === 'object' && ev.payload) || ev || {}
+}
+
 export function filtroEvento(ev, sessionId, profile) {
   if (!ev || typeof ev !== 'object') return false
   if (ev.session_id !== sessionId) return false

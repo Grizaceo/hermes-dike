@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=25d3373cbb312f81a307f5502b6ba66dbb45eac1518126d85ec6aebcca1967a0 -->
+<!-- vitrina:translation-of README.md sha256=d117049437c1231efe6ae600f7ccd140bbea64aad05519dfdb7373cb94030086 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -120,7 +120,9 @@ organizado el código: [docs/architecture.md](docs/architecture.md).
 
 ## Cómo se construyó
 
-- **Lo que decidí y revisé yo (Cristóbal Muñoz):** _lo completa el mantenedor._
+- **Lo que decidí y revisé yo (Cristóbal Muñoz):** cada módulo, según la ayuda que un abogado
+  aceptaría. Probé cada uno usándolo como abogado, no revisando el código: mis conocimientos de
+  programación aún son iniciales. En mis palabras: [docs/author-notes.es.md](docs/author-notes.es.md).
 - **Antes del hackathon:** el motor Diké y su corpus, y la primera versión de este adaptador
   con sus 73 tests, en la carpeta `hermes-plugin/` de
   [Grizaceo/dike](https://github.com/Grizaceo/dike) (octubre de 2026). Ver
@@ -144,9 +146,9 @@ organizado el código: [docs/architecture.md](docs/architecture.md).
   verificado con la red apagada; los conteos del corpus, el bundle reproducible de Desktop,
   la latencia del servidor del motor y el benchmark de privacidad; dos turnos reales de chat
   en una sesión del Case Writer, donde se bloqueó el intento del modelo de usar la terminal.
-- **No verificado:** macOS, versiones de Hermes anteriores a v0.23.0 y el tema oscuro de la
-  página de Desktop dentro de la app. El tema claro se usó en Hermes Desktop v0.23.0 al
-  grabar el demo, y eso destapó cuatro bugs, ya corregidos (ver PREEXISTING.md).
+- **No verificado:** macOS, Hermes anterior a v0.23.0 y el tema oscuro de la página Desktop en
+  la app. Grabar el demo en Hermes Desktop v0.23.0 destapó cuatro bugs, ya corregidos (ver
+  PREEXISTING.md).
 
 ## Límites
 

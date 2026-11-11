@@ -148,9 +148,9 @@ the code is organized: [docs/architecture.md](docs/architecture.md).
   bundle, the engine server's latency and the privacy benchmark; two real chat
   turns in a Case Writer session, where the model's attempt to use the terminal
   was blocked.
-- **Not verified:** macOS, Hermes versions before v0.23.0, and the Desktop page
-  inside the app after the last round: it was checked in a browser harness with
-  the app's theme tokens (`desktop/dev/`).
+- **Not verified:** macOS, Hermes versions before v0.23.0, and the Desktop page's
+  dark theme inside the app. The light theme was used in Hermes Desktop v0.23.0
+  while recording the demo, which found four bugs, fixed (see PREEXISTING.md).
 
 ## Limits
 

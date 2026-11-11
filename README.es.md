@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=04900fe8f930fdcd81cb9ea0c10398656332dd168ac9f8abcea4e8cacb78413c -->
+<!-- vitrina:translation-of README.md sha256=25d3373cbb312f81a307f5502b6ba66dbb45eac1518126d85ec6aebcca1967a0 -->
 # Diké para Hermes
 
 [English](README.md)
@@ -144,9 +144,9 @@ organizado el código: [docs/architecture.md](docs/architecture.md).
   verificado con la red apagada; los conteos del corpus, el bundle reproducible de Desktop,
   la latencia del servidor del motor y el benchmark de privacidad; dos turnos reales de chat
   en una sesión del Case Writer, donde se bloqueó el intento del modelo de usar la terminal.
-- **No verificado:** macOS, versiones de Hermes anteriores a v0.23.0 y la página de Desktop
-  dentro de la app después de la última ronda: se revisó en un arnés de navegador con los
-  tokens de tema de la app (`desktop/dev/`).
+- **No verificado:** macOS, versiones de Hermes anteriores a v0.23.0 y el tema oscuro de la
+  página de Desktop dentro de la app. El tema claro se usó en Hermes Desktop v0.23.0 al
+  grabar el demo, y eso destapó cuatro bugs, ya corregidos (ver PREEXISTING.md).
 
 ## Límites
 

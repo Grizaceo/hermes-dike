@@ -4,8 +4,8 @@
     {
       "claim": "The plugin test suite passes with 0 failures (Hermes Agent v0.23.0 checkout, venv Python 3.11.16, Linux; python-docx installed only so tests/test_docx.py can build .docx fixtures and diff the adapter's stdlib reader against the engine's python-docx reader — the plugin itself no longer needs it)",
       "command": "pip install --target <scratch> 'python-docx>=1.1,<2' && HERMES_HOME=<tmp> PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<scratch> $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<disk dir>",
-      "value": "602",
-      "date": "2026-11-10"
+      "value": "607",
+      "date": "2026-11-11"
     },
     {
       "claim": "The panel backend answers estado (installed corpus + pack hash) and verificar (4/6 on the demo brief) when called against the installed package",
@@ -144,6 +144,18 @@
       "command": "docker run --rm -v <clone>:/clone:ro ubuntu:24.04 bash -c 'apt-get install -y bubblewrap git curl ca-certificates && curl -fsSL https://hermes-agent.nousresearch.com/install.sh -o install.sh && HERMES_HOME=/opt/hermes-home bash install.sh --non-interactive --skip-browser --skip-computer-use && hermes plugins install file:///clone --ref <sha> --yes-deps && hermes plugins enable dike && $HERMES_PYTHON <dispatch script calling the registered handlers> && hermes config set plugins.entries.dike.settings.sandbox requerido && ...'",
       "value": "USERNS_DENEGADO, modo ninguno, 4/6; requerido -> SANDBOX_UNAVAILABLE",
       "date": "2026-11-09"
+    },
+    {
+      "claim": "In Hermes Desktop v0.23.0 on Linux, from the Case Writer page (dashboard backend in the profile's plugin host, engine in bubblewrap), four consecutive 'Check citations' on the demo brief took 13.5 s (first: the engine verifies the corpus), then 0.76, 0.48 and 0.51 s, each with 4 of 6 verified. Before the engine server was launched from a long-lived thread, every check from the page took about 12.5 s, because bwrap --die-with-parent killed the server with the request's thread",
+      "command": "Hermes Desktop launched with --remote-debugging-port; in the page, performance.now() around clicking 'Check citations' until the button is enabled again (4 runs)",
+      "value": "13.5 s, then 0.76 / 0.48 / 0.51 s (before the fix: 12.6 / 12.7 / 12.3 s)",
+      "date": "2026-11-10"
+    },
+    {
+      "claim": "Two real turns of the Case Writer chat in Hermes Desktop v0.23.0 (synthetic demo brief, pseudonymization on, chat profile with Diké enabled): the first reply discussed article 9999 as FALLO / UNRESOLVABLE and the engine marked that citation unverified in the reply; asked to run ls in the terminal, the second reply declined. The hook audit log recorded the fixed instructions for both turns; no tool call was attempted, so pre_tool_call had nothing to block in this run (its blocking is covered by tests/test_escritor_hooks.py and the 2026-11-08 run above)",
+      "command": "Recorded for the demo video: Case Writer chat panel, two prompts; plugin-data/dike/escritor/auditoria.jsonl",
+      "value": "reply shown, 9999 marked unverified; terminal request declined; audit: instrucciones x2",
+      "date": "2026-11-11"
     }
   ]
 }

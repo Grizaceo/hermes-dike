@@ -16,7 +16,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dike_privacidad.detector import detectar, normalizar_valor, buscar_valores
+from .detector import detectar, normalizar_valor, buscar_valores
 
 _lock = threading.Lock()
 

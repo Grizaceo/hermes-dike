@@ -12,6 +12,7 @@ adaptador sí permite por ``ruta``.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import math
@@ -29,12 +30,42 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 _RAIZ = Path(__file__).resolve().parent.parent
-_spec_textos = importlib.util.spec_from_file_location('dike_textos', _RAIZ / 'textos.py')
-if 'dike_textos' not in sys.modules:
-    _mod_textos = importlib.util.module_from_spec(_spec_textos)
-    _spec_textos.loader.exec_module(_mod_textos)
-    sys.modules['dike_textos'] = _mod_textos
-_TEXTOS = sys.modules['dike_textos']
+
+
+def _firma_de_copia(ruta: Path, paquete: bool = False) -> str:
+    """Igual que en ``__init__.py``: ruta resuelta más fecha y tamaño de los .py."""
+    archivos = sorted(ruta.parent.rglob('*.py')) if paquete else [ruta]
+    partes = [str(ruta.resolve())]
+    for f in archivos:
+        st = f.stat()
+        partes.append(f'{f.name}:{st.st_mtime_ns}:{st.st_size}')
+    return hashlib.sha256('|'.join(partes).encode()).hexdigest()[:12]
+
+
+def _modulo_de_esta_copia(base: str, ruta: Path, paquete: bool = False):
+    """Carga por ruta con un nombre por copia del plugin (ver ``__init__.py``).
+
+    Un proceso que sirve varios perfiles, o que sobrevive a ``hermes plugins
+    update``, no reutiliza el módulo de otra copia ni de otra versión.
+    """
+    nombre = f'{base}_{_firma_de_copia(ruta, paquete)}'
+    mod = sys.modules.get(nombre)
+    if mod is not None:
+        return mod
+    spec = importlib.util.spec_from_file_location(
+        nombre, ruta,
+        **({'submodule_search_locations': [str(ruta.parent)]} if paquete else {}))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[nombre] = mod
+    try:
+        spec.loader.exec_module(mod)
+    except BaseException:
+        sys.modules.pop(nombre, None)
+        raise
+    return mod
+
+
+_TEXTOS = _modulo_de_esta_copia('dike_textos', _RAIZ / 'textos.py')
 
 
 _CODIGOS_PANEL = {'UNIT_INDEX_NOT_FOUND', 'UNIT_ID_INVALID', 'STATUTE_NOT_FOUND', 'UNIT_NOT_FOUND', 'ARTICLE_NOT_FOUND', 'NODE_NOT_FOUND', 'QUERY_NO_TERMS'}
@@ -637,21 +668,9 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
 # ---------------------------------------------------------------------------
 
 def _privacidad():
-    """Carga el paquete ``privacidad/`` por ruta como ``dike_privacidad``."""
-    if "dike_privacidad" in sys.modules:
-        return sys.modules["dike_privacidad"]
-    spec = importlib.util.spec_from_file_location(
-        "dike_privacidad",
-        _RAIZ / "privacidad" / "__init__.py",
-        submodule_search_locations=[str(_RAIZ / "privacidad")])
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    try:
-        spec.loader.exec_module(mod)
-    except Exception:
-        sys.modules.pop(spec.name, None)
-        raise
-    return mod
+    """El paquete ``privacidad/`` de esta copia del plugin."""
+    return _modulo_de_esta_copia(
+        "dike_privacidad", _RAIZ / "privacidad" / "__init__.py", paquete=True)
 
 
 def _texto_privacidad(body: dict) -> str:
@@ -1009,19 +1028,9 @@ def escrito_demo():
 
 
 def _escribe_claro():
-    """Carga ``escritor/escribe_claro.py`` por ruta como ``dike_escribe_claro``."""
-    if "dike_escribe_claro" in sys.modules:
-        return sys.modules["dike_escribe_claro"]
-    spec = importlib.util.spec_from_file_location(
+    """``escritor/escribe_claro.py`` de esta copia del plugin."""
+    return _modulo_de_esta_copia(
         "dike_escribe_claro", _RAIZ / "escritor" / "escribe_claro.py")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    try:
-        spec.loader.exec_module(mod)
-    except Exception:
-        sys.modules.pop(spec.name, None)
-        raise
-    return mod
 
 
 @router.post("/estilo/analizar")
@@ -1055,21 +1064,9 @@ def estilo_grafo(body: dict):
 
 
 def _ordenamiento():
-    """Carga ``ordenamiento/`` por ruta como ``dike_ordenamiento``."""
-    if "dike_ordenamiento" in sys.modules:
-        return sys.modules["dike_ordenamiento"]
-    spec = importlib.util.spec_from_file_location(
-        "dike_ordenamiento",
-        _RAIZ / "ordenamiento" / "__init__.py",
-        submodule_search_locations=[str(_RAIZ / "ordenamiento")])
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    try:
-        spec.loader.exec_module(mod)
-    except Exception:
-        sys.modules.pop(spec.name, None)
-        raise
-    return mod
+    """El paquete ``ordenamiento/`` de esta copia del plugin."""
+    return _modulo_de_esta_copia(
+        "dike_ordenamiento", _RAIZ / "ordenamiento" / "__init__.py", paquete=True)
 
 
 _JUR_ID = re.compile(r"^[a-z]{2,8}$")

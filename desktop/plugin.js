@@ -1429,6 +1429,8 @@ var TEXTOS = {
     "chat.subtitulo": "Brief chat \xB7 Citation status is set by Dik\xE9, not the model.",
     "chat.te": "You: ",
     "chat.verSalida": "See data that leaves",
+    "chat.sinRespuesta": "The model did not answer this turn.",
+    "chat.sinRespuestaError": "The model did not answer this turn: {error}",
     "chat.verifFallo": "Could not verify this reply\u2019s citations: treat them as unverified.",
     "chat.verificando": "checking citations\u2026",
     "chat.verificarGrafo": "Review source in graph",
@@ -1961,6 +1963,7 @@ var TEXTOS = {
     "priv.sinDeteccion": "No detection yet: edit the brief or press \u201CDetect personal data\u201D.",
     "priv.valoresMapa": "{n} pseudonymized values \xB7 no destination selected",
     "priv.verMarcas": "Show personal data in the brief",
+    "priv.aviso": "Pseudonymization, not anonymization: the map stays on this machine. A rule-based detector does not find every name without context; review the list of possible people.",
     "priv.vistaSalida": "Preview of what leaves",
     "proposal.FIELD_NOT_ALLOWED": "Field not allowed",
     "proposal.FIELD_NOT_PROPOSABLE": "Field cannot be proposed",
@@ -2190,6 +2193,8 @@ var TEXTOS = {
     "chat.subtitulo": "Chat del escrito \xB7 El estado de las citas lo fija Dik\xE9, no el modelo.",
     "chat.te": "T\xFA: ",
     "chat.verSalida": "Ver datos que salen",
+    "chat.sinRespuesta": "El modelo no respondi\xF3 este turno.",
+    "chat.sinRespuestaError": "El modelo no respondi\xF3 este turno: {error}",
     "chat.verifFallo": "No se pudieron verificar las citas de esta respuesta: tr\xE1talas como no verificadas.",
     "chat.verificando": "verificando citas\u2026",
     "chat.verificarGrafo": "Revisar fuente en el grafo",
@@ -2722,6 +2727,7 @@ var TEXTOS = {
     "priv.sinDeteccion": "Sin detecci\xF3n a\xFAn: edita el escrito o pulsa \xABDetectar datos\xBB.",
     "priv.valoresMapa": "{n} valores seudonimizados \xB7 sin destino seleccionado",
     "priv.verMarcas": "Ver datos personales en el escrito",
+    "priv.aviso": "Seudonimizaci\xF3n, no anonimizaci\xF3n: el mapa queda en este equipo. Un detector por reglas no encuentra todos los nombres sin contexto; revisa la lista de posibles personas.",
     "priv.vistaSalida": "Vista de lo que sale",
     "proposal.FIELD_NOT_ALLOWED": "Campo no permitido",
     "proposal.FIELD_NOT_PROPOSABLE": "Campo no proponible",
@@ -26741,10 +26747,10 @@ function ModuloPrivacidadImpl({ editorRef, caseId, docInfo, registro, setRegistr
           })
         ] }))
       ] }) : null,
-      jsx("div", { className: S.sub, children: deteccion.aviso })
+      jsx("div", { className: S.sub, children: t("priv.aviso") })
     ] }) : jsx("div", { className: S.sub, children: t("priv.sinDeteccion") }),
     vistaSalida && vistaSalida !== "cargando" ? jsxs("div", { className: "flex flex-col gap-1", children: [
-      jsx("div", { className: S.cardTitle, children: "Vista de lo que sale" }),
+      jsx("div", { className: S.cardTitle, children: t("priv.vistaSalida") }),
       jsx("pre", {
         className: "max-h-48 overflow-auto whitespace-pre-wrap font-mono text-xs",
         children: vistaSalida.texto
@@ -26903,6 +26909,9 @@ function parsePregunta(turno) {
   const m3 = /<pregunta>([\s\S]*?)<\/pregunta>\s*$/.exec(turno);
   if (m3) return m3[1];
   return turno.includes("<dike-escritor") ? "" : turno;
+}
+function cargaEvento(ev) {
+  return ev && typeof ev.payload === "object" && ev.payload || ev || {};
 }
 function filtroEvento(ev, sessionId, profile) {
   if (!ev || typeof ev !== "object") return false;
@@ -27376,22 +27385,32 @@ function ChatEscritorImpl({
     const offs = tipos.map((tipo) => onEvent.call(host, tipo, (ev) => {
       const s2 = sesionRef.current;
       if (!s2 || !filtroEvento(ev, s2.session_id, null)) return;
+      const p2 = cargaEvento(ev);
       if (tipo === "message.delta") {
-        deltasRef.current.push({ offset: ev.offset || 0, text: ev.text || "" });
+        deltasRef.current.push({ offset: p2.offset || 0, text: typeof p2.text === "string" ? p2.text : "" });
         setStream(acumDeltas(deltasRef.current));
       } else if (tipo === "message.complete") {
-        const texto = ev.text || acumDeltas(deltasRef.current);
+        const texto = typeof p2.text === "string" && p2.text || acumDeltas(deltasRef.current);
         deltasRef.current = [];
         setStream("");
-        finalizarRespuesta(texto);
+        finalizarRespuesta(texto, p2.error || p2.failure_reason || (p2.status === "error" ? "error" : null));
       }
     }));
     return () => offs.forEach((off) => {
       if (typeof off === "function") off();
     });
   }, []);
-  const finalizarRespuesta = useCallback2((textoCrudo) => {
+  const finalizarRespuesta = useCallback2((textoCrudo, fallo) => {
     const cid = caseRef.current;
+    if (!textoCrudo || !String(textoCrudo).trim()) {
+      setMensajes((ms) => [...ms, {
+        rol: "assistant",
+        texto: "",
+        sinRespuesta: fallo ? String(fallo) : ""
+      }]);
+      setOcupado(false);
+      return;
+    }
     setMensajes((ms) => [...ms, {
       rol: "assistant",
       texto: textoCrudo,
@@ -27643,6 +27662,10 @@ function ChatEscritorImpl({
                   m3.verificando ? jsx2("span", {
                     className: S.chip + " " + S.chipOff,
                     children: t("chat.verificando")
+                  }) : null,
+                  m3.sinRespuesta !== void 0 ? jsx2("div", {
+                    className: "text-xs " + S.bad,
+                    children: m3.sinRespuesta ? t("chat.sinRespuestaError", { error: m3.sinRespuesta }) : t("chat.sinRespuesta")
                   }) : null,
                   m3.verif && m3.verif.fallo ? jsx2("div", {
                     className: "text-xs " + S.bad,

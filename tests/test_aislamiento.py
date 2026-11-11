@@ -5,7 +5,6 @@ cuando bubblewrap no está usable en el equipo; nunca fallan por eso. Las de
 clasificación de la sonda usan ``bwrap`` falsos en un PATH temporal, así que
 corren siempre.
 """
-import importlib.util
 import json
 import os
 import socket
@@ -19,21 +18,10 @@ ROOT = Path(__file__).parents[1]
 DEMO = (ROOT / 'tests/fixtures/escrito_demo.md').read_text(encoding='utf-8')
 
 
-def _cargar(ruta, nombre):
-    spec = importlib.util.spec_from_file_location(nombre, ruta)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[nombre] = mod
-    spec.loader.exec_module(mod)
-    return mod
-
-
 @pytest.fixture(scope='module')
-def aisla():
-    """El módulo ``dike_aislamiento`` compartido con el adaptador."""
-    mod = sys.modules.get('dike_aislamiento')
-    if mod is None:
-        mod = _cargar(ROOT / 'aislamiento.py', 'dike_aislamiento')
-    return mod
+def aisla(modulo_de_la_copia):
+    """El ``aislamiento`` de esta copia, el mismo objeto que usa el adaptador."""
+    return modulo_de_la_copia('dike_aislamiento', ROOT / 'aislamiento.py')
 
 
 @pytest.fixture(scope='module')

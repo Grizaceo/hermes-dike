@@ -15,6 +15,56 @@ def mod():
     return m
 
 
+def test_modulos_compartidos_son_por_copia(mod, modulo_de_la_copia):
+    """El adaptador y la réplica de conftest dan el mismo objeto, con nombre por copia."""
+    import sys
+    aisla = mod._aislamiento()
+    assert aisla is modulo_de_la_copia('dike_aislamiento', ROOT / 'aislamiento.py')
+    assert aisla.__name__.startswith('dike_aislamiento_')
+    assert 'dike_aislamiento' not in sys.modules or sys.modules['dike_aislamiento'] is not aisla
+
+
+def test_otra_copia_cargada_antes_no_contamina(monkeypatch):
+    """Regresión: en el multiplexor de Hermes, un perfil con otra versión del
+    plugin dejaba su ``aislamiento`` en ``sys.modules['dike_aislamiento']`` y la
+    copia nueva fallaba al importar (sin ``establecer_politica``)."""
+    import sys
+    import types
+    viejo = types.ModuleType('dike_aislamiento')
+    viejo.MODULOS_MEDIDOS = ()
+    monkeypatch.setitem(sys.modules, 'dike_aislamiento', viejo)
+    monkeypatch.setitem(sys.modules, 'dike_textos', types.ModuleType('dike_textos'))
+    spec = importlib.util.spec_from_file_location('dike_copia_nueva_test', ROOT / '__init__.py')
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    assert m._aislamiento() is not viejo
+    assert hasattr(m._aislamiento(), 'establecer_politica')
+    assert m._t('status.unknown')
+
+
+def test_misma_ruta_otra_version_y_otra_ruta_cargan_modulos_distintos(mod, tmp_path):
+    import os
+    a, b = tmp_path / 'a' / 'm.py', tmp_path / 'b' / 'm.py'
+    for f in (a, b):
+        f.parent.mkdir()
+        f.write_text('VALOR = 1\n')
+    ma, mb = mod._modulo_de_esta_copia('dike_prueba', a), mod._modulo_de_esta_copia('dike_prueba', b)
+    assert ma is not mb and ma is mod._modulo_de_esta_copia('dike_prueba', a)
+    # Actualización en el lugar: mismo archivo, otro contenido → módulo nuevo.
+    a.write_text('VALOR = 22\n')
+    os.utime(a, ns=(a.stat().st_atime_ns, a.stat().st_mtime_ns + 1_000_000))
+    assert mod._modulo_de_esta_copia('dike_prueba', a).VALOR == 22
+
+
+def test_carga_fallida_no_deja_modulo_a_medias(mod, tmp_path):
+    import sys
+    f = tmp_path / 'roto.py'
+    f.write_text('A = 1\nraise RuntimeError("a medias")\n')
+    with pytest.raises(RuntimeError):
+        mod._modulo_de_esta_copia('dike_roto', f)
+    assert not [n for n in sys.modules if n.startswith('dike_roto_')]
+
+
 def test_paquetes_del_anfitrion_usa_find_spec(mod, tmp_path, monkeypatch):
     # Un módulo cuyo find_spec apunta a un dir SIN 'site-packages' en el nombre.
     pkg = tmp_path / 'paquetes-raros'

@@ -150,6 +150,12 @@ Changes to the adapter's code during the hackathon:
     commands, the adapter's messages and the HTTP errors (Codex finished the
     interfaces' translation, labelled the engine codes and stopped the panels
     re-rendering on every keystroke);
+  - fixes from using the page inside Hermes Desktop while recording the demo
+    (Claude Code, Claude Opus 5.5): two plugin versions in one gateway process
+    shared module names, so the panel answered 502; the engine server died
+    with the request's thread, so every check from the page took about 12 s;
+    the chat read the wrong event field and showed empty replies; and two
+    privacy strings stayed Spanish;
   - the engine is unchanged.
 
 ## Ported from earlier projects

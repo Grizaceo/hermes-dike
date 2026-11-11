@@ -104,19 +104,33 @@ def _resolver_articulos_archivo(spec: dict, cfg_dir: Path) -> Path:
 
 
 def _cargar_privacidad():
-    """Carga ``privacidad/`` por ruta como ``dike_privacidad`` (mismo patrón que dashboard/plugin_api.py)."""
-    if "dike_privacidad" in sys.modules:
-        return sys.modules["dike_privacidad"]
+    """El paquete ``privacidad/`` de esta copia del plugin, o None si no está.
+
+    Mismo nombre por copia que ``dashboard/plugin_api.py`` (``dike_privacidad_<firma>``):
+    en un proceso que sirve varios perfiles no se reutiliza la privacidad de
+    otra copia ni de otra versión del plugin.
+    """
     paquete = RAIZ / "privacidad" / "__init__.py"
     if not paquete.is_file():
         return None
+    partes = [str(paquete.resolve())]
+    for f in sorted(paquete.parent.rglob("*.py")):
+        st = f.stat()
+        partes.append(f"{f.name}:{st.st_mtime_ns}:{st.st_size}")
+    nombre = "dike_privacidad_" + hashlib.sha256("|".join(partes).encode()).hexdigest()[:12]
+    if nombre in sys.modules:
+        return sys.modules[nombre]
     spec = importlib.util.spec_from_file_location(
-        "dike_privacidad", paquete, submodule_search_locations=[str(RAIZ / "privacidad")])
+        nombre, paquete, submodule_search_locations=[str(RAIZ / "privacidad")])
     if spec is None or spec.loader is None:
         return None
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["dike_privacidad"] = mod
-    spec.loader.exec_module(mod)
+    sys.modules[nombre] = mod
+    try:
+        spec.loader.exec_module(mod)
+    except BaseException:
+        sys.modules.pop(nombre, None)
+        raise
     return mod
 
 

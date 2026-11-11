@@ -122,8 +122,9 @@ the code is organized: [docs/architecture.md](docs/architecture.md).
 
 ## How this was built
 
-- **Decided and reviewed by me (Cristóbal Muñoz):** _to be completed by the
-  maintainer._
+- **Decided and reviewed by me (Cristóbal Muñoz):** every module, for the help a lawyer would
+  accept. I tested each one as a lawyer using it, not by reviewing the code: my programming is
+  still basic. In my words: [docs/author-notes.md](docs/author-notes.md).
 - **Before the hackathon:** the Diké engine and its corpus, and the first
   version of this adapter with its 73 tests, in the `hermes-plugin/` folder of
   [Grizaceo/dike](https://github.com/Grizaceo/dike) (October 2026). See
@@ -148,9 +149,8 @@ the code is organized: [docs/architecture.md](docs/architecture.md).
   bundle, the engine server's latency and the privacy benchmark; two real chat
   turns in a Case Writer session, where the model's attempt to use the terminal
   was blocked.
-- **Not verified:** macOS, Hermes versions before v0.23.0, and the Desktop page
-  inside the app after the last round: it was checked in a browser harness with
-  the app's theme tokens (`desktop/dev/`).
+- **Not verified:** macOS, Hermes before v0.23.0, and the Desktop page's dark theme in the app.
+  Recording the demo in Hermes Desktop v0.23.0 found four bugs, now fixed (see PREEXISTING.md).
 
 ## Limits
 

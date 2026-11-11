@@ -28,11 +28,9 @@ def _cargar(ruta, nombre):
 
 
 @pytest.fixture(scope='module')
-def aisla():
-    mod = sys.modules.get('dike_aislamiento')
-    if mod is None:
-        mod = _cargar(ROOT / 'aislamiento.py', 'dike_aislamiento')
-    return mod
+def aisla(modulo_de_la_copia):
+    """El ``aislamiento`` de esta copia, el mismo objeto que usa el adaptador."""
+    return modulo_de_la_copia('dike_aislamiento', ROOT / 'aislamiento.py')
 
 
 @pytest.fixture(autouse=True)
@@ -249,6 +247,34 @@ def test_las_llamadas_siguientes_no_lanzan_otro_proceso(real, aisla, monkeypatch
     assert leido['resolucion'] == 'RESOLVED', leido
     pistas = json.loads(m.buscar_corpus({'consulta': 'despido injustificado'}))
     assert pistas['resultados'], pistas
+    assert servidor.proc.pid == pid and servidor.proc.poll() is None
+
+
+def test_el_servidor_sobrevive_al_hilo_que_lo_pidio(real, aisla, monkeypatch):
+    """Regresión: el plugin host de Hermes atiende cada petición del panel en un
+    hilo que termina con ella, y bwrap --die-with-parent mata lo que lanzó un
+    hilo muerto. El servidor debe seguir vivo y atender la petición siguiente."""
+    import threading
+    m, _ = real
+    aisla.cerrar_servidores()
+    salidas = []
+
+    def peticion():
+        salidas.append(json.loads(m.verificar_citas({'texto': DEMO})))
+
+    hilo = threading.Thread(target=peticion)
+    hilo.start()
+    hilo.join()
+    (servidor,) = aisla._SERVIDORES.values()
+    pid = servidor.proc.pid
+    import time
+    time.sleep(0.5)
+    assert servidor.proc.poll() is None, 'el servidor murió con el hilo que lo pidió'
+    monkeypatch.setattr(aisla, 'ejecutar', lambda *a, **k: pytest.fail('lanzó un proceso de un solo uso'))
+    hilo = threading.Thread(target=peticion)
+    hilo.start()
+    hilo.join()
+    assert [s['meta']['citas_verificadas'] for s in salidas] == [4, 4]
     assert servidor.proc.pid == pid and servidor.proc.poll() is None
 
 

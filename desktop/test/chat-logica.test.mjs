@@ -5,7 +5,7 @@ import {
   acumDeltas, activoDe, candidatosPerfil, bloqueCambios, bloqueConstancia, bloqueEscrito,
   componerTurno, diffParrafos, etiquetaDestino, etiquetaModelo, filtroEvento,
   fragmentoEn, hashParrafo, neutralizar, nombrePerfilActivo, normalizarFragmento,
-  parsePregunta, parsearNotas, rangoFragmento,
+  parsePregunta, parsearNotas, rangoFragmento, cargaEvento,
 } from '../src/escritor/chat-logica.js'
 
 const VERIF = {
@@ -253,4 +253,15 @@ test('rangoFragmento devuelve offsets del texto original', () => {
   assert.equal(texto.slice(r[0], r[1]), frag2)
   assert.equal(rangoFragmento(texto, 'no está'), null)
   assert.equal(rangoFragmento(texto, 'corto'), null)
+})
+
+
+test('cargaEvento lee el payload del contrato actual del gateway', () => {
+  // Forma real en Hermes v0.23: {type, session_id, seq, payload: {...}}.
+  const ev = { type: 'message.complete', session_id: 's1', seq: 4, payload: { text: 'Hola', status: 'complete' } }
+  assert.equal(filtroEvento(ev, 's1', null), true)
+  assert.equal(cargaEvento(ev).text, 'Hola')
+  // Contrato anterior: campos en el evento mismo.
+  assert.equal(cargaEvento({ type: 'message.delta', session_id: 's1', text: 'a', offset: 0 }).text, 'a')
+  assert.deepEqual(cargaEvento(null), {})
 })

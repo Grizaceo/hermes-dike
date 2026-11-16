@@ -98,6 +98,10 @@ The Desktop page and the dashboard tab reach the same function through
 ```bash
 # Python tests (the interpreter is the one Hermes runs on; see claims.json)
 $HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<a dir on disk>
+# The same without the tests that install the real corpus, start the engine or
+# probe the sandbox (about 20 s instead of 7 min); run the full suite before merging.
+# A tmpfs --basetemp runs out of inodes: each corpus install is ~70,000 files.
+$HERMES_PYTHON -m pytest tests -q -p no:cacheprovider --basetemp=<a dir on disk> -m "not lenta"
 
 # Desktop page: tests, the browser harness, and the bundle
 cd desktop && npm ci

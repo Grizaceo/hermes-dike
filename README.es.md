@@ -1,4 +1,4 @@
-<!-- vitrina:translation-of README.md sha256=d117049437c1231efe6ae600f7ccd140bbea64aad05519dfdb7373cb94030086 -->
+<!-- vitrina:translation-of README.md sha256=f71d5656ea26d07703e657622697d6658e6fb20e7b84bdb6ed3e74e81ae4c21f -->
 # Diké para Hermes
 
 [English](README.md)
@@ -107,10 +107,11 @@ la app.
   [docs/case-writer.es.md](docs/case-writer.es.md).
 - **Grafo del corpus.** Un mapa 3D de solo lectura de las normas, sus artículos y sus
   unidades normativas mínimas, cada una con una etiqueta candidata (obligación, prohibición,
-  permiso…) que asignan reglas regex, más la misma búsqueda léxica.
-- **Tablero del caso.** La teoría del caso (hechos, normas, hipótesis y vacíos), versionada
-  y con cada cambio atribuido. El chat puede proponer cambios; entran solo cuando los
-  aceptas.
+  permiso…) que asignan reglas regex, más la misma búsqueda léxica, y una capa local opcional
+  de sentencias ambientales solo como metadatos, sin su texto.
+- **Tablero del caso.** La teoría del caso (hechos, normas, hipótesis y vacíos), versionada;
+  cada cambio guarda su origen y su motivo, no a la persona. Las propuestas del chat entran
+  solo cuando las aceptas.
 - **Ordenamientos y ajustes.** Valida packs de normas de otros ordenamientos a partir de un
   perfil declarativo; sus citas todavía no se pueden verificar
   ([docs/legal-systems.es.md](docs/legal-systems.es.md)).
@@ -165,7 +166,8 @@ organizado el código: [docs/architecture.md](docs/architecture.md).
   en la ley.
 - **Una cita por oración o por línea.** Si dos citas quedan en líneas seguidas sin punto,
   coma ni viñeta, el motor puede pegarle la primera norma a la segunda cita. El plugin
-  entonces no la certifica y explica por qué, en vez de adivinar.
+  entonces no la certifica y explica por qué, en vez de adivinar. En un rango solo se
+  comprueba el primer artículo, y de un `.docx` no se leen encabezados, pies ni notas.
 - **Qué significa «comprobado por integridad».** Cada llamada compara los nombres, tamaños y
   fechas de modificación de los archivos del corpus instalado con el registro de la
   instalación, y recalcula todos los hashes cuando difieren; además, un SHA-256 completo

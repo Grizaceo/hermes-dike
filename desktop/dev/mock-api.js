@@ -176,6 +176,17 @@ function ruta(metodo, pathname, q, body) {
     return F.TEXTO_ARTICULO
   }
   if (metodo === 'GET' && pathname === '/grafo/fuentes') return F.GRAFO_FUENTES
+  // Notas privadas por nodo y texto del vault (visor Graphium): el arnés no
+  // tiene vault conectada, así que la nota parte vacía y el texto se niega.
+  if (metodo === 'GET' && pathname === '/grafo/nota') {
+    return { content: '', version: null, mode: 'annotation', source_unchanged: true }
+  }
+  if (metodo === 'POST' && pathname === '/grafo/nota') {
+    return { content: String((body && body.content) || ''), version: 'mock', mode: 'annotation', source_unchanged: true }
+  }
+  if (metodo === 'GET' && pathname === '/grafo/vault/texto') {
+    throw errHttp(403, { detail: 'VAULT_TEXT_NOT_APPROVED: This document\'s text needs an anonymization approval for its current version: mock' })
+  }
   if (metodo === 'GET' && pathname === '/grafo/nodo') {
     return { ...F.NODO_DETALLE, id: get('id', F.NODO_DETALLE.id) }
   }

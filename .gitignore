@@ -16,3 +16,7 @@ __pycache__/
 
 # Build del plugin Desktop (node)
 desktop/node_modules/
+
+# Native engine artifacts (build explicitly per target platform)
+graphium/target/
+graphium/bin/

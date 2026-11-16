@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>Diké Graphium isolated acceptance</title>
+<style>:root{--ui-accent:#60a5fa;--ui-text-tertiary:#94a3b8}canvas{width:900px;height:550px;display:block}body{background:#101827;color:white}#status{white-space:pre-wrap}</style>
+<canvas id="graph" aria-label="Isolated Graphium acceptance"></canvas><pre id="status">loading</pre>
+<script type="module">
+import {GraphiumRenderer} from '/src/graphium-renderer.js'
+import {mapSnapshot,projectToCss} from '/src/graphium-data.js'
+const projection={nodes:[{id:'norma:prueba',tipo:'instrumento',label:'Ley ficticia'},{id:'norma:prueba/art:1',tipo:'articulo',label:'Artículo ficticio 1'},{id:'norma:prueba/art:2',tipo:'articulo',label:'Artículo ficticio 2'}],links:[{source:'norma:prueba',target:'norma:prueba/art:1',tipo:'contiene',estado:'verificada_estructura'},{source:'norma:prueba/art:1',target:'norma:prueba/art:2',tipo:'cita',estado:'candidata'}]}
+try{
+const health=await(await fetch('/health')).json();if(health.marker!=='dike-graphium-e2e')throw Error('Wrong server')
+const response=await fetch('/grafo/graphium/layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(projection)})
+if(!response.ok)throw Error(await response.text())
+const result=await response.json(),data=mapSnapshot(result,projection)
+window.harness={result,data,mapSnapshot,errors:[],selected:null,edge:null,hover:null,background:0,projectToCss}
+const h=window.harness
+const renderer=new GraphiumRenderer(document.getElementById('graph'),{onNode:n=>h.selected=n.id,onEdge:e=>h.edge=e,onHover:id=>h.hover=id,onBackground:()=>h.background++,onError:message=>h.errors.push(message)})
+h.renderer=renderer;renderer.setData(data)
+h.point=i=>{renderer.matrices();return projectToCss(...data.positions.subarray(i*3,i*3+3),renderer.view,renderer.proj,renderer.width,renderer.height)}
+h.ready=true;document.getElementById('status').textContent='ready: '+data.nodeCount+' nodes from '+result.engine
+}catch(error){window.harness={ready:false,error:String(error)};document.getElementById('status').textContent=String(error)}
+</script>

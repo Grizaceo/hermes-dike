@@ -12,6 +12,7 @@ adaptador sí permite por ``ruta``.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import importlib.util
 import json
@@ -26,9 +27,103 @@ import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.routing import APIRoute
+from fastapi.responses import JSONResponse
+
+_GRAPH_MAX_BODY_BYTES = 16 * 1024 * 1024
+_GRAPH_MAX_STRUCTURES = 250_000
+_GRAPH_BODY_TIMEOUT = 10.0
+_GRAPH_HTTP_SLOTS = threading.BoundedSemaphore(1)
+
+
+def _graph_json_complexity_ok(raw: bytes) -> bool:
+    # Lexical preflight only; FastAPI still owns JSON syntax/type validation.
+    # Count containers outside strings before allocating millions of Python dicts.
+    quoted = escaped = False
+    depth = structures = 0
+    for byte in raw:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif byte == 92:
+                escaped = True
+            elif byte == 34:
+                quoted = False
+        elif byte == 34:
+            quoted = True
+        elif byte in (123, 91):
+            structures += 1
+            depth += 1
+            if structures > _GRAPH_MAX_STRUCTURES or depth > 64:
+                return False
+        elif byte in (125, 93):
+            depth -= 1
+    return True
+
+
+class _BoundedGraphiumRoute(APIRoute):
+    """Reject oversized or concurrent bodies before FastAPI's JSON parser."""
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+
+        async def guarded(request: Request):
+            length = request.headers.get("content-length")
+            if length is not None:
+                try:
+                    size = int(length)
+                    if size < 0:
+                        raise ValueError
+                except ValueError:
+                    return JSONResponse(status_code=400, content={"detail": "Content-Length inválido."})
+                if size > _GRAPH_MAX_BODY_BYTES:
+                    return JSONResponse(status_code=413, content={"detail": "El cuerpo supera el límite de bytes."})
+            if not _GRAPH_HTTP_SLOTS.acquire(blocking=False):
+                return JSONResponse(status_code=503, content={"detail": "El motor está ocupado; reintenta."}, headers={"Retry-After": "1"})
+            scan_task = None
+            try:
+                chunks = []
+                total = 0
+                try:
+                    async with asyncio.timeout(_GRAPH_BODY_TIMEOUT):
+                        async for chunk in request.stream():
+                            total += len(chunk)
+                            if total > _GRAPH_MAX_BODY_BYTES:
+                                return JSONResponse(status_code=413, content={"detail": "El cuerpo supera el límite de bytes."})
+                            chunks.append(chunk)
+                except TimeoutError:
+                    return JSONResponse(status_code=408, content={"detail": "Se agotó el plazo para recibir el cuerpo."})
+                raw = b"".join(chunks)
+                chunks.clear()
+                scan_task = asyncio.create_task(asyncio.to_thread(_graph_json_complexity_ok, raw))
+                if not await asyncio.shield(scan_task):
+                    return JSONResponse(status_code=413, content={"detail": "El JSON supera el límite de complejidad."})
+                # Starlette reuses this bounded body rather than reading the socket again.
+                request._body = raw
+                return await handler(request)
+            finally:
+                # Cancellation cannot stop a running thread. Keep admission until
+                # its scan actually finishes, without blocking the event loop.
+                def release_after_scan(completed):
+                    try:
+                        completed.exception()
+                    except asyncio.CancelledError:
+                        pass
+                    finally:
+                        _GRAPH_HTTP_SLOTS.release()
+                if scan_task is not None:
+                    if scan_task.done():
+                        release_after_scan(scan_task)
+                    else:
+                        scan_task.add_done_callback(release_after_scan)
+                else:
+                    _GRAPH_HTTP_SLOTS.release()
+
+        return guarded
+
 
 router = APIRouter()
+_graphium_router = APIRouter(route_class=_BoundedGraphiumRoute)
 _RAIZ = Path(__file__).resolve().parent.parent
 
 
@@ -448,12 +543,40 @@ def grafo_corpus_norma(code: str):
     return _panel(["grafo", "corpus-norma", code], corpus=True, timeout=300, memo=True)
 
 
+@_graphium_router.post("/grafo/graphium/layout")
+def grafo_graphium_layout(body: dict):
+    """Compute a native-only GBIN projection; never discovers or imports a vault."""
+    name = f"dike_graphium_native_http_{hash(str(_RAIZ.resolve()))}"
+    mod = sys.modules.get(name)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location(name, _RAIZ / "dashboard" / "graphium_engine.py")
+        assert spec is not None and spec.loader is not None
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod = sys.modules.setdefault(name, mod)
+    try:
+        return mod.layout(body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=_detalle('GRAPH_LAYOUT_INVALID', detail=_limpio(str(exc)))) from exc
+    except mod.EngineUnavailable as exc:
+        raise HTTPException(status_code=503, detail=_detalle('GRAPH_ENGINE_UNAVAILABLE', detail=_limpio(str(exc)))) from exc
+
+
+router.include_router(_graphium_router)
+
+
 @router.get("/grafo/red")
 def grafo_red(fuente: str = "corpus"):
-    """La red del corpus sellado o de la capa ambiental local en una llamada.
+    """Red sellada, ambiental o inventario externo explícito por perfil.
 
-    La respuesta se cachea en plugin-data por pack_hash: la primera lectura
+    La red del corpus se cachea en plugin-data por pack_hash: la primera lectura
     barre los ~8.500 artículos, las siguientes sirven el archivo."""
+    if fuente == 'vault':
+        try:
+            return _sources().snapshot(_adaptador()._carpeta_de_datos())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=_detalle('GRAPH_SOURCE_REQUEST_INVALID', detail=_limpio(str(exc)))) from None
+
     if fuente not in ("corpus", "ambiental"):
         raise HTTPException(
             status_code=400,
@@ -569,6 +692,9 @@ def _leer_local(mod, nombre: str) -> dict:
         return {}
 
 
+_CURADOS_AMB = _RAIZ / "data" / "ambiental" / "nodos_curados.json"
+
+
 def _red_ambiental(mod) -> dict:
     p = _ambiental_dir(mod) / "red.json"
     if not p.is_file():
@@ -582,7 +708,241 @@ def _red_ambiental(mod) -> dict:
     data["fuente"] = "ambiental"
     data["local_only"] = True
     data.setdefault("conteos", {})
+    _fusionar_curados(data)
     return data
+
+
+def _fusionar_curados(data: dict) -> None:
+    """Mezcla los nodos curados (solo metadatos) en la red en memoria.
+
+    Los nodos entran con ``curado: true`` si su id no existe; los links solo
+    si ambos extremos existen tras la fusión. Nunca escribe a disco: si el
+    archivo falta o es ilegible la red queda como está.
+    """
+    try:
+        curados = json.loads(_CURADOS_AMB.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(curados, dict):
+        return
+    nodos = data.get("nodes")
+    links = data.get("links")
+    if not isinstance(nodos, list) or not isinstance(links, list):
+        return
+    existentes = {n.get("id") for n in nodos if isinstance(n, dict)}
+    agregados = 0
+    for n in curados.get("nodes") or []:
+        if not isinstance(n, dict):
+            continue
+        nid = n.get("id")
+        if not isinstance(nid, str) or not nid or nid in existentes:
+            continue
+        nodos.append({**n, "curado": True})
+        existentes.add(nid)
+        agregados += 1
+    for l in curados.get("links") or []:
+        if not isinstance(l, dict):
+            continue
+        src, dst = l.get("source"), l.get("target")
+        if (isinstance(src, str) and isinstance(dst, str)
+                and src in existentes and dst in existentes):
+            links.append(dict(l))
+    data["conteos"]["curados"] = agregados
+
+
+# Reviewer is an in-process deterministic adapter, not a new service.
+_REVIEWER_LOCK = threading.RLock()
+
+
+def _reviewer():
+    path = _RAIZ / 'dashboard' / 'reviewer_core.py'
+    name = 'dike_reviewer_' + __import__('hashlib').sha256(str(path.resolve()).encode()).hexdigest()[:16]
+    with _REVIEWER_LOCK:
+        if name not in sys.modules:
+            spec = importlib.util.spec_from_file_location(name, path, submodule_search_locations=[str(path.parent)])
+            assert spec and spec.loader
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[name] = module
+            try:
+                spec.loader.exec_module(module)
+            except Exception:
+                sys.modules.pop(name, None)
+                raise
+        return sys.modules[name]
+
+
+class _ReviewerRoute(APIRoute):
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+        async def guarded(request: Request):
+            try:
+                chunks = []
+                size = 0
+                async with asyncio.timeout(10):
+                    async for chunk in request.stream():
+                        size += len(chunk)
+                        if size > 131072:
+                            return JSONResponse(status_code=413, content={'detail': {'code':'TOO_LARGE'}})
+                        chunks.append(chunk)
+                request._body = b''.join(chunks)
+                if not _graph_json_complexity_ok(request._body):
+                    return JSONResponse(status_code=413, content={'detail': {'code':'TOO_COMPLEX'}})
+                return await handler(request)
+            except TimeoutError:
+                return JSONResponse(status_code=408, content={'detail': {'code':'BODY_TIMEOUT'}})
+        return guarded
+
+
+_reviewer_router = APIRouter(route_class=_ReviewerRoute)
+
+
+def _reviewer_document(cid, source, ident):
+    core = _reviewer()
+    try:
+        core.check_case(cid)
+        if source != 'vault':
+            raise PermissionError
+        # Re-authorize current SHA-bound anonymization, even on export/reopen.
+        loaded = _sources().read_source(_adaptador()._carpeta_de_datos(), ident)
+        return core.document(source, ident, loaded['content'])
+    except PermissionError:
+        raise HTTPException(403, detail={'code':'DOCUMENT_DENIED'}) from None
+    except FileNotFoundError:
+        raise HTTPException(404, detail={'code':'DOCUMENT_MISSING'}) from None
+    except (ValueError, TypeError, OSError):
+        raise HTTPException(400, detail={'code':'INVALID_DOCUMENT_OR_CASE'}) from None
+
+
+def _reviewer_call(op, cid, doc, value):
+    core = _reviewer()
+    try:
+        return getattr(core.Store(_adaptador()._carpeta_de_datos()), op)(cid, doc, value)
+    except core.ReviewerError as exc:
+        status = {'CONFLICT':409,'STALE_SOURCE':409,'NOT_FOUND':404,'STORE_UNAVAILABLE':503,'STORE_CORRUPT':500,'TOO_LARGE':413}.get(exc.code,400)
+        raise HTTPException(status, detail={'code':exc.code}) from None
+
+
+@_reviewer_router.get('/reviewer/document')
+def reviewer_document(id: str, case_id: str, source: str = 'vault'):
+    doc = _reviewer_document(case_id, source, id)
+    core = _reviewer()
+    try:
+        annotations = core.Store(_adaptador()._carpeta_de_datos()).list(case_id, doc)
+    except core.ReviewerError:
+        raise HTTPException(503, detail={'code':'STORE_UNAVAILABLE'}) from None
+    return {**doc,'annotations':annotations,'labels':core.LABELS,'warning':core.WARNING}
+
+
+def _reviewer_action(op, body):
+    allowed = {'id','case_id','source','source_sha256', 'annotation' if op == 'save' else 'annotation_id'}
+    if set(body) - allowed:
+        raise HTTPException(400, detail={'code':'INVALID_INPUT'})
+    cid = body.get('case_id')
+    doc = _reviewer_document(cid, body.get('source','vault'), body.get('id'))
+    if body.get('source_sha256') != doc['sha256']:
+        raise HTTPException(409, detail={'code':'STALE_SOURCE'})
+    return _reviewer_call(op, cid, doc, body.get('annotation' if op == 'save' else 'annotation_id'))
+
+
+@_reviewer_router.post('/reviewer/annotation')
+def reviewer_save(body: dict):
+    return _reviewer_action('save', body)
+
+
+@_reviewer_router.post('/reviewer/export')
+def reviewer_export(body: dict):
+    return _reviewer_action('export', body)
+
+
+@_reviewer_router.post('/reviewer/proposal')
+def reviewer_proposal(body: dict):
+    # No direct /nif/edit call: signed HITL-5 is not exposed by this adapter.
+    return _reviewer_action('proposal', body)
+
+
+router.include_router(_reviewer_router)
+
+
+_SOURCES_LOCK = threading.RLock()
+
+
+def _sources():
+    path = _RAIZ / 'dashboard' / 'graph_sources.py'
+    name = 'dike_graph_sources_' + __import__('hashlib').sha256(str(path.resolve()).encode()).hexdigest()[:16]
+    with _SOURCES_LOCK:
+        if name not in sys.modules:
+            spec = importlib.util.spec_from_file_location(name, path)
+            assert spec and spec.loader
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            sys.modules[name] = mod
+        return sys.modules[name]
+
+
+def _note_node(fuente, ident):
+    if not isinstance(fuente,str):
+        raise ValueError('Fuente inválida.')
+    if fuente == 'vault':
+        return _sources().node(_adaptador()._carpeta_de_datos(), ident)
+    if fuente not in {'corpus','ambiental'}:
+        raise ValueError('Fuente inválida.')
+    if not isinstance(ident,str):
+        raise ValueError('Identificador inválido.')
+    if '#u' in ident:
+        return grafo_unidad(ident,fuente)
+    return grafo_nodo(ident,fuente)
+
+
+@router.get('/grafo/nota')
+def grafo_nota(id: str, fuente: str = 'corpus'):
+    try:
+        _note_node(fuente,id)
+        return _sources().read_note(_adaptador()._carpeta_de_datos(),fuente,id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_SOURCE_REQUEST_INVALID', detail=_limpio(str(exc)))) from None
+
+
+def grafo_guardar_nota(body: dict):
+    try:
+        _note_node(body.get('fuente'),body.get('id'))
+        return _sources().write_note(_adaptador()._carpeta_de_datos(),body.get('fuente'),body.get('id'),body.get('content'),body.get('version'))
+    except FileExistsError:
+        raise HTTPException(status_code=409,detail=_detalle('NOTE_VERSION_CONFLICT')) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_SOURCE_REQUEST_INVALID', detail=_limpio(str(exc)))) from None
+
+
+@router.get('/grafo/vault/texto')
+def grafo_vault_texto(id: str):
+    try:
+        return _sources().read_source(_adaptador()._carpeta_de_datos(),id)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403,detail=_detalle('VAULT_TEXT_NOT_APPROVED', detail=_limpio(str(exc)))) from None
+    except ValueError as exc:
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_SOURCE_REQUEST_INVALID', detail=_limpio(str(exc)))) from None
+
+
+def grafo_vault_layout(body: dict):
+    """Small client request; graph metadata and edges never roundtrip in the body."""
+    ids, positions = body.get('ids'), body.get('positions',{})
+    if not isinstance(ids,list) or len(ids)>200000 or any(not isinstance(i,str) for i in ids) or len(set(ids))!=len(ids) or not isinstance(positions,dict):
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_PROJECTION_INVALID'))
+    try:
+        graph = _sources().snapshot(_adaptador()._carpeta_de_datos())
+    except ValueError as exc:
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_SOURCE_REQUEST_INVALID', detail=_limpio(str(exc)))) from None
+    by_id = {n['id']:n for n in graph['nodes']}
+    selected = set(ids)
+    if not selected.issubset(by_id) or not set(positions).issubset(selected):
+        raise HTTPException(status_code=400,detail=_detalle('GRAPH_ID_FOREIGN'))
+    nodes = [{'id':ident,'tipo':by_id[ident]['tipo'],'label':'',**({'position':positions[ident]} if ident in positions else {})} for ident in ids]
+    return grafo_graphium_layout({'nodes':nodes,'links':[l for l in graph['links'] if l['source'] in selected and l['target'] in selected]})
+
+
+_notes_router = APIRouter(route_class=_BoundedGraphiumRoute)
+_notes_router.add_api_route('/grafo/vault/layout',grafo_vault_layout,methods=['POST'])
+_notes_router.add_api_route('/grafo/nota',grafo_guardar_nota,methods=['POST'])
+router.include_router(_notes_router)
 
 
 @router.get("/grafo/fuentes")
@@ -595,6 +955,9 @@ def grafo_fuentes():
     return [
         {"id": "corpus", "label": "Corpus Diké (25 leyes)",
          "disponible": True, "local_only": False},
+        {"id": "vault", "label": "Vault jurídica completa (local)",
+         "disponible": _sources().available(mod._carpeta_de_datos()), "local_only": True,
+         "coverage": "inventario_documental"},
         {"id": "ambiental", "label": "Ambiental local (solo en este equipo)",
          "disponible": bool(construido), "local_only": True,
          "construido": construido},
@@ -609,6 +972,11 @@ _NODO_ID = re.compile(r"^[^\x00-\x1f#]{4,400}$")
 @router.get("/grafo/nodo")
 def grafo_nodo(id: str, fuente: str = "corpus"):
     """Ficha de un instrumento o artículo (url, sha256, conteos, vigencia)."""
+    if fuente == 'vault':
+        try:
+            return _sources().node(_adaptador()._carpeta_de_datos(),id)
+        except ValueError as exc:
+            raise HTTPException(status_code=404,detail=_detalle('GRAPH_SOURCE_NODE_NOT_FOUND', detail=_limpio(str(exc)))) from None
     if not _NODO_ID.match(id or ""):
         raise HTTPException(status_code=400, detail=_detalle('NODE_ID_INVALID'))
     if fuente == "ambiental":
@@ -635,11 +1003,26 @@ def grafo_unidad(id: str, fuente: str = "corpus"):
     if fuente == "ambiental":
         if not _UNIDAD_AMB_ID.match(id or ""):
             raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
-        store = _leer_local(_adaptador(), "unidades.json")
+        mod = _adaptador()
+        red = _red_ambiental(mod)
+        nodo = next((n for n in red.get("nodes", []) if n.get("id") == id), None)
+        store = _leer_local(mod, "unidades.json")
         u = (store.get("textos") or {}).get(id)
-        if u is None:
+        if u is None and nodo is None:
             raise HTTPException(status_code=404, detail=_detalle('LOCAL_UNIT_NOT_FOUND'))
-        return {"id": id, **u}
+        # Fail-closed: solo las unidades normativas de la red exhiben texto;
+        # judiciales, de clase desconocida o sin nodo en la red devuelven
+        # solo metadatos.
+        if (nodo is not None and nodo.get("clase") == "normativa"
+                and isinstance(u, dict) and u.get("texto")):
+            return {"id": id, **u}
+        meta = dict(nodo) if isinstance(nodo, dict) else {}
+        if isinstance(u, dict):
+            for k, v in u.items():
+                if k != "texto":
+                    meta.setdefault(k, v)
+        return {"id": id, **meta, "texto": None,
+                "texto_omitido": True, "motivo": "solo_metadatos"}
     if not _UNIDAD_ID.match(id or ""):
         raise HTTPException(status_code=400, detail=_detalle('UNIT_ID_INVALID'))
     return _panel(["grafo", "unidad", id], corpus=True, timeout=60, memo=True)
@@ -657,7 +1040,16 @@ def grafo_evidencia(link: str, fuente: str = "ambiental"):
     ev = (store.get("evidencias") or {}).get(link)
     if ev is None:
         raise HTTPException(status_code=404, detail=_detalle('EVIDENCE_NOT_FOUND'))
-    return ev
+    if not isinstance(ev, dict):
+        raise HTTPException(status_code=500, detail=_detalle('EVIDENCE_UNREADABLE'))
+    out = {k: ev[k] for k in ("regla", "estado", "nivel",
+                              "char_start", "char_end") if k in ev}
+    snippet = ev.get("snippet")
+    if isinstance(snippet, str) and len(snippet) <= 120:
+        out["snippet"] = snippet
+    else:
+        out["snippet_omitido"] = True
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -1012,13 +1404,25 @@ _DEMO_FALLBACK = (
 
 
 @router.get("/escrito/demo")
-def escrito_demo():
+def escrito_demo(caso: str = "laboral"):
     """Devuelve el escrito sintético de demostración en texto y HTML."""
-    ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo.md"
-    try:
-        texto = ruta.read_text(encoding="utf-8").strip() if ruta.is_file() else _DEMO_FALLBACK
-    except OSError:
-        texto = _DEMO_FALLBACK
+    if caso == "ambiental":
+        ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo_ambiental.md"
+        try:
+            texto = ruta.read_text(encoding="utf-8").strip()
+        except OSError:
+            raise HTTPException(status_code=404,
+                                detail=_detalle('DEMO_SAMPLE_UNAVAILABLE'))
+    elif caso == "laboral":
+        ruta = _RAIZ / "tests" / "fixtures" / "escrito_demo.md"
+        try:
+            texto = (ruta.read_text(encoding="utf-8").strip()
+                     if ruta.is_file() else _DEMO_FALLBACK)
+        except OSError:
+            texto = _DEMO_FALLBACK
+    else:
+        raise HTTPException(status_code=400,
+                            detail=_detalle('DEMO_CASE_INVALID'))
     parrafos = [p.strip() for p in re.split(r"\n\s*\n", texto) if p.strip()]
     html = "".join(
         "<p>" + (p.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")) + "</p>"

@@ -48,13 +48,17 @@ def test_manifest_misma_version_que_plugin_yaml():
 
 
 def test_api_expone_estado_y_verificar(api):
-    rutas = {r.path for r in api.router.routes}
+    from fastapi import FastAPI
+    app = FastAPI(); app.include_router(api.router)
+    rutas = set(app.openapi()['paths'])
     assert '/estado' in rutas
     assert '/verificar' in rutas
 
 
 def test_api_expone_panel_nif_y_grafo(api):
-    rutas = {r.path for r in api.router.routes}
+    from fastapi import FastAPI
+    app = FastAPI(); app.include_router(api.router)
+    rutas = set(app.openapi()['paths'])
     for ruta in (
         '/nif/casos', '/nif/init', '/nif/seed', '/nif/snapshot',
         '/nif/edit', '/nif/gap', '/nif/validar', '/nif/confianza',

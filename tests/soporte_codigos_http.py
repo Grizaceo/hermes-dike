@@ -5,6 +5,13 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 
 
+def es_revisor(nombre):
+    """Funciones del revisor de pasajes: su protocolo dike-reviewer/1 responde
+    ``detail={'code': …}`` y la página lo lee así; quedan fuera de los códigos
+    traducibles del resto de la API."""
+    return nombre.startswith('_reviewer') or nombre.startswith('reviewer_')
+
+
 def inventario():
     tree = ast.parse((ROOT / 'dashboard/plugin_api.py').read_text())
     funciones = {n.name: n for n in tree.body if isinstance(n, ast.FunctionDef)}
@@ -17,17 +24,20 @@ def inventario():
         rutas[nombre] = [d.func.attr.upper() + ' ' + ast.literal_eval(d.args[0])
                          for d in fn.decorator_list if isinstance(d, ast.Call)
                          and isinstance(d.func, ast.Attribute) and isinstance(d.func.value, ast.Name)
-                         and d.func.value.id == 'router']
+                         and d.func.value.id.endswith('router')]
         for n in ast.walk(fn):
             if not isinstance(n, ast.Call) or not isinstance(n.func, ast.Name):
                 continue
             llamadas[nombre].add(n.func.id)
             if n.func.id == 'HTTPException':
                 kw = {k.arg: k.value for k in n.keywords}
-                estado = ast.literal_eval(kw['status_code'])
                 detalle = kw['detail']
-                if estado == 409:
+                if es_revisor(nombre):
                     assert isinstance(detalle, ast.Dict)
+                    assert [ast.literal_eval(k) for k in detalle.keys] == ['code']
+                    continue
+                estado = ast.literal_eval(kw['status_code'])
+                if estado == 409 and isinstance(detalle, ast.Dict):
                     assert [ast.literal_eval(k) for k in detalle.keys] == ['rev_actual']
                     continue
                 assert isinstance(detalle, ast.Call) and isinstance(detalle.func, ast.Name)
@@ -37,6 +47,14 @@ def inventario():
                     assert detalle.func.id == '_detalle'
                     codigos = {ast.literal_eval(detalle.args[0])}
                 errores[nombre].extend((codigo, estado) for codigo in codigos)
+    # Rutas registradas con add_api_route en routers propios (límites de cuerpo).
+    for n in tree.body:
+        if (isinstance(n, ast.Expr) and isinstance(n.value, ast.Call)
+                and isinstance(n.value.func, ast.Attribute) and n.value.func.attr == 'add_api_route'):
+            ruta, fn = n.value.args[:2]
+            metodos = next(k.value for k in n.value.keywords if k.arg == 'methods')
+            rutas.setdefault(fn.id, []).extend(
+                ast.literal_eval(m).upper() + ' ' + ast.literal_eval(ruta) for m in metodos.elts)
     resultado = {}
     for nombre, endpoints in rutas.items():
         if not endpoints:

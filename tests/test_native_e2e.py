@@ -158,6 +158,32 @@ def test_real_valid_file_input(real, tmp_path):
     assert str(path) not in json.dumps(result)
 
 
+def test_escrito_demo_ambiental_real(real):
+    """La muestra ambiental verifica lo que el corpus sellado cubre y deja
+    fuera la Ley 21.202, que no está en el corpus."""
+    text = (ROOT / 'tests/fixtures/escrito_demo_ambiental.md').read_text()
+    result = json.loads(real[0].verificar_citas({'texto': text}))
+    assert 'error' not in result, result
+    assert result['meta']['pack_hash'] == 'af1422d66d1e6eee'
+    assert result['meta']['total_citas'] == 5
+    assert result['meta']['citas_verificadas'] == 4
+    assert result['meta']['citas_fallidas'] == 1
+    verificadas = sorted(d['gid'] for d in result['detalles']
+                         if d['estado'] == 'VERIFICADA')
+    assert verificadas == [
+        'cl.norma.cpr:art:0019',
+        'cl.norma.dfl_1122:art:0005',
+        'cl.norma.dfl_1122:art:0063',
+        'cl.norma.dfl_1122:art:0063',
+    ]
+    fallidas = [d for d in result['detalles'] if d['estado'] != 'VERIFICADA']
+    assert len(fallidas) == 1
+    assert '21.202' in fallidas[0]['cita_raw']
+    assert fallidas[0]['resolucion'] == 'UNRESOLVABLE'
+    assert 'Ley N° 21.202' in result['no_verificadas']
+    assert result['todo_verificado'] is False
+
+
 def test_real_sin_corpus_preserves_reason(real, monkeypatch, tmp_path):
     m = real[0]
     empty_runtime = tmp_path / 'empty-runtime'

@@ -152,7 +152,7 @@ export function NifPropuestas({ editorRef, caseId, registro, setRegistro,
     const valor = rehidratarProfundo(p.value, mapa)
     return rest('/nif/edit', { method: 'POST', body: {
       case_id: caseId, field_path: p.field_path, value: valor,
-      reason: 'Propuesta del Case Writer aceptada por el abogado: '
+      reason: 'Propuesta del Case Writer aceptada en esta sesión: '
         + String(p.reason || ''),
     } }).then(() => {
       setPropuestas((ps) => (ps || []).filter((_, i) => i !== idx))

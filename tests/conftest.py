@@ -8,6 +8,26 @@ import pytest
 
 ROOT = Path(__file__).parents[1]
 
+# Módulos que instalan el corpus real, lanzan el motor o prueban el sandbox:
+# juntos son casi todo el tiempo de la suite. `pytest -m "not lenta"` deja el
+# resto para iterar; la suite completa corre antes de fusionar.
+LENTAS = {
+    'test_aislamiento', 'test_integridad_corpus', 'test_motor_caliente',
+    'test_native_e2e', 'test_ordenamiento', 'test_reubicacion',
+}
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        'markers', 'lenta: instala el corpus real, lanza el motor o prueba el sandbox')
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        if (item.module.__name__ in LENTAS
+                or 'corpus_instalado' in getattr(item, 'fixturenames', ())):
+            item.add_marker(pytest.mark.lenta)
+
 
 @pytest.fixture(scope='session')
 def corpus_instalado(tmp_path_factory):

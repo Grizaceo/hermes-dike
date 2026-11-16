@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "descripcion": "Nodos de la capa ambiental local con solo metadatos públicos (rol, tribunal, fechas, enlaces oficiales). Sin texto de la sentencia ni de la resolución. Se agregan a la red solo si los nodos de destino existen en la capa construida.",
+  "verificado": "2026-11-10",
+  "nodes": [
+    {
+      "id": "cl.sentencia.2ta_R-467-2024",
+      "tipo": "sentencia",
+      "label": "2TA · R-467-2024 · Ojos de Mar (solo metadatos)",
+      "solo_metadatos": true,
+      "tribunal": "Segundo Tribunal Ambiental",
+      "rol": "R-467-2024",
+      "fecha": "2026-01-06",
+      "url": "https://tribunalambiental.cl/wp-content/uploads/2026/03/2026.01.06_Sentencia_R-467-2024_acumulada_R-469-2024.pdf",
+      "aviso": "Firmeza pendiente: hay una queja del Consejo de Defensa del Estado ante la Corte Suprema cuyo resultado no está verificado. Acumulación por confirmar: el PDF oficial dice «acumulada R-469-2024» y la ficha de la causa en tribunalambiental.cl dice «acumula R-468-2024 y R-469-2024»."
+    },
+    {
+      "id": "res:MMA:415/2024",
+      "tipo": "resolucion",
+      "label": "Res. Ex. 415/2024 MMA · Humedal Urbano Ojos de Mar (solo metadatos)",
+      "solo_metadatos": true,
+      "organismo": "MMA",
+      "numero": 415,
+      "anio": 2024,
+      "fecha": "2024-04-26",
+      "publicacion_diario_oficial": "2024-05-10",
+      "cve": "2489535",
+      "bcn_id_norma": "1203434",
+      "url": "https://www.diariooficial.interior.gob.cl/publicaciones/2024/05/10/43847/01/2489535.pdf",
+      "aviso": "Reconoce, por solicitud municipal, el Humedal Urbano Sistema de Lagunas de Llolleo «Ojos de Mar». El Segundo Tribunal Ambiental la declaró ilegal en R-467-2024; su efecto actual depende de la firmeza de esa sentencia, que está pendiente."
+    }
+  ],
+  "links": [
+    {
+      "source": "cl.sentencia.2ta_R-467-2024",
+      "target": "res:MMA:415/2024",
+      "tipo": "revisa",
+      "estado": "curada",
+      "fuente": "https://tribunalambiental.cl/tribunal-ordena-nuevamente-al-ministerio-del-medio-ambiente-revisar-la-delimitacion-del-humedal-urbano-ojos-de-mar-en-san-antonio/"
+    },
+    {
+      "source": "cl.sentencia.2ta_R-467-2024",
+      "target": "cl.norma.ley_21202:art:0002",
+      "tipo": "cita",
+      "estado": "curada",
+      "fuente": "https://tribunalambiental.cl/tribunal-ordena-nuevamente-al-ministerio-del-medio-ambiente-revisar-la-delimitacion-del-humedal-urbano-ojos-de-mar-en-san-antonio/"
+    },
+    {
+      "source": "res:MMA:415/2024",
+      "target": "cl.norma.ley_21202",
+      "tipo": "aplica",
+      "estado": "curada",
+      "fuente": "https://www.diariooficial.interior.gob.cl/publicaciones/2024/05/10/43847/01/2489535.pdf"
+    }
+  ]
+}

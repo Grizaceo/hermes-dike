@@ -1,11 +1,14 @@
 import { t } from './i18n.js'
 import { etiquetaCodigo } from './i18n.js'
-// Vista 3D del grafo del corpus (3d-force-graph + three, empaquetados en el
-// bundle). Muestra primero solo los 25 instrumentos; un clic en un
+// Vista del grafo jurídico: Graphium Rust (CSR/GBIN) + WebGL2 instanciado.
+// Mantiene las fichas y funciones jurídicas de Diké. Un clic en un
 // instrumento (o el interruptor "mostrar artículos") expande sus artículos.
 // La lista de texto queda como fallback cuando WebGL no está disponible.
 
-import ForceGraph3D from '3d-force-graph'
+import { LienzoGraphium } from './graphium-canvas.js'
+import { graphShortcut, graphViewProjection } from './graphium-data.js'
+import { EditorNodo } from './graph-node-editor.js'
+import { graphNodeIndex, graphWorkspaceCSS } from './graph-workspace.js'
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -58,19 +61,6 @@ function idDe(x) {
   return x && typeof x === 'object' ? x.id : x
 }
 
-// Atenuación del foco: con resalte activo el resto baja a ~0.12/0.05.
-function colorNodoResalte(n, resalte) {
-  const base = colorNodo(n)
-  if (!resalte) return base
-  return resalte.ids.has(n.id) ? base : hexA(base, 0.12)
-}
-
-function colorAristaResalte(l, resalte) {
-  if (!resalte) return colorArista(l)
-  const k = idDe(l.source) + '|' + idDe(l.target) + '|' + l.tipo
-  return resalte.links.has(k) ? colorArista(l) : hexA(colorArista(l), 0.05)
-}
-
 function hexA(hex, alpha) {
   const n = parseInt(hex.slice(1), 16)
   return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')'
@@ -82,225 +72,33 @@ function colorArista(l) {
   return hexA(base, alpha)
 }
 
-function hayWebGL() {
-  try {
-    const c = document.createElement('canvas')
-    return !!(c.getContext('webgl2') || c.getContext('webgl'))
-  } catch (e) {
-    return false
-  }
-}
-
-// El lienzo vive mientras la pestaña esté visible; al desmontarse (cambio de
-// pestaña o de página) se destruye el renderizador completo.
-function LienzoGrafo({ proyeccion, padres, conteos, alClickNodo, alClickArista,
-                      alHover, alFondo, resalte, onFallo, apiRef }) {
-  const hostEl = useRef(null)
-  const engine = useRef(null)
-  const [listo, setListo] = useState(false)
-  const clickRef = useRef(alClickNodo)
-  clickRef.current = alClickNodo
-  const conteosRef = useRef(conteos)
-  conteosRef.current = conteos
-  const padresRef = useRef(padres)
-  padresRef.current = padres
-  const clickAristaRef = useRef(alClickArista)
-  clickAristaRef.current = alClickArista
-  const hoverRef = useRef(alHover)
-  hoverRef.current = alHover
-  const fondoRef = useRef(alFondo)
-  fondoRef.current = alFondo
-  const resalteRef = useRef(resalte)
-  resalteRef.current = resalte
-  // Pool estable de nodos: reutilizar el mismo objeto por id conserva las
-  // posiciones x/y/z que d3 va calculando entre cambios de proyección.
-  const pool = useRef(new Map())
-  const primerAjuste = useRef(false)
-
-  useEffect(() => {
-    if (!hostEl.current) return undefined
-    if (!hayWebGL()) {
-      onFallo(t('graph.webgl.unavailable.use.the.corpus.list.below'))
-      return undefined
-    }
-    let graph
-    let observer
-    try {
-      graph = new ForceGraph3D(hostEl.current)
-    } catch (e) {
-      onFallo(t('graph.could.not.start.the.3d.view') + mensajeError(e))
-      return undefined
-    }
-    graph
-      .backgroundColor('#0b1020')
-      .showNavInfo(false)
-      .nodeId('id')
-      .nodeVal((n) => (n.tipo === 'instrumento' ? 6 : n.tipo === 'articulo' ? 1 : 0.4))
-      .nodeResolution(6)
-      .nodeOpacity(0.95)
-      .nodeColor((n) => colorNodoResalte(n, resalteRef.current))
-      .nodeLabel((n) => n.tipo === 'instrumento'
-        ? n.label + ' · ' + (conteosRef.current.get(n.id) || 0) + t('graph.articles')
-        : n.label)
-      .linkColor((l) => colorAristaResalte(l, resalteRef.current))
-      .linkLabel((l) => l.tipo + ' · ' + etiquetaCodigo(l.estado))
-      .linkOpacity(0.5)
-      .linkWidth((l) => (l.tipo === 'contiene' ? 0.4 : 1.2))
-      .linkDirectionalArrowLength((l) => (l.tipo === 'contiene' ? 0 : 2.5))
-      .linkDirectionalArrowRelPos(0.85)
-      .onNodeClick((n) => clickRef.current(n))
-      .onLinkClick((l) => { if (clickAristaRef.current) clickAristaRef.current(l) })
-      .onNodeHover((n) => { if (hoverRef.current) hoverRef.current(n ? n.id : null) })
-      .onBackgroundClick(() => { if (fondoRef.current) fondoRef.current() })
-      .cooldownTicks(120)
-      .warmupTicks(20)
-      .onEngineStop(() => {
-        // Solo el primer asentamiento reencuadra: después de una expansión o
-        // un foco de búsqueda la cámara no se mueve sola (botón "encajar").
-        if (!primerAjuste.current && engine.current) {
-          primerAjuste.current = true
-          engine.current.zoomToFit(400, 40)
-        }
-      })
-    const ajustar = () => {
-      if (hostEl.current && graph) {
-        graph.width(hostEl.current.clientWidth).height(hostEl.current.clientHeight)
-      }
-    }
-    ajustar()
-    observer = new ResizeObserver(ajustar)
-    observer.observe(hostEl.current)
-    engine.current = graph
-    apiRef.current = {
-      enfocar: (id) => {
-        const g = engine.current
-        if (!g) return
-        // Un nodo recién expandido tarda un tick en tener posición: reintenta
-        // acotado (~2 s) en vez de un timeout fijo que puede llegar tarde.
-        // Si el grafo se desmontó (cambio de pestaña) engine.current ya no es
-        // `g` y el reintento muere en el siguiente tick sin tocar el engine
-        // destruido.
-        let intentos = 0
-        const intentar = () => {
-          if (engine.current !== g) return
-          const n = g.graphData().nodes.find((x) => x.id === id)
-          if (n && Number.isFinite(n.x)) {
-            g.cameraPosition(
-              { x: n.x + 60, y: (n.y || 0) + 40, z: (n.z || 0) + 150 },
-              { x: n.x, y: n.y || 0, z: n.z || 0 },
-              600)
-          } else if (intentos < 40) {
-            intentos += 1
-            programarTimeout(intentar, 50)
-          }
-        }
-        intentar()
-      },
-      zoomFit: () => {
-        if (engine.current) engine.current.zoomToFit(400, 40)
-      },
-      orbita: () => {
-        const g = engine.current
-        if (!g) return
-        const p = g.cameraPosition()
-        const a = Math.atan2(p.z || 0, p.x || 0) + 0.008
-        const r = Math.hypot(p.x || 0, p.z || 0) || 300
-        g.cameraPosition({ x: r * Math.cos(a), y: p.y || 0, z: r * Math.sin(a) })
-      },
-      encuadrar: (ids) => {
-        const g = engine.current
-        if (!g) return
-        const set = new Set(ids)
-        const pts = g.graphData().nodes.filter((n) => set.has(n.id)
-          && Number.isFinite(n.x))
-        if (!pts.length) return
-        const cx = pts.reduce((a, n) => a + n.x, 0) / pts.length
-        const cy = pts.reduce((a, n) => a + (n.y || 0), 0) / pts.length
-        const cz = pts.reduce((a, n) => a + (n.z || 0), 0) / pts.length
-        g.cameraPosition(
-          { x: cx + 80, y: cy + 60, z: cz + 220 },
-          { x: cx, y: cy, z: cz }, 900)
-      },
-    }
-    setListo(true)
-    return () => {
-      observer.disconnect()
-      graph.pauseAnimation()
-      graph._destructor()
-      engine.current = null
-      apiRef.current = null
-    }
-    // El grafo se crea una vez por montaje; los datos llegan por graphData.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    const g = engine.current
-    if (!listo || !g) return
-    // Reutilizar el objeto de cada id conserva las posiciones de d3 entre
-    // proyecciones; clonar todo reiniciaba el layout en cada expansión.
-    const visibles = new Set()
-    let agregados = false
-    const nodes = proyeccion.nodes.map((n) => {
-      visibles.add(n.id)
-      const prev = pool.current.get(n.id)
-      if (prev) {
-        Object.assign(prev, n)
-        return prev
-      }
-      agregados = true
-      const nuevo = { ...n }
-      // Artículo nuevo: nace junto a su instrumento (con un pequeño jitter).
-      const padre = pool.current.get(padresRef.current.get(n.id))
-      if (padre && Number.isFinite(padre.x)) {
-        nuevo.x = padre.x + (Math.random() - 0.5) * 12
-        nuevo.y = (padre.y || 0) + (Math.random() - 0.5) * 12
-        nuevo.z = (padre.z || 0) + (Math.random() - 0.5) * 12
-      }
-      pool.current.set(n.id, nuevo)
-      return nuevo
-    })
-    for (const id of [...pool.current.keys()]) {
-      if (!visibles.has(id)) pool.current.delete(id)
-    }
-    // Las aristas sí son objetos frescos, pero con source/target como ids.
-    g.graphData({
-      nodes,
-      links: proyeccion.links.map((l) => ({ ...l })),
-    })
-    if (agregados && g.d3ReheatSimulation) g.d3ReheatSimulation()
-  }, [proyeccion, listo])
-
-  // Recolorear sin reconstruir: refresh() relee los accesores de color.
-  useEffect(() => {
-    const g = engine.current
-    if (g && g.refresh) g.refresh()
-  }, [resalte, listo])
-
-  return jsxs('div', { className: 'relative min-w-0', children: [
-    jsx('div', { ref: hostEl, className: 'h-[55vh] min-h-[360px] w-full rounded-md bg-[#0b1020]' }),
-    !listo ? jsx('div', { className: S.sub + ' absolute left-3 top-3', children: t('graph.drawing.graph') }) : null,
-  ] })
-}
+const LienzoGrafo = (props) => jsx(LienzoGraphium, { ...props, nodeColor: colorNodo, edgeColor: colorArista })
 
 function UnidadDetalle({ nodo, fuente }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   useEffect(() => {
+    let active=true
     setData(null)
     setError(null)
     rest('/grafo/unidad?fuente=' + (fuente || 'corpus') + '&id=' + encodeURIComponent(nodo.id))
-      .then(setData)
-      .catch(setError)
+      .then(d=>{if(active)setData(d)})
+      .catch(e=>{if(active)setError(e)})
+    return()=>{active=false}
   }, [nodo.id, fuente])
   if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   if (!data) return jsx('div', { className: S.sub, children: t('graph.loading.unit.text') })
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
-    jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
-      children: data.texto }),
-    jsx('div', { className: S.sub, children:
-      'offsets ' + data.char_start + '–' + data.char_end +
-      (data.articulo_url ? ' · ' : '') }),
+    data.texto_omitido
+      ? jsx('div', { className: 'rounded border border-(--ui-stroke-tertiary) bg-(--ui-bg-tertiary) p-1.5 text-xs text-(--ui-text-secondary)',
+          children: t('graph.text.withheld.metadata.only') })
+      : jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
+          children: data.texto }),
+    (data.char_start != null && data.char_end != null)
+      ? jsx('div', { className: S.sub, children:
+          'offsets ' + data.char_start + '–' + data.char_end +
+          (data.articulo_url ? ' · ' : '') })
+      : null,
     data.articulo_url ? jsx('a', { className: S.link, href: data.articulo_url,
       target: '_blank', rel: 'noopener noreferrer', children: t('graph.source.article') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
@@ -314,10 +112,12 @@ function NodoDetalle({ nodo, fuente }) {
   // La red delgada no trae url/sha256/vigencia: la ficha los pide por nodo.
   const [data, setData] = useState(null)
   useEffect(() => {
+    let active=true
     setData(null)
     rest('/grafo/nodo?fuente=' + (fuente || 'corpus') + '&id=' + encodeURIComponent(nodo.id))
-      .then(setData)
+      .then(d=>{if(active)setData(d)})
       .catch(() => {})
+    return()=>{active=false}
   }, [nodo.id, fuente])
   if (!data) return null
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
@@ -325,8 +125,9 @@ function NodoDetalle({ nodo, fuente }) {
     data.vigencia && data.vigencia.estado ? jsx('div', { className: S.sub, children:
       t('graph.in.force.label') + etiquetaCodigo(data.vigencia.estado) +
       (data.vigencia.desde ? t('graph.from') + data.vigencia.desde : '') }) : null,
+    data.aviso ? jsx('div', { className: 'dk-aviso dk-aviso--aviso text-xs', children: data.aviso }) : null,
     data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
-      children: t('graph.original.source') }) : null,
+      children: fuente === 'ambiental' ? t('graph.official.source') : t('graph.original.source') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 ' + data.sha256 }) : null,
   ] })
@@ -623,6 +424,17 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   const [expandidos, setExpandidos] = useState(() => new Set())
   const [unidadesMap, setUnidadesMap] = useState(() => new Map())
   const [ocultarArts, setOcultarArts] = useState(false)
+  const [ocultos,setOcultos] = useState(()=>new Set())
+  const [hiddenKinds,setHiddenKinds]=useState(()=>new Set())
+  const [onlyKind,setOnlyKind]=useState(null)
+  const [isolate,setIsolate]=useState(null)
+  const [keyboardInfo,setKeyboardInfo]=useState('')
+  const [menu,setMenu] = useState(null)
+  const [editor,setEditor] = useState(null)
+  const editorGuard=useRef(()=>true)
+  const openEditor=next=>{if(editorGuard.current())setEditor(next)}
+  const searchRef = useRef(null)
+  const surfaceRef = useRef(null)
   const [fuente, setFuenteState] = useState('corpus')
   const [fuentes, setFuentes] = useState(null)
   const [aristaSel, setAristaSel] = useState(null)
@@ -651,14 +463,17 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   const [foco] = useState(() => tomarFoco())
   const focoAplicado = useRef(false)
 
+  const loadGeneration=useRef(0)
   const cargar = useCallback(() => {
+    const epoch=++loadGeneration.current
     setRedErr(null)
     setPersonalErr(null)
     setRed(null)
     setBusqueda(null)
     setBusquedaPorNodo(new Map())
-    rest('/grafo/red?fuente=' + fuente, { timeoutMs: 120000 }).then(setRed).catch(setRedErr)
-    rest('/grafo/personal').then(setPersonal).catch(setPersonalErr)
+    rest('/grafo/red?fuente=' + fuente, { timeoutMs: 120000 }).then(d=>{if(epoch===loadGeneration.current)setRed(d)}).catch(e=>{if(epoch===loadGeneration.current)setRedErr(e)})
+    rest('/grafo/personal').then(d=>{if(epoch===loadGeneration.current)setPersonal(d)}).catch(e=>{if(epoch===loadGeneration.current)setPersonalErr(e)})
+    return()=>{if(epoch===loadGeneration.current)++loadGeneration.current}
   }, [fuente])
   useEffect(cargar, [cargar])
   useEffect(() => {
@@ -670,7 +485,8 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
       const amb = fs && fs.find((f) => f.id === 'ambiental' && f.disponible)
       let elegida = null
       try { elegida = storage && storage.get('grafo.fuente') } catch (e) { elegida = null }
-      if (elegida === 'ambiental' && amb) setFuenteState('ambiental')
+      if(elegida==='vault' && fs?.find(f=>f.id==='vault' && f.disponible))setFuenteState('vault')
+      else if (elegida === 'ambiental' && amb) setFuenteState('ambiental')
       else if (elegida === 'corpus') setFuenteState('corpus')
       else if (amb) setFuenteState('ambiental')
     }).catch(() => {})
@@ -703,28 +519,16 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
 
   const nodos = useMemo(() => (red && red.nodes) || [], [red])
   const aristas = useMemo(() => (red && red.links) || [], [red])
-  const indice = useMemo(() => new Map(nodos.map((n) => [n.id, n])), [nodos])
-  const padres = useMemo(() => {
-    const m = new Map()
-    for (const l of aristas) if (l.tipo === 'contiene') m.set(l.target, l.source)
-    for (const id of expandidos) {
-      const d = unidadesMap.get(id)
-      if (d) {
-        for (const l of d.links || []) {
-          if (l.tipo === 'contiene') m.set(l.target, l.source)
-        }
-      }
-    }
-    return m
-  }, [aristas, expandidos, unidadesMap])
+  const indice = useMemo(() => graphNodeIndex(nodos,unidadesMap), [nodos,unidadesMap])
   const conteos = useMemo(() => {
     const m = new Map()
     for (const l of aristas) if (l.tipo === 'contiene') m.set(l.source, (m.get(l.source) || 0) + 1)
     return m
   }, [aristas])
 
-  // En ambiental TODO va visible: artículos, unidades, sentencias y
-  // resoluciones. En corpus las unidades se traen por /grafo/unidades al clic.
+  // En ambiental van visibles los nodos de red (sentencias y resoluciones
+  // solo como metadatos: el texto no se exhibe); en corpus las unidades se
+  // traen por /grafo/unidades al clic.
   const proyeccion = useMemo(() => {
     const nodes = nodos.filter((n) => {
       if (fuente === 'ambiental') return n.tipo !== 'articulo' || !ocultarArts
@@ -741,11 +545,11 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
       }
     }
     const ids = new Set(nodes.map((n) => n.id))
-    return {
+    return graphViewProjection({
       nodes,
       links: links.filter((l) => ids.has(l.source) && ids.has(l.target)),
-    }
-  }, [nodos, aristas, ocultarArts, expandidos, unidadesMap])
+    },{hidden:ocultos,hiddenKinds,onlyKind,isolate})
+  }, [nodos, aristas, ocultarArts, expandidos, unidadesMap, ocultos, fuente,hiddenKinds,onlyKind,isolate])
 
   const alClickNodo = useCallback((n) => {
     setSeleccion(n.id)
@@ -907,17 +711,60 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
   const aristasP = (personal && personal.edges) || []
   const totales = (red && red.conteos) || {}
 
-  return jsxs('div', { className: 'flex flex-col gap-3', children: [
-    jsxs('div', { className: S.card, children: [
-      jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-2', children: [
-        jsx('div', { className: S.cardTitle, children: t('graph.corpus.graph') }),
+  const resetView=()=>{setOcultos(new Set());setHiddenKinds(new Set());setOnlyKind(null);setIsolate(null);setOcultarArts(false);setSeleccion(null);setAristaSel(null);setMenu(null);setHover(null);setCaminoOn(false);setRotar(false);setMateriaFiltro(null);setQuery('');const extra=fuente==='corpus'?[...expandidos].flatMap(id=>unidadesMap.get(id)?.nodes||[]):[];apiRef.current?.resetView({ids:[...nodos,...extra].map(n=>n.id)})}
+  const alContextoNodo=(n,at)=>{setMenu({nodo:n,x:Math.max(0,Math.min(at.clientX,window.innerWidth-280)),y:Math.max(8,Math.min(at.clientY,window.innerHeight-370))})}
+  useEffect(()=>{
+    const onKey=e=>{
+      if(!surfaceRef.current?.getClientRects().length || document.visibilityState==='hidden' || e.target?.closest?.('[data-node-editor], [role="dialog"]'))return
+      if(e.key==='Escape'){setMenu(null);return}
+      const action=graphShortcut(e)
+      if(!action){
+        if(['f','r'].includes(e.key?.toLowerCase()))setKeyboardInfo(e.key.toUpperCase()+': '+(e.defaultPrevented?t('graph.ws.key.handled'):e.repeat?t('graph.ws.key.repeat'):e.ctrlKey||e.metaKey||e.altKey?t('graph.ws.key.modifier'):t('graph.ws.key.editing')))
+        return
+      }
+      e.preventDefault()
+      if(action==='search'){setMenu(null);searchRef.current?.focus();searchRef.current?.select();setKeyboardInfo(t('graph.ws.key.search'))}
+      else if(action==='edit'){const n=proyeccion.nodes.find(n=>n.id===(hover||seleccion));if(n){openEditor({nodo:n,fuente,modo:'nota'});setMenu(null)}}
+      else {resetView();const state=apiRef.current?.estado?.();setKeyboardInfo('R · '+(state?.ready?t('graph.ws.key.full.view')+Math.round(state.dist):t('graph.ws.key.waiting')))}
+    }
+    window.addEventListener('keydown',onKey,true)
+    return()=>window.removeEventListener('keydown',onKey,true)
+  },[resetView,proyeccion,hover,seleccion,fuente])
+  useEffect(()=>{
+    if(!menu)return
+    const outside=e=>{if(!e.target?.closest?.('[data-graph-menu]'))setMenu(null)}
+    window.addEventListener('pointerdown',outside,true)
+    return()=>window.removeEventListener('pointerdown',outside,true)
+  },[menu])
+  const menuAction=(id,label,run)=>jsx('button',{type:'button',role:'menuitem','data-graph-action':id,style:{display:'block',width:'100%',padding:'7px 10px',border:0,borderRadius:4,background:'transparent',color:'inherit',fontSize:12,textAlign:'left',cursor:'pointer'},onPointerEnter:e=>{e.currentTarget.style.background='var(--ui-row-hover-background, ButtonFace)'},onPointerLeave:e=>{e.currentTarget.style.background='transparent'},onClick:()=>{run();setMenu(null)},children:label},id)
+  return jsxs('div', {ref:surfaceRef,style:{position:'relative'},className:'flex flex-col gap-3',tabIndex:0,'data-graph-surface':true,'data-graph-workspace':true,children: [
+    jsx('style',{children:graphWorkspaceCSS}),
+    editor?jsx(EditorNodo,{...editor,guardRef:editorGuard,onCerrar:()=>setEditor(null)},fuente+':'+editor.nodo.id+':'+editor.modo):null,
+    menu?jsxs('div',{'data-graph-menu':true,role:'menu','aria-label':t('graph.ws.menu.label'),style:{position:'fixed',left:menu.x,top:menu.y,zIndex:120,width:270,maxHeight:'calc(100vh - 16px)',overflowY:'auto',padding:5,background:'var(--ui-bg-elevated, Canvas)',color:'var(--ui-text-primary, CanvasText)',border:'1px solid var(--ui-stroke-secondary, ButtonBorder)',borderRadius:8,boxShadow:'0 10px 30px color-mix(in srgb, var(--ui-text-primary, CanvasText) 25%, transparent)'},children:[
+      menu.nodo?jsx('div',{style:{padding:'5px 10px',fontSize:11,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',borderBottom:'1px solid var(--ui-stroke-secondary, ButtonBorder)'},children:menu.nodo.label||menu.nodo.id}):null,
+      menu.nodo?menuAction('edit',t('graph.ws.menu.edit'),()=>openEditor({nodo:menu.nodo,fuente,modo:'nota'})):null,
+      menu.nodo?menuAction('read',t('graph.ws.menu.read'),()=>openEditor({nodo:menu.nodo,fuente,modo:'leer'})):null,
+      menu.nodo?menuAction('isolate1',t('graph.ws.menu.isolate1'),()=>{setIsolate({id:menu.nodo.id,hops:1});setSeleccion(menu.nodo.id)}):null,
+      menu.nodo?menuAction('isolate2',t('graph.ws.menu.isolate2'),()=>{setIsolate({id:menu.nodo.id,hops:2});setSeleccion(menu.nodo.id)}):null,
+      menu.nodo?menuAction('fly',t('graph.ws.menu.fly'),()=>{setSeleccion(menu.nodo.id);apiRef.current?.enfocar(menu.nodo.id)}):null,
+      menu.nodo?menuAction('only-kind',t('graph.ws.menu.only.kind',{kind:menu.nodo.tipo}),()=>{setOnlyKind(menu.nodo.tipo);setHiddenKinds(new Set());setIsolate(null)}):null,
+      menu.nodo?menuAction('hide-kind',t('graph.ws.menu.hide.kind',{kind:menu.nodo.tipo}),()=>{setHiddenKinds(prev=>new Set(prev).add(menu.nodo.tipo));setOnlyKind(null);setIsolate(null)}):null,
+      menu.nodo?menuAction('hide',t('graph.ws.menu.hide'),()=>{setOcultos(prev=>new Set(prev).add(menu.nodo.id));setSeleccion(null)}):null,
+      menuAction('restore',t('graph.ws.menu.restore'),resetView),
+    ]}):null,
+    jsxs('div', { className: S.card, 'data-graph-card':true, children: [
+      jsxs('div', { 'data-graph-heading':true, className: 'flex flex-wrap items-center justify-between gap-2', children: [
+        jsxs('div', { children: [jsx('div',{style:{fontSize:10,letterSpacing:'.16em',textTransform:'uppercase',color:'var(--ui-text-tertiary, GrayText)'},children:t('graph.ws.eyebrow')}),jsx('div',{style:{fontSize:16,fontWeight:550,marginTop:3},children:t('graph.ws.title')})] }),
         jsxs('select', {
           className: S.input,
           title: t('graph.graph.source'),
           value: fuente,
           onChange: (e) => {
+            if(!editorGuard.current()){e.target.value=fuente;return}
             setFuente(e.target.value)
+            setUnidadesMap(new Map())
             setExpandidos(new Set())
+            setOcultos(new Set());setHiddenKinds(new Set());setOnlyKind(null);setIsolate(null);setMenu(null);setEditor(null);setFallo3d(null)
             setAristaSel(null)
             setSeleccion(null)
             if (e.target.value !== 'corpus' && modoBusqueda === 'contenido') {
@@ -926,6 +773,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
           },
           children: [
             jsx('option', { value: 'corpus', children: t('graph.dik.corpus.25.laws') }),
+            jsx('option',{value:'vault',disabled:!fuentes?.find(f=>f.id==='vault' && f.disponible),children:t('graph.ws.source.vault')}),
             jsx('option', {
               value: 'ambiental',
               disabled: !(fuentes && fuentes.find((f) => f.id === 'ambiental' && f.disponible)),
@@ -936,9 +784,10 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
         fuente === 'ambiental' ? jsx('span', { className: S.chip + ' ' + S.chipOff,
           children: t('graph.local.unpublished.pseudonymized.judgments')
             + t('graph.candidate.relations.unvalidated') }) : null,
+        fuente==='vault'?jsx('span',{className:S.sub,children:t('graph.ws.vault.note')}):null,
         red ? jsx('div', { className: S.sub, children:
           (red.pack_hash ? 'pack ' + red.pack_hash + ' · ' : '') +
-          (totales.nodes || 0) + t('graph.nodes') + (totales.links || 0) + t('graph.edges') +
+          nodos.length + t('graph.nodes') + aristas.length + t('graph.edges') +
           (red.truncado ? t('graph.truncated') : '') }) : null,
       ] }),
       redErr
@@ -950,31 +799,38 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
         : !red
           ? jsx('div', { className: S.sub, children:
               t('graph.loading.corpus.graph.the.first.load.may.take.a.minute.while.the.c') })
-          : jsxs('div', { className: 'grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]', children: [
+          : jsxs('div', { 'data-graph-layout':true, className: 'grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]', children: [
               jsxs('div', { className: 'min-w-0', children: [
-                jsxs('div', { className: 'mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs', children: [
-                  Object.keys(COLORES_NODO).map((tipo) => jsxs('span', {
-                    key: tipo, className: 'flex items-center gap-1.5 ' + S.sub, children: [
-                      jsx('span', { className: 'inline-block h-2.5 w-2.5 rounded-full',
-                        style: { background: COLORES_NODO[tipo] } }),
-                      NOMBRE_TIPO[tipo],
-                    ] })),
+                jsxs('div', { 'data-graph-categories':true, className: 'mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs', children: [
+                  [...new Set(nodos.map(n=>n.tipo))].map((tipo) => jsxs('button', {
+                    key:tipo,type:'button','data-graph-category':tipo,
+                    'aria-pressed':!hiddenKinds.has(tipo)&&(!onlyKind||onlyKind===tipo),
+                    title:t('graph.ws.legend.title'),
+                    style:{'--kind-color':COLORES_NODO[tipo]||COLORES_MODALIDAD.otra,borderColor:COLORES_NODO[tipo]},
+                    onClick:e=>{setIsolate(null);if(e.shiftKey){setOnlyKind(tipo);setHiddenKinds(new Set())}else{setOnlyKind(null);setHiddenKinds(prev=>{const next=new Set(prev);next.has(tipo)?next.delete(tipo):next.add(tipo);return next})}},
+                    children:[jsx('i',{}),(NOMBRE_TIPO[tipo]||tipo)+' ('+nodos.filter(n=>n.tipo===tipo).length+')'],
+                  })),
                   jsxs('label', { className: 'flex items-center gap-1.5 ' + S.sub, children: [
                     jsx('input', { type: 'checkbox', checked: ocultarArts,
                       onChange: (e) => setOcultarArts(e.target.checked) }),
                     t('graph.hide.articles'),
                   ] }),
                   jsx('span', { className: S.sub, children: '|' }),
-                  jsx('span', { className: S.sub, children: t('graph.candidate.label.unvalidated') }),
+                  jsx('span', { className: S.sub, style:{flexBasis:'100%',paddingTop:4}, children: t('graph.candidate.label.unvalidated') }),
                   Object.keys(COLORES_MODALIDAD).map((mod) => jsxs('span', {
                     key: mod, className: 'flex items-center gap-1 ' + S.sub, children: [
                       jsx('span', { className: 'inline-block h-2 w-2 rounded-full',
                         style: { background: COLORES_MODALIDAD[mod] } }),
                       t('mod.' + mod),
                     ] })),
+                  jsxs('div',{'data-graph-tools':true,children:[
                   jsx('button', { type: 'button', className: S.link,
                     onClick: () => { if (apiRef.current) apiRef.current.zoomFit() },
                     children: t('graph.fit') }),
+                  jsx('button',{type:'button',className:S.link,'data-graph-restore':true,onClick:()=>setOcultos(new Set()),children:t('graph.ws.restore.hidden',{n:ocultos.size})}),
+                  jsx('button',{type:'button',className:S.link,onClick:resetView,children:t('graph.ws.reset')}),
+                  jsx('span',{className:S.sub,children:t('graph.ws.shortcuts')}),
+                  jsx('output',{'data-graph-last-action':true,role:'status',className:S.sub,children:keyboardInfo}),
                   fuente === 'ambiental' && red && (red.caminos_demo || []).length
                     ? jsxs('span', { className: 'flex items-center gap-1', children: [
                         jsxs('select', {
@@ -1017,6 +873,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                     ] }) : null,
                   jsx('span', { className: S.sub + ' ml-auto', children:
                     proyeccion.nodes.length + t('graph.visible') + proyeccion.links.length + t('graph.edges') }),
+                  ]}),
                 ] }),
                 fallo3d
                   ? jsxs('div', { className: S.card, children: [
@@ -1025,11 +882,12 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                         t('graph.the.3d.graph.needs.webgl.the.list.below.has.the.same.corpus') }),
                     ] })
                   : jsx(LienzoGrafo, {
-                      proyeccion, padres, conteos, alClickNodo, alClickArista,
+                      key:fuente,fuente,proyeccion, conteos, alClickNodo, alContextoNodo,alClickArista,
                       alHover, alFondo, resalte, onFallo: alFallo3d, apiRef }),
               ] }),
-              jsxs('div', { className: 'flex min-w-0 flex-col gap-2', children: [
-                jsxs('div', { className: 'flex flex-wrap items-center gap-1', children: [
+              jsxs('div', { 'data-graph-inspector':true, className: 'flex min-w-0 flex-col gap-2', children: [
+                jsx('div',{'data-graph-inspector-title':true,children:t('graph.ws.inspector')}),
+                jsxs('div', { className: 'flex items-center gap-1', children: [
                   jsx('select', {
                     className: S.input + ' w-full',
                     title: t('graph.search.mode'),
@@ -1046,6 +904,7 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                   }),
                   jsx('input', {
                     className: S.input + ' w-full',
+                    ref:searchRef,'data-graph-search':true,
                     placeholder: modoBusqueda === 'contenido'
                       ? t('graph.search.article.text')
                       : t('graph.search.law.code.or.article'),
@@ -1213,6 +1072,10 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
                   ] }) : null,
                 foco ? jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TextoArticulo, { foco }) }) : null,
+                actual?jsxs('div',{'data-inspector-actions':true,children:[
+                  jsx('button',{type:'button','data-inspector-read':true,onClick:()=>openEditor({nodo:actual,fuente,modo:'leer'}),children:t('graph.ws.menu.read')}),
+                  jsx('button',{type:'button','data-inspector-edit':true,onClick:()=>openEditor({nodo:actual,fuente,modo:'nota'}),children:t('graph.ws.note')}),
+                ]}):null,
                 jsx('div', { className: 'rounded-md border border-(--ui-stroke-secondary) p-2', children:
                   jsx(TarjetaNodo, {
                     nodo: actual, conteos, fuente,

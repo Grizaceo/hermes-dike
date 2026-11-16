@@ -213,6 +213,14 @@ turn on model prediction.
   (`host.requestProfile`: `session.list`, `session.create`,
   `session.resume`, `prompt.submit`, `session.interrupt`), so it does not
   appear in the Sessions sidebar.
+- **Without the profile's memory.** A new chat session is created with
+  `ignore_rules`, so Hermes does not start the profile's memory provider for
+  it, and does not load `MEMORY.md`, `SOUL.md` or `AGENTS.md`: what you
+  discuss about one case is not retained for the profile's other sessions.
+  A chat session created by an earlier version keeps the policy it was
+  created with: the change applies to cases whose chat opens from now on.
+  This rests on Hermes' own session policy and was checked by reading
+  `gateway/session_execution.py`, not by observing a memory store.
 - **What is sent per turn.** Your question, wrapped in a
   `<dike-escritor v="1">` envelope with the brief (in full on the first
   turn or when more than 40 % of its paragraphs changed, otherwise only
@@ -378,7 +386,8 @@ Writer chat, NIF proposals and model prediction.
 
 The routes sit behind Hermes' own plugin routing and authentication; the
 plugin adds no authentication of its own. The `/grafo/*` and `/estado`
-routes are read-only. Three of them are `POST` precisely so that what you
+routes are read-only, except `POST /grafo/nota`, which writes your private
+note for a node (see "Graph workspace and passage reviewer"). Three of them are `POST` precisely so that what you
 typed never lands in access logs: `/grafo/buscar` (the query), `/grafo/leer`
 (the citation) and `/prediccion/corpus` (your last words). `/grafo/buscar`
 writes only the BM25 index cache described below; `POST /verificar` writes
@@ -388,7 +397,10 @@ listed in "It writes"; no route writes outside plugin-data.
 
 - `/escrito` (`GET`, `POST`) and `/escrito/demo` (`GET`) — load and save the
   Case Writer brief of a case (including `registro.pizarra` for the case's
-  strategic board notes), or read the synthetic demo brief.
+  strategic board notes), or read a synthetic demo brief: `caso=laboral`
+  (default, `tests/fixtures/escrito_demo.md`, with the embedded fallback)
+  or `caso=ambiental` (`tests/fixtures/escrito_demo_ambiental.md`, no
+  fallback — a missing file answers 404); any other value answers 400.
 - `/preferencias` (`GET`, `POST`) — read and save user UI customization
   (paper theme, font, page width, default privacy strategy, layout toggles)
   to `<plugin-data>/dike/preferencias.json` (`0600`).
@@ -437,7 +449,8 @@ listed in "It writes"; no route writes outside plugin-data.
   boost does not help). If the tree files are missing or invalid the
   search still answers, with `arbol.disponible: false` and the reason.
 - `/grafo/fuentes` — lists the corpus and the optional local layer.
-- `/grafo/evidencia` — evidence snippet for one local-layer link.
+- `/grafo/evidencia` — evidence metadata for one local-layer link; the
+  snippet is served only up to 120 characters.
 - `/nif/*` — case-board CRUD via `scripts/panel.py` (writes under
   `<plugin-data>/dike/users`).
 
@@ -460,7 +473,51 @@ from a user-supplied anonymized database:
   and `construccion.json` (counters).
 - The output never ships with the plugin and contains nothing the user
   did not already put in that folder. The plugin itself carries no
-  judgment data.
+  judgment text; it ships only the public metadata in
+  `data/ambiental/nodos_curados.json`.
+- The backend serves the text of normative units only; judicial units,
+  and any unit whose class is not normative, come back without text
+  (`texto_omitido`), and evidence snippets longer than 120 characters are
+  omitted.
+- Metadata-only nodes from `data/ambiental/nodos_curados.json` (case
+  number, court, dates, official links, a warning) are merged into the
+  local layer when their link targets exist; they carry no text.
+
+## Graph workspace and passage reviewer (candidates)
+
+These two surfaces arrived after 0.10.0 and are still candidates: they are
+tested, but they have not had the review the verifier had, and most of their
+interface is Spanish only.
+
+- **Layout engine.** The graph view asks a native binary, built from
+  `graphium/` (Rust, MIT), for node positions: `POST /grafo/graphium/layout`
+  and `POST /grafo/vault/layout`. The binary receives the node ids, kinds and
+  links on stdin and returns coordinates; it gets no article text. It runs as a
+  plain subprocess with a minimal environment and a 90-second limit, **not
+  inside bubblewrap**. The binary is a build artifact that is not committed:
+  without `python scripts/build_graphium.py` (Cargo required) or
+  `DIKE_GRAPHIUM_BINARY`, those routes answer 503 and the rest of the plugin
+  works. Nothing is compiled or downloaded at run time.
+- **Private notes.** `GET`/`POST /grafo/nota` read and write one Markdown note
+  per node in `<plugin-data>/dike/graph-notes/`. A note never changes the
+  corpus, the local layer or a vault document.
+- **Vault inventory (off by default).** If you create
+  `<plugin-data>/dike/graph-sources.json` with a vault root, `/grafo/red`,
+  `/grafo/nodo` and `/grafo/fuentes` list that folder's files and folders:
+  names and paths, never bodies. Node labels are file names, so they show
+  whatever your file names contain. `GET /grafo/vault/texto` returns a
+  document's text only when that file carries an anonymization approval bound
+  to its current SHA-256 in the same JSON; a changed file is refused.
+- **Passage reviewer.** `GET /reviewer/document` and `POST /reviewer/annotation`,
+  `/reviewer/export` and `/reviewer/proposal` annotate exact passages of an
+  approved vault document. Annotations live in
+  `<plugin-data>/dike/reviewer/passages.sqlite3` (directory `0700`, file
+  `0600`). A proposal is exported as pending and is never applied to the case
+  board. The reviewer records the author you type; it does not authenticate
+  anyone, and a reviewed passage is not a statement about its legal validity.
+  Its errors answer `detail: {"code": …}` (protocol `dike-reviewer/1`) rather
+  than the translated codes of the other routes.
+- Neither surface calls a model or the network.
 
 ## Caches
 

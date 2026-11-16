@@ -109,10 +109,10 @@ follows the app's theme.
   [docs/case-writer.md](docs/case-writer.md).
 - **Corpus graph.** A read-only 3D map of the statutes, their articles and their
   minimal normative units, each with a candidate label (obligation, prohibition,
-  permission…) from regex rules, plus the same lexical search.
-- **Case board.** The case's theory (facts, norms, hypotheses and gaps),
-  versioned, with every change attributed. The chat can propose updates; they
-  enter only when you accept them.
+  permission…) from regex rules, plus the same lexical search, and an optional local layer of
+  environmental rulings as metadata only, without their text.
+- **Case board.** The case's theory (facts, norms, hypotheses, gaps), versioned; each change
+  keeps its origin and reason, not the person. Chat proposals enter only when you accept them.
 - **Legal systems and settings.** Validates statute packs for other legal
   systems from a declarative profile; those packs cannot be citation-checked yet
   ([docs/legal-systems.md](docs/legal-systems.md)).
@@ -164,10 +164,10 @@ the code is organized: [docs/architecture.md](docs/architecture.md).
   Chile in August 2026. Every answer names it by `pack_hash` and gives each
   source's retrieval date. Absence is not proof: a citation the corpus cannot
   resolve may still exist in law.
-- **One citation per sentence or line.** If two citations sit on consecutive
-  lines without a period, a comma or a list bullet, the engine can attach the
-  first statute to the second citation. The plugin then refuses to certify it
-  and says why, instead of guessing.
+- **One citation per sentence or line.** If two citations sit on consecutive lines without a
+  period, a comma or a list bullet, the engine can attach the first statute to the second
+  citation; the plugin then refuses to certify it and says why. Ranges check only their first
+  article, and a `.docx` is read without its headers, footers or notes.
 - **What "integrity-checked" means.** Every call compares the installed corpus'
   file names, sizes and modification times with the install record, and
   re-hashes everything when they differ; a full SHA-256 also runs once per

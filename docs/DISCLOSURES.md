@@ -388,7 +388,10 @@ listed in "It writes"; no route writes outside plugin-data.
 
 - `/escrito` (`GET`, `POST`) and `/escrito/demo` (`GET`) — load and save the
   Case Writer brief of a case (including `registro.pizarra` for the case's
-  strategic board notes), or read the synthetic demo brief.
+  strategic board notes), or read a synthetic demo brief: `caso=laboral`
+  (default, `tests/fixtures/escrito_demo.md`, with the embedded fallback)
+  or `caso=ambiental` (`tests/fixtures/escrito_demo_ambiental.md`, no
+  fallback — a missing file answers 404); any other value answers 400.
 - `/preferencias` (`GET`, `POST`) — read and save user UI customization
   (paper theme, font, page width, default privacy strategy, layout toggles)
   to `<plugin-data>/dike/preferencias.json` (`0600`).
@@ -437,7 +440,8 @@ listed in "It writes"; no route writes outside plugin-data.
   boost does not help). If the tree files are missing or invalid the
   search still answers, with `arbol.disponible: false` and the reason.
 - `/grafo/fuentes` — lists the corpus and the optional local layer.
-- `/grafo/evidencia` — evidence snippet for one local-layer link.
+- `/grafo/evidencia` — evidence metadata for one local-layer link; the
+  snippet is served only up to 120 characters.
 - `/nif/*` — case-board CRUD via `scripts/panel.py` (writes under
   `<plugin-data>/dike/users`).
 
@@ -461,6 +465,13 @@ from a user-supplied anonymized database:
 - The output never ships with the plugin and contains nothing the user
   did not already put in that folder. The plugin itself carries no
   judgment data.
+- The backend serves the text of normative units only; judicial units,
+  and any unit whose class is not normative, come back without text
+  (`texto_omitido`), and evidence snippets longer than 120 characters are
+  omitted.
+- Metadata-only nodes from `data/ambiental/nodos_curados.json` (case
+  number, court, dates, official links, a warning) are merged into the
+  local layer when their link targets exist; they carry no text.
 
 ## Caches
 

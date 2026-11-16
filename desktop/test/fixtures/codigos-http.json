@@ -17,6 +17,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -24,6 +25,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -142,6 +144,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -150,6 +153,7 @@
       "GET /nif/snapshot",
       "POST /grafo/buscar",
       "POST /grafo/leer",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -185,6 +189,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -192,6 +197,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -354,12 +360,74 @@
     ]
   },
   {
+    "code": "GRAPH_ENGINE_UNAVAILABLE",
+    "en": "The Graphium layout engine is unavailable: {detail}",
+    "es": "El motor de layout Graphium no está disponible: {detail}",
+    "status": 503,
+    "routes": [
+      "POST /grafo/graphium/layout",
+      "POST /grafo/vault/layout"
+    ]
+  },
+  {
+    "code": "GRAPH_ID_FOREIGN",
+    "en": "An ID does not belong to this source.",
+    "es": "ID ajeno a la fuente.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/vault/layout"
+    ]
+  },
+  {
+    "code": "GRAPH_LAYOUT_INVALID",
+    "en": "The layout engine rejected the graph: {detail}",
+    "es": "El motor de layout rechazó el grafo: {detail}",
+    "status": 400,
+    "routes": [
+      "POST /grafo/graphium/layout",
+      "POST /grafo/vault/layout"
+    ]
+  },
+  {
+    "code": "GRAPH_PROJECTION_INVALID",
+    "en": "The graph projection is invalid.",
+    "es": "Proyección inválida.",
+    "status": 400,
+    "routes": [
+      "POST /grafo/vault/layout"
+    ]
+  },
+  {
     "code": "GRAPH_SOURCE_INVALID",
     "en": "Unknown graph source: {source}. Select corpus or ambiental.",
     "es": "fuente '{source}' no existe: solo 'corpus' y 'ambiental' están implementadas.",
     "status": 400,
     "routes": [
       "GET /grafo/red"
+    ]
+  },
+  {
+    "code": "GRAPH_SOURCE_NODE_NOT_FOUND",
+    "en": "That node is not in this source: {detail}",
+    "es": "Ese nodo no está en esta fuente: {detail}",
+    "status": 404,
+    "routes": [
+      "GET /grafo/nodo",
+      "GET /grafo/nota",
+      "POST /grafo/nota"
+    ]
+  },
+  {
+    "code": "GRAPH_SOURCE_REQUEST_INVALID",
+    "en": "The graph source rejected this request: {detail}",
+    "es": "La fuente del grafo rechazó la solicitud: {detail}",
+    "status": 400,
+    "routes": [
+      "GET /grafo/nota",
+      "GET /grafo/red",
+      "GET /grafo/vault/texto",
+      "POST /grafo/nota",
+      "POST /grafo/vault/layout"
     ]
   },
   {
@@ -432,8 +500,10 @@
     "status": 404,
     "routes": [
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/red",
-      "GET /grafo/unidad"
+      "GET /grafo/unidad",
+      "POST /grafo/nota"
     ]
   },
   {
@@ -443,8 +513,10 @@
     "status": 500,
     "routes": [
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/red",
-      "GET /grafo/unidad"
+      "GET /grafo/unidad",
+      "POST /grafo/nota"
     ]
   },
   {
@@ -453,7 +525,9 @@
     "es": "nodo no existe en la capa local.",
     "status": 404,
     "routes": [
-      "GET /grafo/nodo"
+      "GET /grafo/nodo",
+      "GET /grafo/nota",
+      "POST /grafo/nota"
     ]
   },
   {
@@ -462,7 +536,9 @@
     "es": "unidad no existe en la capa local.",
     "status": 404,
     "routes": [
-      "GET /grafo/unidad"
+      "GET /grafo/nota",
+      "GET /grafo/unidad",
+      "POST /grafo/nota"
     ]
   },
   {
@@ -480,7 +556,9 @@
     "es": "id inválido.",
     "status": 400,
     "routes": [
-      "GET /grafo/nodo"
+      "GET /grafo/nodo",
+      "GET /grafo/nota",
+      "POST /grafo/nota"
     ]
   },
   {
@@ -492,6 +570,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -499,12 +578,22 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
       "POST /nif/init",
       "POST /nif/seed",
       "POST /nif/validar"
+    ]
+  },
+  {
+    "code": "NOTE_VERSION_CONFLICT",
+    "en": "The note changed since you opened it. Reopen it before saving.",
+    "es": "La nota cambió; vuelve a abrirla antes de guardar.",
+    "status": 409,
+    "routes": [
+      "POST /grafo/nota"
     ]
   },
   {
@@ -534,6 +623,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -541,6 +631,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -631,6 +722,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -638,6 +730,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -700,6 +793,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -708,6 +802,7 @@
       "GET /nif/snapshot",
       "POST /grafo/buscar",
       "POST /grafo/leer",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -752,6 +847,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -759,6 +855,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -888,6 +985,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -895,6 +993,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -912,6 +1011,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -919,6 +1019,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -936,6 +1037,7 @@
       "GET /grafo/corpus",
       "GET /grafo/corpus/norma/{code}",
       "GET /grafo/nodo",
+      "GET /grafo/nota",
       "GET /grafo/personal",
       "GET /grafo/red",
       "GET /grafo/unidad",
@@ -943,6 +1045,7 @@
       "GET /nif/casos",
       "GET /nif/snapshot",
       "POST /grafo/buscar",
+      "POST /grafo/nota",
       "POST /nif/confianza",
       "POST /nif/edit",
       "POST /nif/gap",
@@ -967,6 +1070,15 @@
     "status": 400,
     "routes": [
       "POST /nif/edit"
+    ]
+  },
+  {
+    "code": "VAULT_TEXT_NOT_APPROVED",
+    "en": "This document's text needs an anonymization approval for its current version: {detail}",
+    "es": "El texto de este documento requiere una aprobación de anonimización para su versión actual: {detail}",
+    "status": 403,
+    "routes": [
+      "GET /grafo/vault/texto"
     ]
   }
 ]

@@ -25,6 +25,17 @@ function* archivos(dir) {
 const EXENTOS_LITERAL = new Set([
   'src/i18n.js',           // los diccionarios viven aquí
   'src/escritor/prediccion/l0.js', // plantillas y catálogo: contenido legal, no interfaz
+  // Visor Graphium y revisor de pasajes: candidatos integrados en español.
+  // Su interfaz todavía no pasa por i18n.js; sacar un archivo de esta lista
+  // es el criterio de terminado de esa migración.
+  'src/graph-node-editor.js',
+  'src/graph-workspace.js',
+  'src/graphium-canvas.js',
+  'src/graphium-data.js',
+  'src/graphium-renderer.js',
+  'src/reviewer.js',
+  'src/reviewer-session.js',
+  'src/reviewer-workspace.js',
 ])
 
 test('mismo conjunto de claves en en y es', () => {
@@ -107,6 +118,8 @@ test('sin literales de interfaz en español fuera de i18n.js y l0.js', () => {
       if (l.trim().startsWith('//')) return
       if (rel.endsWith('barra-formato.js') && /(?:label|texto): '(?:PRIMER OTROSÍ|SEGUNDO OTROSÍ|POR TANTO)/.test(l)) return
       if (rel.endsWith('pizarra-logica.js') && /titulo: /.test(l)) return
+      // El motivo queda en el historial del tablero NIF, que se escribe en español.
+      if (rel.endsWith('nif-propuestas.js') && /reason: 'Propuesta del Case Writer/.test(l)) return
       if (rel.endsWith('chat-logica.js') && /párrafos omitidos|'sí'/.test(l)) return
       if (rel.endsWith('prediccion/l2.js') && /(?:Continúa el texto|citas: si la continuación|Responde solo con la continuación)/.test(l)) return
       if (re.test(l.replace(/Diké/g, 'Dike'))) culpables.push(`${rel}:${i + 1}: ${l.trim().slice(0, 90)}`)

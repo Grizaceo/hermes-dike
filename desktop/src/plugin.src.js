@@ -1,6 +1,6 @@
 // Diké — mitad Desktop del paquete unificado (plugins/dike/desktop/plugin.js).
 // FUENTE: desktop/plugin.js se genera con `npm run build` en desktop/ (esbuild
-// empaqueta este archivo + grafo3d.js + three/3d-force-graph en un solo ESM).
+// empaqueta el editor y el visor Graphium de grafo3d.js en un solo ESM).
 // La app la copia a ~/.hermes/desktop-plugins/dike/ y la trata como un plugin
 // de disco opt-in: hay que activarla en Capabilities → Plugins. La página y la
 // fila de la barra llaman al mismo backend que la pestaña web
@@ -11,12 +11,13 @@
 
 import { host, PALETTE_AREA, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ESTILOS from '#dike-estilos'
 import { mensajeError, programarTimeout, rest, setRest, setStorage, setTimers, S } from './common.js'
 import { SeccionEscritor } from './escritor/escritor.js'
 import { PanelHerramientasGrafos } from './escritor/grafos-herramientas.js'
 import { SeccionGrafo } from './grafo3d.js'
+import { SeccionReviewer } from './reviewer-workspace.js'
 import { encolarCita, pedirFoco, tomarPestana } from './puente.js'
 import { anidarTextos, fijarIdioma, idiomaActual, t, useIdioma } from './i18n.js'
 
@@ -522,8 +523,16 @@ export default {
     function DikePage() {
       useIdioma() // re-render de la página entera al cambiar de idioma
       const [pestana, setPestana] = useState(() => tomarPestana() || 'escritor')
+      // El revisor puede tener un borrador sin guardar: su guarda decide si se
+      // puede salir de la pestaña.
+      const reviewerGuard = useRef(() => true)
+      const cambiarPestana = (id) => {
+        if (pestana === 'reviewer' && id !== pestana && !reviewerGuard.current()) return
+        setPestana(id)
+      }
       const pestanas = [
         ['escritor', t('shell.pestana.escritor')],
+        ['reviewer', t('shell.pestana.reviewer')],
         ['grafo', t('shell.pestana.grafo')],
         ['nif', t('shell.pestana.nif')],
         ['personalizacion', t('shell.pestana.personalizacion')],
@@ -553,7 +562,7 @@ export default {
           jsxs('div', {
             className: S.panel + ' flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 shrink-0',
             children: [
-              jsxs('div', { className: 'flex items-center gap-3', children: [
+              jsxs('div', { className: 'flex flex-wrap items-center gap-3', children: [
                 jsxs('div', { className: 'flex items-baseline gap-2', children: [
                   jsx('span', { className: 'text-base font-bold tracking-tight', children: 'Diké' }),
                   jsx('span', { className: S.sub + ' hidden md:inline', children: t('shell.subtitulo') }),
@@ -564,9 +573,10 @@ export default {
                     key: id,
                     type: 'button',
                     role: 'tab',
+                    'data-dike-tab': id,
                     'aria-selected': pestana === id,
                     className: S.tab,
-                    onClick: () => setPestana(id),
+                    onClick: () => cambiarPestana(id),
                     children: label,
                   })),
                 }),
@@ -591,6 +601,7 @@ export default {
           }),
 
           pestana === 'escritor' ? jsx(SeccionEscritor, { onAbrirGrafo }) : null,
+          pestana === 'reviewer' ? jsx(SeccionReviewer, { guardRef: reviewerGuard, onAbrirEscrito: () => cambiarPestana('escritor') }) : null,
           pestana === 'grafo' ? jsx(SeccionGrafo, { onLlevarAlEscrito }) : null,
           pestana === 'nif' ? jsx(SeccionNifPanel, {}) : null,
           pestana === 'personalizacion' ? jsx(SeccionPersonalizacionTerceros, {

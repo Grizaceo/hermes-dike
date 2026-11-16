@@ -42,7 +42,7 @@ import { PizarraEstrategica } from './pizarra.js'
 import { BarraFormato } from './barra-formato.js'
 import { PanelEscribeClaro } from './escribe-claro-panel.js'
 import { PanelHerramientasGrafos } from './grafos-herramientas.js'
-import { tomarCitas } from '../puente.js'
+import { insertarCitasPendientes } from '../puente.js'
 
 const BORRADOR = 'borrador'
 const DEBOUNCE_GUARDADO = 800
@@ -457,23 +457,8 @@ export function SeccionEscritor({ onAbrirGrafo }) {
         setEstadoDoc('guardado')
       }
       actualizarInfoDoc(ed)
-
-      // Citas encoladas desde otra pestaña (Grafo/NIF): se aplican recién
-      // cargado el caso, sin cursor del usuario — van al final, no al cursor.
-      const pendientes = tomarCitas()
-      if (pendientes.length) {
-        const ahora = new Date().toISOString()
-        const nuevas = []
-        for (const p of pendientes) {
-          const seguro = String(p.cita).replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          ed.chain().insertContentAt(ed.state.doc.content.size,
-            '<p>' + seguro + '.</p>').run()
-          nuevas.push({
-            cita: p.cita, gid: p.gid, nodo_id: p.nodo_id,
-            fecha: ahora, origen: 'busqueda',
-          })
-        }
+      const nuevas = insertarCitasPendientes(ed,cid)
+      if (nuevas.length) {
         const reg = registroRef.current
         registroRef.current = {
           ...reg, pistas: [...(reg.pistas || []), ...nuevas],

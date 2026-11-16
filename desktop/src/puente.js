@@ -19,15 +19,33 @@ export function encolarCita(item) {
     gid: typeof item.gid === 'string' ? item.gid : null,
     nodo_id: typeof item.nodo_id === 'string' ? item.nodo_id : null,
     label: typeof item.label === 'string' ? item.label : null,
+    ...(typeof item.case_id === 'string' ? {case_id:item.case_id} : {}),
+    ...(item.evidencia && typeof item.evidencia === 'object' ? {evidencia:structuredClone(item.evidencia)} : {}),
   })
   return true
 }
 
 // tomarCitas() -> array con todo lo encolado y vacía la cola.
-export function tomarCitas() {
-  const out = cola
-  cola = []
+export function tomarCitas(caseId) {
+  const out = caseId === undefined ? cola : cola.filter(p=>!p.case_id || p.case_id===caseId)
+  cola = caseId === undefined ? [] : cola.filter(p=>p.case_id && p.case_id!==caseId)
   return out
+}
+
+// Writer bridge shared by the actual Case Writer and browser acceptance.
+export function insertarCitasPendientes(ed,caseId){
+  const selected=cola.filter(p=>!p.case_id||p.case_id===caseId),nuevas=[],fecha=new Date().toISOString()
+  for(const p of selected){
+    const seguro=p.cita.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // The writer renders line breaks as hardBreak nodes; original CRLF and
+    // exact offsets remain in p.cita/registro and the EvidenceRef, never reused
+    // as offsets over the rendered editor text.
+    const content=p.evidencia?{type:'paragraph',content:p.cita.split(/\r\n|\r|\n/).flatMap((line,i)=>[...(i?[{type:'hardBreak'}]:[]),...(line?[{type:'text',text:line}]:[])])}:'<p>'+seguro+'.</p>'
+    if(!ed.chain().insertContentAt(ed.state.doc.content.size,content).run())throw Error('No se pudo insertar el pasaje; permanece en la cola.')
+    cola.splice(cola.indexOf(p),1)
+    nuevas.push({cita:p.cita,gid:p.gid,nodo_id:p.nodo_id,fecha,origen:p.evidencia?'reviewer':'busqueda',...(p.evidencia?{evidencia:p.evidencia,case_id:caseId}:{})})
+  }
+  return nuevas
 }
 
 // --- Foco del grafo (Chat/Notas → pestaña Grafo) --------------------------
@@ -66,7 +84,7 @@ export function tomarFoco() {
 // La usa el arnés de desarrollo (?tab=grafo) y cualquier futuro deep-link
 // «abrir Diké en tal pestaña»; en producción nadie la pide y devuelve null.
 
-const PESTANAS = new Set(['escritor', 'grafo', 'nif', 'personalizacion'])
+const PESTANAS = new Set(['escritor', 'reviewer', 'grafo', 'nif', 'personalizacion'])
 let pestana = null
 
 // pedirPestana(id) -> true si el id es una pestaña conocida.

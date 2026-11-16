@@ -378,7 +378,8 @@ Writer chat, NIF proposals and model prediction.
 
 The routes sit behind Hermes' own plugin routing and authentication; the
 plugin adds no authentication of its own. The `/grafo/*` and `/estado`
-routes are read-only. Three of them are `POST` precisely so that what you
+routes are read-only, except `POST /grafo/nota`, which writes your private
+note for a node (see "Graph workspace and passage reviewer"). Three of them are `POST` precisely so that what you
 typed never lands in access logs: `/grafo/buscar` (the query), `/grafo/leer`
 (the citation) and `/prediccion/corpus` (your last words). `/grafo/buscar`
 writes only the BM25 index cache described below; `POST /verificar` writes
@@ -473,6 +474,42 @@ from a user-supplied anonymized database:
 - Metadata-only nodes from `data/ambiental/nodos_curados.json` (case
   number, court, dates, official links, a warning) are merged into the
   local layer when their link targets exist; they carry no text.
+
+## Graph workspace and passage reviewer (candidates)
+
+These two surfaces arrived after 0.10.0 and are still candidates: they are
+tested, but they have not had the review the verifier had, and most of their
+interface is Spanish only.
+
+- **Layout engine.** The graph view asks a native binary, built from
+  `graphium/` (Rust, MIT), for node positions: `POST /grafo/graphium/layout`
+  and `POST /grafo/vault/layout`. The binary receives the node ids, kinds and
+  links on stdin and returns coordinates; it gets no article text. It runs as a
+  plain subprocess with a minimal environment and a 90-second limit, **not
+  inside bubblewrap**. The binary is a build artifact that is not committed:
+  without `python scripts/build_graphium.py` (Cargo required) or
+  `DIKE_GRAPHIUM_BINARY`, those routes answer 503 and the rest of the plugin
+  works. Nothing is compiled or downloaded at run time.
+- **Private notes.** `GET`/`POST /grafo/nota` read and write one Markdown note
+  per node in `<plugin-data>/dike/graph-notes/`. A note never changes the
+  corpus, the local layer or a vault document.
+- **Vault inventory (off by default).** If you create
+  `<plugin-data>/dike/graph-sources.json` with a vault root, `/grafo/red`,
+  `/grafo/nodo` and `/grafo/fuentes` list that folder's files and folders:
+  names and paths, never bodies. Node labels are file names, so they show
+  whatever your file names contain. `GET /grafo/vault/texto` returns a
+  document's text only when that file carries an anonymization approval bound
+  to its current SHA-256 in the same JSON; a changed file is refused.
+- **Passage reviewer.** `GET /reviewer/document` and `POST /reviewer/annotation`,
+  `/reviewer/export` and `/reviewer/proposal` annotate exact passages of an
+  approved vault document. Annotations live in
+  `<plugin-data>/dike/reviewer/passages.sqlite3` (directory `0700`, file
+  `0600`). A proposal is exported as pending and is never applied to the case
+  board. The reviewer records the author you type; it does not authenticate
+  anyone, and a reviewed passage is not a statement about its legal validity.
+  Its errors answer `detail: {"code": …}` (protocol `dike-reviewer/1`) rather
+  than the translated codes of the other routes.
+- Neither surface calls a model or the network.
 
 ## Caches
 

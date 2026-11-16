@@ -5,23 +5,30 @@ import re
 from types import SimpleNamespace
 
 import pytest
-from soporte_codigos_http import ROOT, inventario
+from soporte_codigos_http import ROOT, es_revisor, inventario
 from soporte_textos import cargar
 
 API = cargar('api_codigos_test', 'dashboard/plugin_api.py')
 TREE = ast.parse((ROOT / 'dashboard/plugin_api.py').read_text())
 ERRORES = [n for n in ast.walk(TREE) if isinstance(n, ast.Call)
            and isinstance(n.func, ast.Name) and n.func.id == 'HTTPException']
+REVISOR = {id(n) for f in TREE.body if isinstance(f, ast.FunctionDef) and es_revisor(f.name)
+           for n in ast.walk(f)}
 
 
 @pytest.mark.parametrize('llamada', ERRORES, ids=lambda n: str(n.lineno))
 def test_cada_error_tiene_codigo(llamada):
     kw = {k.arg: k.value for k in llamada.keywords}
+    if id(llamada) in REVISOR:
+        # Protocolo dike-reviewer/1: un código estable en un objeto.
+        assert isinstance(kw['detail'], ast.Dict)
+        assert [ast.literal_eval(k) for k in kw['detail'].keys] == ['code']
+        return
     valores = dict(clave='texto', esperado='text', campo='valor', fuente='otro',
                    e=ValueError('failure'), exc=SimpleNamespace(detalle='engine failure'),
                    rel_name='law.txt', bkey='activo', data={'error': 'engine failure'}, rev_actual=7)
     detalle = eval(compile(ast.Expression(kw['detail']), '<detalle>', 'eval'), API.__dict__, valores)
-    if ast.literal_eval(kw['status_code']) == 409:
+    if ast.literal_eval(kw['status_code']) == 409 and isinstance(detalle, dict):
         assert detalle == {'rev_actual': 7}
     else:
         assert re.match(r'^[A-Z][A-Z0-9_]+: ', detalle), detalle

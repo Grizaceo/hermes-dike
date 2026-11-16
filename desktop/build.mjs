@@ -1,6 +1,6 @@
 // Build del plugin Desktop: un solo ESM autocontenido en desktop/plugin.js.
 // El runtime loader de la app solo admite imports a @hermes/plugin-sdk y a
-// react*; todo lo demás (three, 3d-force-graph y sus dependencias) va en línea.
+// react*; el editor y el visor WebGL2 de Graphium se empaquetan en línea.
 // Tras compilar escribe BUNDLE.json con sha256 y versiones fijadas.
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,12 +27,6 @@ await build({
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
   ],
-  alias: {
-    // Solo se usan con forceEngine 'ngraph' (aquí siempre d3) y compilan con
-    // `new Function`, vetado por scripts/check_desktop_bundle.py.
-    'ngraph.graph': './src/ngraph-stub.js',
-    'ngraph.forcelayout': './src/ngraph-stub.js',
-  },
   logLevel: 'info',
 })
 
@@ -59,7 +53,8 @@ writeFileSync('BUNDLE.json', JSON.stringify({
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
   ],
-  stubbed: ['ngraph.graph', 'ngraph.forcelayout'],
+  stubbed: [],
+  graph_engine: 'graphium-rust',
   licenses: 'desktop/THIRD_PARTY_LICENSES.txt',
   check: 'python3 scripts/check_desktop_bundle.py',
 }, null, 2) + '\n')

@@ -15,9 +15,7 @@
     "@tiptap/core": "3.32.2",
     "@tiptap/extension-placeholder": "3.32.2",
     "@tiptap/pm": "3.32.2",
-    "@tiptap/starter-kit": "3.32.2",
-    "3d-force-graph": "1.79.0",
-    "three": "0.183.2"
+    "@tiptap/starter-kit": "3.32.2"
   },
   "devDependencies": {
     "@tailwindcss/node": "4.3.3",

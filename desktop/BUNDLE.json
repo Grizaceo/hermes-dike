@@ -1,7 +1,7 @@
 {
   "artifact": "desktop/plugin.js",
-  "sha256": "0afd091e7aa42a6acb5ae75ce991adbf96ad1b3cbed63455e1f76140d897630c",
-  "bytes": 4438486,
+  "sha256": "fadfdb9eb7c9110bf19dc07c6a1d27c5be344ff4c5885c8801dc0a467958b634",
+  "bytes": 1422798,
   "built_with": {
     "esbuild": "0.28.2"
   },
@@ -9,9 +9,7 @@
     "@tiptap/core": "3.32.2",
     "@tiptap/extension-placeholder": "3.32.2",
     "@tiptap/pm": "3.32.2",
-    "@tiptap/starter-kit": "3.32.2",
-    "3d-force-graph": "1.79.0",
-    "three": "0.183.2"
+    "@tiptap/starter-kit": "3.32.2"
   },
   "external": [
     "@hermes/plugin-sdk",
@@ -19,10 +17,8 @@
     "react/jsx-runtime",
     "react/jsx-dev-runtime"
   ],
-  "stubbed": [
-    "ngraph.graph",
-    "ngraph.forcelayout"
-  ],
+  "stubbed": [],
+  "graph_engine": "graphium-rust",
   "licenses": "desktop/THIRD_PARTY_LICENSES.txt",
   "check": "python3 scripts/check_desktop_bundle.py"
 }

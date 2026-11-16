@@ -184,6 +184,17 @@ function ruta(metodo, pathname, q, body) {
   if (metodo === 'POST' && pathname === '/grafo/nota') {
     return { content: String((body && body.content) || ''), version: 'mock', mode: 'annotation', source_unchanged: true }
   }
+  // Documentos locales del revisor: el arnés parte sin ninguno y acepta la forma.
+  if (metodo === 'GET' && pathname === '/reviewer/local') {
+    return { documents: [], unreadable: 0, types: ['.md', '.txt', '.docx'], max_file_bytes: 8388608, max_text_bytes: 2097152 }
+  }
+  if (metodo === 'POST' && pathname === '/reviewer/local') {
+    if (!body || typeof body.name !== 'string') throw errHttp(400, { detail: { code: 'INVALID_INPUT' } })
+    return { id: 'l:' + '0'.repeat(32), label: body.name, sha256: '0'.repeat(64), bytes: 0, added_at: '2026-01-01T00:00:00+00:00' }
+  }
+  if (metodo === 'POST' && pathname === '/reviewer/local/delete') {
+    return { removed: true, annotations_removed: 0 }
+  }
   if (metodo === 'GET' && pathname === '/grafo/vault/texto') {
     throw errHttp(403, { detail: 'VAULT_TEXT_NOT_APPROVED: This document\'s text needs an anonymization approval for its current version: mock' })
   }

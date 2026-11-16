@@ -28,6 +28,7 @@ app=FastAPI()
 # so filtering parent .routes by .path silently discards nested routers.
 # This preserves production APIRoute guards without exposing unrelated APIs.
 app.include_router(api._reviewer_router)
+app.include_router(api._reviewer_upload_router)
 for route in api.router.routes:
     if getattr(route,'path','') in {'/grafo/vault/texto','/escrito'}:app.router.routes.append(route)
 

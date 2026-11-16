@@ -13,6 +13,7 @@ adaptador sí permite por ``ruta``.
 from __future__ import annotations
 
 import asyncio
+import base64
 import hashlib
 import importlib.util
 import json
@@ -772,20 +773,24 @@ def _reviewer():
 
 
 class _ReviewerRoute(APIRoute):
+    max_body = 131072
+    body_seconds = 10
+
     def get_route_handler(self):
         handler = super().get_route_handler()
         async def guarded(request: Request):
             try:
                 chunks = []
                 size = 0
-                async with asyncio.timeout(10):
+                async with asyncio.timeout(self.body_seconds):
                     async for chunk in request.stream():
                         size += len(chunk)
-                        if size > 131072:
+                        if size > self.max_body:
                             return JSONResponse(status_code=413, content={'detail': {'code':'TOO_LARGE'}})
                         chunks.append(chunk)
                 request._body = b''.join(chunks)
-                if not _graph_json_complexity_ok(request._body):
+                # El barrido es un bucle de Python: fuera del event loop para los cuerpos grandes.
+                if not await asyncio.to_thread(_graph_json_complexity_ok, request._body):
                     return JSONResponse(status_code=413, content={'detail': {'code':'TOO_COMPLEX'}})
                 return await handler(request)
             except TimeoutError:
@@ -793,22 +798,43 @@ class _ReviewerRoute(APIRoute):
         return guarded
 
 
+# Archivo que la persona agrega desde su equipo: hasta 8 MiB en disco (un .docx
+# pesa mucho más que su texto), que en base64 dentro del JSON son unos 11 MiB.
+_REVIEWER_UPLOAD_BYTES = 8 * 1024 * 1024
+_REVIEWER_UPLOAD_TYPES = ('.md', '.txt', '.docx')
+
+
+class _ReviewerUploadRoute(_ReviewerRoute):
+    max_body = 12 * 1024 * 1024
+    body_seconds = 30
+
+
 _reviewer_router = APIRouter(route_class=_ReviewerRoute)
+_reviewer_upload_router = APIRouter(route_class=_ReviewerUploadRoute)
 
 
 def _reviewer_document(cid, source, ident):
     core = _reviewer()
     try:
         core.check_case(cid)
+        datos = _adaptador()._carpeta_de_datos()
+        if source == 'local':
+            # Documento que la persona agregó: se relee y se comprueba contra
+            # su hash en cada llamada, igual que el del vault.
+            return core.document(source, ident, core.LocalDocuments(datos).read(ident))
         if source != 'vault':
             raise PermissionError
         # Re-authorize current SHA-bound anonymization, even on export/reopen.
-        loaded = _sources().read_source(_adaptador()._carpeta_de_datos(), ident)
+        loaded = _sources().read_source(datos, ident)
         return core.document(source, ident, loaded['content'])
     except PermissionError:
         raise HTTPException(403, detail={'code':'DOCUMENT_DENIED'}) from None
     except FileNotFoundError:
         raise HTTPException(404, detail={'code':'DOCUMENT_MISSING'}) from None
+    except core.ReviewerError as exc:
+        if exc.code in ('STORE_CORRUPT', 'STORE_UNAVAILABLE'):
+            raise HTTPException(500 if exc.code == 'STORE_CORRUPT' else 503, detail={'code':exc.code}) from None
+        raise HTTPException(400, detail={'code':'INVALID_DOCUMENT_OR_CASE'}) from None
     except (ValueError, TypeError, OSError):
         raise HTTPException(400, detail={'code':'INVALID_DOCUMENT_OR_CASE'}) from None
 
@@ -849,6 +875,71 @@ def reviewer_save(body: dict):
     return _reviewer_action('save', body)
 
 
+def _reviewer_local_text(name, raw):
+    """Texto exacto de un archivo agregado: UTF-8 estricto, o el cuerpo de un .docx."""
+    core = _reviewer()
+    suffix = Path(name).suffix.lower()
+    if suffix not in _REVIEWER_UPLOAD_TYPES:
+        raise core.ReviewerError('UNSUPPORTED_TYPE')
+    if suffix == '.docx':
+        lector = _modulo_de_esta_copia('dike_lector_docx', _RAIZ / 'lector_docx.py')
+        try:
+            return lector.leer(raw, limite=core.MAX_BYTES)
+        except lector.DocxInvalido:
+            raise core.ReviewerError('INVALID_DOCX') from None
+    try:
+        # La marca de orden de bytes no es texto del documento.
+        return raw.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        raise core.ReviewerError('INVALID_TEXT') from None
+
+
+def _reviewer_local_error(exc):
+    status = {'TOO_LARGE':413, 'UNSUPPORTED_TYPE':415, 'NOT_FOUND':404, 'CASE_LIMIT':409,
+              'STORE_UNAVAILABLE':503, 'STORE_CORRUPT':500}.get(exc.code, 400)
+    return HTTPException(status, detail={'code':exc.code})
+
+
+@_reviewer_router.get('/reviewer/local')
+def reviewer_local_list():
+    core = _reviewer()
+    listado = core.LocalDocuments(_adaptador()._carpeta_de_datos()).list()
+    return {**listado, 'types': list(_REVIEWER_UPLOAD_TYPES), 'max_file_bytes': _REVIEWER_UPLOAD_BYTES,
+            'max_text_bytes': core.MAX_BYTES}
+
+
+@_reviewer_upload_router.post('/reviewer/local')
+def reviewer_local_add(body: dict):
+    core = _reviewer()
+    try:
+        if set(body) - {'name', 'data_b64'} or not isinstance(body.get('name'), str) or not isinstance(body.get('data_b64'), str):
+            raise core.ReviewerError('INVALID_INPUT')
+        try:
+            raw = base64.b64decode(body['data_b64'], validate=True)
+        except (ValueError, TypeError):
+            raise core.ReviewerError('INVALID_INPUT') from None
+        if len(raw) > _REVIEWER_UPLOAD_BYTES:
+            raise core.ReviewerError('TOO_LARGE')
+        docs = core.LocalDocuments(_adaptador()._carpeta_de_datos())
+        return docs.add(body['name'], _reviewer_local_text(docs._name(body['name']), raw))
+    except core.ReviewerError as exc:
+        raise _reviewer_local_error(exc) from None
+
+
+@_reviewer_router.post('/reviewer/local/delete')
+def reviewer_local_delete(body: dict):
+    """Quita el documento agregado y sus pasajes en todos los casos."""
+    core = _reviewer()
+    try:
+        if set(body) - {'id'}:
+            raise core.ReviewerError('INVALID_INPUT')
+        datos = _adaptador()._carpeta_de_datos()
+        core.LocalDocuments(datos).remove(body.get('id'))
+        return {'removed': True, 'annotations_removed': core.Store(datos).delete_document('local', body['id'])}
+    except core.ReviewerError as exc:
+        raise _reviewer_local_error(exc) from None
+
+
 @_reviewer_router.post('/reviewer/export')
 def reviewer_export(body: dict):
     return _reviewer_action('export', body)
@@ -861,6 +952,7 @@ def reviewer_proposal(body: dict):
 
 
 router.include_router(_reviewer_router)
+router.include_router(_reviewer_upload_router)
 
 
 _SOURCES_LOCK = threading.RLock()

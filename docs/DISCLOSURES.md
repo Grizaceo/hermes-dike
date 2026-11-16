@@ -464,7 +464,8 @@ from a user-supplied anonymized database:
   and `construccion.json` (counters).
 - The output never ships with the plugin and contains nothing the user
   did not already put in that folder. The plugin itself carries no
-  judgment data.
+  judgment text; it ships only the public metadata in
+  `data/ambiental/nodos_curados.json`.
 - The backend serves the text of normative units only; judicial units,
   and any unit whose class is not normative, come back without text
   (`texto_omitido`), and evidence snippets longer than 120 characters are

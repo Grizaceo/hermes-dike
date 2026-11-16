@@ -782,7 +782,12 @@ def _nif(args: list[str]) -> int:
         cid = _case_id(rest[0])
         if cid is None:
             return _fail("case_id inválido.")
-        _out(service.set_validated(cid, rest[1] in ("1", "true", "True")))
+        validar = rest[1] in ("1", "true", "True")
+        motivo = ("Marcado como validado desde el panel "
+                  "(sin identidad verificada)" if validar else
+                  "Marca de validación retirada desde el panel")
+        _out(service.user_edit(cid, "validated_by_human", validar,
+                               reason=motivo))
         return 0
 
     if op == "confidence":
@@ -795,7 +800,9 @@ def _nif(args: list[str]) -> int:
             value = float(rest[1])
         except ValueError:
             return _fail("confidence debe ser número.")
-        _out(service.set_confidence(cid, value))
+        value = max(0.0, min(1.0, value))
+        _out(service.user_edit(cid, "confidence", value,
+                               reason="Confianza ajustada desde el panel"))
         return 0
 
     return _fail(f"nif: operación desconocida '{op}'.")

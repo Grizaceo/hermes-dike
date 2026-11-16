@@ -93,6 +93,40 @@ def test_nif_edit_validate_confidence(panel):
     assert snap['snapshot']['version'] >= 4
 
 
+def test_nif_validate_motivo_sin_humano(panel):
+    """La marca de validación se registra sin identidad verificada."""
+    panel('nif', 'init', 'caso-val', 'Pregunta')
+    panel('nif', 'validate', 'caso-val', '1')
+    panel('nif', 'validate', 'caso-val', '0')
+    snap = panel('nif', 'snapshot', 'caso-val')
+    patches = snap['patches']['patches']
+    motivos = [p.get('reason', '') for p in patches
+               if p.get('field_path') == 'validated_by_human']
+    assert motivos == [
+        'Marcado como validado desde el panel (sin identidad verificada)',
+        'Marca de validación retirada desde el panel',
+    ]
+    assert all('humano' not in m for m in motivos)
+
+
+def test_nif_confidence_clampa_rango(panel):
+    """La confianza del panel queda limitada a [0, 1]."""
+    panel('nif', 'init', 'caso-conf', 'Pregunta')
+    alto = panel('nif', 'confidence', 'caso-conf', '1.8')
+    assert alto.get('success') is True, alto
+    snap = panel('nif', 'snapshot', 'caso-conf')
+    assert snap['snapshot']['nif']['confidence'] == 1.0
+    bajo = panel('nif', 'confidence', 'caso-conf', '-0.5')
+    assert bajo.get('success') is True, bajo
+    snap = panel('nif', 'snapshot', 'caso-conf')
+    assert snap['snapshot']['nif']['confidence'] == 0.0
+    patches = snap['patches']['patches']
+    motivos = [p.get('reason', '') for p in patches
+               if p.get('field_path') == 'confidence']
+    assert motivos == ['Confianza ajustada desde el panel'] * 2
+    assert all('humano' not in m for m in motivos)
+
+
 def test_nif_edit_json_invalido(panel):
     panel('nif', 'init', 'caso-3', 'Pregunta')
     out = panel('nif', 'edit', 'caso-3', 'facts.known', '{no-json')

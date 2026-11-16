@@ -34076,6 +34076,23 @@ function fromUTF16(text, offset) {
   if (offset > 0 && offset < text.length && /[\uD800-\uDBFF]/.test(text[offset - 1]) && /[\uDC00-\uDFFF]/.test(text[offset])) throw Error("INVALID_RANGE");
   return Array.from(text.slice(0, offset)).length;
 }
+function sourceOf(id) {
+  return typeof id === "string" && id.startsWith("l:") ? "local" : "vault";
+}
+function toBase64(bytes) {
+  let out = "";
+  for (let i2 = 0; i2 < bytes.length; i2 += 32768) out += String.fromCharCode.apply(null, bytes.subarray(i2, i2 + 32768));
+  return btoa(out);
+}
+var LOCAL_TYPES = [".md", ".txt", ".docx"];
+var LOCAL_MAX_BYTES = 8 * 1024 * 1024;
+function localFileProblem(name, size) {
+  const dot = String(name || "").lastIndexOf("."), ext = dot < 0 ? "" : String(name).slice(dot).toLowerCase();
+  if (!LOCAL_TYPES.includes(ext)) return "Solo se pueden agregar archivos .md, .txt o .docx. De un PDF u otro formato, guarda primero su texto.";
+  if (size > LOCAL_MAX_BYTES) return "El archivo supera los 8 MB.";
+  if (!size) return "El archivo est\xE1 vac\xEDo.";
+  return "";
+}
 var ReviewSession = class {
   constructor(api, onChange = () => {
   }) {
@@ -34096,7 +34113,7 @@ var ReviewSession = class {
     const epoch = ++this.epoch;
     this.update({ id, caseId, doc: null, draft: null, error: "", message: "", busy: true });
     try {
-      const doc3 = await this.api("/reviewer/document?id=" + encodeURIComponent(id) + "&case_id=" + encodeURIComponent(caseId));
+      const doc3 = await this.api("/reviewer/document?id=" + encodeURIComponent(id) + "&case_id=" + encodeURIComponent(caseId) + "&source=" + sourceOf(id));
       if (epoch === this.epoch) this.update({ doc: doc3 });
     } catch (e) {
       if (epoch === this.epoch) this.update({ error: String(e.message || e) });
@@ -34135,7 +34152,7 @@ var ReviewSession = class {
     const epoch = this.epoch;
     this.update({ busy: true, error: "", message: "" });
     try {
-      const a = await this.api("/reviewer/annotation", { method: "POST", body: { id, case_id: caseId, source_sha256: doc3.sha256, annotation: { ...draft, author, labels: [label] } } });
+      const a = await this.api("/reviewer/annotation", { method: "POST", body: { id, source: sourceOf(id), case_id: caseId, source_sha256: doc3.sha256, annotation: { ...draft, author, labels: [label] } } });
       if (epoch !== this.epoch) return false;
       this.update({ draft: null, doc: { ...doc3, annotations: [...doc3.annotations.filter((x) => x.annotation_id !== a.annotation_id), a] }, message: "Pasaje guardado; documento fuente intacto." });
       return true;
@@ -34153,7 +34170,7 @@ var ReviewSession = class {
     const epoch = this.epoch;
     this.update({ busy: true, error: "" });
     try {
-      const result = await this.api("/reviewer/" + op, { method: "POST", body: { id, case_id: caseId, source_sha256: doc3.sha256, annotation_id } });
+      const result = await this.api("/reviewer/" + op, { method: "POST", body: { id, source: sourceOf(id), case_id: caseId, source_sha256: doc3.sha256, annotation_id } });
       return epoch === this.epoch ? result : null;
     } catch (e) {
       if (epoch === this.epoch) this.update({ error: String(e.message || e) });
@@ -35601,6 +35618,67 @@ function SeccionReviewer({ guardRef, onAbrirEscrito }) {
       ++generation.current;
     };
   }, [load]);
+  const [locals, setLocals] = useState15([]), [localBusy, setLocalBusy] = useState15(false), [localError, setLocalError] = useState15(""), [localNote, setLocalNote] = useState15("");
+  const fileInput = useRef14(null), alive = useRef14(true);
+  const loadLocals = useCallback11(async () => {
+    try {
+      const data = await rest("/reviewer/local");
+      if (alive.current) {
+        setLocals(Array.isArray(data?.documents) ? data.documents : []);
+        if (data?.unreadable) setLocalNote(data.unreadable + " documento(s) guardado(s) no se pueden leer.");
+      }
+    } catch (e) {
+      if (alive.current) setLocalError(mensajeError(e));
+    }
+  }, []);
+  useEffect15(() => {
+    alive.current = true;
+    loadLocals();
+    return () => {
+      alive.current = false;
+    };
+  }, [loadLocals]);
+  const addLocal = async (file) => {
+    if (!file || localBusy) return;
+    setLocalError("");
+    setLocalNote("");
+    const problem = localFileProblem(file.name, file.size);
+    if (problem) {
+      setLocalError(problem);
+      return;
+    }
+    setLocalBusy(true);
+    try {
+      const data_b64 = toBase64(new Uint8Array(await file.arrayBuffer()));
+      const doc3 = await rest("/reviewer/local", { method: "POST", body: { name: file.name, data_b64 }, timeoutMs: 6e4 });
+      if (!alive.current) return;
+      await loadLocals();
+      setLocalNote("Agregado: " + doc3.label + ". Queda guardado en este equipo, dentro de los datos del plugin.");
+      if (guard.current()) setSelected({ id: doc3.id, label: doc3.label });
+    } catch (e) {
+      if (alive.current) setLocalError(mensajeError(e));
+    } finally {
+      if (alive.current) setLocalBusy(false);
+    }
+  };
+  const removeLocal = async (doc3) => {
+    if (localBusy || !window.confirm("\xBFQuitar \xAB" + doc3.label + "\xBB del revisor? Se borran su texto guardado y los pasajes anotados sobre \xE9l en todos los casos. Tu archivo original no se toca.")) return;
+    if (selected?.id === doc3.id && !guard.current()) return;
+    setLocalBusy(true);
+    setLocalError("");
+    setLocalNote("");
+    try {
+      const result = await rest("/reviewer/local/delete", { method: "POST", body: { id: doc3.id } });
+      if (!alive.current) return;
+      if (selected?.id === doc3.id) setSelected(null);
+      setLocalNote("Quitado: " + doc3.label + " \xB7 " + (result?.annotations_removed || 0) + " pasaje(s) borrado(s).");
+      await loadLocals();
+    } catch (e) {
+      if (alive.current) setLocalError(mensajeError(e));
+    } finally {
+      if (alive.current) setLocalBusy(false);
+    }
+  };
   const matches2 = useMemo3(() => {
     const q = query.trim().toLocaleLowerCase();
     return q ? documents.filter((n) => (n.label + " " + n.id).toLocaleLowerCase().includes(q)) : documents;
@@ -35621,6 +35699,20 @@ function SeccionReviewer({ guardRef, onAbrirEscrito }) {
     ] }),
     jsxs15("div", { style: { display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }, children: [
       jsxs15("aside", { style: { ...box, flex: "1 1 260px", maxWidth: 380 }, children: [
+        jsx15("h3", { style: { marginTop: 0, fontSize: 14 }, children: "Documentos de mi equipo" }),
+        jsx15("p", { style: { fontSize: 11, color: "var(--ui-text-secondary)" }, children: "Agrega un archivo .md, .txt o .docx. Su texto se copia a los datos del plugin en este equipo; no se env\xEDa a ning\xFAn modelo ni se anonimiza. Lo que lleves al escrito sigue las reglas de privacidad del escrito." }),
+        jsx15("input", { ref: fileInput, "data-reviewer-file": true, type: "file", accept: LOCAL_TYPES.join(","), style: { display: "none" }, onChange: (e) => {
+          const file = e.target.files && e.target.files[0];
+          e.target.value = "";
+          addLocal(file);
+        } }),
+        jsx15("button", { "data-reviewer-add": true, type: "button", style: button2, disabled: localBusy, onClick: () => fileInput.current && fileInput.current.click(), children: localBusy ? "Procesando\u2026" : "Agregar documento de mi equipo\u2026" }),
+        localError ? jsx15("div", { role: "alert", style: { fontSize: 12, marginTop: 8 }, children: localError }) : null,
+        localNote ? jsx15("div", { role: "status", style: { fontSize: 11, marginTop: 8 }, children: localNote }) : null,
+        jsx15("div", { "data-reviewer-locals": true, style: { maxHeight: 220, overflow: "auto", display: "flex", flexDirection: "column", gap: 5, margin: "8px 0 14px" }, children: locals.length ? locals.map((doc3) => jsxs15("div", { style: { display: "flex", gap: 5, alignItems: "stretch" }, children: [
+          jsx15("button", { "data-reviewer-document": doc3.id, type: "button", "aria-pressed": selected?.id === doc3.id, style: { ...button2, flex: 1, textAlign: "left", overflowWrap: "anywhere", borderColor: selected?.id === doc3.id ? "var(--ui-accent, Highlight)" : "var(--ui-stroke-secondary, ButtonBorder)" }, onClick: () => open(doc3), children: jsxs15("span", { children: [jsx15("strong", { children: doc3.label }), jsx15("small", { style: { display: "block" }, children: "agregado " + String(doc3.added_at || "").slice(0, 10) + " \xB7 " + Math.max(1, Math.round((doc3.bytes || 0) / 1024)) + " KB" })] }) }),
+          jsx15("button", { "data-reviewer-remove": doc3.id, type: "button", "aria-label": "Quitar " + doc3.label, title: "Quitar del revisor", style: button2, disabled: localBusy, onClick: () => removeLocal(doc3), children: "Quitar" })
+        ] }, doc3.id)) : jsx15("small", { style: { color: "var(--ui-text-secondary)" }, children: "Todav\xEDa no has agregado documentos." }) }),
         jsx15("h3", { style: { marginTop: 0, fontSize: 14 }, children: "Documentos de la vault conectada" }),
         jsx15("p", { style: { fontSize: 11, color: "var(--ui-text-secondary)" }, children: "Esta lista es un inventario de metadatos, no una autorizaci\xF3n. Cada apertura exige aprobaci\xF3n de anonimizaci\xF3n y hash vigente. Ambiental local y el corpus no habilitan texto en este revisor." }),
         jsx15("input", { "aria-label": "Buscar documento para revisar", style: { ...field2, width: "100%", boxSizing: "border-box" }, placeholder: "Buscar por t\xEDtulo o identificador", value: query, onChange: (e) => {
@@ -35637,7 +35729,7 @@ function SeccionReviewer({ guardRef, onAbrirEscrito }) {
           jsx15("button", { type: "button", style: button2, disabled: currentPage + 1 >= pageCount, onClick: () => setPage(currentPage + 1), children: "Siguiente" })
         ] })
       ] }),
-      jsx15("div", { style: { ...box, flex: "3 1 500px" }, children: selected ? jsxs15("div", { children: [jsx15("h3", { style: { marginTop: 0, fontSize: 15 }, children: selected.label }), jsx15(Reviewer, { id: selected.id, guardRef: guard }, selected.id)] }) : jsx15("p", { "data-reviewer-empty": true, children: "Elige un documento de la lista para comenzar. No se lee su contenido hasta que lo abras; si no est\xE1 autorizado, se bloquear\xE1 la lectura." }) })
+      jsx15("div", { style: { ...box, flex: "3 1 500px" }, children: selected ? jsxs15("div", { children: [jsx15("h3", { style: { marginTop: 0, fontSize: 15 }, children: selected.label }), jsx15(Reviewer, { id: selected.id, guardRef: guard }, selected.id)] }) : jsx15("p", { "data-reviewer-empty": true, children: "Agrega un documento de tu equipo o elige uno de la lista para comenzar. Un documento de la vault no se lee hasta que lo abras; si no est\xE1 autorizado, se bloquear\xE1 la lectura." }) })
     ] })
   ] });
 }

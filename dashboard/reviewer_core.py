@@ -12,7 +12,10 @@ import os
 from pathlib import Path
 import re
 import sqlite3
+import tempfile
+import unicodedata
 import uuid
+from datetime import datetime, timezone
 
 from .reviewer_vendor.models import AnnotationDocument, AnnotationLabel, SpanAnnotation, CASE_PREP_LABEL_CONFIG
 from .reviewer_vendor.io_evidence import build_evidence_span
@@ -20,6 +23,10 @@ from .reviewer_vendor.io_evidence import build_evidence_span
 PROTOCOL = 'dike-reviewer/1'
 MAX_BYTES = 2 * 1024 * 1024
 LABELS = tuple(CASE_PREP_LABEL_CONFIG['case_prep_lexo'])
+# Identificadores opacos por fuente: el del vault lo asigna el inventario; el de
+# un documento local es el SHA-256 de su texto (los primeros 32 hex).
+DOC_ID = {'vault': re.compile(r'v:[A-Za-z0-9_-]{1,100}'), 'local': re.compile(r'l:[0-9a-f]{32}')}
+MAX_LOCAL_DOCUMENTS = 500
 WARNING = 'Integridad del pasaje comprobada; no acredita vigencia ni validez jurídica.'
 
 
@@ -53,7 +60,7 @@ def from_utf16(text, offset):
 
 
 def document(source, ident, text):
-    if source != 'vault' or not isinstance(ident, str) or not re.fullmatch(r'v:[A-Za-z0-9_-]{1,100}', ident):
+    if source not in DOC_ID or not isinstance(ident, str) or not DOC_ID[source].fullmatch(ident):
         raise ReviewerError('INVALID_DOCUMENT')
     if not isinstance(text, str): raise ReviewerError('INVALID_TEXT')
     try: raw = text.encode('utf-8')
@@ -80,6 +87,99 @@ def validate(doc, body):
                          start_offset=start, end_offset=end,
                          labels=[AnnotationLabel(category='case_prep_lexo',value=x) for x in labels], status='approved')
     return ann
+
+
+class LocalDocuments:
+    """Documentos que la persona agregó desde su equipo, guardados como texto exacto.
+
+    El archivo original no se toca ni se recuerda su ruta: se guarda el texto ya
+    extraído, su SHA-256 y el nombre que traía. El identificador sale del texto,
+    así que agregar dos veces el mismo contenido da el mismo documento.
+    """
+
+    def __init__(self, data: Path):
+        self.dir = Path(data) / 'reviewer' / 'documentos'
+
+    def _path(self, ident):
+        if not isinstance(ident, str) or not DOC_ID['local'].fullmatch(ident):
+            raise ReviewerError('INVALID_DOCUMENT')
+        return self.dir / (ident[2:] + '.json')
+
+    @staticmethod
+    def _name(name):
+        if not isinstance(name, str): raise ReviewerError('INVALID_INPUT')
+        # Solo el nombre: una ruta que venga del cliente se descarta.
+        name = name.replace('\\', '/').rsplit('/', 1)[-1].strip()
+        if not name or len(name) > 200 or any(unicodedata.category(c).startswith('C') for c in name):
+            raise ReviewerError('INVALID_INPUT')
+        return name
+
+    def _load(self, path):
+        try:
+            item = json.loads(path.read_text(encoding='utf-8'))
+            text, sha = item['text'], item['sha256']
+            if (not isinstance(text, str) or not isinstance(item['name'], str)
+                    or hashlib.sha256(text.encode('utf-8')).hexdigest() != sha
+                    or path.name != sha[:32] + '.json'):
+                raise ValueError
+            return item
+        except FileNotFoundError:
+            raise
+        except (OSError, ValueError, KeyError, TypeError, UnicodeError):
+            raise ReviewerError('STORE_CORRUPT') from None
+
+    @staticmethod
+    def _meta(item):
+        return {'id': 'l:' + item['sha256'][:32], 'label': item['name'], 'sha256': item['sha256'],
+                'bytes': len(item['text'].encode('utf-8')), 'added_at': item.get('added_at')}
+
+    def add(self, name, text):
+        name = self._name(name)
+        if not isinstance(text, str) or not text.strip(): raise ReviewerError('INVALID_TEXT')
+        try: raw = text.encode('utf-8')
+        except UnicodeError: raise ReviewerError('INVALID_TEXT') from None
+        if len(raw) > MAX_BYTES: raise ReviewerError('TOO_LARGE')
+        sha = hashlib.sha256(raw).hexdigest()
+        path = self._path('l:' + sha[:32])
+        try:
+            self.dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+            os.chmod(self.dir.parent, 0o700); os.chmod(self.dir, 0o700)
+            if path.is_file():
+                return self._meta(self._load(path))
+            if sum(1 for _ in self.dir.glob('*.json')) >= MAX_LOCAL_DOCUMENTS:
+                raise ReviewerError('CASE_LIMIT')
+            item = {'protocol': PROTOCOL, 'name': name, 'sha256': sha, 'text': text,
+                    'added_at': datetime.now(timezone.utc).isoformat(timespec='seconds')}
+            fd, temp = tempfile.mkstemp(prefix='.doc-', dir=self.dir)
+            try:
+                with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+                    json.dump(item, handle, ensure_ascii=False); handle.flush(); os.fsync(handle.fileno())
+                os.chmod(temp, 0o600)
+                os.replace(temp, path)
+            finally:
+                if os.path.exists(temp): os.unlink(temp)
+        except OSError:
+            raise ReviewerError('STORE_UNAVAILABLE') from None
+        return self._meta(item)
+
+    def list(self):
+        documents, unreadable = [], 0
+        if self.dir.is_dir():
+            for path in sorted(self.dir.glob('*.json')):
+                try: documents.append(self._meta(self._load(path)))
+                except (ReviewerError, FileNotFoundError): unreadable += 1
+        documents.sort(key=lambda d: (d['added_at'] or '', d['id']), reverse=True)
+        return {'documents': documents, 'unreadable': unreadable}
+
+    def read(self, ident):
+        """Texto exacto; FileNotFoundError si no existe, STORE_CORRUPT si no coincide con su hash."""
+        return self._load(self._path(ident))['text']
+
+    def remove(self, ident):
+        path = self._path(ident)
+        try: path.unlink()
+        except FileNotFoundError: raise ReviewerError('NOT_FOUND') from None
+        except OSError: raise ReviewerError('STORE_UNAVAILABLE') from None
 
 
 class Store:
@@ -145,6 +245,13 @@ class Store:
             else:
                 db.execute('INSERT INTO annotations VALUES (?,?,?,?,?,?)',(cid,doc['source'],doc['doc_id'],ident,a['version'],json.dumps(a,ensure_ascii=False)))
         return a
+
+    def delete_document(self, source, doc_id):
+        """Borra los pasajes de un documento en todos los casos; devuelve cuántos."""
+        if source not in DOC_ID or not isinstance(doc_id, str) or not DOC_ID[source].fullmatch(doc_id):
+            raise ReviewerError('INVALID_DOCUMENT')
+        with self.connection() as db:
+            return db.execute('DELETE FROM annotations WHERE source=? AND doc_id=?', (source, doc_id)).rowcount
 
     def export(self, cid, doc, ident):
         a = next((a for a in self.list(cid, doc) if a['annotation_id']==ident),None)

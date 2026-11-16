@@ -517,6 +517,19 @@ interface is Spanish only.
   anyone, and a reviewed passage is not a statement about its legal validity.
   Its errors answer `detail: {"code": …}` (protocol `dike-reviewer/1`) rather
   than the translated codes of the other routes.
+- **Documents you add from your computer.** In the reviewer you can pick a
+  `.md`, `.txt` or `.docx` file (up to 8 MiB; a PDF is refused before it is
+  sent). The page reads the file and posts its bytes to `POST /reviewer/local`;
+  the plugin keeps the extracted text, its SHA-256 and the file's name in
+  `<plugin-data>/dike/reviewer/documentos/` (directory `0700`, files `0600`,
+  at most 2 MiB of text each). The original file is not modified and its path
+  is neither sent nor stored. **These documents are not anonymized or
+  pseudonymized**: the text is stored as it is, on this machine, and is not
+  sent to a model; a passage you carry into a brief then follows the brief's
+  own privacy step. A stored document is re-read and checked against its hash
+  on every call, and a file changed on disk is refused. `GET /reviewer/local`
+  lists them; `POST /reviewer/local/delete` removes the stored text and every
+  passage annotated on it, in all cases.
 - Neither surface calls a model or the network.
 
 ## Caches

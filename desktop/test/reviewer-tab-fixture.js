@@ -9,7 +9,9 @@ const api=async(path,opts={})=>{
  if(!response.ok)throw Error(data.detail?.code||JSON.stringify(data.detail))
  return data
 }
-plugin.register({rest:api,storage:{get:async()=>null,set:async()=>{}},registerMany:rows=>registrations.push(...rows)})
+// La página de main pide onDispose y lee el idioma guardado de forma síncrona;
+// el arnés la fija en español, que es lo que comprueba el E2E.
+plugin.register({rest:api,storage:{get:(k,d=null)=>k==='idioma'?'es':d,set:()=>{}},onDispose:()=>{},registerMany:rows=>registrations.push(...rows)})
 const page=registrations.find(x=>x.id==='page')
 window.fixture={calls,registrations:registrations.map(x=>x.id)}
 createRoot(document.getElementById('root')).render(page.render())

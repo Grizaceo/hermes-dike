@@ -296,11 +296,16 @@ function UnidadDetalle({ nodo, fuente }) {
   if (error) return jsx('div', { className: 'text-xs dk-mal', children: mensajeError(error) })
   if (!data) return jsx('div', { className: S.sub, children: t('graph.loading.unit.text') })
   return jsxs('div', { className: 'flex min-w-0 flex-col gap-1.5', children: [
-    jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
-      children: data.texto }),
-    jsx('div', { className: S.sub, children:
-      'offsets ' + data.char_start + '–' + data.char_end +
-      (data.articulo_url ? ' · ' : '') }),
+    data.texto_omitido
+      ? jsx('div', { className: 'rounded border border-(--ui-stroke-tertiary) bg-(--ui-bg-tertiary) p-1.5 text-xs text-(--ui-text-secondary)',
+          children: t('graph.text.withheld.metadata.only') })
+      : jsx('div', { className: 'max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-(--ui-stroke-tertiary) p-1.5 text-xs',
+          children: data.texto }),
+    (data.char_start != null && data.char_end != null)
+      ? jsx('div', { className: S.sub, children:
+          'offsets ' + data.char_start + '–' + data.char_end +
+          (data.articulo_url ? ' · ' : '') })
+      : null,
     data.articulo_url ? jsx('a', { className: S.link, href: data.articulo_url,
       target: '_blank', rel: 'noopener noreferrer', children: t('graph.source.article') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
@@ -325,8 +330,9 @@ function NodoDetalle({ nodo, fuente }) {
     data.vigencia && data.vigencia.estado ? jsx('div', { className: S.sub, children:
       t('graph.in.force.label') + etiquetaCodigo(data.vigencia.estado) +
       (data.vigencia.desde ? t('graph.from') + data.vigencia.desde : '') }) : null,
+    data.aviso ? jsx('div', { className: 'dk-aviso dk-aviso--aviso text-xs', children: data.aviso }) : null,
     data.url ? jsx('a', { className: S.link, href: data.url, target: '_blank', rel: 'noopener noreferrer',
-      children: t('graph.original.source') }) : null,
+      children: fuente === 'ambiental' ? t('graph.official.source') : t('graph.original.source') }) : null,
     data.sha256 ? jsx('div', { className: 'break-all font-mono text-xs text-(--ui-text-tertiary)',
       children: 'sha256 ' + data.sha256 }) : null,
   ] })
@@ -723,8 +729,9 @@ export function SeccionGrafo({ onLlevarAlEscrito }) {
     return m
   }, [aristas])
 
-  // En ambiental TODO va visible: artículos, unidades, sentencias y
-  // resoluciones. En corpus las unidades se traen por /grafo/unidades al clic.
+  // En ambiental van visibles los nodos de red (sentencias y resoluciones
+  // solo como metadatos: el texto no se exhibe); en corpus las unidades se
+  // traen por /grafo/unidades al clic.
   const proyeccion = useMemo(() => {
     const nodes = nodos.filter((n) => {
       if (fuente === 'ambiental') return n.tipo !== 'articulo' || !ocultarArts

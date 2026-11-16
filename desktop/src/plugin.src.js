@@ -200,6 +200,7 @@ function NifBoard({ caso, onCambio }) {
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
       jsx('span', {
         className: S.chip + ' ' + (nif.validated_by_human ? S.chipOk : S.chipOff),
+        title: t('nif.marca.title'),
         children: nif.validated_by_human ? t('nif.validado') : t('nif.sinValidar'),
       }),
       jsx('span', { className: S.sub, children:
@@ -486,7 +487,7 @@ export default {
   id: ID,
   name: 'Diké',
   description: 'Local Chilean citation checks, corpus graph and case board.',
-  defaultEnabled: true,
+  defaultEnabled: false,
 
   register(ctx) {
     setRest(ctx.rest)

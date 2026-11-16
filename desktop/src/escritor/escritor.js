@@ -653,14 +653,17 @@ export function SeccionEscritor({ onAbrirGrafo }) {
     }).then(() => recargarListaCasos('demo-panel')).catch(setError)
   }, [recargarListaCasos])
 
-  const cargarEscritoDemo = useCallback(() => {
+  const cargarEscritoDemo = useCallback((caso) => {
     const ed = editorRef.current
     if (!ed) return
-    rest('/escrito/demo').then((d) => {
+    const q = caso && caso !== 'laboral' ? '?caso=' + encodeURIComponent(caso) : ''
+    rest('/escrito/demo' + q).then((d) => {
       if (!montadoRef.current) return
       if (d && (d.html || d.texto)) {
         ed.commands.setContent(d.html || d.texto)
-        setAviso(t('writer.demo.brief.loaded.select.check.citations.to.try.the.engine'))
+        setAviso(caso === 'ambiental'
+          ? t('writer.demo.ambiental.loaded')
+          : t('writer.demo.brief.loaded.select.check.citations.to.try.the.engine'))
       }
     }).catch(setError)
   }, [])

@@ -194,6 +194,15 @@ function BarraFormatoImpl({
                 }),
                 jsx('button', {
                   type: 'button',
+                  onClick: () => {
+                    if (onCargarEscritoDemo) onCargarEscritoDemo('ambiental')
+                    setMenuArchivo(false)
+                  },
+                  className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
+                  children: [t('format.load.demo.ambiental')],
+                }),
+                jsx('button', {
+                  type: 'button',
                   onClick: importarArchivoLocal,
                   className: 'flex w-full items-center gap-2 px-3 py-2 text-left text-(--dk-texto-2) hover:bg-(--dk-sobre)',
                   children: [t('format.open.file.md.txt.html')],

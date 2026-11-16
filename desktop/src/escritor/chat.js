@@ -276,6 +276,12 @@ function ChatEscritorImpl({ editorRef, caseId, docInfo, verificacion,
             host.requestProfile(ruta, 'session.create', {
               profile: perfilObjetivo, title: titulo,
               hidden: true, follow_profile_config: true,
+              // Sin memoria del perfil: con ignore_rules Hermes no inicia el
+              // proveedor de memoria (Hindsight u otro) ni carga MEMORY.md,
+              // SOUL.md ni AGENTS.md en esta sesión. Lo conversado sobre un
+              // caso no queda disponible para otras sesiones del perfil; las
+              // instrucciones del chat las ponen los hooks del plugin.
+              ignore_rules: true,
             }, TIMEOUT_RPC))
           // el create canónico siempre sale como 'gui'; el resume intenta
           // re-etiquetar, pero la marca real que leen los hooks es el sobre

@@ -213,6 +213,14 @@ turn on model prediction.
   (`host.requestProfile`: `session.list`, `session.create`,
   `session.resume`, `prompt.submit`, `session.interrupt`), so it does not
   appear in the Sessions sidebar.
+- **Without the profile's memory.** A new chat session is created with
+  `ignore_rules`, so Hermes does not start the profile's memory provider for
+  it, and does not load `MEMORY.md`, `SOUL.md` or `AGENTS.md`: what you
+  discuss about one case is not retained for the profile's other sessions.
+  A chat session created by an earlier version keeps the policy it was
+  created with: the change applies to cases whose chat opens from now on.
+  This rests on Hermes' own session policy and was checked by reading
+  `gateway/session_execution.py`, not by observing a memory store.
 - **What is sent per turn.** Your question, wrapped in a
   `<dike-escritor v="1">` envelope with the brief (in full on the first
   turn or when more than 40 % of its paragraphs changed, otherwise only

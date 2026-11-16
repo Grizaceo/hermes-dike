@@ -27385,7 +27385,13 @@ function ChatEscritorImpl({
             profile: perfilObjetivo,
             title: titulo,
             hidden: true,
-            follow_profile_config: true
+            follow_profile_config: true,
+            // Sin memoria del perfil: con ignore_rules Hermes no inicia el
+            // proveedor de memoria (Hindsight u otro) ni carga MEMORY.md,
+            // SOUL.md ni AGENTS.md en esta sesión. Lo conversado sobre un
+            // caso no queda disponible para otras sesiones del perfil; las
+            // instrucciones del chat las ponen los hooks del plugin.
+            ignore_rules: true
           }, TIMEOUT_RPC));
           const rid = s && (s.session_id || s.info && s.info.session_id);
           if (rid) {

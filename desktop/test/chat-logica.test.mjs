@@ -265,3 +265,14 @@ test('cargaEvento lee el payload del contrato actual del gateway', () => {
   assert.equal(cargaEvento({ type: 'message.delta', session_id: 's1', text: 'a', offset: 0 }).text, 'a')
   assert.deepEqual(cargaEvento(null), {})
 })
+
+test('el chat del escrito se crea sin la memoria del perfil', async () => {
+  // Contrato de fuente: chat.js es un componente y no corre en node --test.
+  // La sesión nueva debe pedir ignore_rules, que en Hermes omite el proveedor
+  // de memoria y los archivos de contexto (gateway/session_execution.py).
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(new URL('../src/escritor/chat.js', import.meta.url), 'utf8')
+  const create = /'session\.create',\s*\{([\s\S]*?)\},\s*TIMEOUT_RPC/.exec(src)
+  assert.ok(create, 'no se encontró la llamada session.create')
+  assert.match(create[1], /\bignore_rules:\s*true\b/)
+})
